@@ -2,7 +2,7 @@ import { addUserCreating, addUserModifying, GetSessionDataDto, Post<%= className
 import {
   Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put
 } from '@nestjs/common';
-import { ReqUser } from '../authorization/user.decorator';
+import { ReqUser } from '../auth/user.decorator';
 import { <%= className %>sService } from './<%= fileName %>s.service';
 
 @Controller('<%= fileName %>s')

@@ -1,5 +1,5 @@
 import { IEntityBase } from "../utils/entity-base.interface";
 
 export interface I<%= className %> extends IEntityBase {
-
+  name: string;
 }

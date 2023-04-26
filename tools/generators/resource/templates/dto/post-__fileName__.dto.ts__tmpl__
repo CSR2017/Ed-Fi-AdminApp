@@ -4,5 +4,7 @@ import { IsDefined, IsOptional, Equals, NotEquals, IsEmpty, IsNotEmpty, IsIn, Is
 import { Exclude, Expose, Type, Transform } from "class-transformer";
 
 export class Post<%= className %>Dto extends DtoPostBase implements PostDto<I<%= className %>> {
-
+  @Expose()
+  @IsString()
+  name: string;
 }

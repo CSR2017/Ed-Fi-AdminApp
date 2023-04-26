@@ -4,5 +4,7 @@ import { IsDefined, IsOptional, Equals, NotEquals, IsEmpty, IsNotEmpty, IsIn, Is
 import { Exclude, Expose, Type, Transform } from "class-transformer";
 
 export class Put<%= className %>Dto extends DtoPutBase implements PutDto<I<%= className %>> {
-
+  @Expose()
+  @IsString()
+  name: string;
 }
