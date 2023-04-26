@@ -103,34 +103,30 @@ There are two major chunks of this repo that shouldn't necessarily make it into 
 1. Go to [packages/api/src/database/demo-populate.ts](packages/api/src/database/demo-populate.ts).
 1. Hit <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> or use the sidebar to open the `Run and Debug` pane.
 1. In the dropdown at the top, select `ts-node`, and with the `demo-populate.ts` file open, hit the green run arrow. A new console should open, and you'll have to respond to a couple of prompts.
-1. Go to the `Nx Console` pane on the left, and under the `Generate & Run Target` section click `serve`.
-
-- Choose either `fe` or `api` and click the first option starting with `Execute...`.
-- Then do it again and choose the other `fe` or `api` option.
-
+1. Go to the `Nx Console` pane on the left, and under the `Generate & Run Target` section click `serve` (you may have to use the small &#8635; button to the right of that heading).
+   - Choose either `fe` or `api` and click the first option starting with `Execute...`.
+   - Then do it again and choose the other `fe` or `api` option.
 1. Start up the keycloak server from https://github.com/edanalytics/keycloak_local_idp_se.
 1. Log into Keycloak as the admin and get the client secret as described in [that repo's Readme](https://github.com/edanalytics/keycloak_local_idp_se#what-am-i-supposed-to-do-with-this), and paste it into [packages/api/src/environments/environment.local.ts](packages/api/src/environments/environment.local.ts).
 1. See the running things:
-
-- Front-end app at http://localhost:4200 (will take you through the login process).
-- OpenAPI doc from back-end at http://localhost:3333/api (this is a public route).
+   - Front-end app at http://localhost:4200.
+     - If you want to launch it in debugging mode in order to use breakpoints on FE code, run the `Launch Client` debug configuration.
+   - OpenAPI doc from back-end at http://localhost:3333/api (this is a public route).
 
 **Run storybook:**
 
 1. Go to the `Nx Console` pane on the left, and under the `Generate & Run Target` section click `storybook`.
-
-- Choose `common-ui` from the options and click the option starting with `Execute...`.
+   - Choose `common-ui` from the options and click the option starting with `Execute...`.
 
 **Run the Resource generator:**
 
 1. Go to the `Nx Console` pane on the left, and under the `Generate & Run Target` section click `generate`.
 
-- Scroll all the way down the resulting options and choose `workspace generator - resource`.
+   - Scroll all the way down the resulting options and choose `workspace generator - resource`.
 
 1. You'll get a form with a `Name` input and many checkboxes. The checkboxes control which parts of the generator run. Example use cases:
-
-- You've written an entity and its corresponding interface and DTOs in the Models package, and you want to generate the rest of the code but leave your models as they are. For this just uncheck the `modelFiles` box.
-- <b color="red">!IMPORTANT!</b> There's no elaborate "smart" behavior to do _other_ things differently when you turn one piece of the generator off &mdash; it just skips that part and assumes in the other parts that those artifacts already exist. For example, it will happily generate a bunch of UI pages for models that don't exist, or queries for API routes that don't exist.
+   - You've written an entity and its corresponding interface and DTOs in the Models package, and you want to generate the rest of the code but leave your models as they are. For this just uncheck the `modelFiles` box.
+   - <b color="red">!IMPORTANT!</b> There's no elaborate "smart" behavior to do _other_ things differently when you turn one piece of the generator off &mdash; it just skips that part and assumes in the other parts that those artifacts already exist. For example, it will happily generate a bunch of UI pages for models that don't exist, or queries for API routes that don't exist.
 
 ### Recommended usage of the generator
 

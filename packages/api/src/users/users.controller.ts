@@ -40,30 +40,30 @@ export class UsersController {
     return toGetUserDto(await this.userService.findAll());
   }
 
-  @Get(':id')
-  async findOne(@Param('id', new ParseIntPipe()) id: number) {
-    return toGetUserDto(await this.userService.findOne(+id));
+  @Get(':userId')
+  async findOne(@Param('userId', new ParseIntPipe()) userId: number) {
+    return toGetUserDto(await this.userService.findOne(+userId));
   }
 
-  @Put(':id')
+  @Put(':userId')
   async update(
-    @Param('id', new ParseIntPipe()) id: number,
+    @Param('userId', new ParseIntPipe()) userId: number,
     @Body() updateUserDto: PutUserDto,
     @ReqUser() session: GetSessionDataDto
   ) {
     return toGetUserDto(
       await this.userService.update(
-        id,
+        userId,
         addUserModifying(updateUserDto, session.user)
       )
     );
   }
 
-  @Delete(':id')
+  @Delete(':userId')
   remove(
-    @Param('id', new ParseIntPipe()) id: number,
+    @Param('userId', new ParseIntPipe()) userId: number,
     @ReqUser() session: GetSessionDataDto
   ) {
-    return this.userService.remove(+id, session.user);
+    return this.userService.remove(+userId, session.user);
   }
 }
