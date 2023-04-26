@@ -1,5 +1,5 @@
 import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ConfirmAction } from '@ts-app-base-se/common-ui';
+import { ConfirmAction } from '@edanalytics/common-ui';
 import { useNavigate, useParams, useSearch } from '@tanstack/router';
 import { BiEdit, BiTrash } from 'react-icons/bi';
 import { useDeleteUser, useUsers } from '../../api';

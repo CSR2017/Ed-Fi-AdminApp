@@ -1,4 +1,4 @@
-import { User } from '@ts-app-base-se/models';
+import { User } from '@edanalytics/models';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';

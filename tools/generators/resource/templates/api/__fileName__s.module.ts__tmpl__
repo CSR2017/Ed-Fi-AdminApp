@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { <%= className %>sService } from './<%= fileName %>s.service';
 import { <%= className %>sController } from './<%= fileName %>s.controller';
-import { <%= className %> } from '@ts-app-base-se/models';
+import { <%= className %> } from '@edanalytics/models';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({

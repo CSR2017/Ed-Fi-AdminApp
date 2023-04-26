@@ -5,7 +5,7 @@ import {
   Post<%= className %>Dto,
   Put<%= className %>Dto,
   <%= className %>,
-} from '@ts-app-base-se/models';
+} from '@edanalytics/models';
 import { Repository } from 'typeorm';
 
 @Injectable()

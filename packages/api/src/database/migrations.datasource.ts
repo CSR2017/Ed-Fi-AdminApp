@@ -1,4 +1,4 @@
-import { User } from '@ts-app-base-se/models';
+import { User } from '@edanalytics/models';
 import { DataSource } from 'typeorm';
 import typeormConfig from './typeorm.config';
 

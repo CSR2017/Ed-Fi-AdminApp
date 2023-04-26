@@ -1,7 +1,7 @@
 import { Link } from '@chakra-ui/react';
 import { Link as RouterLink, Route, useParams } from '@tanstack/router';
 import { UseQueryResult } from '@tanstack/react-query';
-import { Get<%= className %>Dto } from '@ts-app-base-se/models';
+import { Get<%= className %>Dto } from '@edanalytics/models';
 import { mainLayoutRoute } from '.';
 import { getRelationDisplayName } from '../helpers';
 import { use<%= className %>s } from '../api';

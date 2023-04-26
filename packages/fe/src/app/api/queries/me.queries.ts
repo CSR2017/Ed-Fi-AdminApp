@@ -1,4 +1,4 @@
-import { GetSessionDataDto, GetUserDto, PutUserDto } from '@ts-app-base-se/models';
+import { GetSessionDataDto, GetUserDto, PutUserDto } from '@edanalytics/models';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { methods } from '../methods';
 

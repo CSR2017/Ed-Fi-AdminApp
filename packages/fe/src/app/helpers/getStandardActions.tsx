@@ -1,5 +1,5 @@
 import { Icon } from '@chakra-ui/react';
-import { ConfirmAction } from '@ts-app-base-se/common-ui';
+import { ConfirmAction } from '@edanalytics/common-ui';
 import { MutateOptions } from '@tanstack/react-query';
 import { AnyRoute, Link } from '@tanstack/router';
 import { AxiosResponse } from 'axios';

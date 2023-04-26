@@ -5,7 +5,7 @@ import {
   PostUserDto,
   PutUserDto,
   toGetUserDto,
-} from '@ts-app-base-se/models';
+} from '@edanalytics/models';
 import {
   Body,
   Controller,

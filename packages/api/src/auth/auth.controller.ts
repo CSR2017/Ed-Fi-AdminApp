@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 
-import { toGetSessionDataDto } from '@ts-app-base-se/models';
+import { toGetSessionDataDto } from '@edanalytics/models';
 import { LocalAuthGuard } from './local-auth.guard';
 import { OidcAuthGuard } from './oidc-auth.guard';
 import { Public } from './public.decorator';

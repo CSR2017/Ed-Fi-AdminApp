@@ -257,7 +257,7 @@ export default async function (tree: Tree, schema: ResourceSchema) {
     // import entity
     typeormConfig = tsquery.replace(
       typeormConfig,
-      `ImportDeclaration:has(StringLiteral[value="@ts-app-base-se/models"])
+      `ImportDeclaration:has(StringLiteral[value="@edanalytics/models"])
           NamedImports`,
       (node) => {
         return node
@@ -297,7 +297,7 @@ export default async function (tree: Tree, schema: ResourceSchema) {
     let populate = tree.read(populatePath)!.toString();
     populate = tsquery.replace(
       populate,
-      `ImportDeclaration:has(StringLiteral[value="@ts-app-base-se/models"])
+      `ImportDeclaration:has(StringLiteral[value="@edanalytics/models"])
           NamedImports`,
       (node) => {
         return node

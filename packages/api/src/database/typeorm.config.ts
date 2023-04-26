@@ -1,6 +1,6 @@
 import {
   User,
-} from '@ts-app-base-se/models';
+} from '@edanalytics/models';
 import { DataSourceOptions } from 'typeorm';
 
 const config: DataSourceOptions = {

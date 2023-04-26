@@ -1,5 +1,5 @@
 import { ChakraProvider } from '@chakra-ui/react';
-import { theme } from '@ts-app-base-se/common-ui';
+import { theme } from '@edanalytics/common-ui';
 import {
   QueryClient,
   QueryClientProvider,

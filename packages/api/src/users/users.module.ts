@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
-import { User } from '@ts-app-base-se/models';
+import { User } from '@edanalytics/models';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({

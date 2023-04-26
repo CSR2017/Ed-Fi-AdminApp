@@ -8,8 +8,8 @@ const noInteraction = !!(program.opts()?.noInteraction)
 import {
   GlobalRole,
   User
-} from '@ts-app-base-se/models';
-import { generateFake } from '@ts-app-base-se/utils';
+} from '@edanalytics/models';
+import { generateFake } from '@edanalytics/utils';
 import { faker } from '@faker-js/faker';
 import { execSync } from 'child_process';
 import colors from 'colors/safe';

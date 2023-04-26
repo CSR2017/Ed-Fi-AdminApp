@@ -17,9 +17,9 @@
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
-      "@ts-app-base-se/common-ui": ["packages/common-ui/src/index.ts"],
-      "@ts-app-base-se/models": ["packages/models/src/index.ts"],
-      "@ts-app-base-se/utils": ["packages/utils/src/index.ts"]
+      "@edanalytics/common-ui": ["packages/common-ui/src/index.ts"],
+      "@edanalytics/models": ["packages/models/src/index.ts"],
+      "@edanalytics/utils": ["packages/utils/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"],
@@ -28,9 +28,9 @@
       "experimentalDecorators": true,
       "module": "commonjs",
       "paths": {
-        "@ts-app-base-se/common-ui": ["packages/common-ui/src/index.ts"],
-        "@ts-app-base-se/models": ["packages/models/src/index.ts"],
-        "@ts-app-base-se/utils": ["packages/utils/src/index.ts"]
+        "@edanalytics/common-ui": ["packages/common-ui/src/index.ts"],
+        "@edanalytics/models": ["packages/models/src/index.ts"],
+        "@edanalytics/utils": ["packages/utils/src/index.ts"]
       }
     },
     "exclude": ["node_modules", "tmp"]

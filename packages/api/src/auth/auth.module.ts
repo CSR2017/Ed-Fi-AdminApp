@@ -1,4 +1,4 @@
-import { User } from '@ts-app-base-se/models';
+import { User } from '@edanalytics/models';
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';

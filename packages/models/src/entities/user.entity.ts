@@ -1,4 +1,4 @@
-import { enumValues, FakeMeUsing } from '@ts-app-base-se/utils';
+import { enumValues, FakeMeUsing } from '@edanalytics/utils';
 import { faker } from '@faker-js/faker';
 import { Type } from 'class-transformer';
 import {

@@ -41,7 +41,7 @@ import {
   Tooltip,
   VStack
 } from '@chakra-ui/react';
-import { Put<%= className %>Dto } from '@ts-app-base-se/models';
+import { Put<%= className %>Dto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useNavigate, useParams } from '@tanstack/router';
 import { useForm } from 'react-hook-form';

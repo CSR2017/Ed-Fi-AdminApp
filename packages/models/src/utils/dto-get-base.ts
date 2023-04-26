@@ -1,4 +1,4 @@
-import { stdDetailed, stdShort } from '@ts-app-base-se/utils';
+import { stdDetailed, stdShort } from '@edanalytics/utils';
 import { Expose, Type } from 'class-transformer';
 import { IUser } from '../interfaces/user.interface';
 import { IEntityBase } from './entity-base.interface';

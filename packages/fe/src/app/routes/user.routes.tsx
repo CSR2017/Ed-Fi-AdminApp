@@ -1,5 +1,5 @@
 import { Link } from '@chakra-ui/react';
-import { GetUserDto } from '@ts-app-base-se/models';
+import { GetUserDto } from '@edanalytics/models';
 import { UseQueryResult } from '@tanstack/react-query';
 import { Link as RouterLink, Route, useParams } from '@tanstack/router';
 import { mainLayoutRoute } from '.';

@@ -1,4 +1,4 @@
-import { GetUserDto, PostUserDto, PutUserDto } from '@ts-app-base-se/models';
+import { GetUserDto, PostUserDto, PutUserDto } from '@edanalytics/models';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosResponse } from 'axios';
 import { methods } from '../methods';

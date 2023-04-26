@@ -1,5 +1,5 @@
 import { Heading, HStack } from '@chakra-ui/react';
-import { DataTable } from '@ts-app-base-se/common-ui';
+import { DataTable } from '@edanalytics/common-ui';
 import { useUsers, useDeleteUser } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { StandardRowActions } from '../../helpers/getStandardActions';
