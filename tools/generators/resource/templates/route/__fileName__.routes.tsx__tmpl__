@@ -1,0 +1,66 @@
+import { Link } from '@chakra-ui/react';
+import { Link as RouterLink, Route, useParams } from '@tanstack/router';
+import { UseQueryResult } from '@tanstack/react-query';
+import { Get<%= className %>Dto } from '@ts-app-base-se/models';
+import { mainLayoutRoute } from '.';
+import { getRelationDisplayName } from '../helpers';
+import { use<%= className %>s } from '../api';
+import { <%= className %>Page } from '../Pages/<%= className %>/<%= className %>Page';
+import { <%= className %>sPage } from '../Pages/<%= className %>/<%= className %>sPage';
+
+export const <%= propertyName %>sRoute = new Route({
+  getParentRoute: () => mainLayoutRoute,
+  path: '<%= fileName %>s',
+  getContext: ({ params }) => ({
+    breadcrumb: () => ({ title: () => '<%= className %>s', params }),
+  }),
+});
+
+export const <%= propertyName %>sIndexRoute = new Route({
+  getParentRoute: () => <%= propertyName %>sRoute,
+  path: '/',
+  component: <%= className %>sPage,
+});
+
+const <%= className %>Breadcrumb = () => {
+  const params = useParams({ from: <%= propertyName %>Route.id });
+  const <%= propertyName %> = use<%= className %>s();
+  return <%= propertyName %>.data?.[params.<%= propertyName %>Id]?.displayName ?? params.<%= propertyName %>Id;
+};
+
+export const <%= propertyName %>Route = new Route({
+  getParentRoute: () => <%= propertyName %>sRoute,
+  path: '$<%= propertyName %>Id',
+  validateSearch: (search): { edit?: boolean } =>
+    typeof search.edit === 'boolean'
+      ? { edit: search.edit }
+      : {},
+  getContext: ({ params }) => {
+    return {
+      breadcrumb: () => ({ title: <%= className %>Breadcrumb, params }),
+    };
+  },
+});
+
+export const <%= propertyName %>IndexRoute = new Route({
+  getParentRoute: () => <%= propertyName %>Route,
+  path: '/',
+  component: <%= className %>Page,
+});
+
+export const <%= className %>Link = (props: {
+  id: number|undefined;
+  query: UseQueryResult<Record<string | number, Get<%= className %>Dto>, unknown>;
+}) => (
+  <Link as='span'>
+    <RouterLink
+      title="Go to <%= propertyName %>"
+      to={<%= propertyName %>Route.fullPath}
+      params={{
+          <%= propertyName %>Id: String(props.id),
+      }}
+    >
+      {getRelationDisplayName(props.id, props.query)}
+    </RouterLink>
+  </Link>
+);

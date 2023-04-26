@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "cli": "nx",
+  "$id": "resource",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Resource name",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      }
+    },
+    "modelFiles": {
+      "type": "boolean",
+      "default": true,
+      "x-prompt": "Do you want to generate the shared model and derivative DTOs?"
+    },
+    "apiFiles": {
+      "type": "boolean",
+      "default": true,
+      "x-prompt": "Generate the API module?"
+    },
+    "useApiFiles": {
+      "type": "boolean",
+      "default": true,
+      "x-prompt": "Add the module and entity to the app?"
+    },
+    "pageFiles": {
+      "type": "boolean",
+      "default": true,
+      "x-prompt": "Generate single-item and many-item UI pages?"
+    },
+    "routeFiles": {
+      "type": "boolean",
+      "default": true,
+      "x-prompt": "Generate SPA routes?"
+    },
+    "queryFiles": {
+      "type": "boolean",
+      "default": true,
+      "x-prompt": "Generate front-end API client?"
+    },
+    "useRouteFiles": {
+      "type": "boolean",
+      "default": true,
+      "x-prompt": "Add the routes and pages to the app?"
+    },
+    "addToNav": {
+      "type": "boolean",
+      "default": true,
+      "x-prompt": "Add a Nav item for the routes and pages?"
+    },
+    "generateFakes": {
+      "type": "boolean",
+      "default": true,
+      "x-prompt": "Generate basic fake data?"
+    }
+  },
+  "required": ["name"]
+}

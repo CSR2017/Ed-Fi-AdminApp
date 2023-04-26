@@ -1,0 +1,61 @@
+import { Get<%= className %>Dto, Post<%= className %>Dto, Put<%= className %>Dto } from '@ts-app-base-se/models';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AxiosResponse } from 'axios';
+import { methods } from '../methods';
+
+const baseUrl = '';
+
+export const use<%= className %> = (id: number | string) =>
+  useQuery({
+    queryKey: [`<%= fileName %>`, id],
+    queryFn: () =>
+      methods.getOne(
+        `${baseUrl}/<%= fileName %>s/${id}`,
+        Get<%= className %>Dto
+      ),
+  });
+
+export const use<%= className %>s = () =>
+  useQuery({
+    queryKey: [`<%= fileName %>s`],
+    queryFn: () =>
+      methods.getManyMap<Get<%= className %>Dto>(
+        `${baseUrl}/<%= fileName %>s`,
+        Get<%= className %>Dto
+      ),
+  });
+
+export const usePost<%= className %> = (<%= propertyName %>: Post<%= className %>Dto) => {
+  const queryClient = useQueryClient();
+  return useMutation<unknown, unknown, AxiosResponse<Get<%= className %>Dto>, any>({
+    mutationFn: () =>
+      methods.post(`${baseUrl}/<%= fileName %>s`, Post<%= className %>Dto, Get<%= className %>Dto, <%= propertyName %>),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['<%= fileName %>s'] });
+    },
+  });
+};
+
+export const usePut<%= className %> = (callback?: () => void) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (<%= propertyName %>: Put<%= className %>Dto) =>
+      methods.put(`${baseUrl}/<%= fileName %>s/${<%= propertyName %>.id}`, Put<%= className %>Dto, Get<%= className %>Dto, <%= propertyName %>),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['<%= fileName %>s'] });
+      callback && callback();
+    },
+  });
+};
+
+export const useDelete<%= className %> = (callback?: () => void) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: Get<%= className %>Dto['id']) =>
+      methods.delete(`${baseUrl}/<%= fileName %>s/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['<%= fileName %>s'] });
+      callback && callback();
+    },
+  });
+};

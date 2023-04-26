@@ -1,0 +1,8 @@
+import { Column, Entity, ManyToOne, OneToMany, ManyToMany, ViewColumn, ViewEntity } from "typeorm";
+import { I<%= className %> } from "../interfaces/<%= fileName %>.interface";
+import { EntityBase } from "../utils/entity-base";
+
+@Entity()
+export class <%= className %> extends EntityBase implements I<%= className %> {
+
+}

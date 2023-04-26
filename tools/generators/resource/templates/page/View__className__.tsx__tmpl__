@@ -1,0 +1,30 @@
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  Flex,
+  Grid,
+  HStack,
+  Stack,
+  Text,
+  Tooltip,
+  VStack,
+} from '@chakra-ui/react';
+import { useParams } from '@tanstack/router';
+import { use<%= className %>s } from '../../api';
+import { <%= propertyName %>Route } from '../../routes/<%= fileName %>.routes';
+
+
+export const View<%= className %> = () => {
+  const <%= propertyName %>s = use<%= className %>s();
+  const <%= propertyName %>Id: string = useParams({ from: <%= propertyName %>Route.id }).<%= propertyName %>Id;
+  const <%= propertyName %> = <%= propertyName %>s?.data?.[Number(<%= propertyName %>Id)];
+
+  return <%= propertyName %> ? (
+    <>
+      {/* TODO: replace this with real content */}
+      <Text as="strong">Id</Text>
+      <Text>{<%= propertyName %>.id}</Text>
+    </>
+  ) : null;
+};

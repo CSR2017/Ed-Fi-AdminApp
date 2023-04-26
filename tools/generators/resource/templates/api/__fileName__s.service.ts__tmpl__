@@ -1,0 +1,41 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import {
+  GetUserDto,
+  Post<%= className %>Dto,
+  Put<%= className %>Dto,
+  <%= className %>,
+} from '@ts-app-base-se/models';
+import { Repository } from 'typeorm';
+
+@Injectable()
+export class <%= className %>sService {
+  constructor(
+    @InjectRepository(<%= className %>)
+    private <%= propertyName %>sRepository: Repository<<%= className %>>
+  ) {}
+
+  create(create<%= className %>Dto: Post<%= className %>Dto) {
+    return this.<%= propertyName %>sRepository.save(
+      this.<%= propertyName %>sRepository.create(create<%= className %>Dto)
+    );
+  }
+
+  findAll() {
+    return this.<%= propertyName %>sRepository.find();
+  }
+
+  findOne(id: number) {
+    return this.<%= propertyName %>sRepository.findOneBy({ id: id });
+  }
+
+  async update(id: number, update<%= className %>Dto: Put<%= className %>Dto) {
+    await this.<%= propertyName %>sRepository.update(id, update<%= className %>Dto);
+    return this.<%= propertyName %>sRepository.findOneByOrFail({ id });
+  }
+
+  async remove(id: number, user: GetUserDto) {
+    await this.<%= propertyName %>sRepository.update(id, { deleted: new Date(), deletedById: user.id });
+    return undefined
+  }
+}

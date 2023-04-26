@@ -1,0 +1,9 @@
+import { I<%= className %> } from "../interfaces/<%= fileName %>.interface";
+import { DtoGetBase, GetDto } from "../utils/dto-get-base";
+import { Exclude, Expose, Type, Transform } from "class-transformer";
+import { makeSerializer } from "../utils/make-serializer";
+
+export class Get<%= className %>Dto extends DtoGetBase implements GetDto<I<%= className %>> {
+  
+}
+export const toGet<%= className %>Dto = makeSerializer(Get<%= className %>Dto)

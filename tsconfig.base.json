@@ -1,0 +1,38 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
+    "importHelpers": true,
+    "target": "ES2017",
+    "module": "esnext",
+    "lib": ["es2017", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@ts-app-base-se/common-ui": ["packages/common-ui/src/index.ts"],
+      "@ts-app-base-se/models": ["packages/models/src/index.ts"],
+      "@ts-app-base-se/utils": ["packages/utils/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"],
+  "ts-node": {
+    "compilerOptions": {
+      "experimentalDecorators": true,
+      "module": "commonjs",
+      "paths": {
+        "@ts-app-base-se/common-ui": ["packages/common-ui/src/index.ts"],
+        "@ts-app-base-se/models": ["packages/models/src/index.ts"],
+        "@ts-app-base-se/utils": ["packages/utils/src/index.ts"]
+      }
+    },
+    "exclude": ["node_modules", "tmp"]
+  }
+}

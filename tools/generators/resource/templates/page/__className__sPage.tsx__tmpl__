@@ -1,0 +1,60 @@
+import { Heading, HStack } from '@chakra-ui/react';
+import { DataTable } from '@ts-app-base-se/common-ui';
+import { use<%= className %>s, useDelete<%= className %>, useUsers } from "../../api"
+import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
+import { StandardRowActions } from '../../helpers/getStandardActions';
+import { UserLink, <%= propertyName %>Route, <%= className %>Link } from '../../routes';
+
+export const <%= className %>sPage = () => {
+  const <%= propertyName %>s = use<%= className %>s()
+  const delete<%= className %> = useDelete<%= className %>()
+  const users = useUsers();
+
+  return <>
+    <Heading mb={4} fontSize='lg'><%= className %>s</Heading>
+    <DataTable
+      data={Object.values(<%= propertyName %>s?.data || {})}
+      columns={[
+        {
+          accessorKey: 'displayName',
+          cell: (info) => (
+            <HStack justify="space-between">
+              <<%= className %>Link id={info.row.original.id} query={<%= propertyName %>s} />
+              <HStack className="row-hover" color="gray.600" align="middle">
+                <StandardRowActions
+                  info={info}
+                  mutation={delete<%= className %>.mutate}
+                  route={<%= propertyName %>Route}
+                  params={{ <%= propertyName %>Id: String(info.row.original.id) }}
+                />
+              </HStack>
+            </HStack>
+          ),
+          header: () => 'Name',
+        },
+        {
+          id: 'modifiedBy',
+          accessorFn: (info) =>
+            getRelationDisplayName(info.modifiedById, users),
+          header: () => 'Modified by',
+          cell: (info) => (
+            <UserLink query={users} id={info.row.original.modifiedById} />
+          ),
+        },
+        {
+          accessorKey: 'createdDetailed',
+          header: () => 'Created',
+        },
+        {
+            id: 'createdBy',
+            accessorFn: (info) =>
+              getRelationDisplayName(info.createdById, users),
+            header: () => 'Created by',
+            cell: (info) => (
+              <UserLink query={users} id={info.row.original.createdById} />
+            ),
+        },
+      ]}
+    />
+  </>
+}

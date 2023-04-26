@@ -1,0 +1,38 @@
+import { addUserCreating, addUserModifying, GetSessionDataDto, Post<%= className %>Dto, Put<%= className %>Dto, toGet<%= className %>Dto } from '@ts-app-base-se/models';
+import {
+  Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put
+} from '@nestjs/common';
+import { ReqUser } from '../authorization/user.decorator';
+import { <%= className %>sService } from './<%= fileName %>s.service';
+
+@Controller('<%= fileName %>s')
+export class <%= className %>sController {
+  constructor(
+    private readonly <%= propertyName %>Service: <%= className %>sService,
+  ) { }
+
+  @Post()
+  async create(@Body() create<%= className %>Dto: Post<%= className %>Dto, @ReqUser() session: GetSessionDataDto) {
+    return toGet<%= className %>Dto(await this.<%= propertyName %>Service.create(addUserCreating(create<%= className %>Dto, session.user)))
+  }
+
+  @Get()
+  async findAll() {
+    return toGet<%= className %>Dto(await this.<%= propertyName %>Service.findAll())
+  }
+
+  @Get(':<%= propertyName %>Id')
+  async findOne(@Param('<%= propertyName %>Id', new ParseIntPipe()) <%= propertyName %>Id: number) {
+    return toGet<%= className %>Dto(await this.<%= propertyName %>Service.findOne(+<%= propertyName %>Id));
+  }
+
+  @Put(':<%= propertyName %>Id')
+  async update(@Param('<%= propertyName %>Id', new ParseIntPipe()) <%= propertyName %>Id: number, @Body() update<%= className %>Dto: Put<%= className %>Dto, @ReqUser() session: GetSessionDataDto) {
+    return toGet<%= className %>Dto(await this.<%= propertyName %>Service.update(<%= propertyName %>Id, addUserModifying(update<%= className %>Dto, session.user )));
+  }
+
+  @Delete(':<%= propertyName %>Id')
+  remove(@Param('<%= propertyName %>Id', new ParseIntPipe()) <%= propertyName %>Id: number, @ReqUser() session: GetSessionDataDto) {
+    return this.<%= propertyName %>Service.remove(+<%= propertyName %>Id, session.user);
+  }
+}
