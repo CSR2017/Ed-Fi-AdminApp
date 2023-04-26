@@ -40,4 +40,4 @@ Thumbs.db
 db.sqlite
 
 # environment variables
-environments/*.local.*
+**/environments/*.local.*
