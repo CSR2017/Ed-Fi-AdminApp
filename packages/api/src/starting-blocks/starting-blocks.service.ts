@@ -2,11 +2,9 @@ import { Edorg, Ods, Ownership, Role, Sbe, UserTenantMembership } from '@edanaly
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Not, Repository } from 'typeorm';
-import { IStartingBlocksService } from '../starting-blocks/starting-blocks.service.interface';
-import { StartingBlocksServiceMock } from '../starting-blocks/starting-blocks.service.mock';
 
 @Injectable()
-export class TenantResourcesService {
+export class StartingBlocksService {
   constructor(
     @InjectRepository(Sbe)
     private sbesRepository: Repository<Sbe>,
@@ -20,8 +18,6 @@ export class TenantResourcesService {
     private utmRepository: Repository<UserTenantMembership>,
     @InjectRepository(Ownership)
     private ownershipRepository: Repository<Ownership>,
-
-    private readonly sbService: StartingBlocksServiceMock
   ) { }
 
   getSbes(tenantId: number) {
@@ -38,18 +34,6 @@ export class TenantResourcesService {
     return this.edorgRepository.find({
       where: { sbeId },
     });
-  }
-  getVendors(tenantId: number, sbeId: number) {
-    return this.sbService.getVendors(sbeId)
-  }
-  getVendorApplications(tenantId: number, sbeId: number, vendorId: number) {
-    return this.sbService.getVendorApplications(sbeId, vendorId)
-  }
-  getApplications(tenantId: number, sbeId: number) {
-    return this.sbService.getApplications(sbeId)
-  }
-  getClaimsets(tenantId: number, sbeId: number) {
-    return this.sbService.getClaimsets(sbeId)
   }
   getRoles(tenantId: number) {
     return this.roleRepository.find({

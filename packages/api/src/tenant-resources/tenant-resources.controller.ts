@@ -19,7 +19,9 @@ import { TenantResourcesService } from './tenant-resources.service';
 @ApiTags('Tenant Resources')
 @Controller()
 export class TenantResourcesController {
-  constructor(private readonly tenantResourcesService: TenantResourcesService) { }
+  constructor(
+    private readonly tenantResourcesService: TenantResourcesService,
+  ) { }
 
   @Get('sbes')
   async getSbes(
@@ -41,6 +43,35 @@ export class TenantResourcesController {
   ) {
     return toGetEdorgDto(await this.tenantResourcesService.getEdorgs(tenantId, sbeId));
   }
+  @Get('sbes/:sbeId/vendors')
+  getVendors(
+    @Param('tenantId', new ParseIntPipe()) tenantId: number,
+    @Param('sbeId', new ParseIntPipe()) sbeId: number
+  ) {
+    return this.tenantResourcesService.getVendors(tenantId, sbeId)
+  }
+  @Get('sbes/:sbeId/vendors/:vendorId/applications')
+  getVendorApplications(
+    @Param('tenantId', new ParseIntPipe()) tenantId: number,
+    @Param('sbeId', new ParseIntPipe()) sbeId: number,
+    @Param('vendorId', new ParseIntPipe()) vendorId: number) {
+    return this.tenantResourcesService.getVendorApplications(tenantId, sbeId, vendorId)
+  }
+  @Get('sbes/:sbeId/applications')
+  getApplications(
+    @Param('tenantId', new ParseIntPipe()) tenantId: number,
+    @Param('sbeId', new ParseIntPipe()) sbeId: number
+  ) {
+    return this.tenantResourcesService.getApplications(tenantId, sbeId)
+  }
+  @Get('sbes/:sbeId/claimsets')
+  getClaimsets(
+    @Param('tenantId', new ParseIntPipe()) tenantId: number,
+    @Param('sbeId', new ParseIntPipe()) sbeId: number
+  ) {
+    return this.tenantResourcesService.getClaimsets(tenantId, sbeId)
+  }
+
   @Get('roles')
   async getRoles(
     @Param('tenantId', new ParseIntPipe()) tenantId: number,

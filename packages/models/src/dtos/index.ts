@@ -9,3 +9,5 @@ export * from './user-tenant-membership.dto';
 export * from './privilege.dto';
 export * from './role.dto';
 export * from './ownership.dto';
+export * from './starting-blocks.dto';
+export * from './edfi-admin-api.dto'
