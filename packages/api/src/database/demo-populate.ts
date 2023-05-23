@@ -1,134 +1,111 @@
 import '../environments/environment.local';
-import { program } from 'commander';
-
-program.option('-n, --noInteraction');
-program.parse(process.argv);
-
-const noInteraction = !!program.opts()?.noInteraction;
-
-import { EdorgType, GlobalRole, RoleType } from '@edanalytics/models';
-import * as _ from 'lodash';
-import { districtName, generateFake, schoolType } from '@edanalytics/utils';
+import { PrivilegeCode, RoleType } from '@edanalytics/models';
+import {
+  Privilege,
+  Role,
+  Sbe,
+  Tenant,
+  User,
+  UserTenantMembership,
+} from '@edanalytics/models-server';
+import { generateFake } from '@edanalytics/utils';
 import { faker } from '@faker-js/faker';
-import { execSync } from 'child_process';
 import colors from 'colors/safe';
-import prompts from 'prompts';
+import * as _ from 'lodash';
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import typeormConfig from './typeorm.config';
-import {
-  User,
-  Tenant,
-  Resource,
-  Sbe,
-  Ods,
-  Edorg,
-  Privilege,
-  Role,
-  UserTenantMembership,
-  Ownership,
-} from '@edanalytics/models-server';
 
 const db = new DataSource({ ...typeormConfig, synchronize: false });
 async function populate() {
   await db.initialize();
   await db.synchronize(true);
   db.transaction(async (dataSource) => {
-    let givenName: string | undefined;
-    let familyName: string | undefined;
-    let userName: string | undefined;
-
-    if (noInteraction) {
-      console.log(colors.yellow('Using placeholder user info'));
-
-      givenName = 'Testy';
-      familyName = 'McTestFace';
-      userName = 'testy@example.com';
-    } else {
-      try {
-        try {
-          [givenName, familyName] = execSync(
-            'net user %USERNAME% | findstr "Full Name"',
-            { encoding: 'utf8' }
-          )
-            .replace('Full Name', '')
-            .trim()
-            .split(' ');
-        } catch (notWindows) {
-          [givenName, familyName] = execSync(`git config --global user.name`, {
-            encoding: 'utf8',
-          })
-            .trim()
-            .split(' ');
-        }
-      } catch (err) {
-        // fallback to blank default
-      }
-      try {
-        userName = execSync('git config --global user.email', {
-          encoding: 'utf8',
-        })?.trim();
-        if (userName?.includes('github')) {
-          // don't want the ugly default github email so fall back to computer username
-          userName = execSync('echo %USERNAME%', { encoding: 'utf8' })?.trim();
-        }
-      } catch (err) {
-        // fallback to blank default
-      }
-
-      const out = await prompts([
-        {
-          type: 'text',
-          name: 'givenName',
-          message: 'What is your given name?',
-          validate: (value) =>
-            !value?.trim() ? `Please provide your given name.` : true,
-          initial: givenName,
-        },
-        {
-          type: 'text',
-          name: 'familyName',
-          message: 'What is your family name?',
-          validate: (value) =>
-            !value?.trim() ? `Please provide your family name.` : true,
-          initial: familyName,
-        },
-        {
-          type: 'text',
-          name: 'userName',
-          message: 'What is your username?',
-          validate: (value) =>
-            !value?.trim() ? `Please provide your username.` : true,
-          initial: userName,
-        },
-      ]);
-
-      givenName = out.givenName;
-      familyName = out.familyName;
-      userName = out.userName;
-    }
-
     const userRepository = dataSource.getRepository(User);
 
-    const me = await userRepository.save({
-      username: userName,
-      familyName: familyName,
-      givenName: givenName,
-      role: GlobalRole.Admin,
-      isActive: true,
+    const privilegeCodes: PrivilegeCode[] = [
+      'me:read',
+      'ownership:read',
+      'ownership:update',
+      'ownership:delete',
+      'ownership:create',
+      'privilege:read',
+      'user:read',
+      'user:update',
+      'user:delete',
+      'user:create',
+      'sbe:read',
+      'sbe:update',
+      'sbe:delete',
+      'sbe:create',
+      'sbe:refresh-resources',
+      'user-tenant-membership:read',
+      'user-tenant-membership:update',
+      'user-tenant-membership:delete',
+      'user-tenant-membership:create',
+      'tenant.ownership:read',
+      'tenant.role:read',
+      'tenant.role:update',
+      'tenant.role:delete',
+      'tenant.role:create',
+      'tenant.user:read',
+      'tenant.user-tenant-membership:read',
+      'tenant.user-tenant-membership:update',
+      'tenant.user-tenant-membership:delete',
+      'tenant.user-tenant-membership:create',
+      'tenant.sbe:read',
+      'tenant.sbe.vendor:read',
+      'tenant.sbe.vendor:update',
+      'tenant.sbe.vendor:delete',
+      'tenant.sbe.vendor:create',
+      'tenant.sbe.claimset:read',
+      'tenant.sbe.claimset:update',
+      'tenant.sbe.claimset:delete',
+      'tenant.sbe.claimset:create',
+      'tenant.sbe.ods:read',
+      'tenant.sbe.edorg:read',
+      'tenant.sbe.edorg.application:read',
+      'tenant.sbe.edorg.application:update',
+      'tenant.sbe.edorg.application:delete',
+      'tenant.sbe.edorg.application:create',
+      'tenant.sbe.edorg.application:reset-credentials',
+    ];
+
+    const privileges = await dataSource.getRepository(Privilege).save(
+      privilegeCodes.map(
+        (c): Privilege => ({
+          code: c as PrivilegeCode,
+          description: c,
+          name: _.reverse(c.split(':'))
+            .map((str) => str.charAt(0).toLocaleUpperCase() + str.slice(1))
+            .join(' '),
+        })
+      )
+    );
+    const privilegesMap = new Map<PrivilegeCode, Privilege>();
+    privileges.forEach((p) => privilegesMap.set(p.code, p));
+
+    const baseRole = await dataSource.getRepository(Role).save({
+      name: 'Standard tenant user',
+      type: RoleType.UserGlobal,
+      privileges: privileges.filter((p) => p.code === 'me:read'),
     });
 
-    const otherUsers = await userRepository.save(
+    const adminRole = await dataSource.getRepository(Role).save({
+      name: 'Global admin',
+      type: RoleType.UserGlobal,
+      privileges: privileges,
+    });
+
+    const users = await userRepository.save(
       generateFake(
         User,
         {
-          createdBy: me,
+          role: baseRole,
         },
-        13
+        130
       )
     );
-
-    const users = [me, ...otherUsers];
 
     const tenants = await dataSource.getRepository(Tenant).save(
       generateFake(
@@ -140,161 +117,96 @@ async function populate() {
       )
     );
 
-    const sbes = await dataSource.getRepository(Resource).save(
-      dataSource.getRepository(Resource).create(
-        generateFake(
-          Sbe,
-          () => ({
-            createdBy: faker.helpers.arrayElement(users),
-          }),
-          10
-        ).map((sbe) => ({
-          createdBy: sbe.createdBy,
-          sbe,
-        }))
-      )
-    );
-
-    for (let is = 0; is < sbes.length; is++) {
-      const sbe = sbes[is].sbe!;
-      const seed = Math.random();
-      const odss = await dataSource.getRepository(Resource).save(
-        dataSource.getRepository(Resource).create(
-          generateFake(
-            Ods,
-            () => ({
-              createdBy: faker.helpers.arrayElement(users),
-              sbe,
-            }),
-            seed > 0.9 ? 0 : seed > 0.7 ? 1 : faker.datatype.number(40)
-          ).map((ods) => ({
-            createdBy: ods.createdBy,
-            ods,
-          }))
-        )
-      );
-
-      for (let io = 0; io < odss.length; io++) {
-        const ods = odss[io].ods!;
-        const seed = Math.random();
-        const districts = await dataSource.getRepository(Resource).save(
-          dataSource.getRepository(Resource).create(
-            generateFake(
-              Edorg,
-              () => ({
-                sbe,
-                ods,
-                createdBy: faker.helpers.arrayElement(users),
-                discriminator: EdorgType['edfi.LocalEducationAgency'],
-                nameOfInstitution: districtName(),
-              }),
-              seed > 0.9 ? 0 : seed > 0.2 ? 1 : faker.datatype.number(40)
-            ).map((edorg) => ({
-              createdBy: edorg.createdBy,
-              edorg,
-            }))
-          )
-        );
-
-        for (let id = 0; id < districts.length; id++) {
-          const district = districts[id].edorg!;
-          const seed = Math.random();
-          const schools = await dataSource.getRepository(Resource).save(
-            dataSource.getRepository(Resource).create(
-              generateFake(
-                Edorg,
-                () => ({
-                  sbe,
-                  ods,
-                  parent: district,
-                  createdBy: faker.helpers.arrayElement(users),
-                  discriminator: EdorgType['edfi.School'],
-                  nameOfInstitution: `${faker.address.street()} ${schoolType()}`,
-                }),
-                seed > 0.9 ? 0 : seed > 0.2 ? 1 : faker.datatype.number(18)
-              ).map((edorg) => ({
-                createdBy: edorg.createdBy,
-                edorg,
-              }))
-            )
-          );
-        }
-      }
-    }
-    const privilegeCodes = [
-      'sbe.read',
-      'sbe.write',
-      'vendors.read',
-      'vendors.write',
-      'claimsets.read',
-      'claimsets.write',
-      'odss.read',
-      'odss.write',
-      'edorgs.read',
-      'edorgs.write',
-      'applications.read',
-      'applications.write',
-      'users.read',
-      'users.write',
-      'roles.read',
-      'roles.write',
-    ];
-    const privileges = await dataSource.getRepository(Privilege).save(
-      privilegeCodes.map(
-        (c): Privilege => ({
-          code: c,
-          description: c,
-          name: _.reverse(c.split('.'))
-            .map((str) => str.charAt(0).toLocaleUpperCase() + str.slice(1))
-            .join(' '),
-        })
-      )
-    );
-
-    const roles = await dataSource.getRepository(Role).save(
+    const sbes = await dataSource.getRepository(Sbe).save(
       generateFake(
-        Role,
-        () => {
-          let rest: object;
-          if (Math.random() > 0.8) {
-            rest = {
-              type: RoleType.ResourceOwnership,
-            };
-          } else if (Math.random() > 0.85) {
-            rest = {
-              type: RoleType.UserGlobal,
-            };
-          } else {
-            rest = {
-              type: RoleType.UserTenant,
-              tenant: _.sample(tenants),
-            };
-          }
-          return {
-            createdBy: faker.helpers.arrayElement(users),
-            privileges: _.sampleSize(privileges, faker.datatype.number(15)),
-            ...rest,
-          };
-        },
-        12
+        Sbe,
+        () => ({
+          createdBy: faker.helpers.arrayElement(users),
+        }),
+        2
       )
     );
 
-    const rolesbyType = roles.reduce(
-      (types, role) => {
-        types[role.type].push(role);
-        return types;
+    const upwardInheritancePrivileges = privileges.filter((p) =>
+      [
+        'tenant.sbe:read',
+        'tenant.sbe.ods:read',
+        'tenant.sbe.edorg:read',
+        'tenant.sbe.claimset.read',
+        'tenant.sbe.vendor.read',
+      ].includes(p.code)
+    );
+
+    const ownershipRoles = await dataSource.getRepository(Role).save([
+      {
+        name: 'Shared-instance ownership',
+        type: RoleType.ResourceOwnership,
+        privileges: [
+          ...upwardInheritancePrivileges,
+          privilegesMap.get('tenant.sbe.edorg.application:read'),
+          privilegesMap.get('tenant.sbe.edorg.application:update'),
+          privilegesMap.get('tenant.sbe.edorg.application:create'),
+          privilegesMap.get('tenant.sbe.edorg.application:delete'),
+          privilegesMap.get('tenant.sbe.edorg.application:reset-credentials'),
+        ],
       },
       {
-        [RoleType.ResourceOwnership]: [],
-        [RoleType.UserGlobal]: [],
-        [RoleType.UserTenant]: [],
-      } as {
-        [RoleType.ResourceOwnership]: Role[];
-        [RoleType.UserGlobal]: Role[];
-        [RoleType.UserTenant]: Role[];
-      }
-    );
+        name: 'Full ownership',
+        type: RoleType.ResourceOwnership,
+        privileges: [
+          ...upwardInheritancePrivileges,
+          privilegesMap.get('tenant.sbe.vendor:read'),
+          privilegesMap.get('tenant.sbe.vendor:update'),
+          privilegesMap.get('tenant.sbe.vendor:create'),
+          privilegesMap.get('tenant.sbe.vendor:delete'),
+          privilegesMap.get('tenant.sbe.claimset:read'),
+          privilegesMap.get('tenant.sbe.claimset:update'),
+          privilegesMap.get('tenant.sbe.claimset:create'),
+          privilegesMap.get('tenant.sbe.claimset:delete'),
+          privilegesMap.get('tenant.sbe.edorg.application:read'),
+          privilegesMap.get('tenant.sbe.edorg.application:update'),
+          privilegesMap.get('tenant.sbe.edorg.application:create'),
+          privilegesMap.get('tenant.sbe.edorg.application:delete'),
+          privilegesMap.get('tenant.sbe.edorg.application:reset-credentials'),
+        ],
+      },
+    ]);
+    const tenantUserRoles = await dataSource.getRepository(Role).save([
+      {
+        name: 'Full access',
+        type: RoleType.ResourceOwnership,
+        privileges: privileges.filter((p) => p.code.startsWith('tenant.')),
+      },
+      {
+        name: 'Read-only',
+        type: RoleType.ResourceOwnership,
+        privileges: [
+          ...upwardInheritancePrivileges,
+          privilegesMap.get('tenant.role:read'),
+          privilegesMap.get('tenant.user:read'),
+          privilegesMap.get('tenant.user-tenant-membership:read'),
+          privilegesMap.get('tenant.sbe.vendor:read'),
+          privilegesMap.get('tenant.sbe.claimset:read'),
+          privilegesMap.get('tenant.sbe.edorg.application:read'),
+        ],
+      },
+      {
+        name: 'Credential management lite',
+        type: RoleType.ResourceOwnership,
+        privileges: [
+          ...upwardInheritancePrivileges,
+          privilegesMap.get('tenant.role:read'),
+          privilegesMap.get('tenant.user:read'),
+          privilegesMap.get('tenant.user-tenant-membership:read'),
+          privilegesMap.get('tenant.sbe.vendor:read'),
+          privilegesMap.get('tenant.sbe.claimset:read'),
+          privilegesMap.get('tenant.sbe.edorg.application:read'),
+          privilegesMap.get('tenant.sbe.edorg.application:update'),
+          privilegesMap.get('tenant.sbe.edorg.application:create'),
+          privilegesMap.get('tenant.sbe.edorg.application:reset-credentials'),
+        ],
+      },
+    ]);
 
     await dataSource.getRepository(UserTenantMembership).save(
       users.flatMap((user) => {
@@ -304,47 +216,12 @@ async function populate() {
           () => ({
             createdBy: faker.helpers.arrayElement(users),
             tenant: tenantsNoReplacement.shift(),
-            role: _.sample([undefined, ...rolesbyType.UserTenant]),
+            role: _.sample([undefined, ...tenantUserRoles, ...tenantUserRoles]),
             user,
           }),
-          faker.datatype.number(3)
+          faker.datatype.number(5)
         );
       })
-    );
-
-    const edorgs = await dataSource
-      .getRepository(Edorg)
-      .find({
-        where: { discriminator: EdorgType['edfi.LocalEducationAgency'] },
-      });
-    const odss = await dataSource.getRepository(Ods).find();
-
-    const randomResourceIds = [
-      ..._.sampleSize(
-        sbes.map((r) => r.id),
-        15
-      ),
-      ..._.sampleSize(
-        odss.map((o) => o.resourceId),
-        100
-      ),
-      ..._.sampleSize(
-        edorgs.map((e) => e.resourceId),
-        25
-      ),
-    ];
-
-    await dataSource.getRepository(Ownership).save(
-      generateFake(
-        Ownership,
-        () => ({
-          createdBy: faker.helpers.arrayElement(users),
-          tenant: _.sample(tenants),
-          resourceId: _.sample(randomResourceIds),
-          role: _.sample(rolesbyType.ResourceOwnership),
-        }),
-        36
-      )
     );
 
     console.log(colors.green('\nDone.'));

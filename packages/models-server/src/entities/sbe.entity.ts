@@ -1,23 +1,21 @@
-import { IEdorg, IOds, IResource, ISbe, ISbeConfigPrivate, ISbeConfigPublic } from '@edanalytics/models';
+import {
+  IEdorg,
+  IOds,
+  IOwnership,
+  ISbe,
+  ISbeConfigPrivate,
+  ISbeConfigPublic,
+} from '@edanalytics/models';
 import { FakeMeUsing, deployEnv, schoolYear } from '@edanalytics/utils';
 import { faker } from '@faker-js/faker';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  OneToMany,
-  OneToOne
-} from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { JSONEncryptionTransformer } from 'typeorm-encrypted';
 import { EntityBase } from '../utils/entity-base';
 
 @Entity()
 export class Sbe extends EntityBase implements ISbe {
-  @OneToOne('Resource', (resource: IResource) => resource.sbe)
-  @JoinColumn()
-  resource: IResource;
-  @Column()
-  resourceId: number;
+  @OneToMany('Ownership', (ownership: IOwnership) => ownership.sbe)
+  ownerships: IOwnership[];
 
   @OneToMany('Ods', (ods: IOds) => ods.sbe)
   odss: IOds[];
@@ -44,11 +42,10 @@ export class Sbe extends EntityBase implements ISbe {
     nullable: false,
     transformer: new JSONEncryptionTransformer({
       key: DB_SECRETS_ENCRYPTION.DB_SECRETS_ENCRYPTION_KEY,
-      algorithm: "aes-256-cbc",
+      algorithm: 'aes-256-cbc',
       iv: DB_SECRETS_ENCRYPTION.DB_SECRETS_ENCRYPTION_IV,
       ivLength: 16,
-    })
+    }),
   })
   configPrivate: ISbeConfigPrivate;
 }
-

@@ -1,6 +1,5 @@
 export * from './user.entity';
 export * from './tenant.entity';
-export * from './resource.entity';
 export * from './ods.entity';
 export * from './sbe.entity';
 export * from './edorg.entity';

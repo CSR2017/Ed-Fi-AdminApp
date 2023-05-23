@@ -1,10 +1,16 @@
+import { IOwnership } from '.';
 import { IEntityBase } from '../utils/entity-base.interface';
 import { IEdorg } from './edorg.interface';
 import { IOds } from './ods.interface';
-import { IResource } from './resource.interface';
 
 export interface ISbeConfigPublic {
   hasOdsRefresh: false;
+  lastSuccessfulConnectionSbMeta?: Date;
+  lastFailedConnectionSbMeta?: Date;
+  lastSuccessfulConnectionAdminApi?: Date;
+  lastFailedConnectionAdminApi?: Date;
+  lastSuccessfulPull?: Date;
+  lastFailedPull?: Date;
 }
 
 export interface ISbeConfigPrivate {
@@ -17,8 +23,7 @@ export interface ISbeConfigPrivate {
   sbeMetaSecret: string;
 }
 export interface ISbe extends IEntityBase {
-  resource: IResource;
-  resourceId: number;
+  ownerships: IOwnership[];
 
   odss: IOds[];
   edorgs: IEdorg[];

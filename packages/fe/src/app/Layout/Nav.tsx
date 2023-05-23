@@ -2,20 +2,24 @@ import { Box, Select, Text, chakra } from '@chakra-ui/react';
 import { useNavigate, useParams, useRouter } from '@tanstack/router';
 import Cookies from 'js-cookie';
 import { Resizable } from 're-resizable';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BsPerson, BsPersonFill } from 'react-icons/bs';
+import { useMe, useMyTenants } from '../api';
 import { accountRouteGlobal, asRoute } from '../routes';
 import { NavButton } from './NavButton';
 import { TenantNav } from './TenantNav';
-import { tenantQueries } from '../api';
+import { GlobalNav } from './GlobalNav';
 
 export const Nav = () => {
   const params = useParams({ from: asRoute.id });
   const defaultTenant: any = params?.asId ?? Cookies.get('defaultTenant');
   const [tenantId, setTenantId] = useState(
-    typeof defaultTenant === 'string' ? Number(defaultTenant) : undefined
+    typeof defaultTenant === 'string' && defaultTenant !== 'undefined'
+      ? Number(defaultTenant)
+      : undefined
   );
-  const tenants = tenantQueries.useAll({});
+  const me = useMe();
+  const tenants = useMyTenants();
   const router = useRouter();
   const navigate = useNavigate();
 
@@ -30,6 +34,15 @@ export const Nav = () => {
       });
     }
   }, [tenantId, router.state.currentMatches, navigate, params.asId]);
+
+  useEffect(() => {
+    if (
+      Object.keys(tenants.data ?? {}).length === 1 &&
+      tenantId !== Object.values(tenants.data ?? {})[0].id
+    ) {
+      setTenantId(Object.values(tenants.data ?? {})[0].id);
+    }
+  }, [tenantId, tenants, navigate, params.asId]);
 
   return (
     <Box
@@ -49,7 +62,6 @@ export const Nav = () => {
       {Object.keys(tenants.data ?? {}).length > 1 ? (
         <Box px={3}>
           <Select
-            title={tenants.data?.[tenantId ?? '']?.displayName}
             bg="white"
             mb={3}
             value={String(tenantId)}
@@ -64,13 +76,11 @@ export const Nav = () => {
               setTenantId(value === 'undefined' ? undefined : Number(value));
             }}
           >
-            {Object.values(tenants.data ?? {})
-              .sort((a, b) => Number(a.displayName > b.displayName) - 0.5)
-              .map((t) => (
-                <chakra.option fontStyle="normal" key={t.id} value={t.id}>
-                  {t.displayName}
-                </chakra.option>
-              ))}
+            {Object.values(tenants.data ?? {}).map((t) => (
+              <chakra.option fontStyle="normal" key={t.id} value={t.id}>
+                {t.displayName}
+              </chakra.option>
+            ))}
             <chakra.option
               color="gray.500"
               fontStyle="italic"
@@ -95,9 +105,11 @@ export const Nav = () => {
             .includes(accountRouteGlobal.id),
         }}
       />
-      {tenantId !== undefined ? (
+      {tenantId === undefined ? (
+        <GlobalNav />
+      ) : (
         <TenantNav tenantId={String(tenantId)} />
-      ) : null}
+      )}
     </Box>
   );
 };

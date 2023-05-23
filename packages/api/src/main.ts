@@ -35,7 +35,6 @@ async function bootstrap() {
       excludeExtraneousValues: true,
     })
   );
-
   const port = process.env.PORT || 3333;
   const config = new DocumentBuilder()
     .setTitle('Starting Blocks Admin App')

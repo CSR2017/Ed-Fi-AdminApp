@@ -1,12 +1,11 @@
+import { IOwnership } from '.';
 import { EdorgType } from '../enums/edorg-type.enum';
 import { IEntityBase } from '../utils/entity-base.interface';
 import { IOds } from './ods.interface';
-import { IResource } from './resource.interface';
 import { ISbe } from './sbe.interface';
 
 export interface IEdorg extends IEntityBase {
-  resource: IResource;
-  resourceId: number;
+  ownerships: IOwnership[];
 
   sbe: ISbe;
   sbeId: number;
@@ -20,5 +19,4 @@ export interface IEdorg extends IEntityBase {
   educationOrganizationId: string;
   nameOfInstitution: string;
   discriminator: EdorgType;
-
 }

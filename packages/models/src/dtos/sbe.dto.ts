@@ -1,121 +1,48 @@
+import { Expose, Type } from 'class-transformer';
+import {
+  ISbe,
+  ISbeConfigPrivate,
+  ISbeConfigPublic,
+} from '../interfaces/sbe.interface';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
 import { makeSerializer } from '../utils/make-serializer';
-import { PutDto, DtoPutBase } from '../utils/put-base.dto';
-import {
-  IsDefined,
-  IsOptional,
-  Equals,
-  NotEquals,
-  IsEmpty,
-  IsNotEmpty,
-  IsIn,
-  IsNotIn,
-  IsBoolean,
-  IsDate,
-  IsString,
-  IsNumber,
-  IsInt,
-  IsArray,
-  IsEnum,
-  IsDivisibleBy,
-  IsPositive,
-  IsNegative,
-  Min,
-  Max,
-  MinDate,
-  MaxDate,
-  IsBooleanString,
-  IsDateString,
-  IsNumberString,
-  Contains,
-  NotContains,
-  IsAlpha,
-  IsAlphanumeric,
-  IsDecimal,
-  IsAscii,
-  IsBase32,
-  IsBase58,
-  IsBase64,
-  IsIBAN,
-  IsBIC,
-  IsByteLength,
-  IsCreditCard,
-  IsCurrency,
-  IsISO4217CurrencyCode,
-  IsEthereumAddress,
-  IsBtcAddress,
-  IsDataURI,
-  IsEmail,
-  IsFQDN,
-  IsFullWidth,
-  IsHalfWidth,
-  IsVariableWidth,
-  IsHexColor,
-  IsHSL,
-  IsRgbColor,
-  IsIdentityCard,
-  IsPassportNumber,
-  IsPostalCode,
-  IsHexadecimal,
-  IsOctal,
-  IsMACAddress,
-  IsIP,
-  IsPort,
-  IsISBN,
-  IsEAN,
-  IsISIN,
-  IsISO8601,
-  IsJSON,
-  IsJWT,
-  IsObject,
-  IsNotEmptyObject,
-  IsLowercase,
-  IsLatLong,
-  IsLatitude,
-  IsLongitude,
-  IsMobilePhone,
-  IsISO31661Alpha2,
-  IsISO31661Alpha3,
-  IsLocale,
-  IsPhoneNumber,
-  IsMongoId,
-  IsMultibyte,
-  IsSurrogatePair,
-  IsTaxId,
-  IsUrl,
-  IsMagnetURI,
-  IsUUID,
-  IsFirebasePushId,
-  IsUppercase,
-  Length,
-  MinLength,
-  MaxLength,
-  Matches,
-  IsMilitaryTime,
-  IsTimeZone,
-  IsHash,
-  IsMimeType,
-  IsSemVer,
-  IsISSN,
-  IsISRC,
-  IsRFC3339,
-  IsStrongPassword,
-  ArrayContains,
-  ArrayNotContains,
-  ArrayNotEmpty,
-  ArrayMinSize,
-  ArrayMaxSize,
-  ArrayUnique,
-  IsInstance,
-  Allow,
-} from 'class-validator';
-import { Exclude, Expose, Type, Transform } from 'class-transformer';
-import { ISbe, ISbeConfigPrivate, ISbeConfigPublic } from '../interfaces/sbe.interface';
-import { PostDto, DtoPostBase } from '../utils/post-base.dto';
-import { IOds, IEdorg } from '../interfaces';
-export class SbeConfigPublic implements ISbeConfigPublic {
+import { DtoPostBase, PostDto } from '../utils/post-base.dto';
+import { DtoPutBase, PutDto } from '../utils/put-base.dto';
+import { stdDetailed, stdShort } from '@edanalytics/utils';
+export class GetSbeConfigPublic implements ISbeConfigPublic {
   @Expose()
   hasOdsRefresh: false;
+  @Expose()
+  lastSuccessfulConnectionSbMeta?: Date;
+  @Expose()
+  lastFailedConnectionSbMeta?: Date;
+  @Expose()
+  lastSuccessfulConnectionAdminApi?: Date;
+  @Expose()
+  lastFailedConnectionAdminApi?: Date;
+  @Expose()
+  lastSuccessfulPull?: Date;
+  @Expose()
+  lastFailedPull?: Date;
+
+  get lastSuccessfulConnectionSbMetaLong() {
+    return stdDetailed(this.lastSuccessfulConnectionSbMeta);
+  }
+  get lastFailedConnectionSbMetaLong() {
+    return stdDetailed(this.lastFailedConnectionSbMeta);
+  }
+  get lastSuccessfulConnectionAdminApiLong() {
+    return stdDetailed(this.lastSuccessfulConnectionAdminApi);
+  }
+  get lastFailedConnectionAdminApiLong() {
+    return stdDetailed(this.lastFailedConnectionAdminApi);
+  }
+  get lastSuccessfulPullLong() {
+    return stdDetailed(this.lastSuccessfulPull);
+  }
+  get lastFailedPullLong() {
+    return stdDetailed(this.lastFailedPull);
+  }
 }
 
 export class SbeConfigPrivate implements ISbeConfigPrivate {
@@ -133,43 +60,72 @@ export class SbeConfigPrivate implements ISbeConfigPrivate {
   sbeMetaSecret: string;
 }
 
-export class GetSbeDto extends DtoGetBase implements GetDto<ISbe, 'resource' | 'odss' | 'edorgs' | 'configPrivate'> {
-  @Expose()
-  resourceId: number;
-
+export class GetSbeDto
+  extends DtoGetBase
+  implements GetDto<ISbe, 'ownerships' | 'odss' | 'edorgs' | 'configPrivate'>
+{
   @Expose()
   envLabel: string;
   @Expose()
-  @Type(() => SbeConfigPublic)
-  configPublic: SbeConfigPublic;
+  @Type(() => GetSbeConfigPublic)
+  configPublic: GetSbeConfigPublic;
 
   override get displayName() {
     return this.envLabel;
   }
 }
-export const toGetSbeDto = makeSerializer(GetSbeDto);
+export const toGetSbeDto = makeSerializer<GetSbeDto, ISbe>(GetSbeDto);
 
-export class PutSbeDto extends DtoPutBase implements PutDto<ISbe, 'resource' | 'resourceId' | 'odss' | 'edorgs' | 'configPrivate'> {
+export class PutSbeDto
+  extends DtoPutBase
+  implements
+    PutDto<
+      ISbe,
+      'ownerships' | 'odss' | 'edorgs' | 'configPrivate' | 'configPublic'
+    >
+{
   @Expose()
   envLabel: string;
   @Expose()
-  configPublic: SbeConfigPublic;
-  @Expose()
-  @Type(() => SbeConfigPublic)
+  @Type(() => SbeConfigPrivate)
   configPrivate?: SbeConfigPrivate;
 }
 
-export class PostSbeDto extends DtoPostBase implements PostDto<ISbe, 'resource' | 'resourceId' | 'odss' | 'edorgs' | 'configPrivate'> {
-  @Expose()
-  odss?: IOds[] | undefined;
-  @Expose()
-  edorgs?: IEdorg[] | undefined;
+export class PostSbeDto
+  extends DtoPostBase
+  implements
+    PostDto<
+      ISbe,
+      'ownerships' | 'odss' | 'edorgs' | 'configPrivate' | 'configPublic'
+    >
+{
   @Expose()
   envLabel: string;
   @Expose()
-  @Type(() => SbeConfigPublic)
-  configPublic: SbeConfigPublic;
-  @Expose()
-  @Type(() => SbeConfigPublic)
+  @Type(() => SbeConfigPrivate)
   configPrivate?: SbeConfigPrivate;
 }
+
+export class SbeCheckConnectionDto {
+  @Expose()
+  id: number;
+
+  @Expose()
+  adminApi: boolean;
+
+  @Expose()
+  sbMeta: boolean;
+}
+export const toSbeCCDto = makeSerializer(SbeCheckConnectionDto);
+
+export class SbeRefreshResourcesDto {
+  @Expose()
+  id: number;
+
+  @Expose()
+  odsCount: number;
+
+  @Expose()
+  edorgCount: number;
+}
+export const toSbeRRDto = makeSerializer(SbeRefreshResourcesDto);

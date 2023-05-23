@@ -78,6 +78,12 @@ import {
   vendorsIndexRoute,
   vendorsRoute,
 } from './vendor.routes';
+import {
+  sbeGlobalIndexRoute,
+  sbeGlobalRoute,
+  sbesGlobalIndexRoute,
+  sbesGlobalRoute,
+} from './sbe-global.routes';
 export * from './claimset.routes';
 export * from './application.routes';
 export * from './account.routes';
@@ -86,6 +92,7 @@ export * from './ods.routes';
 export * from './ownership.routes';
 export * from './role.routes';
 export * from './sbe.routes';
+export * from './sbe-global.routes';
 export * from './tenant.routes';
 export * from './user-tenant-membership.routes';
 export * from './user.routes';
@@ -165,6 +172,10 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   mainLayoutRoute.addChildren([
     indexRoute,
+    sbesGlobalRoute.addChildren([
+      sbesGlobalIndexRoute,
+      sbeGlobalRoute.addChildren([sbeGlobalIndexRoute]),
+    ]),
     asRoute.addChildren([
       ownershipsRoute.addChildren([
         ownershipsIndexRoute,

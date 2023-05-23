@@ -114,10 +114,10 @@ import { IOds } from '../interfaces/ods.interface';
 import { PostDto, DtoPostBase } from '../utils/post-base.dto';
 import { IEdorg } from '../interfaces';
 
-export class GetOdsDto extends DtoGetBase implements GetDto<IOds, "resource" | "sbe" | "edorgs"> {
-  @Expose()
-  resourceId: number;
-
+export class GetOdsDto
+  extends DtoGetBase
+  implements GetDto<IOds, 'ownerships' | 'sbe' | 'edorgs'>
+{
   @Expose()
   sbeId: number;
 
@@ -130,7 +130,10 @@ export class GetOdsDto extends DtoGetBase implements GetDto<IOds, "resource" | "
 }
 export const toGetOdsDto = makeSerializer(GetOdsDto);
 
-export class PutOdsDto extends DtoPutBase implements PutDto<IOds, 'resource' | 'resourceId' | 'sbe' | 'edorgs'> {
+export class PutOdsDto
+  extends DtoPutBase
+  implements PutDto<IOds, 'ownerships' | 'sbe' | 'edorgs'>
+{
   @Expose()
   sbeId: number;
   @Expose()
@@ -139,7 +142,10 @@ export class PutOdsDto extends DtoPutBase implements PutDto<IOds, 'resource' | '
   edorgs?: IEdorg[] | undefined;
 }
 
-export class PostOdsDto extends DtoPostBase implements PostDto<IOds, 'resource' | 'resourceId' | 'sbe' | 'edorgs'> {
+export class PostOdsDto
+  extends DtoPostBase
+  implements PostDto<IOds, 'ownerships' | 'sbe' | 'edorgs'>
+{
   @Expose()
   sbeId: number;
   @Expose()

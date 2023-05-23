@@ -1,8 +1,16 @@
-import { User } from '@edanalytics/models-server';
-import { Module } from '@nestjs/common';
+import {
+  Edorg,
+  Ods,
+  Ownership,
+  Sbe,
+  Tenant,
+  User,
+  UserTenantMembership,
+} from '@edanalytics/models-server';
+import { Global, Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersModule } from '../users/users.module';
+import { UsersModule } from '../tenants/users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { SessionSerializer } from './helpers/session.serializer';
@@ -20,11 +28,20 @@ const OidcStrategyFactory = {
   inject: [AuthService],
 };
 
+@Global()
 @Module({
   imports: [
     UsersModule,
     PassportModule.register({ session: true }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([
+      User,
+      Sbe,
+      Ods,
+      Edorg,
+      Ownership,
+      UserTenantMembership,
+      Tenant,
+    ]),
   ],
   controllers: [AuthController],
   providers: [
@@ -34,5 +51,6 @@ const OidcStrategyFactory = {
     ApplauncherStrategy,
     SessionSerializer,
   ],
+  exports: [AuthService],
 })
 export class AuthModule {}

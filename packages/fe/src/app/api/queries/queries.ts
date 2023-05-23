@@ -5,7 +5,6 @@ import {
   GetOdsDto,
   GetOwnershipDto,
   GetPrivilegeDto,
-  GetResourceDto,
   GetRoleDto,
   GetSbeDto,
   GetTenantDto,
@@ -17,7 +16,6 @@ import {
   PostEdorgDto,
   PostOdsDto,
   PostOwnershipDto,
-  PostResourceDto,
   PostRoleDto,
   PostSbeDto,
   PostTenantDto,
@@ -29,13 +27,14 @@ import {
   PutEdorgDto,
   PutOdsDto,
   PutOwnershipDto,
-  PutResourceDto,
   PutRoleDto,
   PutSbeDto,
   PutTenantDto,
   PutUserDto,
   PutUserTenantMembershipDto,
   PutVendorDto,
+  SbeCheckConnectionDto,
+  SbeRefreshResourcesDto,
 } from '@edanalytics/models';
 import {
   QueryKey,
@@ -105,10 +104,10 @@ function makeQueries<
   SbeParams extends SbeParamsType<IncludeSbe>,
   IncludeTenant extends TenantOptions,
   TenantParams extends IncludeTenant extends TenantOptions.Never
-  ? object
-  : IncludeTenant extends TenantOptions.Optional
-  ? { tenantId?: string | number | undefined }
-  : { tenantId: string | number }
+    ? object
+    : IncludeTenant extends TenantOptions.Optional
+    ? { tenantId?: string | number | undefined }
+    : { tenantId: string | number }
 >(args: {
   name: string;
   getDto: ClassConstructor<GetType>;
@@ -186,7 +185,8 @@ function makeQueries<
         queryFn: () =>
           methods.getOne(
             tenantUrl(
-              `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${args.id
+              `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${
+                args.id
               }`,
               args.tenantId
             ),
@@ -229,7 +229,8 @@ function makeQueries<
         mutationFn: (entity: PutType) =>
           methods.put(
             tenantUrl(
-              `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${entity[(idPropertyKey ?? 'id') as keyof PutType]
+              `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${
+                entity[(idPropertyKey ?? 'id') as keyof PutType]
               }`,
               args.tenantId
             ),
@@ -262,7 +263,8 @@ function makeQueries<
         mutationFn: (id: string | number) =>
           methods.delete(
             tenantUrl(
-              `${includeSbe ? `sbes/${args.sbeId}` : ''
+              `${
+                includeSbe ? `sbes/${args.sbeId}` : ''
               }/${kebabCaseName}s/${id}`,
               args.tenantId
             )
@@ -321,15 +323,6 @@ export const privilegeQueries = makeQueries({
   includeTenant: TenantOptions.Required,
 });
 
-export const resourceQueries = makeQueries({
-  name: 'Resource',
-  getDto: GetResourceDto,
-  putDto: PutResourceDto,
-  postDto: PostResourceDto,
-  includeSbe: false,
-  includeTenant: TenantOptions.Required,
-});
-
 export const roleQueries = makeQueries({
   name: 'Role',
   getDto: GetRoleDto,
@@ -345,7 +338,7 @@ export const sbeQueries = makeQueries({
   putDto: PutSbeDto,
   postDto: PostSbeDto,
   includeSbe: false,
-  includeTenant: TenantOptions.Required,
+  includeTenant: TenantOptions.Optional,
 });
 
 export const tenantQueries = makeQueries({
@@ -401,3 +394,41 @@ export const claimsetQueries = makeQueries({
   includeSbe: true,
   includeTenant: TenantOptions.Required,
 });
+
+export const useSbeCheckConnection = (callback?: () => void) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (sbe: GetSbeDto) =>
+      methods.put(
+        `${baseUrl}/sbes/${sbe.id}/check-connection`,
+        class Nothing {},
+        SbeCheckConnectionDto,
+        {}
+      ),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ['sbes', 'detail', String(data.id)],
+      });
+      callback && callback();
+    },
+  });
+};
+
+export const useSbeRefreshResources = (callback?: () => void) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (sbe: GetSbeDto) =>
+      methods.put(
+        `${baseUrl}/sbes/${sbe.id}/refresh-resources`,
+        class Nothing {},
+        SbeRefreshResourcesDto,
+        {}
+      ),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ['sbes', 'detail', String(data.id)],
+      });
+      callback && callback();
+    },
+  });
+};

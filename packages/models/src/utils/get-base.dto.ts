@@ -84,9 +84,4 @@ export class DtoGetBase__User {
 
 export abstract class DtoGetBase
   extends DtoGetBase__User
-  implements Omit<IEntityBase, DtoGetOmit>
-{
-  // @ApiProperty()
-  @Expose()
-  override createdById: IUser['id'];
-}
+  implements Omit<IEntityBase, DtoGetOmit> {}

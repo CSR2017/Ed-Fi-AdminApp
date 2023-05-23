@@ -27,10 +27,10 @@ export class EntityBase implements IEntityBase {
   deleted?: Date | undefined;
 
   @ManyToOne('User')
-  createdBy: IUser;
+  createdBy?: IUser;
 
-  @Column()
-  createdById: IUser['id'];
+  @Column({ nullable: true })
+  createdById?: IUser['id'];
 
   @ManyToOne('User', { nullable: true })
   modifiedBy?: IUser | undefined;

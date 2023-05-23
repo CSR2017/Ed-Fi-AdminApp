@@ -1,3 +1,4 @@
+import { PrivilegeCode } from '@edanalytics/models';
 import { Privilege } from '@edanalytics/models-server';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,7 +15,7 @@ export class PrivilegesService {
     return this.privilegesRepository.find();
   }
 
-  findOne(code: string) {
+  findOne(code: PrivilegeCode) {
     return this.privilegesRepository.findOneByOrFail({ code }).catch(() => {
       throw new NotFoundException('Privilege not found');
     });

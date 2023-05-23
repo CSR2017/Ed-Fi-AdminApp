@@ -77,56 +77,52 @@ export const OwnershipsPage = () => {
           {
             id: 'resource',
             accessorFn: (info) =>
-              info.resource.edorg
-                ? `Ed-Org - ${info.resource.edorg.displayName}`
-                : info.resource.ods
-                ? `Ods - ${info.resource.ods.displayName}`
-                : `Environment - ${info.resource.sbe?.displayName}`,
+              info.edorg
+                ? `Ed-Org - ${info.edorg.displayName}`
+                : info.ods
+                ? `Ods - ${info.ods.displayName}`
+                : `Environment - ${info.sbe?.displayName}`,
             header: () => 'Resource',
-            cell: ({
-              row: {
-                original: { resource },
-              },
-            }) =>
-              resource.edorg ? (
+            cell: ({ row: { original } }) =>
+              original.edorg ? (
                 <Link as="span">
                   <RouterLink
                     title="Go to edorg"
                     to={edorgRoute.fullPath}
                     params={{
                       asId: params.asId,
-                      sbeId: String(resource.edorg.sbeId),
-                      edorgId: String(resource.edorg.id),
+                      sbeId: String(original.edorg.sbeId),
+                      edorgId: String(original.edorg.id),
                     }}
                   >
-                    {`Ed-Org - ${resource.edorg.displayName}`}
+                    {`Ed-Org - ${original.edorg.displayName}`}
                   </RouterLink>
                 </Link>
-              ) : resource.ods ? (
+              ) : original.ods ? (
                 <Link as="span">
                   <RouterLink
                     title="Go to ods"
                     to={odsRoute.fullPath}
                     params={{
                       asId: params.asId,
-                      sbeId: String(resource.ods.sbeId),
-                      odsId: String(resource.ods.id),
+                      sbeId: String(original.ods.sbeId),
+                      odsId: String(original.ods.id),
                     }}
                   >
-                    {`ODS - ${resource.ods.displayName}`}
+                    {`ODS - ${original.ods.displayName}`}
                   </RouterLink>
                 </Link>
-              ) : resource.sbe ? (
+              ) : original.sbe ? (
                 <Link as="span">
                   <RouterLink
                     title="Go to sbe"
                     to={sbeRoute.fullPath}
                     params={{
                       asId: params.asId,
-                      sbeId: String(resource.sbe.id),
+                      sbeId: String(original.sbe.id),
                     }}
                   >
-                    {`Environment - ${resource.sbe.displayName}`}
+                    {`Environment - ${original.sbe.displayName}`}
                   </RouterLink>
                 </Link>
               ) : (

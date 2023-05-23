@@ -1,4 +1,4 @@
-import { EdorgType, IEdorg, IOds, IResource, ISbe } from '@edanalytics/models';
+import { EdorgType, IEdorg, IOds, IOwnership, ISbe } from '@edanalytics/models';
 import { FakeMeUsing, districtName, schoolType } from '@edanalytics/utils';
 import { faker } from '@faker-js/faker';
 import {
@@ -6,36 +6,38 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   Tree,
   TreeChildren,
-  TreeParent
+  TreeParent,
 } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 
 @Entity()
-@FakeMeUsing(() => Math.random() > 0.2 ? ({
-  discriminator: EdorgType['edfi.School'],
-  nameOfInstitution: `${faker.address.street()} ${schoolType()}`,
-}) : ({
-  discriminator: EdorgType['edfi.LocalEducationAgency'],
-  nameOfInstitution: districtName(),
-}))
-@Tree("closure-table")
+@FakeMeUsing(() =>
+  Math.random() > 0.2
+    ? {
+        discriminator: EdorgType['edfi.School'],
+        nameOfInstitution: `${faker.address.street()} ${schoolType()}`,
+      }
+    : {
+        discriminator: EdorgType['edfi.LocalEducationAgency'],
+        nameOfInstitution: districtName(),
+      }
+)
+@Tree('closure-table')
 export class Edorg extends EntityBase implements IEdorg {
-  @OneToOne('Resource', (resource: IResource) => resource.edorg)
-  @JoinColumn()
-  resource: IResource;
-  @Column()
-  resourceId: number;
+  @OneToMany('Ownership', (ownership: IOwnership) => ownership.edorg)
+  ownerships: IOwnership[];
 
   @ManyToOne('Ods', (ods: IOds) => ods.edorgs)
-  ods: IOds
+  ods: IOds;
   @Column()
   odsId: number;
 
   @ManyToOne('Sbe', (sbe: ISbe) => sbe.edorgs)
-  sbe: ISbe
+  sbe: ISbe;
   @Column()
   sbeId: number;
 

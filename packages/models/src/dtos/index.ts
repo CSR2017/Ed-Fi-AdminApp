@@ -1,5 +1,4 @@
 export * from './sbe.dto';
-export * from './resource.dto';
 export * from './edorg.dto';
 export * from './ods.dto';
 export * from './session-data.dto';
@@ -10,5 +9,5 @@ export * from './privilege.dto';
 export * from './role.dto';
 export * from './ownership.dto';
 export * from './starting-blocks.dto';
-export * from './edfi-admin-api.dto'
-export * from './post-login.dto'
+export * from './edfi-admin-api.dto';
+export * from './post-login.dto';

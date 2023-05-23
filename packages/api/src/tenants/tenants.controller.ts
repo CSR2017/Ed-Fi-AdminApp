@@ -30,9 +30,7 @@ export class TenantsController {
     @ReqUser() session: GetSessionDataDto
   ) {
     return toGetTenantDto(
-      await this.tenantService.create(
-        addUserCreating(createTenantDto, session.user)
-      )
+      await this.tenantService.create(addUserCreating(createTenantDto, session))
     );
   }
 
@@ -55,7 +53,7 @@ export class TenantsController {
     return toGetTenantDto(
       await this.tenantService.update(
         tenantId,
-        addUserModifying(updateTenantDto, session.user)
+        addUserModifying(updateTenantDto, session)
       )
     );
   }
@@ -65,6 +63,6 @@ export class TenantsController {
     @Param('tenantId', new ParseIntPipe()) tenantId: number,
     @ReqUser() session: GetSessionDataDto
   ) {
-    return this.tenantService.remove(+tenantId, session.user);
+    return this.tenantService.remove(+tenantId, session);
   }
 }

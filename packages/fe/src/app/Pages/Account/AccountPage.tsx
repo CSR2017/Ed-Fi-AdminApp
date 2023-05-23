@@ -8,7 +8,7 @@ import { accountRouteGlobal } from '../../routes';
 
 export const AccountPage = () => {
   const me = useMe();
-  const user = me.data?.user;
+  const user = me.data;
   const navigate = useNavigate();
 
   const edit = useSearch({ from: accountRouteGlobal.id }).edit;

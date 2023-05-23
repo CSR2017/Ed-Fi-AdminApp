@@ -1,3 +1,4 @@
+import { IRole } from '.';
 import { GlobalRole } from '../enums/global-role.enum';
 import { IEntityBase } from '../utils/entity-base.interface';
 import { IUserTenantMembership } from './user-tenant-membership.interface';
@@ -11,7 +12,7 @@ export interface IUser extends Omit<IEntityBase, 'createdBy' | 'createdById'> {
   givenName: string;
   familyName: string;
   fullName: string;
-  role?: GlobalRole;
+  role?: IRole;
   config?: IUserConfig;
   isActive: boolean;
   userTenantMemberships: IUserTenantMembership[];

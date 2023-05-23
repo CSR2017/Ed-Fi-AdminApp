@@ -1,7 +1,6 @@
 import {
   User,
   Tenant,
-  Resource,
   Ods,
   Sbe,
   Edorg,
@@ -18,7 +17,6 @@ const config: DataSourceOptions = {
   entities: [
     User,
     Tenant,
-    Resource,
     Ods,
     Sbe,
     Edorg,
@@ -29,7 +27,7 @@ const config: DataSourceOptions = {
   ],
   synchronize: true,
   migrations: ['packages/api/src/database/migrations/*.{ts,js}'],
-  // logging: ["query"]
+  // logging: ['query'],
 };
 
 export default config;

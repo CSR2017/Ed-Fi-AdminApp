@@ -23,7 +23,7 @@ export const EditAccount = () => {
   };
   const putMe = usePutMe(goToView);
   const me = useMe();
-  const user = me.data?.user;
+  const user = me.data;
   const {
     register,
     handleSubmit,

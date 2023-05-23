@@ -39,7 +39,7 @@ export const AppBar = () => {
       <Menu>
         <MenuButton as={Button} variant="unstyled">
           <HStack spacing={0}>
-            <Avatar name={me.data?.user.fullName || ''} size="sm" />
+            <Avatar name={me.data?.fullName || ''} size="sm" />
             <Icon as={RxCaretDown} />
           </HStack>
         </MenuButton>

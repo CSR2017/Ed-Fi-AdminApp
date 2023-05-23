@@ -1,4 +1,10 @@
-import { GlobalRole, IUser, IUserConfig, IUserTenantMembership } from '@edanalytics/models';
+import {
+  GlobalRole,
+  IRole,
+  IUser,
+  IUserConfig,
+  IUserTenantMembership,
+} from '@edanalytics/models';
 import { enumValues, FakeMeUsing } from '@edanalytics/utils';
 import { faker } from '@faker-js/faker';
 import { Type } from 'class-transformer';
@@ -64,11 +70,16 @@ export class User implements IUser {
     return this.givenName + ' ' + this.familyName;
   }
 
-  @FakeMeUsing(() => faker.helpers.arrayElement(enumValues(GlobalRole)))
-  @Column({ type: 'varchar', nullable: true })
-  role: GlobalRole;
+  @ManyToOne('Role', { nullable: true })
+  role?: IRole;
 
-  @OneToMany('UserTenantMembership', (userTenantMembership: IUserTenantMembership) => userTenantMembership.user)
+  @Column({ nullable: true })
+  roleId?: IRole['id'];
+
+  @OneToMany(
+    'UserTenantMembership',
+    (userTenantMembership: IUserTenantMembership) => userTenantMembership.user
+  )
   userTenantMemberships: IUserTenantMembership[];
 
   @FakeMeUsing(() => faker.helpers.arrayElement([false, true, true]))

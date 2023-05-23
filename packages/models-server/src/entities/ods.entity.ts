@@ -1,4 +1,4 @@
-import { IEdorg, IOds, IResource, ISbe } from '@edanalytics/models';
+import { IEdorg, IOds, IOwnership, ISbe } from '@edanalytics/models';
 import { FakeMeUsing } from '@edanalytics/utils';
 import { faker } from '@faker-js/faker';
 import {
@@ -7,17 +7,14 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne
+  OneToOne,
 } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 
 @Entity()
 export class Ods extends EntityBase implements IOds {
-  @OneToOne('Resource', (resource: IResource) => resource.edorg)
-  @JoinColumn()
-  resource: IResource;
-  @Column()
-  resourceId: number;
+  @OneToMany('Ownership', (ownership: IOwnership) => ownership.ods)
+  ownerships: IOwnership[];
 
   @ManyToOne('Sbe', (sbe: ISbe) => sbe.odss)
   sbe: ISbe;

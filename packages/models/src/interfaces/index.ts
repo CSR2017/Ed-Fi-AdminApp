@@ -1,6 +1,5 @@
 export * from './edorg.interface';
 export * from './ods.interface';
-export * from './resource.interface';
 export * from './sbe.interface';
 export * from './tenant.interface';
 export * from './user.interface';

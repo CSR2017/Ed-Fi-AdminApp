@@ -114,10 +114,11 @@ import { IEdorg } from '../interfaces/edorg.interface';
 import { PostDto, DtoPostBase } from '../utils/post-base.dto';
 import { EdorgType } from '../enums';
 
-export class GetEdorgDto extends DtoGetBase implements GetDto<IEdorg, 'resource' | 'ods' | 'parent' | "children" | "sbe"> {
-  @Expose()
-  resourceId: number;
-
+export class GetEdorgDto
+  extends DtoGetBase
+  implements
+    GetDto<IEdorg, 'ownerships' | 'ods' | 'parent' | 'children' | 'sbe'>
+{
   @Expose()
   sbeId: number;
   @Expose()
@@ -139,7 +140,11 @@ export class GetEdorgDto extends DtoGetBase implements GetDto<IEdorg, 'resource'
 }
 export const toGetEdorgDto = makeSerializer(GetEdorgDto);
 
-export class PutEdorgDto extends DtoPutBase implements PutDto<IEdorg, 'resource' | 'ods' | 'odsId' | 'sbe' | 'sbeId' | 'parent' | 'resourceId'> {
+export class PutEdorgDto
+  extends DtoPutBase
+  implements
+    PutDto<IEdorg, 'ownerships' | 'ods' | 'odsId' | 'sbe' | 'sbeId' | 'parent'>
+{
   @Expose()
   children: IEdorg[];
 
@@ -159,7 +164,10 @@ export class PutEdorgDto extends DtoPutBase implements PutDto<IEdorg, 'resource'
   discriminator: EdorgType;
 }
 
-export class PostEdorgDto extends DtoPostBase implements PostDto<IEdorg, 'resource' | 'ods' | 'parent' | 'resourceId' | 'sbe'> {
+export class PostEdorgDto
+  extends DtoPostBase
+  implements PostDto<IEdorg, 'ownerships' | 'ods' | 'parent' | 'sbe'>
+{
   @Expose()
   @IsNumber()
   sbeId: number;
@@ -185,5 +193,4 @@ export class PostEdorgDto extends DtoPostBase implements PostDto<IEdorg, 'resour
 
   @Expose()
   discriminator: EdorgType;
-
 }

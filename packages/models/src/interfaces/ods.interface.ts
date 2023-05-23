@@ -1,11 +1,10 @@
+import { IOwnership } from '.';
 import { IEntityBase } from '../utils/entity-base.interface';
 import { IEdorg } from './edorg.interface';
-import { IResource } from './resource.interface';
 import { ISbe } from './sbe.interface';
 
 export interface IOds extends IEntityBase {
-  resource: IResource;
-  resourceId: number;
+  ownerships: IOwnership[];
 
   sbe: ISbe;
   sbeId: number;

@@ -1,4 +1,11 @@
-import { IOwnership, IResource, IRole, ITenant } from '@edanalytics/models';
+import {
+  IEdorg,
+  IOds,
+  IOwnership,
+  IRole,
+  ISbe,
+  ITenant,
+} from '@edanalytics/models';
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 
@@ -14,10 +21,24 @@ export class Ownership extends EntityBase implements IOwnership {
   @Column({ nullable: true })
   roleId: IRole['id'];
 
-  @ManyToOne('Resource', (resource: IResource) => resource.ownerships, {
+  @ManyToOne('Sbe', (sbe: ISbe) => sbe.ownerships, {
     eager: true,
   })
-  resource: IResource;
+  sbe?: ISbe;
   @Column({ nullable: true })
-  resourceId: number;
+  sbeId?: number;
+
+  @ManyToOne('Ods', (ods: IOds) => ods.ownerships, {
+    eager: true,
+  })
+  ods?: IOds;
+  @Column({ nullable: true })
+  odsId?: number;
+
+  @ManyToOne('Edorg', (edorg: IEdorg) => edorg.ownerships, {
+    eager: true,
+  })
+  edorg?: IEdorg;
+  @Column({ nullable: true })
+  edorgId?: number;
 }

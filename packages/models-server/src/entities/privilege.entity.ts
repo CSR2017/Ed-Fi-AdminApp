@@ -1,16 +1,12 @@
-import { IPrivilege } from '@edanalytics/models';
-import {
-  Column,
-  Entity,
-  PrimaryColumn
-} from 'typeorm';
+import { IPrivilege, PrivilegeCode } from '@edanalytics/models';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Privilege implements IPrivilege {
-  @PrimaryColumn()
+  @Column()
   name: string;
   @Column()
   description: string;
-  @Column()
-  code: string;
+  @PrimaryColumn({ type: 'varchar' })
+  code: PrivilegeCode;
 }
