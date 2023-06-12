@@ -1,5 +1,6 @@
 import {
   GetSessionDataDto,
+  Ids,
   PostOdsDto,
   PrivilegeCode,
   PutOdsDto,
@@ -23,7 +24,6 @@ import {
   addUserCreating,
   addUserModifying,
 } from '@edanalytics/models-server';
-import { Ids } from '../../../auth/authorization/tenant-cache.interface';
 import { InjectFilter } from '../../../auth/helpers/inject-filter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';

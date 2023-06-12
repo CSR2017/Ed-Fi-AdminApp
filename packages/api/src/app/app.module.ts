@@ -20,6 +20,14 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { routes } from './routes';
 import { SbesGlobalModule } from '../sbes-global/sbes-global.module';
+import { AuthCacheGuard } from '../auth/authorization/authorization-cache.guard';
+import { OwnershipsGlobalModule } from '../ownerships-global/ownerships-global.module';
+import { TenantsGlobalModule } from '../tenants-global/tenants-global.module';
+import { UsersGlobalModule } from '../users-global/users-global.module';
+import { UserTenantMembershipsGlobalModule } from '../user-tenant-memberships-global/user-tenant-memberships-global.module';
+import { OdssGlobalModule } from '../sbes-global/odss-global/odss-global.module';
+import { EdorgsGlobalModule } from '../sbes-global/edorgs-global/edorgs-global.module';
+import { RolesGlobalModule } from '../roles-global/roles-global.module';
 
 @Module({
   imports: [
@@ -38,6 +46,13 @@ import { SbesGlobalModule } from '../sbes-global/sbes-global.module';
     RolesModule,
     PrivilegesModule,
     SbesGlobalModule,
+    OwnershipsGlobalModule,
+    TenantsGlobalModule,
+    UsersGlobalModule,
+    UserTenantMembershipsGlobalModule,
+    RolesGlobalModule,
+    OdssGlobalModule,
+    EdorgsGlobalModule,
   ],
   controllers: [AppController],
   providers: [
@@ -45,6 +60,10 @@ import { SbesGlobalModule } from '../sbes-global/sbes-global.module';
     {
       provide: APP_GUARD,
       useClass: AuthenticatedGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthCacheGuard,
     },
     {
       provide: APP_GUARD,

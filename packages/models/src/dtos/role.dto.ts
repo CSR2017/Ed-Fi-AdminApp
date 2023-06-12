@@ -122,9 +122,10 @@ export class GetRoleDto extends DtoGetBase implements GetDto<IRole, 'tenant'> {
   @Expose()
   description?: string;
   @Expose()
-  tenantId?: ITenant['id']
+  @Transform(({ value }) => (value === null ? undefined : value))
+  tenantId?: ITenant['id'];
   @Expose()
-  type: RoleType
+  type: RoleType;
   @Expose()
   @Type(() => GetPrivilegeDto)
   privileges: IPrivilege[];
@@ -135,7 +136,10 @@ export class GetRoleDto extends DtoGetBase implements GetDto<IRole, 'tenant'> {
 }
 export const toGetRoleDto = makeSerializer(GetRoleDto);
 
-export class PutRoleDto extends DtoPutBase implements PutDto<IRole, 'tenant' | 'type' | 'tenantId'> {
+export class PutRoleDto
+  extends DtoPutBase
+  implements PutDto<IRole, 'tenant' | 'type' | 'tenantId'>
+{
   @Expose()
   name: string;
   @Expose()
@@ -145,15 +149,18 @@ export class PutRoleDto extends DtoPutBase implements PutDto<IRole, 'tenant' | '
   privileges: IPrivilege[];
 }
 
-export class PostRoleDto extends DtoPostBase implements PostDto<IRole, 'tenant'> {
+export class PostRoleDto
+  extends DtoPostBase
+  implements PostDto<IRole, 'tenant'>
+{
   @Expose()
   name: string;
   @Expose()
   description?: string;
   @Expose()
-  tenantId?: ITenant['id']
+  tenantId?: ITenant['id'];
   @Expose()
-  type: RoleType
+  type: RoleType;
   @Expose()
   @Type(() => GetPrivilegeDto)
   privileges: IPrivilege[];

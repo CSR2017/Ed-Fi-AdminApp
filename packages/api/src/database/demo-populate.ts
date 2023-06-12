@@ -15,6 +15,7 @@ import * as _ from 'lodash';
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import typeormConfig from './typeorm.config';
+import { environment } from '../environments/environment.local';
 
 const db = new DataSource({ ...typeormConfig, synchronize: false });
 async function populate() {
@@ -34,10 +35,20 @@ async function populate() {
       'user:update',
       'user:delete',
       'user:create',
+      'role:read',
+      'role:update',
+      'role:delete',
+      'role:create',
       'sbe:read',
       'sbe:update',
       'sbe:delete',
       'sbe:create',
+      'ods:read',
+      'edorg:read',
+      'tenant:read',
+      'tenant:update',
+      'tenant:delete',
+      'tenant:create',
       'sbe:refresh-resources',
       'user-tenant-membership:read',
       'user-tenant-membership:update',
@@ -97,6 +108,12 @@ async function populate() {
       privileges: privileges,
     });
 
+    const globalViewer = await dataSource.getRepository(Role).save({
+      name: 'Global viewer',
+      type: RoleType.UserGlobal,
+      privileges: privileges.filter((p) => p.code.endsWith(':read')),
+    });
+
     const users = await userRepository.save(
       generateFake(
         User,
@@ -127,13 +144,19 @@ async function populate() {
       )
     );
 
+    const realSbe = await dataSource.getRepository(Sbe).save({
+      configPrivate: environment.SAMPLE_SBE_CONFIG,
+      configPublic: { hasOdsRefresh: false },
+      envLabel: 'test-env-label',
+    });
+
     const upwardInheritancePrivileges = privileges.filter((p) =>
       [
         'tenant.sbe:read',
         'tenant.sbe.ods:read',
         'tenant.sbe.edorg:read',
-        'tenant.sbe.claimset.read',
-        'tenant.sbe.vendor.read',
+        'tenant.sbe.claimset:read',
+        'tenant.sbe.vendor:read',
       ].includes(p.code)
     );
 

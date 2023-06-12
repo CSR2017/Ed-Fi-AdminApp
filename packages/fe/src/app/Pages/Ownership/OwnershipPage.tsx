@@ -1,5 +1,5 @@
 import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ConfirmAction } from '@edanalytics/common-ui';
+import { ActionGroup, ConfirmAction } from '@edanalytics/common-ui';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams, useSearch } from '@tanstack/router';
 import { BiEdit, BiTrash } from 'react-icons/bi';
@@ -9,6 +9,7 @@ import { useNavToParent } from '../../helpers';
 import { EditOwnership } from './EditOwnership';
 import { ViewOwnership } from './ViewOwnership';
 import { ReactNode } from 'react';
+import { PageTemplate } from '../PageTemplate';
 
 export const OwnershipPage = (): ReactNode => {
   const navigate = useNavigate();
@@ -28,22 +29,12 @@ export const OwnershipPage = (): ReactNode => {
   const { edit } = useSearch({ from: ownershipIndexRoute.id });
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        {ownership?.displayName || 'Ownership'}
-      </Heading>
+    <PageTemplate title={ownership?.displayName || 'Ownership'} constrainWidth>
       {ownership ? (
         <Box maxW="40em" borderTop="1px solid" borderColor="gray.200">
-          <ButtonGroup
-            spacing={6}
-            display="flex"
-            size="sm"
-            variant="link"
-            justifyContent="end"
-          >
+          <ActionGroup>
             <Button
               isDisabled={edit}
-              iconSpacing={1}
               leftIcon={<BiEdit />}
               onClick={() => {
                 navigate({
@@ -59,16 +50,16 @@ export const OwnershipPage = (): ReactNode => {
               bodyText="You won't be able to get it back"
             >
               {(props) => (
-                <Button {...props} iconSpacing={1} leftIcon={<BiTrash />}>
+                <Button {...props} leftIcon={<BiTrash />}>
                   Delete
                 </Button>
               )}
             </ConfirmAction>
-          </ButtonGroup>
+          </ActionGroup>
 
           {edit ? <EditOwnership /> : <ViewOwnership />}
         </Box>
       ) : null}
-    </>
+    </PageTemplate>
   );
 };

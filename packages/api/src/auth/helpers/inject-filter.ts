@@ -1,15 +1,15 @@
-import { PrivilegeCode } from '@edanalytics/models';
+import {
+  Ids,
+  isSbePrivilege,
+  ITenantCache,
+  PrivilegeCode,
+  SpecificIds,
+} from '@edanalytics/models';
 import {
   createParamDecorator,
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import {
-  Ids,
-  isSbePrivilege,
-  ITenantCache,
-  SpecificIds,
-} from '../authorization/tenant-cache.interface';
 
 export const InjectFilter = createParamDecorator(
   (privilege: PrivilegeCode, ctx: ExecutionContext) => {

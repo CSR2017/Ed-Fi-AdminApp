@@ -16,7 +16,7 @@ import {
   Controller,
   Delete,
   Get,
-  Header,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -25,12 +25,11 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Authorize, Ids } from '../auth/authorization';
-import { InjectFilter } from '../auth/helpers/inject-filter';
+import { Authorize } from '../auth/authorization';
 import { ReqUser } from '../auth/helpers/user.decorator';
-import { whereIds } from '../auth/helpers/where-ids';
-import { SbesGlobalService } from './sbes-global.service';
 import { StartingBlocksService } from '../tenants/sbes/starting-blocks/starting-blocks.service';
+import { SbesGlobalService } from './sbes-global.service';
+import { ErrorResponse, throwNotFound } from '../utils';
 
 @ApiTags('Sbe - Global')
 @Controller()
@@ -77,7 +76,9 @@ export class SbesGlobalController {
     },
   })
   async findOne(@Param('sbeId', new ParseIntPipe()) sbeId: number) {
-    return toGetSbeDto(await this.sbeService.findOne(sbeId));
+    return toGetSbeDto(
+      await this.sbeService.findOne(sbeId).catch(throwNotFound)
+    );
   }
 
   @Put(':sbeId/refresh-resources')

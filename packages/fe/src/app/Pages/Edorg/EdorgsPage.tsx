@@ -11,6 +11,7 @@ import {
   OdsLink,
   UserLink,
 } from '../../routes';
+import { PageTemplate } from '../PageTemplate';
 
 export const EdorgsPage = () => {
   const params = useParams({ from: edorgsRoute.id });
@@ -30,10 +31,7 @@ export const EdorgsPage = () => {
   const users = userQueries.useAll({ tenantId: params.asId });
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        Edorgs
-      </Heading>
+    <PageTemplate title="Education Organizations">
       <DataTable
         data={Object.values(edorgs?.data || {})}
         columns={[
@@ -93,6 +91,6 @@ export const EdorgsPage = () => {
           },
         ]}
       />
-    </>
+    </PageTemplate>
   );
 };

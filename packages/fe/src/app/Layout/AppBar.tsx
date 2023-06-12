@@ -33,7 +33,7 @@ export const AppBar = () => {
       px={3}
     >
       <RouterLink to="/">
-        <Image h={7} src="http://localhost:8081/starting-blocks.svg" />
+        <Image h={7} src="/assets/starting-blocks.svg" />
       </RouterLink>
       <Menu>
         <MenuButton as={Button} variant="unstyled">

@@ -1,14 +1,21 @@
-import { Heading, HStack } from '@chakra-ui/react';
+import { Button, HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
-import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { StandardRowActions } from '../../helpers/getStandardActions';
-import { UserLink, roleRoute, rolesRoute, RoleLink } from '../../routes';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { GetRoleDto, RoleType } from '@edanalytics/models';
+import { CellContext } from '@tanstack/react-table';
 import { useParams } from '@tanstack/router';
-import { roleQueries, userQueries } from '../../api';
-import { RoleType } from '@edanalytics/models';
+import { BiPlus } from 'react-icons/bi';
+import { roleQueries, useMyTenants, userQueries } from '../../api';
+import {
+  AuthorizeComponent,
+  getEntityFromQuery,
+  tenantRoleAuthConfig,
+} from '../../helpers';
+import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
+import { useStandardRowActions } from '../../helpers/getStandardActions';
+import { RoleLink, roleRoute, rolesRoute, UserLink } from '../../routes';
+import { PageTemplate } from '../PageTemplate';
 
-export const RolesPage = () => {
+const RoleNameCell = (info: CellContext<GetRoleDto, unknown>) => {
   const params = useParams({ from: rolesRoute.id });
   const roles = roleQueries.useAll({
     tenantId: params.asId,
@@ -16,40 +23,69 @@ export const RolesPage = () => {
   const deleteRole = roleQueries.useDelete({
     tenantId: params.asId,
   });
+  const [View, Edit, Delete] = useStandardRowActions({
+    info: info,
+    mutation: deleteRole.mutate,
+    route: roleRoute,
+    params: (params: any) => ({
+      ...params,
+      roleId: String(info.row.original.id),
+    }),
+  });
+  const role = getEntityFromQuery(info.row.original.id, roles);
+  return (
+    <HStack justify="space-between">
+      <RoleLink id={info.row.original.id} query={roles} />
+      <HStack className="row-hover" color="gray.600" align="middle">
+        <View />
+        <AuthorizeComponent
+          config={tenantRoleAuthConfig(
+            role?.id,
+            role?.tenantId,
+            'tenant.role:delete'
+          )}
+        >
+          <Delete />
+        </AuthorizeComponent>
+      </HStack>
+    </HStack>
+  );
+};
+
+export const RolesPage = () => {
+  const params = useParams({ from: rolesRoute.id });
+  const tenantId = Number(params.asId);
+  const roles = roleQueries.useAll({
+    tenantId: params.asId,
+  });
+  const deleteRole = roleQueries.useDelete({
+    tenantId: params.asId,
+  });
   const users = userQueries.useAll({ tenantId: params.asId });
+  const tenants = useMyTenants();
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        Roles
-      </Heading>
+    <PageTemplate title="Roles" justifyActionsLeft>
       <DataTable
         data={Object.values(roles?.data || {})}
         columns={[
           {
             accessorKey: 'displayName',
-            cell: (info) => (
-              <HStack justify="space-between">
-                <RoleLink id={info.row.original.id} query={roles} />
-                <HStack className="row-hover" color="gray.600" align="middle">
-                  <StandardRowActions
-                    info={info}
-                    mutation={deleteRole.mutate}
-                    route={roleRoute}
-                    params={(params: any) => ({
-                      ...params,
-                      roleId: String(info.row.original.id),
-                    })}
-                  />
-                </HStack>
-              </HStack>
-            ),
+            cell: RoleNameCell,
             header: () => 'Name',
           },
           {
             id: 'type',
             accessorFn: (info) => RoleType[info.type],
             header: () => 'Type',
+          },
+          {
+            id: 'owned-by',
+            accessorFn: (info) =>
+              typeof info.tenantId === 'number'
+                ? getRelationDisplayName(info.tenantId, tenants)
+                : 'Public',
+            header: () => 'Owned by',
           },
           {
             id: 'modifiedBy',
@@ -75,6 +111,6 @@ export const RolesPage = () => {
           },
         ]}
       />
-    </>
+    </PageTemplate>
   );
 };

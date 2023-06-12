@@ -23,6 +23,7 @@ import {
   sbeQueries,
   userQueries,
 } from '../../api';
+import { PageTemplate } from '../PageTemplate';
 
 export const OwnershipsPage = () => {
   const params = useParams({ from: ownershipsRoute.id });
@@ -39,33 +40,30 @@ export const OwnershipsPage = () => {
   });
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        Ownerships
-      </Heading>
+    <PageTemplate title="Ownerships">
       <DataTable
         data={Object.values(ownerships?.data || {})}
         columns={[
-          {
-            accessorKey: 'displayName',
-            cell: (info) => (
-              <HStack justify="space-between">
-                <OwnershipLink id={info.row.original.id} query={ownerships} />
-                <HStack className="row-hover" color="gray.600" align="middle">
-                  <StandardRowActions
-                    info={info}
-                    mutation={deleteOwnership.mutate}
-                    route={ownershipRoute}
-                    params={(params: any) => ({
-                      ...params,
-                      ownershipId: String(info.row.original.id),
-                    })}
-                  />
-                </HStack>
-              </HStack>
-            ),
-            header: () => 'Name',
-          },
+          // {
+          //   accessorKey: 'displayName',
+          //   cell: (info) => (
+          //     <HStack justify="space-between">
+          //       <OwnershipLink id={info.row.original.id} query={ownerships} />
+          //       <HStack className="row-hover" color="gray.600" align="middle">
+          //         <StandardRowActions
+          //           info={info}
+          //           mutation={deleteOwnership.mutate}
+          //           route={ownershipRoute}
+          //           params={(params: any) => ({
+          //             ...params,
+          //             ownershipId: String(info.row.original.id),
+          //           })}
+          //         />
+          //       </HStack>
+          //     </HStack>
+          //   ),
+          //   header: () => 'Name',
+          // },
           {
             id: 'role',
             accessorFn: (info) => getRelationDisplayName(info.roleId, roles),
@@ -159,6 +157,6 @@ export const OwnershipsPage = () => {
           },
         ]}
       />
-    </>
+    </PageTemplate>
   );
 };

@@ -1,14 +1,9 @@
-import { useMatch, useParams } from '@tanstack/router';
-import { secretRoute } from '../../routes/secret.routes';
-import { useEffect, useState } from 'react';
-import { getMessage } from '../../helpers';
 import {
   Alert,
   AlertDescription,
   AlertIcon,
   AlertTitle,
   Box,
-  Button,
   Heading,
   Icon,
   Text,
@@ -17,11 +12,13 @@ import {
   chakra,
   useBoolean,
 } from '@chakra-ui/react';
-import { useMe } from '../../api';
-import { InfoIcon } from '@chakra-ui/icons';
-import { BiInfoCircle } from 'react-icons/bi';
+import { ConfirmAction } from '@edanalytics/common-ui';
+import { useParams } from '@tanstack/router';
+import { useEffect, useState } from 'react';
 import { BsInfoCircle } from 'react-icons/bs';
-import { ConfirmAction, ConfirmActionProps } from '@edanalytics/common-ui';
+import { useMe } from '../../api';
+import { getMessage } from '../../helpers';
+import { secretRoute } from '../../routes/secret.routes';
 
 const placeholder = `KEY:
 123abc123abc

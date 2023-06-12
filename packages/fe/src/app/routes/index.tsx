@@ -62,12 +62,6 @@ import {
   tenantsRoute,
 } from './tenant.routes';
 import {
-  userTenantMembershipIndexRoute,
-  userTenantMembershipRoute,
-  userTenantMembershipsIndexRoute,
-  userTenantMembershipsRoute,
-} from './user-tenant-membership.routes';
-import {
   userIndexRoute,
   userRoute,
   usersIndexRoute,
@@ -87,6 +81,13 @@ import {
 } from './sbe-global.routes';
 import { PublicAppLayout } from '../Layout/PublicAppLayout';
 import { secretRoute } from './secret.routes';
+import {
+  ownershipGlobalCreateRoute,
+  ownershipGlobalIndexRoute,
+  ownershipGlobalRoute,
+  ownershipsGlobalIndexRoute,
+  ownershipsGlobalRoute,
+} from './ownership-global.routes';
 export * from './claimset.routes';
 export * from './application.routes';
 export * from './account.routes';
@@ -96,8 +97,8 @@ export * from './ownership.routes';
 export * from './role.routes';
 export * from './sbe.routes';
 export * from './sbe-global.routes';
+export * from './ownership-global.routes';
 export * from './tenant.routes';
-export * from './user-tenant-membership.routes';
 export * from './user.routes';
 export * from './vendor.routes';
 
@@ -132,11 +133,7 @@ export const mainLayoutRoute = new Route({
 export const indexRoute = new Route({
   getParentRoute: () => mainLayoutRoute,
   path: '/home',
-  component: () => (
-    <Heading mb={4} fontSize="lg">
-      Home
-    </Heading>
-  ),
+  component: () => <Heading size="page-heading">Home</Heading>,
 });
 
 export const publicAppLayoutRoute = new Route({
@@ -197,6 +194,11 @@ const routeTree = rootRoute.addChildren([
       sbesGlobalIndexRoute,
       sbeGlobalRoute.addChildren([sbeGlobalIndexRoute]),
     ]),
+    ownershipsGlobalRoute.addChildren([
+      ownershipsGlobalIndexRoute,
+      ownershipGlobalCreateRoute,
+      ownershipGlobalRoute.addChildren([ownershipGlobalIndexRoute]),
+    ]),
     asRoute.addChildren([
       ownershipsRoute.addChildren([
         ownershipsIndexRoute,
@@ -205,10 +207,6 @@ const routeTree = rootRoute.addChildren([
       rolesRoute.addChildren([
         rolesIndexRoute,
         roleRoute.addChildren([roleIndexRoute]),
-      ]),
-      userTenantMembershipsRoute.addChildren([
-        userTenantMembershipsIndexRoute,
-        userTenantMembershipRoute.addChildren([userTenantMembershipIndexRoute]),
       ]),
       sbesRoute.addChildren([
         sbesIndexRoute,

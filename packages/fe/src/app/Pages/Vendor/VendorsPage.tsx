@@ -3,6 +3,7 @@ import { DataTable } from '@edanalytics/common-ui';
 import { useParams } from '@tanstack/router';
 import { vendorQueries } from '../../api';
 import { VendorLink, vendorsRoute } from '../../routes';
+import { PageTemplate } from '../PageTemplate';
 
 export const VendorsPage = () => {
   const params = useParams({ from: vendorsRoute.id });
@@ -16,10 +17,7 @@ export const VendorsPage = () => {
   });
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        Vendors
-      </Heading>
+    <PageTemplate title="Vendors">
       <DataTable
         data={Object.values(vendors?.data || {})}
         columns={[
@@ -51,6 +49,6 @@ export const VendorsPage = () => {
           },
         ]}
       />
-    </>
+    </PageTemplate>
   );
 };

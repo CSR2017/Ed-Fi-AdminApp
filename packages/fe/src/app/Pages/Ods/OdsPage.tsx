@@ -1,5 +1,5 @@
 import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ConfirmAction } from '@edanalytics/common-ui';
+import { ActionGroup, ConfirmAction } from '@edanalytics/common-ui';
 import { useNavigate, useParams, useSearch } from '@tanstack/router';
 import { ReactNode } from 'react';
 import { BiEdit, BiTrash } from 'react-icons/bi';
@@ -8,6 +8,7 @@ import { useNavToParent } from '../../helpers';
 import { odsIndexRoute } from '../../routes';
 import { EditOds } from './EditOds';
 import { ViewOds } from './ViewOds';
+import { PageTemplate } from '../PageTemplate';
 
 export const OdsPage = (): ReactNode => {
   const navigate = useNavigate();
@@ -29,22 +30,14 @@ export const OdsPage = (): ReactNode => {
   const { edit } = useSearch({ from: odsIndexRoute.id });
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        {ods?.displayName || 'Ods'}
-      </Heading>
-      {ods ? (
-        <Box maxW="40em" borderTop="1px solid" borderColor="gray.200">
-          <ButtonGroup
-            spacing={6}
-            display="flex"
-            size="sm"
-            variant="link"
-            justifyContent="end"
-          >
+    <PageTemplate
+      constrainWidth
+      title={ods?.displayName || 'Ods'}
+      actions={
+        ods ? (
+          <>
             <Button
               isDisabled={edit}
-              iconSpacing={1}
               leftIcon={<BiEdit />}
               onClick={() => {
                 navigate({
@@ -62,16 +55,16 @@ export const OdsPage = (): ReactNode => {
               bodyText="You won't be able to get it back"
             >
               {(props) => (
-                <Button {...props} iconSpacing={1} leftIcon={<BiTrash />}>
+                <Button {...props} leftIcon={<BiTrash />}>
                   Delete
                 </Button>
               )}
             </ConfirmAction>
-          </ButtonGroup>
-
-          {edit ? <EditOds /> : <ViewOds />}
-        </Box>
-      ) : null}
-    </>
+          </>
+        ) : null
+      }
+    >
+      {ods ? edit ? <EditOds /> : <ViewOds /> : null}
+    </PageTemplate>
   );
 };

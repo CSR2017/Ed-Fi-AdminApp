@@ -1,14 +1,18 @@
 import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ConfirmAction } from '@edanalytics/common-ui';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { ActionGroup, ConfirmAction } from '@edanalytics/common-ui';
 import { useNavigate, useParams, useSearch } from '@tanstack/router';
+import { ReactNode } from 'react';
 import { BiEdit, BiTrash } from 'react-icons/bi';
-import { roleQueries, userQueries } from '../../api';
+import { roleQueries } from '../../api';
+import {
+  AuthorizeComponent,
+  tenantRoleAuthConfig,
+  useNavToParent,
+} from '../../helpers';
 import { roleIndexRoute } from '../../routes';
-import { useNavToParent } from '../../helpers';
 import { EditRole } from './EditRole';
 import { ViewRole } from './ViewRole';
-import { ReactNode } from 'react';
+import { PageTemplate } from '../PageTemplate';
 
 export const RolePage = (): ReactNode => {
   const navigate = useNavigate();
@@ -28,47 +32,55 @@ export const RolePage = (): ReactNode => {
   const { edit } = useSearch({ from: roleIndexRoute.id });
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        {role?.displayName || 'Role'}
-      </Heading>
-      {role ? (
-        <Box maxW="40em" borderTop="1px solid" borderColor="gray.200">
-          <ButtonGroup
-            spacing={6}
-            display="flex"
-            size="sm"
-            variant="link"
-            justifyContent="end"
-          >
-            <Button
-              isDisabled={edit}
-              iconSpacing={1}
-              leftIcon={<BiEdit />}
-              onClick={() => {
-                navigate({
-                  search: { edit: true },
-                });
-              }}
-            >
-              Edit
-            </Button>
-            <ConfirmAction
-              action={() => deleteRole.mutate(role.id)}
-              headerText={`Delete ${role.displayName}?`}
-              bodyText="You won't be able to get it back"
-            >
-              {(props) => (
-                <Button {...props} iconSpacing={1} leftIcon={<BiTrash />}>
-                  Delete
-                </Button>
+    <PageTemplate
+      constrainWidth
+      title={role?.displayName || 'Role'}
+      actions={
+        role ? (
+          <>
+            <AuthorizeComponent
+              config={tenantRoleAuthConfig(
+                role.id,
+                role.tenantId,
+                'tenant.role:update'
               )}
-            </ConfirmAction>
-          </ButtonGroup>
-
-          {edit ? <EditRole /> : <ViewRole />}
-        </Box>
-      ) : null}
-    </>
+            >
+              <Button
+                isDisabled={edit}
+                leftIcon={<BiEdit />}
+                onClick={() => {
+                  navigate({
+                    search: { edit: true },
+                  });
+                }}
+              >
+                Edit
+              </Button>
+            </AuthorizeComponent>
+            <AuthorizeComponent
+              config={tenantRoleAuthConfig(
+                role.id,
+                role.tenantId,
+                'tenant.role:delete'
+              )}
+            >
+              <ConfirmAction
+                action={() => deleteRole.mutate(role.id)}
+                headerText={`Delete ${role.displayName}?`}
+                bodyText="You won't be able to get it back"
+              >
+                {(props) => (
+                  <Button {...props} leftIcon={<BiTrash />}>
+                    Delete
+                  </Button>
+                )}
+              </ConfirmAction>
+            </AuthorizeComponent>
+          </>
+        ) : null
+      }
+    >
+      {role ? edit ? <EditRole /> : <ViewRole /> : null}
+    </PageTemplate>
   );
 };

@@ -15,7 +15,10 @@
         "baseHref": "/",
         "main": "packages/fe/src/main.tsx",
         "tsConfig": "packages/fe/tsconfig.app.json",
-        "assets": ["packages/fe/src/favicon.ico", "packages/fe/src/assets"],
+        "assets": [
+          "packages/fe/src/assets/favicon.svg",
+          "packages/fe/src/assets"
+        ],
         "styles": [],
         "scripts": [],
         "isolatedConfig": true,

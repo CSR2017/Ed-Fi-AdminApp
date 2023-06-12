@@ -2,13 +2,14 @@ import { Box, Select, Text, chakra, useBoolean } from '@chakra-ui/react';
 import { useNavigate, useParams, useRouter } from '@tanstack/router';
 import Cookies from 'js-cookie';
 import { Resizable } from 're-resizable';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BsPerson, BsPersonFill } from 'react-icons/bs';
 import { useMe, useMyTenants } from '../api';
 import { accountRouteGlobal, asRoute } from '../routes';
+import { GlobalNav } from './GlobalNav';
 import { NavButton } from './NavButton';
 import { TenantNav } from './TenantNav';
-import { GlobalNav } from './GlobalNav';
+import { AuthorizeComponent } from '../helpers';
 
 export const Nav = () => {
   const params = useParams({ from: asRoute.id });
@@ -24,25 +25,17 @@ export const Nav = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    Cookies.set('defaultTenant', String(tenantId));
+  }, [tenantId]);
+
+  useEffect(() => {
     if (
       String(tenantId) !== params.asId &&
       router.state.currentMatches.map((m) => m.route.id).includes(asRoute.id)
     ) {
-      navigate({
-        to: asRoute.fullPath,
-        params: { asId: String(tenantId) },
-      });
+      setTenantId(Number(params.asId));
     }
   }, [tenantId, router.state.currentMatches, navigate, params.asId]);
-
-  useEffect(() => {
-    if (
-      Object.keys(tenants.data ?? {}).length === 1 &&
-      tenantId !== Object.values(tenants.data ?? {})[0].id
-    ) {
-      setTenantId(Object.values(tenants.data ?? {})[0].id);
-    }
-  }, [tenantId, tenants, navigate, params.asId]);
 
   const [isResizing, setIsResizing] = useBoolean(false);
 
@@ -78,15 +71,40 @@ export const Nav = () => {
             }
             onChange={(e) => {
               const value = e.target.value;
-              Cookies.set('defaultTenant', value);
-              setTenantId(value === 'undefined' ? undefined : Number(value));
+              const newTenantId =
+                value === 'undefined' ? undefined : Number(value);
+              if (
+                newTenantId !== undefined &&
+                router.state.currentMatches
+                  .map((m) => m.route.id)
+                  .includes(asRoute.id)
+              ) {
+                navigate({
+                  to: asRoute.fullPath,
+                  params: (old: any) => ({ ...old, asId: String(newTenantId) }),
+                });
+              } else {
+                if (
+                  router.state.currentMatches
+                    .map((m) => m.route.id)
+                    .includes(asRoute.id)
+                ) {
+                  navigate({ to: '/' }).then(() => {
+                    setTenantId(newTenantId);
+                  });
+                } else {
+                  setTenantId(newTenantId);
+                }
+              }
             }}
           >
-            {Object.values(tenants.data ?? {}).map((t) => (
-              <chakra.option fontStyle="normal" key={t.id} value={t.id}>
-                {t.displayName}
-              </chakra.option>
-            ))}
+            {Object.values(tenants.data ?? {})
+              .sort((a, b) => Number(a.displayName > b.displayName) - 0.5)
+              .map((t) => (
+                <chakra.option fontStyle="normal" key={t.id} value={t.id}>
+                  {t.displayName}
+                </chakra.option>
+              ))}
             <chakra.option
               color="gray.500"
               fontStyle="italic"
@@ -112,9 +130,28 @@ export const Nav = () => {
         }}
       />
       {tenantId === undefined ? (
-        <GlobalNav />
+        <AuthorizeComponent
+          config={{
+            privilege: 'sbe:read',
+            subject: {
+              id: '__filtered__',
+            },
+          }}
+        >
+          <GlobalNav />
+        </AuthorizeComponent>
       ) : (
-        <TenantNav tenantId={String(tenantId)} />
+        <AuthorizeComponent
+          config={{
+            privilege: 'tenant.sbe:read',
+            subject: {
+              tenantId,
+              id: '__filtered__',
+            },
+          }}
+        >
+          <TenantNav tenantId={String(tenantId)} />
+        </AuthorizeComponent>
       )}
     </Box>
   );

@@ -2,8 +2,26 @@ import { extendTheme } from '@chakra-ui/react';
 
 export const theme = extendTheme({
   components: {
+    Heading: {
+      sizes: {
+        'page-heading': {
+          fontSize: '2xl',
+          mb: 1,
+        },
+      },
+    },
     Table: {
       baseStyle: {
+        thead: {
+          tr: {
+            bg: 'gray.100',
+            th: {
+              borderColor: 'gray.300',
+              borderTopWidth: '1px',
+              borderTopStyle: 'solid',
+            },
+          },
+        },
         tbody: {
           tr: {
             '&:hover': {
@@ -21,6 +39,18 @@ export const theme = extendTheme({
           },
         },
       },
+      sizes: {
+        sm: {
+          thead: {
+            tr: {
+              th: {
+                px: 4,
+                py: 2,
+              },
+            },
+          },
+        },
+      },
       defaultProps: {
         size: 'sm',
       },
@@ -32,6 +62,11 @@ export const theme = extendTheme({
           minW: 6,
           fontSize: 'md',
           margin: 'calc(-2px - 0.25rem)',
+        },
+        'action-bar': {
+          fontSize: 'sm',
+          px: '0.5em',
+          h: 6,
         },
       },
     },

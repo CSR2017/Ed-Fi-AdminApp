@@ -2,6 +2,7 @@ import { defineAbility, subject } from '@casl/ability';
 import {
   CanActivate,
   ExecutionContext,
+  HttpException,
   Inject,
   Injectable,
   UnauthorizedException,
@@ -10,7 +11,14 @@ import { Reflector } from '@nestjs/core';
 import { AuthService } from '../auth.service';
 import { AUTHORIZE_KEY, AuthorizeMetadata } from './authorize.decorator';
 import { IS_PUBLIC_KEY } from './public.decorator';
-import { ITenantCache, Ids, isSbePrivilege } from './tenant-cache.interface';
+import {
+  ITenantCache,
+  isSbePrivilege,
+  Ids,
+  AuthorizationCache,
+  isGlobalPrivilege,
+  PrivilegeCode,
+} from '@edanalytics/models';
 
 @Injectable()
 export class AuthorizedGuard implements CanActivate {
@@ -28,81 +36,68 @@ export class AuthorizedGuard implements CanActivate {
     }
     const request = context.switchToHttp().getRequest();
     if (request.isAuthenticated()) {
+      const userPrivileges: Set<PrivilegeCode> = request['userPrivileges'];
+      const tenantCache: ITenantCache = request['tenantCache'];
+
       const tenantIdStr = request.params?.tenantId;
-
-      const userIndividualPrivileges = await this.authService.getUserPrivileges(
-        request.user.id,
-        tenantIdStr === undefined ? undefined : Number(tenantIdStr)
+      const userGlobalPrivileges = [...userPrivileges].flatMap(
+        (userPrivilege) =>
+          isGlobalPrivilege(userPrivilege) ? [userPrivilege] : []
       );
-      request['userPrivileges'] = userIndividualPrivileges;
-
-      let tenantCache: ITenantCache | undefined;
-      if (typeof tenantIdStr === 'string') {
-        const tenantId = Number(tenantIdStr);
-        tenantCache = await this.authService.buildTenantOwnershipCache(
-          tenantId
-        );
-        request['tenantCache'] = tenantCache;
-      }
 
       const ability = defineAbility((userCan) => {
-        [...userIndividualPrivileges]
-          .filter((userPrivilege) => !userPrivilege.startsWith('tenant.')) // tenant privileges applied only if tenant itself has them.
-          .forEach((userPrivilege) => {
-            userCan(userPrivilege, userPrivilege, subject(userPrivilege, {}));
-          });
+        userGlobalPrivileges.forEach((userPrivilege) => {
+          userCan(userPrivilege, userPrivilege, subject(userPrivilege, {}));
+        });
 
         Object.keys(tenantCache ?? {}).forEach(
           (privilegeCode: keyof ITenantCache) => {
-            // only apply tenant's privilege if user has it too.
-            if (userIndividualPrivileges.has(privilegeCode)) {
-              const privilegeCache = tenantCache[privilegeCode];
-              const sbeIds = Object.keys(privilegeCache);
+            const privilegeCache = tenantCache[privilegeCode];
+            const sbeIds = Object.keys(privilegeCache);
 
-              if (isSbePrivilege(privilegeCode)) {
-                sbeIds.forEach((sbeIdStr) => {
-                  const sbeId = Number(sbeIdStr);
-                  const sbePrivilegeCache: Ids = privilegeCache[sbeId];
-                  const subjectIdCondition =
-                    sbePrivilegeCache === true
-                      ? {}
-                      : {
-                          id: {
-                            $in: [
-                              '__filtered__',
-                              ...[...sbePrivilegeCache].map((v) => String(v)),
-                            ],
-                          },
-                        };
-                  userCan(
-                    privilegeCode,
-                    privilegeCode,
-                    subject(privilegeCode, {
-                      tenantId: tenantIdStr,
-                      sbeId: String(sbeId),
-                      ...subjectIdCondition,
-                    })
-                  );
-                });
-              } else {
-                const basePrivilegeCache: Ids = tenantCache[privilegeCode];
-                const ids =
-                  basePrivilegeCache === true
+            if (isSbePrivilege(privilegeCode)) {
+              sbeIds.forEach((sbeIdStr) => {
+                const sbeId = Number(sbeIdStr);
+                const sbePrivilegeCache: Ids = privilegeCache[sbeId];
+                const subjectIdCondition =
+                  sbePrivilegeCache === true
                     ? {}
                     : {
                         id: {
                           $in: [
                             '__filtered__',
-                            ...[...basePrivilegeCache].map((v) => String(v)),
+                            ...[...sbePrivilegeCache].map((v) => String(v)),
                           ],
                         },
                       };
-                const subjectObject = subject(privilegeCode, {
-                  tenantId: tenantIdStr,
-                  ...ids,
-                });
-                userCan(privilegeCode, privilegeCode, subjectObject);
-              }
+                userCan(
+                  privilegeCode,
+                  privilegeCode,
+                  subject(privilegeCode, {
+                    tenantId: tenantIdStr,
+                    sbeId: String(sbeId),
+                    ...subjectIdCondition,
+                  })
+                );
+              });
+            } else {
+              const basePrivilegeCache: Ids = tenantCache[privilegeCode];
+              const ids =
+                basePrivilegeCache === true
+                  ? {}
+                  : {
+                      id: {
+                        $in: [
+                          '__filtered__',
+                          ...[...basePrivilegeCache].map((v) => String(v)),
+                        ],
+                      },
+                    };
+              const subjectObject = subject(privilegeCode, {
+                tenantId: tenantIdStr,
+                ...ids,
+              });
+              userCan(privilegeCode, privilegeCode, subjectObject);
             }
           }
         );
@@ -134,7 +129,7 @@ export class AuthorizedGuard implements CanActivate {
         subject(privilege, subjectObject);
         const authorizationResult = ability.can(privilege, subjectObject);
         if (!authorizationResult) {
-          throw new UnauthorizedException();
+          throw new HttpException('Unauthorized', 403);
         }
       }
       return true;

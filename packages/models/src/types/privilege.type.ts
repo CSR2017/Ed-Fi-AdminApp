@@ -4,11 +4,17 @@ export type BasePrivilege =
   | 'ownership:update'
   | 'ownership:delete'
   | 'ownership:create'
+  | 'role:read'
+  | 'role:update'
+  | 'role:delete'
+  | 'role:create'
   | 'sbe:read'
   | 'sbe:update'
   | 'sbe:delete'
   | 'sbe:create'
   | 'sbe:refresh-resources'
+  | 'ods:read'
+  | 'edorg:read'
   | 'privilege:read'
   | 'user:read'
   | 'user:update'
@@ -24,11 +30,6 @@ export type BasePrivilege =
   | 'user-tenant-membership:create';
 
 // // Global versions of the above, to be implemented post-MVP:
-
-// |'role:read'
-// |'role:update'
-// |'role:delete'
-// |'role:create'
 
 // |'ownership:read'
 

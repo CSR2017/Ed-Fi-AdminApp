@@ -1,4 +1,4 @@
-import { GetSessionDataDto, PrivilegeCode } from '@edanalytics/models';
+import { ITenantCache, PrivilegeCode } from '@edanalytics/models';
 import {
   Edorg,
   Ods,
@@ -7,14 +7,11 @@ import {
   User,
   UserTenantMembership,
 } from '@edanalytics/models-server';
+import { faker } from '@faker-js/faker';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, IsNull, Repository, TreeRepository } from 'typeorm';
-import {
-  ITenantCache,
-  cacheAccordingToPrivileges,
-} from './authorization/tenant-cache.interface';
-import { faker } from '@faker-js/faker';
+import { cacheAccordingToPrivileges } from './authorization/tenant-cache.interface';
 
 @Injectable()
 export class AuthService {
@@ -76,6 +73,7 @@ export class AuthService {
         'userTenantMemberships',
         'userTenantMemberships.role',
         'userTenantMemberships.tenant',
+        'role',
       ],
     });
 
@@ -89,13 +87,13 @@ export class AuthService {
     if (foundUser) {
       return foundUser;
     } else {
-      return {
-        user: await this.usersRepo.save({
-          ...user,
-          isActive: false,
-          roleId: 1,
-        }),
-      };
+      const [_, userCount] = await this.usersRepo.findAndCount();
+      const newUser = await this.usersRepo.save({
+        ...user,
+        isActive: false,
+        roleId: userCount === 0 ? 2 : 1, // first user is admin
+      });
+      return await this.getUser(newUser.username);
     }
   }
 
@@ -145,8 +143,14 @@ export class AuthService {
     const cache: ITenantCache = {
       'tenant.ownership:read': true,
       'tenant.role:read': true,
+      'tenant.role:create': true,
+      'tenant.role:update': true,
+      'tenant.role:delete': true,
       'tenant.user:read': true,
       'tenant.user-tenant-membership:read': true,
+      'tenant.user-tenant-membership:update': true,
+      'tenant.user-tenant-membership:delete': true,
+      'tenant.user-tenant-membership:create': true,
       'tenant.sbe:read': new Set(),
     };
 

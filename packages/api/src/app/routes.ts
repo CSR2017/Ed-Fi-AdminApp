@@ -10,6 +10,13 @@ import { TenantsModule } from '../tenants/tenants.module';
 import { UserTenantMembershipsModule } from '../tenants/user-tenant-memberships/user-tenant-memberships.module';
 import { UsersModule } from '../tenants/users/users.module';
 import { SbesGlobalModule } from '../sbes-global/sbes-global.module';
+import { OwnershipsGlobalModule } from '../ownerships-global/ownerships-global.module';
+import { TenantsGlobalModule } from '../tenants-global/tenants-global.module';
+import { UsersGlobalModule } from '../users-global/users-global.module';
+import { UserTenantMembershipsGlobalModule } from '../user-tenant-memberships-global/user-tenant-memberships-global.module';
+import { OdssGlobalModule } from '../sbes-global/odss-global/odss-global.module';
+import { EdorgsGlobalModule } from '../sbes-global/edorgs-global/edorgs-global.module';
+import { RolesGlobalModule } from '../roles-global/roles-global.module';
 
 export const routes: Routes = [
   {
@@ -59,5 +66,35 @@ export const routes: Routes = [
   {
     path: 'sbes',
     module: SbesGlobalModule,
+    children: [
+      {
+        path: '/:sbeId/odss',
+        module: OdssGlobalModule,
+      },
+      {
+        path: '/:sbeId/edorgs',
+        module: EdorgsGlobalModule,
+      },
+    ],
+  },
+  {
+    path: 'ownerships',
+    module: OwnershipsGlobalModule,
+  },
+  {
+    path: 'tenants',
+    module: TenantsGlobalModule,
+  },
+  {
+    path: 'roles',
+    module: RolesGlobalModule,
+  },
+  {
+    path: 'users',
+    module: UsersGlobalModule,
+  },
+  {
+    path: 'user-tenant-memberships',
+    module: UserTenantMembershipsGlobalModule,
   },
 ];

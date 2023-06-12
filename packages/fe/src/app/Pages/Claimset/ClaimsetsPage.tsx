@@ -11,6 +11,7 @@ import {
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useParams } from '@tanstack/router';
 import { claimsetQueries, userQueries } from '../../api';
+import { PageTemplate } from '../PageTemplate';
 
 export const ClaimsetsPage = () => {
   const params = useParams({ from: claimsetsRoute.id });
@@ -25,10 +26,7 @@ export const ClaimsetsPage = () => {
   const users = userQueries.useAll({ tenantId: params.asId });
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        Claimsets
-      </Heading>
+    <PageTemplate title="Claimsets">
       <DataTable
         data={Object.values(claimsets?.data || {})}
         columns={[
@@ -56,6 +54,6 @@ export const ClaimsetsPage = () => {
           },
         ]}
       />
-    </>
+    </PageTemplate>
   );
 };

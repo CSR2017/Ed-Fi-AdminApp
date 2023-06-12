@@ -11,10 +11,14 @@ const baseUrl = '';
 
 export const useMe = () =>
   useQuery({
+    staleTime: 30 * 1000,
     queryKey: [`me`],
     queryFn: () =>
       methods
-        .getOne<GetSessionDataDto>(`${baseUrl}/auth/me`, GetSessionDataDto)
+        .getOne(`${baseUrl}/auth/me`, GetSessionDataDto)
+        .then((res) => {
+          return res;
+        })
         .catch((err) => {
           if (err.statusCode === 403) {
             return null;
@@ -25,6 +29,7 @@ export const useMe = () =>
   });
 export const useMyTenants = () =>
   useQuery({
+    staleTime: 30 * 1000,
     queryKey: [`me`, 'tenants'],
     queryFn: () =>
       methods.getManyMap(`${baseUrl}/auth/my-tenants`, GetTenantDto),

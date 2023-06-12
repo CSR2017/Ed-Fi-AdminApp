@@ -5,6 +5,7 @@ import { odsQueries, userQueries } from '../../api/queries/queries';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { StandardRowActions } from '../../helpers/getStandardActions';
 import { OdsLink, odsRoute, odssRoute, UserLink } from '../../routes';
+import { PageTemplate } from '../PageTemplate';
 
 export const OdssPage = () => {
   const params = useParams({ from: odssRoute.id });
@@ -19,10 +20,7 @@ export const OdssPage = () => {
   const users = userQueries.useAll({ tenantId: params.asId });
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        Odss
-      </Heading>
+    <PageTemplate title="Operational Data Stores">
       <DataTable
         data={Object.values(odss?.data || {})}
         columns={[
@@ -70,6 +68,6 @@ export const OdssPage = () => {
           },
         ]}
       />
-    </>
+    </PageTemplate>
   );
 };

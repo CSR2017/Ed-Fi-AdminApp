@@ -1,5 +1,5 @@
+import { Ids } from '@edanalytics/models';
 import { In } from 'typeorm';
-import { Ids } from '../authorization/tenant-cache.interface';
 
 export function whereIds(ids: Ids) {
   if (ids === true) {

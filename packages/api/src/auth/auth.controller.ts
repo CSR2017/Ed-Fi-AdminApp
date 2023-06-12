@@ -1,7 +1,12 @@
 import {
+  BadRequestException,
   Controller,
   Get,
+  InternalServerErrorException,
+  Param,
+  ParseIntPipe,
   Post,
+  Query,
   Redirect,
   Request,
   Res,
@@ -10,8 +15,12 @@ import {
 import { Response } from 'express';
 
 import {
+  AuthorizationCache,
   GetSessionDataDto,
+  Ids,
   PrivilegeCode,
+  isGlobalPrivilege,
+  isSbePrivilege,
   toGetSessionDataDto,
   toGetTenantDto,
 } from '@edanalytics/models';
@@ -28,6 +37,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Tenant } from '@edanalytics/models-server';
 import { Repository } from 'typeorm';
 import { UserPrivileges } from './helpers/inject-user-privileges';
+import { AuthCache } from './helpers/inject-auth-cache';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -80,6 +90,35 @@ export class AuthController {
   })
   async me(@ReqUser() session: GetSessionDataDto) {
     return toGetSessionDataDto(session);
+  }
+  @Get('authorizations/:privilege/:tenantId?')
+  @Authorize({
+    privilege: 'me:read',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  async privilegeCache(
+    @Param('privilege') privilege: PrivilegeCode,
+    @Param('tenantId') tenantId: string | undefined,
+    @Query('sbeId') sbeId: string | undefined,
+    @AuthCache() cache: AuthorizationCache
+  ) {
+    let result: Ids | false | undefined = false;
+    if (tenantId === undefined && isGlobalPrivilege(privilege)) {
+      result = cache?.[privilege];
+    } else if (tenantId !== undefined && !isGlobalPrivilege(privilege)) {
+      if (sbeId === undefined && !isSbePrivilege(privilege)) {
+        result = cache?.[privilege];
+      } else if (sbeId !== undefined && isSbePrivilege(privilege)) {
+        result = cache?.[privilege]?.[sbeId];
+      }
+    }
+    return result === true
+      ? true
+      : result === false || result === undefined
+      ? false
+      : [...result];
   }
 
   @Get('my-tenants')

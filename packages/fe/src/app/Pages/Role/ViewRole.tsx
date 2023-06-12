@@ -18,11 +18,15 @@ export const ViewRole = () => {
       <Text>{role.type ?? '-'}</Text>
       <FormLabel as="p">Privileges</FormLabel>
       {role.privileges?.map((p) => (
-        <Tooltip label={p.name}>
-          <Tag colorScheme="orange" display="flex" w="max-content" mb={2}>
-            {p.code}
-          </Tag>
-        </Tooltip>
+        <Tag
+          key={p.code}
+          colorScheme="orange"
+          display="flex"
+          w="max-content"
+          mb={2}
+        >
+          {p.code}
+        </Tag>
       ))}
     </>
   ) : null;

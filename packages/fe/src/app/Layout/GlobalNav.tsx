@@ -7,15 +7,18 @@ import {
 } from '@tanstack/router';
 import _ from 'lodash';
 import {
+  BsClipboard,
+  BsClipboardFill,
   BsFolder,
   BsFolderFill,
-  BsGear,
-  BsGearFill,
-  BsPerson,
-  BsPersonFill,
 } from 'react-icons/bs';
 import { sbeQueries } from '../api/queries/queries';
-import { sbeGlobalRoute, sbesGlobalRoute, sbesRoute } from '../routes';
+import {
+  ownershipGlobalRoute,
+  ownershipsGlobalRoute,
+  sbeGlobalRoute,
+  sbesGlobalRoute,
+} from '../routes';
 import { INavButtonProps, NavButton } from './NavButton';
 
 export const GlobalNav = (props: object) => {
@@ -37,13 +40,12 @@ export const GlobalNav = (props: object) => {
     //   activeIcon: BsGearFill,
     //   text: 'Roles',
     // },
-    // {
-    //   route: ownershipsRoute,
-    //   params: { asId: props.tenantId },
-    //   icon: BsClipboard,
-    //   activeIcon: BsClipboardFill,
-    //   text: 'Ownerships',
-    // },
+    {
+      route: ownershipsGlobalRoute,
+      icon: BsClipboard,
+      activeIcon: BsClipboardFill,
+      text: 'Ownerships',
+    },
     {
       route: sbesGlobalRoute,
       params: {},

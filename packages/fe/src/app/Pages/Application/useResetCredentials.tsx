@@ -50,7 +50,6 @@ export const useResetCredentials = (props: {
     () =>
       application ? (
         <Button
-          iconSpacing={1}
           leftIcon={
             resetCreds.isLoading ? <Spinner size="sm" /> : <BiShieldX />
           }

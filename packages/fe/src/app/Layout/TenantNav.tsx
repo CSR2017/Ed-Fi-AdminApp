@@ -21,11 +21,12 @@ import {
   BsFolderFill,
   BsGear,
   BsGearFill,
-  BsGlobe,
   BsKey,
   BsKeyFill,
-  BsPerson,
-  BsPersonFill,
+  BsPeople,
+  BsPeopleFill,
+  BsPersonVcard,
+  BsPersonVcardFill,
   BsShieldLock,
   BsShieldLockFill,
 } from 'react-icons/bs';
@@ -43,32 +44,130 @@ import {
   vendorsRoute,
 } from '../routes';
 import { INavButtonProps, NavButton } from './NavButton';
+import { arrayElemIf, authorize, usePrivilegeCacheForConfig } from '../helpers';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const TenantNav = (props: { tenantId: string }) => {
+  const tenantId = Number(props.tenantId);
   const sbes = sbeQueries.useAll({ tenantId: props.tenantId });
+  usePrivilegeCacheForConfig([
+    {
+      privilege: 'tenant.role:read',
+      subject: {
+        id: '__filtered__',
+        tenantId: tenantId,
+      },
+    },
+    {
+      privilege: 'tenant.user:read',
+      subject: {
+        id: '__filtered__',
+        tenantId: tenantId,
+      },
+    },
+    {
+      privilege: 'tenant.ownership:read',
+      subject: {
+        id: '__filtered__',
+        tenantId: tenantId,
+      },
+    },
+  ]);
+  usePrivilegeCacheForConfig(
+    Object.keys(sbes.data || {}).flatMap((sbeId) => [
+      {
+        privilege: 'tenant.sbe.ods:read',
+        subject: {
+          tenantId: tenantId,
+          sbeId: Number(sbeId),
+          id: '__filtered__',
+        },
+      },
+      {
+        privilege: 'tenant.sbe.edorg:read',
+        subject: {
+          tenantId: tenantId,
+          sbeId: Number(sbeId),
+          id: '__filtered__',
+        },
+      },
+      {
+        privilege: 'tenant.sbe.vendor:read',
+        subject: {
+          tenantId: tenantId,
+          sbeId: Number(sbeId),
+          id: '__filtered__',
+        },
+      },
+      {
+        privilege: 'tenant.sbe.claimset:read',
+        subject: {
+          tenantId: tenantId,
+          sbeId: Number(sbeId),
+          id: '__filtered__',
+        },
+      },
+      {
+        privilege: 'tenant.sbe.edorg.application:read',
+        subject: {
+          tenantId: tenantId,
+          sbeId: Number(sbeId),
+          id: '__filtered__',
+        },
+      },
+    ])
+  );
+  const queryClient = useQueryClient();
 
   const items: INavButtonProps[] = [
-    {
-      route: usersRoute,
-      params: { asId: props.tenantId },
-      icon: BsCloudRain,
-      activeIcon: BsCloudRainFill,
-      text: 'Users',
-    },
-    {
-      route: rolesRoute,
-      params: { asId: props.tenantId },
-      icon: BsGear,
-      activeIcon: BsGearFill,
-      text: 'Roles',
-    },
-    {
-      route: ownershipsRoute,
-      params: { asId: props.tenantId },
-      icon: BsClipboard,
-      activeIcon: BsClipboardFill,
-      text: 'Ownerships',
-    },
+    ...arrayElemIf(
+      authorize({
+        queryClient,
+        config: {
+          privilege: 'tenant.user:read',
+          subject: { tenantId, id: '__filtered__' },
+        },
+      }),
+      {
+        route: usersRoute,
+        params: { asId: props.tenantId },
+        icon: BsPeople,
+        activeIcon: BsPeopleFill,
+        text: 'Users',
+      }
+    ),
+    ...arrayElemIf(
+      authorize({
+        queryClient,
+        config: {
+          privilege: 'tenant.user:read',
+          subject: { tenantId, id: '__filtered__' },
+        },
+      }),
+      {
+        route: rolesRoute,
+        params: { asId: props.tenantId },
+        icon: BsPersonVcard,
+        activeIcon: BsPersonVcardFill,
+        text: 'Roles',
+      }
+    ),
+    ...arrayElemIf(
+      authorize({
+        queryClient,
+        config: {
+          privilege: 'tenant.user:read',
+          subject: { tenantId, id: '__filtered__' },
+        },
+      }),
+      {
+        route: ownershipsRoute,
+        params: { asId: props.tenantId },
+        icon: BsClipboard,
+        activeIcon: BsClipboardFill,
+        text: 'Ownerships',
+      }
+    ),
     {
       route: sbesRoute,
       params: { asId: props.tenantId },
@@ -82,41 +181,106 @@ export const TenantNav = (props: { tenantId: string }) => {
         activeIcon: BsFolderFill,
         text: sbe.displayName,
         childItems: [
-          {
-            route: odssRoute,
-            params: { asId: props.tenantId, sbeId: String(sbe.id) },
-            icon: BsDatabase,
-            activeIcon: BsDatabaseFill,
-            text: 'ODSs',
-          },
-          {
-            route: edorgsRoute,
-            params: { asId: props.tenantId, sbeId: String(sbe.id) },
-            icon: BsBook,
-            activeIcon: BsBookFill,
-            text: 'Ed-Orgs',
-          },
-          {
-            route: vendorsRoute,
-            params: { asId: props.tenantId, sbeId: String(sbe.id) },
-            icon: BsBuilding,
-            activeIcon: BsBuildingFill,
-            text: 'Vendors',
-          },
-          {
-            route: applicationsRoute,
-            params: { asId: props.tenantId, sbeId: String(sbe.id) },
-            icon: BsKey,
-            activeIcon: BsKeyFill,
-            text: 'Applications',
-          },
-          {
-            route: claimsetsRoute,
-            params: { asId: props.tenantId, sbeId: String(sbe.id) },
-            icon: BsShieldLock,
-            activeIcon: BsShieldLockFill,
-            text: 'Claimsets',
-          },
+          ...arrayElemIf(
+            authorize({
+              queryClient,
+              config: {
+                privilege: 'tenant.sbe.ods:read',
+                subject: {
+                  tenantId: tenantId,
+                  sbeId: sbe.id,
+                  id: '__filtered__',
+                },
+              },
+            }),
+            {
+              route: odssRoute,
+              params: { asId: props.tenantId, sbeId: String(sbe.id) },
+              icon: BsDatabase,
+              activeIcon: BsDatabaseFill,
+              text: 'ODSs',
+            }
+          ),
+          ...arrayElemIf(
+            authorize({
+              queryClient,
+              config: {
+                privilege: 'tenant.sbe.edorg:read',
+                subject: {
+                  tenantId: tenantId,
+                  sbeId: sbe.id,
+                  id: '__filtered__',
+                },
+              },
+            }),
+            {
+              route: edorgsRoute,
+              params: { asId: props.tenantId, sbeId: String(sbe.id) },
+              icon: BsBook,
+              activeIcon: BsBookFill,
+              text: 'Ed-Orgs',
+            }
+          ),
+          ...arrayElemIf(
+            authorize({
+              queryClient,
+              config: {
+                privilege: 'tenant.sbe.vendor:read',
+                subject: {
+                  tenantId: tenantId,
+                  sbeId: sbe.id,
+                  id: '__filtered__',
+                },
+              },
+            }),
+            {
+              route: vendorsRoute,
+              params: { asId: props.tenantId, sbeId: String(sbe.id) },
+              icon: BsBuilding,
+              activeIcon: BsBuildingFill,
+              text: 'Vendors',
+            }
+          ),
+          ...arrayElemIf(
+            authorize({
+              queryClient,
+              config: {
+                privilege: 'tenant.sbe.edorg.application:read',
+                subject: {
+                  tenantId: tenantId,
+                  sbeId: sbe.id,
+                  id: '__filtered__',
+                },
+              },
+            }),
+            {
+              route: applicationsRoute,
+              params: { asId: props.tenantId, sbeId: String(sbe.id) },
+              icon: BsKey,
+              activeIcon: BsKeyFill,
+              text: 'Applications',
+            }
+          ),
+          ...arrayElemIf(
+            authorize({
+              queryClient,
+              config: {
+                privilege: 'tenant.sbe.claimset:read',
+                subject: {
+                  tenantId: tenantId,
+                  sbeId: sbe.id,
+                  id: '__filtered__',
+                },
+              },
+            }),
+            {
+              route: claimsetsRoute,
+              params: { asId: props.tenantId, sbeId: String(sbe.id) },
+              icon: BsShieldLock,
+              activeIcon: BsShieldLockFill,
+              text: 'Claimsets',
+            }
+          ),
         ],
       })),
     },

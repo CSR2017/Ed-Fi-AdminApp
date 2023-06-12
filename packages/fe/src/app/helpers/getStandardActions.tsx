@@ -1,4 +1,4 @@
-import { Icon } from '@chakra-ui/react';
+import { Icon, IconButton } from '@chakra-ui/react';
 import { ConfirmAction } from '@edanalytics/common-ui';
 import { MutateOptions } from '@tanstack/react-query';
 import { AnyRoute, Link } from '@tanstack/router';
@@ -62,4 +62,72 @@ export const StandardRowActions = <
       </ConfirmAction>
     </>
   );
+};
+
+export const useStandardRowActions = <
+  RowType extends {
+    getValue: () => unknown;
+    row: { original: { id: number } };
+  },
+  RouteType extends AnyRoute = AnyRoute,
+  ParamsType extends object = object
+>(props: {
+  route: RouteType;
+  info: RowType;
+  params: ParamsType;
+  mutation: (
+    variables: number,
+    options?:
+      | MutateOptions<
+          AxiosResponse<unknown, any>,
+          unknown,
+          number | string,
+          unknown
+        >
+      | undefined
+  ) => void;
+}) => {
+  const path = props.route.fullPath;
+  return [
+    () => (
+      <Link title="View" to={path} params={props.params}>
+        <Icon fontSize="md" as={HiOutlineEye} />
+      </Link>
+    ),
+    () => (
+      <Link
+        title="Edit"
+        to={path}
+        params={props.params}
+        search={{ edit: true }}
+      >
+        <Icon fontSize="md" as={BiEdit} />
+      </Link>
+    ),
+    () => (
+      <ConfirmAction
+        headerText={`Delete ${props.info.getValue()}?`}
+        bodyText="You won't be able to get it back"
+        action={() => {
+          props.mutation(props.info.row.original.id);
+        }}
+      >
+        {(props) => (
+          <IconButton
+            variant="unstyled"
+            fontSize="md"
+            aria-label="Delete"
+            minH={0}
+            minW={0}
+            h="unset"
+            icon={<Icon as={BiTrash} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onClick && props.onClick(e);
+            }}
+          />
+        )}
+      </ConfirmAction>
+    ),
+  ];
 };

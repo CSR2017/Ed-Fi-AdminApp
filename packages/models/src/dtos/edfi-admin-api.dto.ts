@@ -224,6 +224,7 @@ export class PostApplicationDto {
   @Expose()
   @IsString()
   @MinLength(3)
+  @MaxLength(40)
   applicationName: string;
 
   @Expose()
@@ -281,6 +282,10 @@ export const toApplicationYopassResponseDto = makeSerializer(
 export class PutApplicationDto extends PostApplicationDto {
   @Expose()
   applicationId: number;
+
+  get id() {
+    return this.applicationId;
+  }
 }
 
 export class ApplicationResetCredentialResponseDto {

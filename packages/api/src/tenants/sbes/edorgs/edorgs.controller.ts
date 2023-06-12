@@ -1,11 +1,10 @@
-import { toGetEdorgDto } from '@edanalytics/models';
+import { Ids, toGetEdorgDto } from '@edanalytics/models';
 import { Edorg } from '@edanalytics/models-server';
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Authorize } from '../../../auth/authorization';
-import { Ids } from '../../../auth/authorization/tenant-cache.interface';
 import { InjectFilter } from '../../../auth/helpers/inject-filter';
 import { whereIds } from '../../../auth/helpers/where-ids';
 import { EdorgsService } from './edorgs.service';

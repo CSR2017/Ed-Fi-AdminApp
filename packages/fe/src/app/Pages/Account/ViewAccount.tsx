@@ -1,5 +1,5 @@
-import { FormLabel, Text } from '@chakra-ui/react';
-import { roleQueries, useMe } from '../../api';
+import { FormLabel, Grid, SimpleGrid, Tag, Text } from '@chakra-ui/react';
+import { useMe } from '../../api';
 
 export const ViewAccount = () => {
   const me = useMe();
@@ -7,10 +7,24 @@ export const ViewAccount = () => {
 
   return user ? (
     <>
-      <FormLabel as="strong">Username</FormLabel>
+      <FormLabel as="p">Username</FormLabel>
       <Text>{user.username}</Text>
-      <FormLabel as="strong">Global role</FormLabel>
-      <Text>{user.roleId}</Text>
+      <FormLabel as="p">Global role</FormLabel>
+      <Text>{user.role?.displayName}</Text>
+      <FormLabel as="p">Privileges</FormLabel>
+      <SimpleGrid columns={2}>
+        {user?.role.privileges?.map((p) => (
+          <Tag
+            key={p.code}
+            colorScheme="orange"
+            display="flex"
+            w="max-content"
+            mb={2}
+          >
+            {p.code}
+          </Tag>
+        ))}
+      </SimpleGrid>
     </>
   ) : null;
 };

@@ -1,4 +1,4 @@
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import { IRole, ITenant } from '../interfaces';
 import { IOwnership } from '../interfaces/ownership.interface';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
@@ -8,6 +8,7 @@ import { DtoPutBase, PutDto } from '../utils/put-base.dto';
 import { GetEdorgDto } from './edorg.dto';
 import { GetOdsDto } from './ods.dto';
 import { GetSbeDto } from './sbe.dto';
+import { IsIn, IsNumber, IsOptional, Validate } from 'class-validator';
 
 export class GetOwnershipDto
   extends DtoGetBase
@@ -40,6 +41,10 @@ export class GetOwnershipDto
   @Expose()
   @Type(() => GetEdorgDto)
   edorg?: GetEdorgDto;
+
+  override get displayName() {
+    return 'Resource ownership';
+  }
 }
 export const toGetOwnershipDto = makeSerializer<GetOwnershipDto, IOwnership>(
   GetOwnershipDto
@@ -81,19 +86,36 @@ export class PostOwnershipDto
     >
 {
   @Expose()
+  @IsNumber()
   tenantId: ITenant['id'];
   @Expose()
+  @IsNumber()
   roleId: IRole['id'];
 
   @Expose()
-  @Type(() => GetSbeDto)
-  sbe?: GetSbeDto;
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => (typeof value === 'number' ? value : undefined))
+  sbeId?: GetSbeDto['id'];
 
   @Expose()
-  @Type(() => GetOdsDto)
-  ods?: GetOdsDto;
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => (typeof value === 'number' ? value : undefined))
+  odsId?: GetOdsDto['id'];
 
   @Expose()
-  @Type(() => GetEdorgDto)
-  edorg?: GetEdorgDto;
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => (typeof value === 'number' ? value : undefined))
+  edorgId?: GetEdorgDto['id'];
+
+  @IsIn([true], { message: 'You need to select a resource.' })
+  get hasResource() {
+    return (
+      this.sbeId !== undefined ||
+      this.odsId !== undefined ||
+      this.edorgId !== undefined
+    );
+  }
 }

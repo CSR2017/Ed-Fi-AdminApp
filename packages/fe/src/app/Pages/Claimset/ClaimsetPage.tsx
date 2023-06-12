@@ -1,5 +1,5 @@
 import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ConfirmAction } from '@edanalytics/common-ui';
+import { ActionGroup, ConfirmAction } from '@edanalytics/common-ui';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams, useSearch } from '@tanstack/router';
 import { BiEdit, BiTrash } from 'react-icons/bi';
@@ -9,6 +9,7 @@ import { useNavToParent } from '../../helpers';
 import { EditClaimset } from './EditClaimset';
 import { ViewClaimset } from './ViewClaimset';
 import { ReactNode } from 'react';
+import { PageTemplate } from '../PageTemplate';
 
 export const ClaimsetPage = (): ReactNode => {
   const navigate = useNavigate();
@@ -31,22 +32,14 @@ export const ClaimsetPage = (): ReactNode => {
   const { edit } = useSearch({ from: claimsetIndexRoute.id });
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        {claimset?.displayName || 'Claimset'}
-      </Heading>
-      {claimset ? (
-        <Box maxW="40em" borderTop="1px solid" borderColor="gray.200">
-          <ButtonGroup
-            spacing={6}
-            display="flex"
-            size="sm"
-            variant="link"
-            justifyContent="end"
-          >
+    <PageTemplate
+      constrainWidth
+      title={claimset?.displayName || 'Claimset'}
+      actions={
+        claimset ? (
+          <>
             <Button
               isDisabled={edit}
-              iconSpacing={1}
               leftIcon={<BiEdit />}
               onClick={() => {
                 navigate({
@@ -62,16 +55,16 @@ export const ClaimsetPage = (): ReactNode => {
               bodyText="You won't be able to get it back"
             >
               {(props) => (
-                <Button {...props} iconSpacing={1} leftIcon={<BiTrash />}>
+                <Button {...props} leftIcon={<BiTrash />}>
                   Delete
                 </Button>
               )}
             </ConfirmAction>
-          </ButtonGroup>
-
-          {edit ? <EditClaimset /> : <ViewClaimset />}
-        </Box>
-      ) : null}
-    </>
+          </>
+        ) : null
+      }
+    >
+      {claimset ? edit ? <EditClaimset /> : <ViewClaimset /> : null}
+    </PageTemplate>
   );
 };

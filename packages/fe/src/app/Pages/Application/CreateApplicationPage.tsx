@@ -7,6 +7,7 @@ import {
   FormLabel,
   Heading,
   Input,
+  Link,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -15,7 +16,6 @@ import {
   ModalOverlay,
   Select,
   Text,
-  Link,
   useClipboard,
 } from '@chakra-ui/react';
 import {
@@ -24,7 +24,7 @@ import {
   PutApplicationDto,
 } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useNavigate, useParams, Link as RouterLink } from '@tanstack/router';
+import { useNavigate, useParams } from '@tanstack/router';
 import { ReactNode, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
@@ -35,24 +35,18 @@ import {
 } from '../../api';
 import { useNavToParent } from '../../helpers';
 import { applicationIndexRoute, applicationRoute } from '../../routes';
+import { PageTemplate } from '../PageTemplate';
+import {
+  ClaimsetPickerOptions,
+  EdorgPickerOptions,
+  VendorPickerOptions,
+} from '../../helpers/FormPickerOptions';
 const resolver = classValidatorResolver(PutApplicationDto);
 
 export const CreateApplicationPage = (): ReactNode => {
   const navigate = useNavigate();
   const params = useParams({ from: applicationIndexRoute.id });
   const navToParentOptions = useNavToParent();
-  const edorgs = edorgQueries.useAll({
-    tenantId: params.asId,
-    sbeId: params.sbeId,
-  });
-  const vendors = vendorQueries.useAll({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-  });
-  const claimsets = claimsetQueries.useAll({
-    tenantId: params.asId,
-    sbeId: params.sbeId,
-  });
 
   const goToView = (id: string) => {
     navigate({
@@ -86,7 +80,7 @@ export const CreateApplicationPage = (): ReactNode => {
   });
 
   return (
-    <>
+    <PageTemplate title="New application">
       <Modal
         isOpen={!!result}
         onClose={() => {
@@ -110,116 +104,90 @@ export const CreateApplicationPage = (): ReactNode => {
           </ModalBody>
         </ModalContent>
       </Modal>
-      <Heading mb={4} fontSize="lg">
-        New Application
-      </Heading>
-      <Box maxW="40em" borderTop="1px solid" borderColor="gray.200">
-        <form
-          onSubmit={handleSubmit((data) => {
-            postApplication.mutate(data);
-          })}
-        >
-          {/* TODO: replace this with real content */}
-          <FormControl isInvalid={!!errors.applicationName}>
-            <FormLabel>Application name</FormLabel>
-            <Input {...register('applicationName')} placeholder="name" />
-            <FormErrorMessage>
-              {errors.applicationName?.message}
-            </FormErrorMessage>
-          </FormControl>
-          <FormControl isInvalid={!!errors.educationOrganizationId}>
-            <FormLabel>Ed-org</FormLabel>
-            <Controller
-              control={control}
-              name="educationOrganizationId"
-              render={(props) => (
-                <Select
-                  placeholder="Select an Ed-org"
-                  {...props.field}
-                  onChange={(event) => {
-                    props.field.onChange(Number(event.target.value));
-                  }}
-                >
-                  {Object.values(edorgs.data ?? {}).map((edorg) => {
-                    return (
-                      <option
-                        key={edorg.id}
-                        value={edorg.educationOrganizationId}
-                      >
-                        {edorg.displayName}
-                      </option>
-                    );
-                  })}
-                </Select>
-              )}
+      <form
+        onSubmit={handleSubmit((data) => {
+          postApplication.mutate(data);
+        })}
+      >
+        <FormControl isInvalid={!!errors.applicationName}>
+          <FormLabel>Application name</FormLabel>
+          <Input {...register('applicationName')} placeholder="name" />
+          <FormErrorMessage>{errors.applicationName?.message}</FormErrorMessage>
+        </FormControl>
+        <FormControl isInvalid={!!errors.educationOrganizationId}>
+          <FormLabel>Ed-org</FormLabel>
+          <Controller
+            control={control}
+            name="educationOrganizationId"
+            render={(props) => (
+              <Select
+                placeholder="Select an Ed-org"
+                {...props.field}
+                onChange={(event) => {
+                  props.field.onChange(Number(event.target.value));
+                }}
+              >
+                <EdorgPickerOptions
+                  sbeId={params.sbeId}
+                  tenantId={params.asId}
+                />
+              </Select>
+            )}
+          />
+          <FormErrorMessage>
+            {errors.educationOrganizationIds?.message}
+          </FormErrorMessage>
+        </FormControl>
+        <FormControl isInvalid={!!errors.vendorId}>
+          <FormLabel>Vendor</FormLabel>
+          <Controller
+            control={control}
+            name="vendorId"
+            render={(props) => (
+              <Select
+                placeholder="Select a vendor"
+                {...props.field}
+                onChange={(event) => {
+                  props.field.onChange(Number(event.target.value));
+                }}
+              >
+                <VendorPickerOptions
+                  tenantId={params.asId}
+                  sbeId={params.sbeId}
+                />
+              </Select>
+            )}
+          />
+          <FormErrorMessage>{errors.vendorId?.message}</FormErrorMessage>
+        </FormControl>
+        <FormControl isInvalid={!!errors.claimSetName}>
+          <FormLabel>Claimset</FormLabel>
+          <Select placeholder="Select a claimset" {...register('claimSetName')}>
+            <ClaimsetPickerOptions
+              tenantId={params.asId}
+              sbeId={params.sbeId}
             />
-            <FormErrorMessage>
-              {errors.educationOrganizationIds?.message}
-            </FormErrorMessage>
-          </FormControl>
-          <FormControl isInvalid={!!errors.vendorId}>
-            <FormLabel>Vendor</FormLabel>
-            <Controller
-              control={control}
-              name="vendorId"
-              render={(props) => (
-                <Select
-                  placeholder="Select a vendor"
-                  {...props.field}
-                  onChange={(event) => {
-                    props.field.onChange(Number(event.target.value));
-                  }}
-                >
-                  {Object.values(vendors.data ?? {}).map((vendor) => {
-                    return (
-                      <option key={vendor.id} value={vendor.id}>
-                        {vendor.displayName}
-                      </option>
-                    );
-                  })}
-                </Select>
-              )}
-            />
-            <FormErrorMessage>{errors.vendorId?.message}</FormErrorMessage>
-          </FormControl>
-          <FormControl isInvalid={!!errors.claimSetName}>
-            <FormLabel>Claimset</FormLabel>
-            <Select
-              placeholder="Select a claimset"
-              {...register('claimSetName')}
-            >
-              {Object.values(claimsets.data ?? {}).map((claimset) => {
-                return (
-                  <option value={claimset.name}>{claimset.displayName}</option>
-                );
-              })}
-            </Select>
-            <FormErrorMessage>{errors.claimSetName?.message}</FormErrorMessage>
-          </FormControl>
-          <ButtonGroup>
-            <Button
-              mt={4}
-              colorScheme="teal"
-              isLoading={isLoading}
-              type="submit"
-            >
-              Save
-            </Button>
-            <Button
-              mt={4}
-              colorScheme="teal"
-              variant="ghost"
-              isLoading={isLoading}
-              type="reset"
-              onClick={() => {
-                navigate(navToParentOptions);
-              }}
-            >
-              Cancel
-            </Button>
-          </ButtonGroup>
-        </form>
-      </Box>
-    </>
+          </Select>
+          <FormErrorMessage>{errors.claimSetName?.message}</FormErrorMessage>
+        </FormControl>
+        <ButtonGroup>
+          <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+            Save
+          </Button>
+          <Button
+            mt={4}
+            colorScheme="teal"
+            variant="ghost"
+            isLoading={isLoading}
+            type="reset"
+            onClick={() => {
+              navigate(navToParentOptions);
+            }}
+          >
+            Cancel
+          </Button>
+        </ButtonGroup>
+      </form>
+    </PageTemplate>
   );
 };

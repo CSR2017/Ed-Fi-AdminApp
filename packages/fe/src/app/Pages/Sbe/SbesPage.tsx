@@ -6,6 +6,7 @@ import { UserLink, sbeRoute, sbesRoute, SbeLink } from '../../routes';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useParams } from '@tanstack/router';
 import { sbeQueries, userQueries } from '../../api';
+import { PageTemplate } from '../PageTemplate';
 
 export const SbesPage = () => {
   const params = useParams({ from: sbesRoute.id });
@@ -18,10 +19,7 @@ export const SbesPage = () => {
   const users = userQueries.useAll({ tenantId: params.asId });
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        Sbes
-      </Heading>
+    <PageTemplate title="Starting Blocks environments">
       <DataTable
         data={Object.values(sbes?.data || {})}
         columns={[
@@ -69,6 +67,6 @@ export const SbesPage = () => {
           },
         ]}
       />
-    </>
+    </PageTemplate>
   );
 };

@@ -7,8 +7,8 @@ import { mainLayoutRoute } from '.';
 import { getRelationDisplayName } from '../helpers';
 import { sbeQueries } from '../api';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
-import { SbesGlobalPage } from '../Pages/SbeGlobal/SbesGlobalPage';
 import { SbeGlobalPage } from '../Pages/SbeGlobal/SbeGlobalPage';
+import { SbesGlobalPage } from '../Pages/SbeGlobal/SbesGlobalPage';
 
 export const sbesGlobalRoute = new Route({
   getParentRoute: () => mainLayoutRoute,

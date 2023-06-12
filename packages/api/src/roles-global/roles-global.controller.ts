@@ -1,0 +1,112 @@
+import {
+  GetSessionDataDto,
+  PostRoleDto,
+  PutRoleDto,
+  toGetRoleDto,
+} from '@edanalytics/models';
+import {
+  Role,
+  addUserCreating,
+  addUserModifying,
+} from '@edanalytics/models-server';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Authorize } from '../auth/authorization';
+import { ReqUser } from '../auth/helpers/user.decorator';
+import { throwNotFound } from '../utils';
+import { RolesGlobalService } from './roles-global.service';
+
+@ApiTags('Role - Global')
+@Controller()
+export class RolesGlobalController {
+  constructor(
+    private readonly roleService: RolesGlobalService,
+    @InjectRepository(Role)
+    private rolesRepository: Repository<Role>
+  ) {}
+
+  @Post()
+  @Authorize({
+    privilege: 'role:create',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  async create(
+    @Body() createRoleDto: PostRoleDto,
+    @ReqUser() user: GetSessionDataDto
+  ) {
+    return toGetRoleDto(
+      await this.roleService.create(addUserCreating(createRoleDto, user))
+    );
+  }
+
+  @Get()
+  @Authorize({
+    privilege: 'role:read',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  async findAll() {
+    return toGetRoleDto(await this.rolesRepository.find());
+  }
+
+  @Get(':roleId')
+  @Authorize({
+    privilege: 'role:read',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  async findOne(@Param('roleId', new ParseIntPipe()) roleId: number) {
+    return toGetRoleDto(
+      await this.roleService.findOne(roleId).catch(throwNotFound)
+    );
+  }
+
+  @Put(':roleId')
+  @Authorize({
+    privilege: 'role:update',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  async update(
+    @Param('roleId', new ParseIntPipe()) roleId: number,
+    @Body() updateRoleDto: PutRoleDto,
+    @ReqUser() user: GetSessionDataDto
+  ) {
+    return toGetRoleDto(
+      await this.roleService.update(
+        roleId,
+        addUserModifying(updateRoleDto, user)
+      )
+    );
+  }
+
+  @Delete(':roleId')
+  @Authorize({
+    privilege: 'role:delete',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  remove(
+    @Param('roleId', new ParseIntPipe()) roleId: number,
+    @ReqUser() user: GetSessionDataDto
+  ) {
+    return this.roleService.remove(roleId, user);
+  }
+}

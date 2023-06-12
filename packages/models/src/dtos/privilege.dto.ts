@@ -112,7 +112,7 @@ import {
 import { Exclude, Expose, Type, Transform } from 'class-transformer';
 import { IPrivilege } from '../interfaces/privilege.interface';
 import { PostDto, DtoPostBase } from '../utils/post-base.dto';
-import { PrivilegeCode } from '..';
+import type { PrivilegeCode } from '..';
 
 export class GetPrivilegeDto implements GetDto<IPrivilege> {
   @Expose()

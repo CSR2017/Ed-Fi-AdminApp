@@ -95,7 +95,3 @@ export const methods = {
   },
   delete: (url: string) => apiClient.delete<unknown>(url),
 };
-
-export const axiosHandler = async <T = object>(
-  res: Promise<AxiosResponse<T>>
-) => (await res).data;

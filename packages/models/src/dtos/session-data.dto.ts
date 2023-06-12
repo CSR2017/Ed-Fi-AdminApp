@@ -16,6 +16,10 @@ export class GetSessionDataDto extends GetUserDto {
   @Expose()
   @Type(() => GetSessionDataDtoUtm)
   userTenantMemberships: GetSessionDataDtoUtm[];
+
+  @Expose()
+  @Type(() => GetRoleDto)
+  role: GetRoleDto;
 }
 
 export const toGetSessionDataDto = makeSerializer(GetSessionDataDto);

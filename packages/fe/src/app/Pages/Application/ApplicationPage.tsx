@@ -1,21 +1,26 @@
 import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ConfirmAction } from '@edanalytics/common-ui';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { ActionGroup, ConfirmAction } from '@edanalytics/common-ui';
 import { useNavigate, useParams, useSearch } from '@tanstack/router';
+import { ReactNode } from 'react';
 import { BiEdit, BiTrash } from 'react-icons/bi';
-import { applicationQueries, userQueries } from '../../api';
+import { applicationQueries } from '../../api';
+import {
+  AuthorizeComponent,
+  applicationAuthConfig,
+  useNavToParent,
+} from '../../helpers';
 import { applicationIndexRoute } from '../../routes';
-import { useNavToParent } from '../../helpers';
 import { EditApplication } from './EditApplication';
 import { ViewApplication } from './ViewApplication';
-import { ReactNode } from 'react';
 import { useResetCredentials } from './useResetCredentials';
+import { PageTemplate } from '../PageTemplate';
 
 export const ApplicationPage = (): ReactNode => {
   const navigate = useNavigate();
   const navToParentOptions = useNavToParent();
 
   const params = useParams({ from: applicationIndexRoute.id });
+
   const deleteApplication = applicationQueries.useDelete({
     sbeId: params.sbeId,
     tenantId: params.asId,
@@ -35,50 +40,81 @@ export const ApplicationPage = (): ReactNode => {
     sbeId: params.sbeId,
     tenantId: params.asId,
   });
+  const tenantId = Number(params.asId);
+  const sbeId = Number(params.sbeId);
+  const id = application?.educationOrganizationId;
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        {application?.displayName || 'Application'}
-      </Heading>
-      {application ? (
-        <Box maxW="40em" borderTop="1px solid" borderColor="gray.200">
-          <ButtonGroup
-            spacing={6}
-            display="flex"
-            size="sm"
-            variant="link"
-            justifyContent="end"
-          >
-            <ResetButton />
-            <Button
-              isDisabled={edit}
-              iconSpacing={1}
-              leftIcon={<BiEdit />}
-              onClick={() => {
-                navigate({
-                  search: { edit: true },
-                });
-              }}
-            >
-              Edit
-            </Button>
-            <ConfirmAction
-              action={() => deleteApplication.mutate(application.id)}
-              headerText={`Delete ${application.displayName}?`}
-              bodyText="You won't be able to get it back"
-            >
-              {(props) => (
-                <Button {...props} iconSpacing={1} leftIcon={<BiTrash />}>
-                  Delete
-                </Button>
+    <PageTemplate
+      constrainWidth
+      title={application?.displayName || 'Application'}
+      actions={
+        application ? (
+          <>
+            <AuthorizeComponent
+              config={applicationAuthConfig(
+                id,
+                sbeId,
+                tenantId,
+                'tenant.sbe.edorg.application:reset-credentials'
               )}
-            </ConfirmAction>
-          </ButtonGroup>
+            >
+              <ResetButton />
+            </AuthorizeComponent>
+            <AuthorizeComponent
+              config={applicationAuthConfig(
+                id,
+                sbeId,
+                tenantId,
+                'tenant.sbe.edorg.application:update'
+              )}
+            >
+              <Button
+                isDisabled={edit}
+                leftIcon={<BiEdit />}
+                onClick={() => {
+                  navigate({
+                    search: { edit: true },
+                  });
+                }}
+              >
+                Edit
+              </Button>
+            </AuthorizeComponent>
+            <AuthorizeComponent
+              config={applicationAuthConfig(
+                id,
+                sbeId,
+                tenantId,
+                'tenant.sbe.edorg.application:delete'
+              )}
+            >
+              <ConfirmAction
+                action={() => deleteApplication.mutate(application.id)}
+                headerText={`Delete ${application.displayName}?`}
+                bodyText="You won't be able to get it back"
+              >
+                {(props) => (
+                  <Button {...props} leftIcon={<BiTrash />}>
+                    Delete
+                  </Button>
+                )}
+              </ConfirmAction>
+            </AuthorizeComponent>
+          </>
+        ) : null
+      }
+    >
+      {application ? (
+        <>
           <ResetAlert />
-          {edit ? <EditApplication /> : <ViewApplication />}
-        </Box>
+          {edit ? (
+            <EditApplication application={application} />
+          ) : (
+            <ViewApplication />
+          )}
+        </>
       ) : null}
-    </>
+    </PageTemplate>
   );
 };

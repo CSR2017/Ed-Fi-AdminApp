@@ -1,8 +1,8 @@
 import {
+  Ids,
   PostApplicationDto,
   PostClaimsetDto,
   PostVendorDto,
-  PrivilegeCode,
   PutApplicationDto,
   PutClaimsetDto,
   PutVendorDto,
@@ -17,6 +17,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -26,12 +27,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { StartingBlocksServiceMock } from './starting-blocks.service.mock';
-import { Ids } from '../../../auth/authorization/tenant-cache.interface';
+import { Authorize } from '../../../auth/authorization';
 import { InjectFilter } from '../../../auth/helpers/inject-filter';
 import { filterId } from '../../../auth/helpers/where-ids';
 import { postYopassSecret, throwNotFound } from '../../../utils';
-import { Authorize } from '../../../auth/authorization';
 import { StartingBlocksService } from './starting-blocks.service';
 
 @ApiTags('Ed-Fi Resources')
@@ -230,13 +229,15 @@ export class StartingBlocksController {
     validIds: Ids
   ) {
     if (
-      application.educationOrganizationIds.every((id) => filterId(id, validIds))
+      application.educationOrganizationIds.every((id) =>
+        filterId(String(id), validIds)
+      )
     ) {
       return toGetApplicationDto(
         await this.sbService.putApplication(sbeId, applicationId, application)
       );
     } else {
-      throw new UnauthorizedException();
+      throw new HttpException('Unauthorized', 403);
     }
   }
 

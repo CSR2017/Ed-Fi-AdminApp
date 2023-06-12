@@ -1,57 +1,47 @@
 import {
-  Box,
   Button,
   ButtonGroup,
-  Checkbox,
-  CheckboxGroup,
-  Editable,
-  EditableInput,
-  EditablePreview,
-  EditableTextarea,
-  Flex,
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Grid,
-  HStack,
-  IconButton,
   Input,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  PinInput,
-  PinInputField,
-  Radio,
-  RadioGroup,
-  RangeSlider,
-  RangeSliderFilledTrack,
-  RangeSliderThumb,
-  RangeSliderTrack,
+  Link,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
   Select,
-  Slider,
-  SliderFilledTrack,
-  SliderMark,
-  SliderThumb,
-  SliderTrack,
-  Stack,
-  Switch,
-  Textarea,
-  Tooltip,
-  VStack,
+  Text,
+  useClipboard,
 } from '@chakra-ui/react';
-import { PutApplicationDto } from '@edanalytics/models';
+import {
+  ApplicationYopassResponseDto,
+  GetApplicationDto,
+  PutApplicationDto,
+} from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useNavigate, useParams, useSearch } from '@tanstack/router';
-import { useForm } from 'react-hook-form';
+import { useNavigate, useParams } from '@tanstack/router';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import {
+  applicationQueries,
+  claimsetQueries,
+  edorgQueries,
+  useApplicationPut,
+} from '../../api';
+import {
+  ClaimsetPickerOptions,
+  EdorgPickerOptionsEdorgId,
+  VendorPickerOptions,
+} from '../../helpers/FormPickerOptions';
 import { applicationIndexRoute, applicationRoute } from '../../routes';
-import { applicationQueries } from '../../api';
 
 const resolver = classValidatorResolver(PutApplicationDto);
 
-export const EditApplication = () => {
+export const EditApplication = (props: { application: GetApplicationDto }) => {
+  const { application } = props;
   const navigate = useNavigate();
   const goToView = () => {
     navigate({
@@ -61,33 +51,103 @@ export const EditApplication = () => {
     });
   };
   const params = useParams({ from: applicationIndexRoute.id });
-  const putApplication = applicationQueries.usePut({
-    callback: goToView,
+  const edorgs = edorgQueries.useAll({
     sbeId: params.sbeId,
     tenantId: params.asId,
   });
-  const application = applicationQueries.useOne({
-    id: params.applicationId,
+
+  const claimsets = claimsetQueries.useAll({
     sbeId: params.sbeId,
     tenantId: params.asId,
-  }).data;
-  const { edit } = useSearch({ from: applicationIndexRoute.id });
+  });
+
+  const putApplication = applicationQueries.usePut({
+    sbeId: params.sbeId,
+    tenantId: params.asId,
+    callback: goToView,
+  });
+  const defaultValues = new PutApplicationDto();
+  defaultValues.applicationId = application.applicationId;
+  defaultValues.applicationName = application.displayName;
+  defaultValues.claimSetName = application.claimSetName;
+  defaultValues.educationOrganizationIds = [
+    application.educationOrganizationId,
+  ];
+
   const {
     register,
     handleSubmit,
     formState: { errors, isLoading },
+    control,
   } = useForm<PutApplicationDto>({
     resolver,
-    defaultValues: { ...application },
+    defaultValues,
   });
 
-  return application ? (
-    <form onSubmit={handleSubmit((data) => putApplication.mutate(data))}>
-      {/* TODO: replace this with real content */}
+  return edorgs.data && claimsets.data ? (
+    <form
+      onSubmit={handleSubmit((data) => {
+        putApplication.mutate(data);
+      })}
+    >
       <FormControl isInvalid={!!errors.applicationName}>
         <FormLabel>Application name</FormLabel>
-        <Input {...register('applicationName')} placeholder="applicationName" />
+        <Input {...register('applicationName')} placeholder="name" />
         <FormErrorMessage>{errors.applicationName?.message}</FormErrorMessage>
+      </FormControl>
+      <FormControl isInvalid={!!errors.educationOrganizationId}>
+        <FormLabel>Ed-org</FormLabel>
+        <Controller
+          control={control}
+          name="educationOrganizationId"
+          render={(props) => (
+            <Select
+              placeholder="Select an Ed-org"
+              {...props.field}
+              value={String(props.field.value)}
+              onChange={(event) => {
+                props.field.onChange(Number(event.target.value));
+              }}
+            >
+              <EdorgPickerOptionsEdorgId
+                sbeId={params.sbeId}
+                tenantId={params.asId}
+              />
+            </Select>
+          )}
+        />
+        <FormErrorMessage>
+          {errors.educationOrganizationIds?.message}
+        </FormErrorMessage>
+      </FormControl>
+      <FormControl isInvalid={!!errors.vendorId}>
+        <FormLabel>Vendor</FormLabel>
+        <Controller
+          control={control}
+          name="vendorId"
+          render={(props) => (
+            <Select
+              placeholder="Select a vendor"
+              {...props.field}
+              onChange={(event) => {
+                props.field.onChange(Number(event.target.value));
+              }}
+            >
+              <VendorPickerOptions
+                tenantId={params.asId}
+                sbeId={params.sbeId}
+              />
+            </Select>
+          )}
+        />
+        <FormErrorMessage>{errors.vendorId?.message}</FormErrorMessage>
+      </FormControl>
+      <FormControl isInvalid={!!errors.claimSetName}>
+        <FormLabel>Claimset</FormLabel>
+        <Select placeholder="Select a claimset" {...register('claimSetName')}>
+          <ClaimsetPickerOptions tenantId={params.asId} sbeId={params.sbeId} />
+        </Select>
+        <FormErrorMessage>{errors.claimSetName?.message}</FormErrorMessage>
       </FormControl>
       <ButtonGroup>
         <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
@@ -98,7 +158,7 @@ export const EditApplication = () => {
           colorScheme="teal"
           variant="ghost"
           isLoading={isLoading}
-          type="submit"
+          type="reset"
           onClick={goToView}
         >
           Cancel

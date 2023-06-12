@@ -10,6 +10,7 @@ import {
   userQueries,
   userTenantMembershipQueries,
 } from '../../api';
+import { PageTemplate } from '../PageTemplate';
 
 export const UsersPage = () => {
   const params = useParams({ from: usersRoute.id });
@@ -29,15 +30,13 @@ export const UsersPage = () => {
   });
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        Users
-      </Heading>
+    <PageTemplate title="Users">
       <DataTable
         data={Object.values(userTenantMemberships?.data || {})}
         columns={[
           {
-            accessorKey: 'displayName',
+            id: 'displayName',
+            accessorFn: (info) => getRelationDisplayName(info.userId, users),
             cell: (info) => (
               <HStack justify="space-between">
                 <UserLink id={info.row.original.userId} query={users} />
@@ -57,7 +56,8 @@ export const UsersPage = () => {
             header: () => 'Name',
           },
           {
-            accessorKey: 'role',
+            id: 'role',
+            accessorFn: (info) => getRelationDisplayName(info.roleId, roles),
             cell: (info) => (
               <RoleLink id={info.row.original.roleId} query={roles} />
             ),
@@ -69,6 +69,6 @@ export const UsersPage = () => {
           },
         ]}
       />
-    </>
+    </PageTemplate>
   );
 };

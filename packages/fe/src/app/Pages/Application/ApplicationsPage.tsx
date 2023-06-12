@@ -20,6 +20,7 @@ import {
   userQueries,
 } from '../../api';
 import { GetClaimsetDto, GetEdorgDto } from '@edanalytics/models';
+import { PageTemplate } from '../PageTemplate';
 
 export const ApplicationsPage = () => {
   const params = useParams({ from: applicationsRoute.id });
@@ -60,21 +61,22 @@ export const ApplicationsPage = () => {
     }, {}),
   };
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        Applications
-      </Heading>
-      <Button as="div" variant="solid" colorScheme="teal" my={3}>
-        <RouterLink
-          title="Create new application registration"
-          to={applicationPostRoute.fullPath}
-          params={(previous: any) => ({
-            ...previous,
-          })}
-        >
-          Create new
-        </RouterLink>
-      </Button>
+    <PageTemplate
+      title="Applications"
+      actions={
+        <Button as="div">
+          <RouterLink
+            title="Create new application registration"
+            to={applicationPostRoute.fullPath}
+            params={(previous: any) => ({
+              ...previous,
+            })}
+          >
+            Create new
+          </RouterLink>
+        </Button>
+      }
+    >
       <DataTable
         data={Object.values(applications?.data || {})}
         columns={[
@@ -136,6 +138,6 @@ export const ApplicationsPage = () => {
           },
         ]}
       />
-    </>
+    </PageTemplate>
   );
 };

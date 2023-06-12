@@ -7,10 +7,29 @@ import {
   StyleProps,
 } from '@chakra-ui/react';
 import { Link as RouterLink, useMatches } from '@tanstack/router';
+import { useEffect, useState } from 'react';
 
 export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
   const matches = useMatches();
   const breadcrumbs = matches.filter((m) => m?.routeContext?.breadcrumb);
+
+  const [terminalItemRef, setTerminalItemRef] =
+    useState<HTMLAnchorElement | null>(null);
+
+  useEffect(() => {
+    // This non-reactive approach is ugly, but it's harmless and a way to avoid making the structure of the breadcrumb functions into a big deal.
+    const titlePoll = setInterval(() => {
+      if (terminalItemRef?.innerText !== undefined) {
+        document.title =
+          terminalItemRef?.innerText === 'Home'
+            ? 'Starting Blocks'
+            : terminalItemRef?.innerText + ' | Starting Blocks';
+      }
+    }, 500);
+    return () => {
+      clearInterval(titlePoll);
+    };
+  }, [terminalItemRef?.innerText]);
 
   return (
     <Breadcrumb
@@ -31,7 +50,12 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
         };
         return (
           <BreadcrumbItem key={match.pathname}>
-            <BreadcrumbLink {...props}>
+            <BreadcrumbLink
+              ref={(newRef) => {
+                i === breadcrumbs.length - 1 && setTerminalItemRef(newRef);
+              }}
+              {...props}
+            >
               <LinkTitle />
             </BreadcrumbLink>
           </BreadcrumbItem>

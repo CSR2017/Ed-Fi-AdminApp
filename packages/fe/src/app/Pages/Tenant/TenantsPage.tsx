@@ -1,11 +1,11 @@
-import { Heading, HStack } from '@chakra-ui/react';
+import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
-import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { StandardRowActions } from '../../helpers/getStandardActions';
-import { UserLink, tenantRoute, tenantsRoute, TenantLink } from '../../routes';
-import { useQuery, useMutation } from '@tanstack/react-query';
 import { useParams } from '@tanstack/router';
 import { tenantQueries, userQueries } from '../../api';
+import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
+import { StandardRowActions } from '../../helpers/getStandardActions';
+import { TenantLink, tenantRoute, tenantsRoute, UserLink } from '../../routes';
+import { PageTemplate } from '../PageTemplate';
 
 export const TenantsPage = () => {
   const params = useParams({ from: tenantsRoute.id });
@@ -15,10 +15,7 @@ export const TenantsPage = () => {
   const users = userQueries.useAll({ tenantId: 1 });
 
   return (
-    <>
-      <Heading mb={4} fontSize="lg">
-        Tenants
-      </Heading>
+    <PageTemplate title="Tenants">
       <DataTable
         data={Object.values(tenants?.data || {})}
         columns={[
@@ -66,6 +63,6 @@ export const TenantsPage = () => {
           },
         ]}
       />
-    </>
+    </PageTemplate>
   );
 };
