@@ -1,5 +1,11 @@
-import { NotFoundException } from "@nestjs/common"
+import { NotFoundException } from '@nestjs/common';
 
-export const throwNotFound = () => { throw new NotFoundException() }
+export const throwNotFound = (err: any) => {
+  console.log(err);
+  throw new NotFoundException();
+};
 
-export const throwNotFoundText = (text: string) => () => { throw new NotFoundException(text) }
+export const throwNotFoundText = (text: string) => (err: any) => {
+  console.log(err);
+  throw new NotFoundException(text);
+};

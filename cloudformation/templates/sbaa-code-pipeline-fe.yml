@@ -1,0 +1,343 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  This template deploys the build process for the Front End.
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Environment Information
+        Parameters:
+          - EnvLabel
+          - CreateS3Bucket
+          - GitHubConnectionArn
+          - GitHubRepo
+          - GitHubBranch          
+          #- ReactAppLauncherFe
+          - ViteApiUrl
+          - FeBucketName
+    ParameterLabels:
+      GitHubBranch:
+        default: Branch to build from
+      GitHubConnectionArn:
+        default: ARN of the GitHub connection
+      EnvLabel:
+        default: Environment Label
+      GitHubRepo:
+        default: Repository to build from
+      #ReactAppLauncherFe:
+      #  default: REACT_APP_LAUNCHER_FE
+      ViteApiUrl:
+        default: VITE_API_URL
+      CreateS3Bucket:
+        default: Create Code Pipeline S3 Artifact Store Bucket?
+      FeBucketName:
+        default: FE Webserver Bucket
+
+Parameters:
+  GitHubConnectionArn:
+    Description: Can be found or created in CodePipeline console, settings, connections.
+    Type: String
+  EnvLabel:
+    Description: Provide a unique label for your environment to identify resources.  You cannot use a name that is already in use.
+    Type: String
+  GitHubRepo:
+    Type: String
+    Description: GitHub repo name to build from
+    Default: 'edanalytics/repo_name'
+  GitHubBranch:
+    Type: String
+    Description: Name of the branch in the GitHub repo to build from.
+  CreateS3Bucket:
+    Type: String
+    Description: Create the S3 bucket named 'codepipeline-artifact-store-{AWS::Region}-{AWS::AccountId}'?  Do not change this value if updating an existing stack.
+    Default: 'Create the S3 Bucket'
+    AllowedValues:
+      - 'Create the S3 Bucket'
+      - 'The S3 Bucket already exists'
+  FeBucketName:
+    Type: String
+    Description: Name of the S3 bucket to deploy to.
+  DistributionId:
+    Type: String
+    Description: Value for the DISTRIBUTION_ID build variable
+  ViteApiUrl:
+    Type: String
+    Description: Value for the VITE_API_URL build variable
+
+Conditions:
+  DoCreateS3Bucket: !Equals [!Ref CreateS3Bucket, 'Create the S3 Bucket']
+
+Resources:
+  ArtifactStoreBucket:
+    Type: AWS::S3::Bucket
+    Condition: DoCreateS3Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub 'codepipeline-artifact-store-${AWS::Region}-${AWS::AccountId}'
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      Tags:
+        - Key: EnvLabel
+          Value: !Ref EnvLabel
+
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: AllowActions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'iam:PassRole'
+                Resource:
+                  - '*'
+                Condition:
+                  StringEqualsIfExists:
+                    'iam:PassedToService':
+                      - cloudformation.amazonaws.com
+                      - elasticbeanstalk.amazonaws.com
+                      - ec2.amazonaws.com
+                      - ecs-tasks.amazonaws.com
+              - Effect: Allow
+                Action:
+                  - codecommit:CancelUploadArchive
+                  - codecommit:GetBranch
+                  - codecommit:GetCommit
+                  - codecommit:GetRepository
+                  - codecommit:GetUploadArchiveStatus
+                  - codecommit:UploadArchive
+                  - codedeploy:CreateDeployment
+                  - codedeploy:GetApplication
+                  - codedeploy:GetApplicationRevision
+                  - codedeploy:GetDeployment
+                  - codedeploy:GetDeploymentConfig
+                  - codedeploy:RegisterApplicationRevision
+                  - codestar-connections:UseConnection
+                  - elasticbeanstalk:*
+                  - ec2:*
+                  - elasticloadbalancing:*
+                  - autoscaling:*
+                  - cloudwatch:*
+                  - s3:*
+                  - sns:*
+                  - cloudformation:*
+                  - rds:*
+                  - sqs:*
+                  - ecs:*
+                  - lambda:InvokeFunction
+                  - lambda:ListFunctions
+                  - opsworks:CreateDeployment
+                  - opsworks:DescribeApps
+                  - opsworks:DescribeCommands
+                  - opsworks:DescribeDeployments
+                  - opsworks:DescribeInstances
+                  - opsworks:DescribeStacks
+                  - opsworks:UpdateApp
+                  - opsworks:UpdateStack
+                  - cloudformation:CreateStack
+                  - cloudformation:DeleteStack
+                  - cloudformation:DescribeStacks
+                  - cloudformation:UpdateStack
+                  - cloudformation:CreateChangeSet
+                  - cloudformation:DeleteChangeSet
+                  - cloudformation:DescribeChangeSet
+                  - cloudformation:ExecuteChangeSet
+                  - cloudformation:SetStackPolicy
+                  - cloudformation:ValidateTemplate
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuildBatches
+                  - codebuild:StartBuildBatch
+                  - devicefarm:ListProjects
+                  - devicefarm:ListDevicePools
+                  - devicefarm:GetRun
+                  - devicefarm:GetUpload
+                  - devicefarm:CreateUpload
+                  - devicefarm:ScheduleRun
+                  - servicecatalog:ListProvisioningArtifacts
+                  - servicecatalog:CreateProvisioningArtifact
+                  - servicecatalog:DescribeProvisioningArtifact
+                  - servicecatalog:DeleteProvisioningArtifact
+                  - servicecatalog:UpdateProduct
+                  - ecr:DescribeImages
+                  - states:DescribeExecution
+                  - states:DescribeStateMachine
+                  - states:StartExecution
+                  - appconfig:StartDeployment
+                  - appconfig:StopDeployment
+                  - appconfig:GetDeployment
+                Resource: '*'
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: CodeBuildBasePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*'
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketAcl
+                  - s3:GetBucketLocation
+                Resource: !Sub 'arn:aws:s3:::codepipeline-artifact-store-${AWS::Region}-${AWS::AccountId}*'
+              - Effect: Allow
+                Action:
+                  - codebuild:CreateReportGroup
+                  - codebuild:CreateReport
+                  - codebuild:UpdateReport
+                  - codebuild:BatchPutTestCases
+                  - codebuild:BatchPutCodeCoverages
+                Resource: !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
+        - PolicyName: ManagedSecretPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameters
+                Resource:
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/CodeBuild/*'
+        - PolicyName: CloudFrontClearCache
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudfront:CreateInvalidation
+                Resource:
+                  - !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionId}'
+
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Location: !Sub 'codepipeline-artifact-store-${AWS::Region}-${AWS::AccountId}'
+        Type: S3
+      Name: !Sub '${EnvLabel}-FE-pipeline'
+      RestartExecutionOnUpdate: True
+      RoleArn: !GetAtt 'PipelineRole.Arn'
+      Stages:
+        - Name: SourceStage
+          Actions:
+            - Name: Source
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: 1
+              RunOrder: 1
+              Configuration:
+                BranchName: !Ref GitHubBranch
+                ConnectionArn: !Ref GitHubConnectionArn
+                FullRepositoryId: !Ref GitHubRepo
+                OutputArtifactFormat: CODE_ZIP
+              OutputArtifacts:
+                - Name: SourceArtifact
+              Region: !Ref 'AWS::Region'
+        - Name: BuildStage
+          Actions:
+            - Name: Build
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              RunOrder: 1
+              Configuration:
+                EnvironmentVariables: !Sub |
+                  [
+                      {
+                          "name": "DISTRIBUTION_ID",
+                          "value": "${DistributionId}",
+                          "type": "PLAINTEXT"
+                      },
+                      {
+                          "name": "VITE_API_URL",
+                          "value": "${ViteApiUrl}",
+                          "type": "PLAINTEXT"
+                      }
+                  ]
+                ProjectName: !Ref CodeBuild
+              OutputArtifacts:
+                - Name: BuildArtifact
+              InputArtifacts:
+                - Name: SourceArtifact
+              Region: !Ref 'AWS::Region'
+              Namespace: BuildVariables
+        - Name: DeployStage
+          Actions:
+            - Name: Deploy
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: S3
+                Version: 1
+              RunOrder: 1
+              Configuration:
+                BucketName: !Ref FeBucketName
+                Extract: true
+              InputArtifacts:
+                - Name: BuildArtifact
+              Region: !Ref 'AWS::Region'
+              Namespace: DeployVariables
+
+  CodeBuild:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub '${EnvLabel}-FE-build'
+      Description: !Sub 'Build project for ${EnvLabel}'
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: packages/fe/buildspec.yml
+      Artifacts:
+        Type: CODEPIPELINE
+        Name: !Sub '${EnvLabel}-build'
+      Environment:
+        Type: ARM_CONTAINER
+        Image: aws/codebuild/amazonlinux2-aarch64-standard:2.0
+        ComputeType: BUILD_GENERAL1_SMALL
+        PrivilegedMode: false
+        ImagePullCredentialsType: CODEBUILD
+      ServiceRole: !GetAtt 'CodeBuildRole.Arn'
+      TimeoutInMinutes: 15
+      QueuedTimeoutInMinutes: 60
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName: !Sub '/aws/codebuild/${EnvLabel}-build'
+          Status: ENABLED
+      Visibility: PRIVATE

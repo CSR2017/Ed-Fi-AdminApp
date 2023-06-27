@@ -1,28 +1,21 @@
-import { Heading, Text, HStack, Link } from '@chakra-ui/react';
+import { Link, Text } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
-import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { StandardRowActions } from '../../helpers/getStandardActions';
+import { Link as RouterLink, useParams } from '@tanstack/router';
 import {
-  UserLink,
-  ownershipRoute,
-  ownershipsRoute,
-  OwnershipLink,
-  RoleLink,
-  EdorgLink,
-  edorgRoute,
-  odsRoute,
-  sbeRoute,
-} from '../../routes';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useParams, Link as RouterLink } from '@tanstack/router';
-import {
-  edorgQueries,
-  odsQueries,
   ownershipQueries,
   roleQueries,
   sbeQueries,
   userQueries,
 } from '../../api';
+import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
+import {
+  RoleLink,
+  UserLink,
+  edorgRoute,
+  odsRoute,
+  ownershipsRoute,
+  sbeRoute,
+} from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 
 export const OwnershipsPage = () => {
@@ -44,26 +37,6 @@ export const OwnershipsPage = () => {
       <DataTable
         data={Object.values(ownerships?.data || {})}
         columns={[
-          // {
-          //   accessorKey: 'displayName',
-          //   cell: (info) => (
-          //     <HStack justify="space-between">
-          //       <OwnershipLink id={info.row.original.id} query={ownerships} />
-          //       <HStack className="row-hover" color="gray.600" align="middle">
-          //         <StandardRowActions
-          //           info={info}
-          //           mutation={deleteOwnership.mutate}
-          //           route={ownershipRoute}
-          //           params={(params: any) => ({
-          //             ...params,
-          //             ownershipId: String(info.row.original.id),
-          //           })}
-          //         />
-          //       </HStack>
-          //     </HStack>
-          //   ),
-          //   header: () => 'Name',
-          // },
           {
             id: 'role',
             accessorFn: (info) => getRelationDisplayName(info.roleId, roles),

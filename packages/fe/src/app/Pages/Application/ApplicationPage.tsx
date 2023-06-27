@@ -14,6 +14,10 @@ import { EditApplication } from './EditApplication';
 import { ViewApplication } from './ViewApplication';
 import { useResetCredentials } from './useResetCredentials';
 import { PageTemplate } from '../PageTemplate';
+import {
+  GetApplicationDto,
+  createEdorgCompositeNaturalKey,
+} from '@edanalytics/models';
 
 export const ApplicationPage = (): ReactNode => {
   const navigate = useNavigate();
@@ -24,9 +28,6 @@ export const ApplicationPage = (): ReactNode => {
   const deleteApplication = applicationQueries.useDelete({
     sbeId: params.sbeId,
     tenantId: params.asId,
-    callback: () => {
-      navigate(navToParentOptions);
-    },
   });
   const application = applicationQueries.useOne({
     id: params.applicationId,
@@ -42,7 +43,12 @@ export const ApplicationPage = (): ReactNode => {
   });
   const tenantId = Number(params.asId);
   const sbeId = Number(params.sbeId);
-  const id = application?.educationOrganizationId;
+  const id = application
+    ? createEdorgCompositeNaturalKey({
+        odsDbName: application.odsInstanceName,
+        educationOrganizationId: application.educationOrganizationId,
+      })
+    : undefined;
 
   return (
     <PageTemplate
@@ -90,7 +96,11 @@ export const ApplicationPage = (): ReactNode => {
               )}
             >
               <ConfirmAction
-                action={() => deleteApplication.mutate(application.id)}
+                action={() =>
+                  deleteApplication.mutate(application.id, {
+                    onSuccess: () => navigate(navToParentOptions),
+                  })
+                }
                 headerText={`Delete ${application.displayName}?`}
                 bodyText="You won't be able to get it back"
               >

@@ -5,14 +5,9 @@ import {
   TenantBasePrivilege,
   TenantSbePrivilege,
 } from '@edanalytics/models';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { ReactElement } from 'react';
 import { usePrivilegeCache } from '../api';
-import {
-  QueryClient,
-  UseQueryResult,
-  useQueryClient,
-} from '@tanstack/react-query';
-import { queryClient } from '../app';
 
 export type AuthorizeConfig<
   PrivilegeType extends

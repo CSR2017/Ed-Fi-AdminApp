@@ -1,17 +1,38 @@
-import { Heading, HStack } from '@chakra-ui/react';
+import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
+import { GetEdorgDto } from '@edanalytics/models';
+import { CellContext } from '@tanstack/react-table';
 import { useParams } from '@tanstack/router';
 import { edorgQueries, odsQueries, userQueries } from '../../api';
+import { TableRowActions } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { StandardRowActions } from '../../helpers/getStandardActions';
-import {
-  EdorgLink,
-  edorgRoute,
-  edorgsRoute,
-  OdsLink,
-  UserLink,
-} from '../../routes';
+import { useReadTenantEntity } from '../../helpers/useStandardRowActionsNew';
+import { EdorgLink, edorgsRoute, OdsLink, UserLink } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
+
+const NameCell = (info: CellContext<GetEdorgDto, unknown>) => {
+  const params = useParams({ from: edorgsRoute.id });
+  const entities = edorgQueries.useAll({
+    tenantId: params.asId,
+    sbeId: params.sbeId,
+  });
+
+  const View = useReadTenantEntity({
+    entity: info.row.original,
+    params: { odsId: String(info.row.original.id), ...params },
+    privilege: 'tenant.sbe.edorg:read',
+    route: edorgsRoute,
+  });
+  const actions = {
+    ...(View ? { View } : undefined),
+  };
+  return (
+    <HStack justify="space-between">
+      <EdorgLink id={info.row.original.id} query={entities} />
+      <TableRowActions actions={actions} />
+    </HStack>
+  );
+};
 
 export const EdorgsPage = () => {
   const params = useParams({ from: edorgsRoute.id });
@@ -20,10 +41,6 @@ export const EdorgsPage = () => {
     sbeId: params.sbeId,
   });
   const edorgs = edorgQueries.useAll({
-    tenantId: params.asId,
-    sbeId: params.sbeId,
-  });
-  const deleteEdorg = edorgQueries.useDelete({
     tenantId: params.asId,
     sbeId: params.sbeId,
   });
@@ -37,22 +54,7 @@ export const EdorgsPage = () => {
         columns={[
           {
             accessorKey: 'displayName',
-            cell: (info) => (
-              <HStack justify="space-between">
-                <EdorgLink id={info.row.original.id} query={edorgs} />
-                <HStack className="row-hover" color="gray.600" align="middle">
-                  <StandardRowActions
-                    info={info}
-                    mutation={deleteEdorg.mutate}
-                    route={edorgRoute}
-                    params={(params: any) => ({
-                      ...params,
-                      edorgId: String(info.row.original.id),
-                    })}
-                  />
-                </HStack>
-              </HStack>
-            ),
+            cell: NameCell,
             header: () => 'Name',
           },
           {
@@ -62,6 +64,11 @@ export const EdorgsPage = () => {
             cell: (info) => (
               <EdorgLink query={edorgs} id={info.row.original.parentId} />
             ),
+          },
+          {
+            id: 'educationOrganizationId',
+            accessorFn: (info) => info.educationOrganizationId,
+            header: () => 'Education Org ID',
           },
           {
             id: 'ods',

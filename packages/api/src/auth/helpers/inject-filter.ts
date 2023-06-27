@@ -1,4 +1,5 @@
 import {
+  AuthorizationCache,
   Ids,
   isSbePrivilege,
   ITenantCache,
@@ -14,7 +15,7 @@ import {
 export const InjectFilter = createParamDecorator(
   (privilege: PrivilegeCode, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
-    const cache: ITenantCache = request.tenantCache;
+    const cache: AuthorizationCache = request.authorizationCache;
 
     let ids: Ids | undefined = undefined;
 

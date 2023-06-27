@@ -1,19 +1,40 @@
-import { Heading, HStack } from '@chakra-ui/react';
+import { Box, HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
-import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { StandardRowActions } from '../../helpers/getStandardActions';
-import { UserLink, sbeRoute, sbesRoute, SbeLink } from '../../routes';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { GetSbeDto } from '@edanalytics/models';
+import { CellContext } from '@tanstack/react-table';
 import { useParams } from '@tanstack/router';
 import { sbeQueries, userQueries } from '../../api';
+import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
+import { useReadTenantEntity } from '../../helpers/useStandardRowActionsNew';
+import { SbeLink, sbeRoute, sbesRoute, UserLink } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
+import { TableRowActions } from '../../helpers/TableRowActions';
 
-export const SbesPage = () => {
+const NameCell = (info: CellContext<GetSbeDto, unknown>) => {
   const params = useParams({ from: sbesRoute.id });
   const sbes = sbeQueries.useAll({
     tenantId: params.asId,
   });
-  const deleteSbe = sbeQueries.useDelete({
+  const View = useReadTenantEntity({
+    entity: info.row.original,
+    params: { sbeId: String(info.row.original.id), ...params },
+    privilege: 'tenant.user:read',
+    route: sbeRoute,
+  });
+  const actions = {
+    ...(View ? { View } : undefined),
+  };
+  return (
+    <HStack justify="space-between">
+      <SbeLink id={info.row.original.id} query={sbes} />
+      <TableRowActions actions={actions} />
+    </HStack>
+  );
+};
+
+export const SbesPage = () => {
+  const params = useParams({ from: sbesRoute.id });
+  const sbes = sbeQueries.useAll({
     tenantId: params.asId,
   });
   const users = userQueries.useAll({ tenantId: params.asId });
@@ -25,22 +46,7 @@ export const SbesPage = () => {
         columns={[
           {
             accessorKey: 'displayName',
-            cell: (info) => (
-              <HStack justify="space-between">
-                <SbeLink id={info.row.original.id} query={sbes} />
-                <HStack className="row-hover" color="gray.600" align="middle">
-                  <StandardRowActions
-                    info={info}
-                    mutation={deleteSbe.mutate}
-                    route={sbeRoute}
-                    params={(params: any) => ({
-                      ...params,
-                      sbeId: String(info.row.original.id),
-                    })}
-                  />
-                </HStack>
-              </HStack>
-            ),
+            cell: NameCell,
             header: () => 'Name',
           },
           {

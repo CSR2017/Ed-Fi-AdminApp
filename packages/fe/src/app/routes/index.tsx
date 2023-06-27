@@ -1,16 +1,3 @@
-import {
-  claimsetRoute,
-  claimsetsRoute,
-  claimsetsIndexRoute,
-  claimsetIndexRoute,
-} from './claimset.routes';
-import {
-  applicationRoute,
-  applicationsRoute,
-  applicationsIndexRoute,
-  applicationIndexRoute,
-  applicationPostRoute,
-} from './application.routes';
 import { Heading } from '@chakra-ui/react';
 import {
   RootRoute,
@@ -21,10 +8,23 @@ import {
 } from '@tanstack/router';
 import { TanStackRouterDevtools } from '@tanstack/router-devtools';
 import { memo, useEffect } from 'react';
-import { environment } from '../../environments/environment.local';
 import { ErrorFallback } from '../Layout/Fallback404';
+import { PublicAppLayout } from '../Layout/PublicAppLayout';
 import { StandardLayout } from '../Layout/StandardLayout';
 import { accountRouteGlobal } from './account.routes';
+import {
+  applicationIndexRoute,
+  applicationPostRoute,
+  applicationRoute,
+  applicationsIndexRoute,
+  applicationsRoute,
+} from './application.routes';
+import {
+  claimsetIndexRoute,
+  claimsetRoute,
+  claimsetsIndexRoute,
+  claimsetsRoute,
+} from './claimset.routes';
 import {
   edorgIndexRoute,
   edorgRoute,
@@ -38,6 +38,13 @@ import {
   odssRoute,
 } from './ods.routes';
 import {
+  ownershipGlobalCreateRoute,
+  ownershipGlobalIndexRoute,
+  ownershipGlobalRoute,
+  ownershipsGlobalIndexRoute,
+  ownershipsGlobalRoute,
+} from './ownership-global.routes';
+import {
   ownershipIndexRoute,
   ownershipRoute,
   ownershipsIndexRoute,
@@ -50,11 +57,18 @@ import {
   rolesRoute,
 } from './role.routes';
 import {
+  sbeGlobalIndexRoute,
+  sbeGlobalRoute,
+  sbesGlobalIndexRoute,
+  sbesGlobalRoute,
+} from './sbe-global.routes';
+import {
   sbeIndexRoute,
   sbeRoute,
   sbesIndexRoute,
   sbesRoute,
 } from './sbe.routes';
+import { secretRoute } from './secret.routes';
 import {
   tenantIndexRoute,
   tenantRoute,
@@ -73,31 +87,16 @@ import {
   vendorsIndexRoute,
   vendorsRoute,
 } from './vendor.routes';
-import {
-  sbeGlobalIndexRoute,
-  sbeGlobalRoute,
-  sbesGlobalIndexRoute,
-  sbesGlobalRoute,
-} from './sbe-global.routes';
-import { PublicAppLayout } from '../Layout/PublicAppLayout';
-import { secretRoute } from './secret.routes';
-import {
-  ownershipGlobalCreateRoute,
-  ownershipGlobalIndexRoute,
-  ownershipGlobalRoute,
-  ownershipsGlobalIndexRoute,
-  ownershipsGlobalRoute,
-} from './ownership-global.routes';
-export * from './claimset.routes';
-export * from './application.routes';
 export * from './account.routes';
+export * from './application.routes';
+export * from './claimset.routes';
 export * from './edorg.routes';
 export * from './ods.routes';
+export * from './ownership-global.routes';
 export * from './ownership.routes';
 export * from './role.routes';
-export * from './sbe.routes';
 export * from './sbe-global.routes';
-export * from './ownership-global.routes';
+export * from './sbe.routes';
 export * from './tenant.routes';
 export * from './user.routes';
 export * from './vendor.routes';
@@ -165,9 +164,9 @@ export const publicRoute = new Route({
 const Login = memo(() => {
   const { redirect } = useSearch({ from: loginRoute.id });
   useEffect(() => {
-    window.location.href = `http://localhost:3333/api/auth/oidc/login${
-      redirect ? `?redirect=${redirect}` : ''
-    }`;
+    window.location.href = `${
+      import.meta.env.VITE_API_URL
+    }/api/auth/oidc/1/login${redirect ? `?redirect=${redirect}` : ''}`;
   }, []);
   return null;
 });
@@ -258,9 +257,7 @@ export const Routes = () => {
   return (
     <>
       <RouterProvider router={router} />
-      {environment.production ? null : (
-        <TanStackRouterDevtools position="bottom-right" router={router} />
-      )}
+      <TanStackRouterDevtools position="bottom-right" router={router} />
     </>
   );
 };

@@ -1,67 +1,28 @@
-import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ActionGroup, ConfirmAction } from '@edanalytics/common-ui';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useNavigate, useParams, useSearch } from '@tanstack/router';
-import { BiEdit, BiTrash } from 'react-icons/bi';
-import { sbeQueries, userQueries } from '../../api';
-import { sbeIndexRoute } from '../../routes';
-import { useNavToParent } from '../../helpers';
-import { EditSbe } from './EditSbe';
-import { ViewSbe } from './ViewSbe';
+import { useParams } from '@tanstack/router';
 import { ReactNode } from 'react';
+import { sbeQueries } from '../../api';
+import { sbeIndexRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
+import { ActionBarActions } from '../../helpers/ActionBarActions';
+import { ViewSbe } from './ViewSbe';
+import _ from 'lodash';
 
 export const SbePage = (): ReactNode => {
-  const navigate = useNavigate();
-  const navToParentOptions = useNavToParent();
-
   const params = useParams({ from: sbeIndexRoute.id });
-  const deleteSbe = sbeQueries.useDelete({
-    callback: () => {
-      navigate(navToParentOptions);
-    },
-    tenantId: params.asId,
-  });
   const sbe = sbeQueries.useOne({
     id: params.sbeId,
     tenantId: params.asId,
   }).data;
-  const { edit } = useSearch({ from: sbeIndexRoute.id });
+
+  const actions = {};
 
   return (
     <PageTemplate
       constrainWidth
       title={sbe?.displayName || 'Sbe'}
-      actions={
-        sbe ? (
-          <>
-            <Button
-              isDisabled={edit}
-              leftIcon={<BiEdit />}
-              onClick={() => {
-                navigate({
-                  search: { edit: true },
-                });
-              }}
-            >
-              Edit
-            </Button>
-            <ConfirmAction
-              action={() => deleteSbe.mutate(sbe.id)}
-              headerText={`Delete ${sbe.displayName}?`}
-              bodyText="You won't be able to get it back"
-            >
-              {(props) => (
-                <Button {...props} leftIcon={<BiTrash />}>
-                  Delete
-                </Button>
-              )}
-            </ConfirmAction>
-          </>
-        ) : null
-      }
+      actions={<ActionBarActions actions={_.omit(actions, 'View')} />}
     >
-      {sbe ? edit ? <EditSbe /> : <ViewSbe /> : null}
+      {sbe ? <ViewSbe /> : null}
     </PageTemplate>
   );
 };

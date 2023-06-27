@@ -1,7 +1,9 @@
 import {
   GetSessionDataDto,
   PostSbeDto,
-  PutSbeDto,
+  PutSbeAdminApi,
+  PutSbeAdminApiRegister,
+  PutSbeMeta,
   toGetSbeDto,
   toSbeCCDto,
   toSbeRRDto,
@@ -16,7 +18,6 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -28,8 +29,8 @@ import { Repository } from 'typeorm';
 import { Authorize } from '../auth/authorization';
 import { ReqUser } from '../auth/helpers/user.decorator';
 import { StartingBlocksService } from '../tenants/sbes/starting-blocks/starting-blocks.service';
+import { throwNotFound } from '../utils';
 import { SbesGlobalService } from './sbes-global.service';
-import { ErrorResponse, throwNotFound } from '../utils';
 
 @ApiTags('Sbe - Global')
 @Controller()
@@ -112,20 +113,62 @@ export class SbesGlobalController {
     });
   }
 
-  @Put(':sbeId')
+  @Put(':sbeId/admin-api')
   @Authorize({
     privilege: 'sbe:update',
     subject: {
       id: '__filtered__',
     },
   })
-  async update(
+  async updateAdminApi(
     @Param('sbeId', new ParseIntPipe()) sbeId: number,
-    @Body() updateSbeDto: PutSbeDto,
+    @Body() updateDto: PutSbeAdminApi,
     @ReqUser() user: GetSessionDataDto
   ) {
     return toGetSbeDto(
-      await this.sbeService.update(sbeId, addUserModifying(updateSbeDto, user))
+      await this.sbeService.updateAdminApi(
+        sbeId,
+        addUserModifying(updateDto, user)
+      )
+    );
+  }
+  @Put(':sbeId/sbe-meta')
+  @Authorize({
+    privilege: 'sbe:update',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  async updateSbMeta(
+    @Param('sbeId', new ParseIntPipe()) sbeId: number,
+    @Body() updateDto: PutSbeMeta,
+    @ReqUser() user: GetSessionDataDto
+  ) {
+    return toGetSbeDto(
+      await this.sbeService.updateSbMeta(
+        sbeId,
+        addUserModifying(updateDto, user)
+      )
+    );
+  }
+
+  @Put(':sbeId/register-admin-api')
+  @Authorize({
+    privilege: 'sbe:update',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  async registerAdminApi(
+    @Param('sbeId', new ParseIntPipe()) sbeId: number,
+    @Body() updateDto: PutSbeAdminApiRegister,
+    @ReqUser() user: GetSessionDataDto
+  ) {
+    return toGetSbeDto(
+      await this.sbeService.selfRegisterAdminApi(
+        sbeId,
+        addUserModifying(updateDto, user)
+      )
     );
   }
 

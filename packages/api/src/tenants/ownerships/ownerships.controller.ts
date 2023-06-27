@@ -1,13 +1,19 @@
 import { toGetOwnershipDto } from '@edanalytics/models';
+import { Ownership } from '@edanalytics/models-server';
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { OwnershipsService } from './ownerships.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Authorize } from '../../auth/authorization';
+import { throwNotFound } from '../../utils';
 
 @ApiTags('Ownership')
 @Controller()
 export class OwnershipsController {
-  constructor(private readonly ownershipService: OwnershipsService) {}
+  constructor(
+    @InjectRepository(Ownership)
+    private ownershipsRepository: Repository<Ownership>
+  ) {}
 
   @Get()
   @Authorize({
@@ -18,7 +24,9 @@ export class OwnershipsController {
     },
   })
   async findAll(@Param('tenantId', new ParseIntPipe()) tenantId: number) {
-    return toGetOwnershipDto(await this.ownershipService.findAll(tenantId));
+    return toGetOwnershipDto(
+      await this.ownershipsRepository.findBy({ tenantId })
+    );
   }
 
   @Get(':ownershipId')
@@ -34,7 +42,9 @@ export class OwnershipsController {
     @Param('tenantId', new ParseIntPipe()) tenantId: number
   ) {
     return toGetOwnershipDto(
-      await this.ownershipService.findOne(tenantId, +ownershipId)
+      await this.ownershipsRepository
+        .findOneByOrFail({ tenantId, id: ownershipId })
+        .catch(throwNotFound)
     );
   }
 }

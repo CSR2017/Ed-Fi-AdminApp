@@ -4,22 +4,22 @@ import { IEdorg } from './edorg.interface';
 import { IOds } from './ods.interface';
 
 export interface ISbeConfigPublic {
-  hasOdsRefresh: false;
+  hasOdsRefresh?: false;
   lastSuccessfulConnectionSbMeta?: Date;
   lastFailedConnectionSbMeta?: Date;
   lastSuccessfulConnectionAdminApi?: Date;
   lastFailedConnectionAdminApi?: Date;
   lastSuccessfulPull?: Date;
   lastFailedPull?: Date;
+  adminApiUrl?: string;
+  adminApiKey?: string;
+  adminApiClientDisplayName?: string;
+  sbeMetaUrl?: string;
+  sbeMetaKey?: string;
 }
 
 export interface ISbeConfigPrivate {
-  adminApiUrl: string;
-  adminApiKey: string;
   adminApiSecret: string;
-
-  sbeMetaUrl: string;
-  sbeMetaKey: string;
   sbeMetaSecret: string;
 }
 export interface ISbe extends IEntityBase {
@@ -29,6 +29,6 @@ export interface ISbe extends IEntityBase {
   edorgs: IEdorg[];
 
   envLabel: string;
-  configPublic: ISbeConfigPublic;
-  configPrivate: ISbeConfigPrivate;
+  configPublic: ISbeConfigPublic | null;
+  configPrivate: ISbeConfigPrivate | null;
 }

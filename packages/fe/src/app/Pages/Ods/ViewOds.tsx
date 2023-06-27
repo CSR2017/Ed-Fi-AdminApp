@@ -1,7 +1,7 @@
-import { Text } from '@chakra-ui/react';
+import { FormLabel, Text } from '@chakra-ui/react';
 import { useParams } from '@tanstack/router';
-import { odsQueries } from '../../api';
-import { odsRoute } from '../../routes';
+import { odsQueries, sbeQueries } from '../../api';
+import { SbeLink, odsRoute } from '../../routes';
 
 export const ViewOds = () => {
   const params = useParams({ from: odsRoute.id });
@@ -10,12 +10,14 @@ export const ViewOds = () => {
     sbeId: params.sbeId,
     tenantId: params.asId,
   }).data;
+  const sbes = sbeQueries.useAll({
+    tenantId: params.asId,
+  });
 
   return ods ? (
     <>
-      {/* TODO: replace this with real content */}
-      <Text as="strong">Id</Text>
-      <Text>{ods.id}</Text>
+      <FormLabel as="p">Environment</FormLabel>
+      <SbeLink id={ods.sbeId} query={sbes} />
     </>
   ) : null;
 };

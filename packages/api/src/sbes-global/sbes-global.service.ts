@@ -1,7 +1,9 @@
 import {
   GetUserDto,
   PostSbeDto,
-  PutSbeDto,
+  PutSbeAdminApi,
+  PutSbeAdminApiRegister,
+  PutSbeMeta,
   SbMetaEdorg,
   SbMetaOds,
 } from '@edanalytics/models';
@@ -37,9 +39,60 @@ export class SbesGlobalService {
     return this.sbesRepository.findOneByOrFail({ id });
   }
 
-  async update(id: number, updateSbeDto: PutSbeDto) {
+  async updateAdminApi(id: number, updateDto: PutSbeAdminApi) {
     const old = await this.findOne(id);
-    return this.sbesRepository.save({ ...old, ...updateSbeDto });
+    return this.sbesRepository.save({
+      ...old,
+      modifiedById: updateDto.modifiedById,
+      configPublic: {
+        ...old.configPublic,
+        adminApiKey: updateDto.adminKey,
+        adminApiUrl: updateDto.adminUrl,
+      },
+      configPrivate: {
+        ...old.configPrivate,
+        adminApiSecret: updateDto.adminSecret,
+      },
+    });
+  }
+
+  async updateSbMeta(id: number, updateDto: PutSbeMeta) {
+    const old = await this.findOne(id);
+    return this.sbesRepository.save({
+      ...old,
+      modifiedById: updateDto.modifiedById,
+      configPublic: {
+        ...old.configPublic,
+        sbeMetaKey: updateDto.metaKey,
+        sbeMetaUrl: updateDto.metaUrl,
+      },
+      configPrivate: {
+        ...old.configPrivate,
+        sbeMetaSecret: updateDto.metaSecret,
+      },
+    });
+  }
+
+  async selfRegisterAdminApi(id: number, updateDto: PutSbeAdminApiRegister) {
+    const old = await this.findOne(id);
+    const creds = await this.sbService.selfRegisterAdminApi(
+      updateDto.adminRegisterUrl
+    );
+
+    return this.sbesRepository.save({
+      ...old,
+      modifiedById: updateDto.modifiedById,
+      configPublic: {
+        ...old.configPublic,
+        adminApiKey: creds.ClientId,
+        adminApiUrl: updateDto.adminRegisterUrl,
+        adminApiClientDisplayName: creds.DisplayName,
+      },
+      configPrivate: {
+        ...old.configPrivate,
+        adminApiSecret: creds.ClientSecret,
+      },
+    });
   }
 
   async remove(id: number, user: GetUserDto) {
@@ -56,15 +109,22 @@ export class SbesGlobalService {
     let sbMeta = true;
 
     const sbe = await this.findOne(sbeId);
+    let messages = [];
     try {
       await this.sbService.logIntoAdminApi(sbe);
-    } catch (adminApiFailed) {
+    } catch (err) {
+      if (err?.message) {
+        messages.push(`Admin API: ${err.message}`);
+      }
       adminApi = false;
     }
 
     try {
       await this.sbService.getSbMeta(sbeId);
-    } catch (adminApiFailed) {
+    } catch (err) {
+      if (err?.message) {
+        messages.push(`SB Meta: ${err.message}`);
+      }
       sbMeta = false;
     }
 
@@ -92,6 +152,7 @@ export class SbesGlobalService {
     return {
       adminApi,
       sbMeta,
+      messages,
     };
   }
 
@@ -182,7 +243,7 @@ export class SbesGlobalService {
          * get edorg ID given ods ID and edorg educationorganizationid
          */
         const odsEdorgMap = Object.fromEntries(
-          Object.values(odsMap).map((ods) => [ods.id, new Map<string, Edorg>()])
+          Object.values(odsMap).map((ods) => [ods.id, new Map<number, Edorg>()])
         );
 
         existingEdorgs.forEach((edorg) => {
@@ -194,8 +255,9 @@ export class SbesGlobalService {
           const partialEdorgEntity: Partial<Edorg> = {
             sbeId,
             odsId: odsMap[sbeEdorg.dbname].id,
+            odsDbName: sbeEdorg.dbname,
             // parentId: odsEdorgMap[odsMap[sbeEdorg.dbname]].get(String(sbeEdorg.educationorganizationid))?.id,
-            educationOrganizationId: String(sbeEdorg.educationorganizationid),
+            educationOrganizationId: sbeEdorg.educationorganizationid,
             discriminator: sbeEdorg.discriminator,
             nameOfInstitution: sbeEdorg.nameofinstitution,
           };
@@ -218,25 +280,27 @@ export class SbesGlobalService {
         const edorgResourceIdsToDelete: Set<number> = new Set(
           existingEdorgs.map((e) => e.id)
         );
-        const edorgsToUpdate: DeepPartial<Edorg>[] = [];
+        const edorgsToUpdate: Edorg[] = [];
 
         sbEdorgs.forEach((sbEdorg) => {
           const existing = odsEdorgMap[odsMap[sbEdorg.dbname].id].get(
-            String(sbEdorg.educationorganizationid)
+            sbEdorg.educationorganizationid
           );
           const parent: Edorg | undefined = odsEdorgMap[
             odsMap[sbEdorg.dbname].id
-          ].get(String(sbEdorg.parent));
+          ].get(sbEdorg.parent);
           const correctValues: DeepPartial<Edorg> = {
-            parentId: parent?.id ?? null,
+            ...(parent ? { parent } : {}),
             discriminator: sbEdorg.discriminator,
             nameOfInstitution: sbEdorg.nameofinstitution,
           };
           if (!_.isMatch(existing, correctValues)) {
-            edorgsToUpdate.push({
-              ...existing,
-              ...correctValues,
-            });
+            existing.discriminator = correctValues.discriminator;
+            existing.nameOfInstitution = correctValues.nameOfInstitution;
+            if (correctValues.parent) {
+              existing.parent = parent;
+            }
+            edorgsToUpdate.push(existing);
           }
           edorgResourceIdsToDelete.delete(existing.id);
         });

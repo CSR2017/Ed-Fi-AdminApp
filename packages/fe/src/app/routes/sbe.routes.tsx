@@ -14,7 +14,7 @@ export const sbesRoute = new Route({
   getParentRoute: () => asRoute,
   path: 'sbes',
   getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Sbes', params }),
+    breadcrumb: () => ({ title: () => 'Environments', params }),
   }),
 });
 
@@ -33,8 +33,6 @@ const SbeBreadcrumb = () => {
 export const sbeRoute = new Route({
   getParentRoute: () => sbesRoute,
   path: '$sbeId',
-  validateSearch: (search): { edit?: boolean } =>
-    typeof search.edit === 'boolean' ? { edit: search.edit } : {},
   getContext: ({ params }) => {
     return {
       breadcrumb: () => ({ title: SbeBreadcrumb, params }),

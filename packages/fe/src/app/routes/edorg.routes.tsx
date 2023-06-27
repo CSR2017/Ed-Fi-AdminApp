@@ -37,8 +37,6 @@ const EdorgBreadcrumb = () => {
 export const edorgRoute = new Route({
   getParentRoute: () => edorgsRoute,
   path: '$edorgId',
-  validateSearch: (search): { edit?: boolean } =>
-    typeof search.edit === 'boolean' ? { edit: search.edit } : {},
   getContext: ({ params }) => {
     return {
       breadcrumb: () => ({ title: EdorgBreadcrumb, params }),

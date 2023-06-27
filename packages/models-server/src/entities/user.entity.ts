@@ -59,12 +59,12 @@ export class User implements IUser {
   username: string;
 
   @FakeMeUsing(faker.name.firstName)
-  @Column()
-  givenName: string;
+  @Column({ nullable: true })
+  givenName: string | null;
 
   @FakeMeUsing(faker.name.lastName)
-  @Column()
-  familyName: string;
+  @Column({ nullable: true })
+  familyName: string | null;
 
   get fullName() {
     return this.givenName + ' ' + this.familyName;

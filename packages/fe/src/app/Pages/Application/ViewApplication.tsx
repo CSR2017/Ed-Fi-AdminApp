@@ -51,7 +51,9 @@ export const ViewApplication = () => {
 
   const edorgByEdorgId = Object.values(edorgs.data ?? {}).find(
     (e) =>
-      e.educationOrganizationId === String(application?.educationOrganizationId)
+      e.educationOrganizationId === application?.educationOrganizationId &&
+      (application?.odsInstanceName === null ||
+        e.odsDbName === 'EdFi_Ods_' + application?.odsInstanceName)
   );
   const claimsetByName = Object.values(claimsets.data ?? {}).find(
     (e) => e.name === application?.claimSetName
@@ -64,8 +66,7 @@ export const ViewApplication = () => {
       <FormLabel as="p">Ed-org</FormLabel>
       <EdorgLink id={edorgByEdorgId?.id} query={edorgs} />
       <FormLabel as="p">Vendor</FormLabel>
-      {/* <VendorLink id={application.} > */}
-      <Text>-</Text>
+      <VendorLink id={application?.vendorId} query={vendors} />
       <FormLabel as="p">Claimset</FormLabel>
       <ClaimsetLink
         sbeId={params.sbeId}

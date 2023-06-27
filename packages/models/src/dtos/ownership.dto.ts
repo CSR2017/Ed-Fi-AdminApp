@@ -67,6 +67,7 @@ export class PutOwnershipDto
     >
 {
   @Expose()
+  @IsNumber()
   roleId: IRole['id'];
 }
 
@@ -83,14 +84,17 @@ export class PostOwnershipDto
       | 'ods'
       | 'edorgId'
       | 'edorg'
+      | 'tenantId'
+      | 'roleId'
     >
 {
   @Expose()
   @IsNumber()
-  tenantId: ITenant['id'];
+  tenantId?: ITenant['id'] | undefined;
+
   @Expose()
   @IsNumber()
-  roleId: IRole['id'];
+  roleId?: IRole['id'] | undefined;
 
   @Expose()
   @IsOptional()

@@ -75,7 +75,8 @@ export type TenantBasePrivilege =
   | 'tenant.user-tenant-membership:update'
   | 'tenant.user-tenant-membership:delete'
   | 'tenant.user-tenant-membership:create'
-  | 'tenant.sbe:read';
+  | 'tenant.sbe:read'
+  | 'tenant.sbe:refresh-resources';
 
 export type TenantSbePrivilege =
   | 'tenant.sbe.vendor:read'

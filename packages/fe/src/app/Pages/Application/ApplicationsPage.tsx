@@ -1,26 +1,28 @@
-import { Button, Heading, HStack, Link } from '@chakra-ui/react';
+import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
-import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { StandardRowActions } from '../../helpers/getStandardActions';
 import {
-  UserLink,
-  applicationRoute,
-  applicationsRoute,
-  ApplicationLink,
-  EdorgLink,
-  ClaimsetLink,
-  applicationPostRoute,
-} from '../../routes';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useParams, Link as RouterLink } from '@tanstack/router';
+  GetClaimsetDto,
+  GetEdorgDto,
+  createEdorgCompositeNaturalKey,
+} from '@edanalytics/models';
+import { useParams } from '@tanstack/router';
+import _ from 'lodash';
 import {
   applicationQueries,
   claimsetQueries,
   edorgQueries,
   userQueries,
 } from '../../api';
-import { GetClaimsetDto, GetEdorgDto } from '@edanalytics/models';
+import { ActionBarActions } from '../../helpers';
+import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
+import {
+  ApplicationLink,
+  ClaimsetLink,
+  EdorgLink,
+  applicationsRoute,
+} from '../../routes';
 import { PageTemplate } from '../PageTemplate';
+import { useApplicationsActions } from './useApplicationActions';
 
 export const ApplicationsPage = () => {
   const params = useParams({ from: applicationsRoute.id });
@@ -41,7 +43,12 @@ export const ApplicationsPage = () => {
     ...edorgs,
     data: Object.values(edorgs.data ?? {}).reduce<Record<string, GetEdorgDto>>(
       (map, edorg) => {
-        map[edorg.educationOrganizationId] = edorg;
+        map[
+          createEdorgCompositeNaturalKey({
+            educationOrganizationId: edorg.educationOrganizationId,
+            odsDbName: edorg.odsDbName,
+          })
+        ] = edorg;
         return map;
       },
       {}
@@ -60,22 +67,15 @@ export const ApplicationsPage = () => {
       return map;
     }, {}),
   };
+
+  const actions = useApplicationsActions({
+    sbeId: params.sbeId,
+    tenantId: params.asId,
+  });
   return (
     <PageTemplate
       title="Applications"
-      actions={
-        <Button as="div">
-          <RouterLink
-            title="Create new application registration"
-            to={applicationPostRoute.fullPath}
-            params={(previous: any) => ({
-              ...previous,
-            })}
-          >
-            Create new
-          </RouterLink>
-        </Button>
-      }
+      actions={<ActionBarActions actions={_.omit(actions, 'View')} />}
     >
       <DataTable
         data={Object.values(applications?.data || {})}
@@ -108,7 +108,10 @@ export const ApplicationsPage = () => {
             id: 'edorg',
             accessorFn: (info) =>
               getRelationDisplayName(
-                info.educationOrganizationId,
+                createEdorgCompositeNaturalKey({
+                  educationOrganizationId: info.educationOrganizationId,
+                  odsDbName: 'EdFi_Ods_' + info.odsInstanceName,
+                }),
                 edorgsByEdorgId
               ),
             header: () => 'Education organization',
@@ -117,7 +120,12 @@ export const ApplicationsPage = () => {
                 query={edorgs}
                 id={
                   edorgsByEdorgId.data[
-                    info.row.original.educationOrganizationId
+                    createEdorgCompositeNaturalKey({
+                      educationOrganizationId:
+                        info.row.original.educationOrganizationId,
+                      odsDbName:
+                        'EdFi_Ods_' + info.row.original.odsInstanceName,
+                    })
                   ]?.id
                 }
               />

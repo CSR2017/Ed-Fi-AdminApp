@@ -1,53 +1,26 @@
-import { Button, HStack } from '@chakra-ui/react';
+import { Box, HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetRoleDto, RoleType } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
 import { useParams } from '@tanstack/router';
-import { BiPlus } from 'react-icons/bi';
 import { roleQueries, useMyTenants, userQueries } from '../../api';
-import {
-  AuthorizeComponent,
-  getEntityFromQuery,
-  tenantRoleAuthConfig,
-} from '../../helpers';
+import { getEntityFromQuery } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { useStandardRowActions } from '../../helpers/getStandardActions';
-import { RoleLink, roleRoute, rolesRoute, UserLink } from '../../routes';
+import { RoleLink, UserLink, rolesRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
+import { TableRowActions } from '../../helpers/TableRowActions';
+import { useRoleActions } from './useRoleActions';
 
-const RoleNameCell = (info: CellContext<GetRoleDto, unknown>) => {
+const NameCell = (info: CellContext<GetRoleDto, unknown>) => {
   const params = useParams({ from: rolesRoute.id });
-  const roles = roleQueries.useAll({
+  const entities = roleQueries.useAll({
     tenantId: params.asId,
   });
-  const deleteRole = roleQueries.useDelete({
-    tenantId: params.asId,
-  });
-  const [View, Edit, Delete] = useStandardRowActions({
-    info: info,
-    mutation: deleteRole.mutate,
-    route: roleRoute,
-    params: (params: any) => ({
-      ...params,
-      roleId: String(info.row.original.id),
-    }),
-  });
-  const role = getEntityFromQuery(info.row.original.id, roles);
+  const actions = useRoleActions(info.row.original);
   return (
     <HStack justify="space-between">
-      <RoleLink id={info.row.original.id} query={roles} />
-      <HStack className="row-hover" color="gray.600" align="middle">
-        <View />
-        <AuthorizeComponent
-          config={tenantRoleAuthConfig(
-            role?.id,
-            role?.tenantId,
-            'tenant.role:delete'
-          )}
-        >
-          <Delete />
-        </AuthorizeComponent>
-      </HStack>
+      <RoleLink id={info.row.original.id} query={entities} />
+      <TableRowActions actions={actions} />
     </HStack>
   );
 };
@@ -71,7 +44,7 @@ export const RolesPage = () => {
         columns={[
           {
             accessorKey: 'displayName',
-            cell: RoleNameCell,
+            cell: NameCell,
             header: () => 'Name',
           },
           {

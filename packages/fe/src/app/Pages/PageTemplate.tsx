@@ -1,4 +1,4 @@
-import { Box, Heading } from '@chakra-ui/react';
+import { Box, HStack, Heading } from '@chakra-ui/react';
 import { ActionGroup } from '@edanalytics/common-ui';
 import { ReactNode } from 'react';
 
@@ -10,24 +10,32 @@ export const PageTemplate = (props: {
   actions?: ReactNode;
 }) => {
   return (
-    <>
-      <Heading color="gray.700" size="page-heading">
-        {props.title}
-      </Heading>
-      <Box
-        maxW={props.constrainWidth ? '40em' : undefined}
+    <Box
+      maxW={props.constrainWidth ? undefined : undefined}
+      mx="-0.5rem"
+      px="0.5rem"
+    >
+      <HStack
         borderTop="1px solid"
-        borderColor="gray.200"
-        mx="-1rem"
-        px="1rem"
+        borderBottom="1px solid"
+        borderColor="gray.300"
+        justify="space-between"
+        mb={10}
+        bg="gray.50"
+        mx="-0.5rem"
+        px="0.5rem"
       >
+        <Heading color="gray.700" size="page-heading">
+          {props.title}
+        </Heading>
         <ActionGroup
+          m={0}
           justifyContent={props.constrainWidth ? 'flex-end' : 'flex-start'}
         >
           {props.actions}
         </ActionGroup>
-        {props.children}
-      </Box>
-    </>
+      </HStack>
+      {props.children}
+    </Box>
   );
 };

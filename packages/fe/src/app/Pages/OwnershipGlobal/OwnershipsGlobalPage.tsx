@@ -1,68 +1,28 @@
-import { Button, Heading, HStack } from '@chakra-ui/react';
+import { Box, Button, HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
-import { useParams, Link as RouterLink } from '@tanstack/router';
-import {
-  ownershipQueries,
-  roleQueries,
-  tenantQueries,
-  userQueries,
-} from '../../api';
-import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import {
-  StandardRowActions,
-  useStandardRowActions,
-} from '../../helpers/getStandardActions';
-import {
-  ownershipGlobalCreateRoute,
-  OwnershipGlobalLink,
-  ownershipGlobalRoute,
-  ownershipsGlobalRoute,
-  UserLink,
-} from '../../routes';
 import { GetOwnershipDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
-import { AuthorizeComponent, globalOwnershipAuthConfig } from '../../helpers';
-import { PageTemplate } from '../PageTemplate';
+import { Link as RouterLink, useParams } from '@tanstack/router';
 import { BiPlus } from 'react-icons/bi';
+import { ownershipQueries, roleQueries, tenantQueries } from '../../api';
+import { AuthorizeComponent, globalOwnershipAuthConfig } from '../../helpers';
+import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
+import {
+  OwnershipGlobalLink,
+  ownershipGlobalCreateRoute,
+  ownershipsGlobalRoute,
+} from '../../routes';
+import { PageTemplate } from '../PageTemplate';
+import { TableRowActions } from '../../helpers/TableRowActions';
+import { useOwnershipGlobalActions } from './useOwnershipGlobalActions';
 
 const OwnershipsNameCell = (info: CellContext<GetOwnershipDto, unknown>) => {
-  const deleteOwnership = ownershipQueries.useDelete({});
   const ownerships = ownershipQueries.useAll({});
-  const [View, Edit, Delete] = useStandardRowActions({
-    info: info,
-    mutation: deleteOwnership.mutate,
-    route: ownershipGlobalRoute,
-    params: (params: any) => ({
-      ...params,
-      ownershipId: String(info.row.original.id),
-    }),
-  });
+  const actions = useOwnershipGlobalActions(info.row.original);
   return (
     <HStack justify="space-between">
       <OwnershipGlobalLink id={info.row.original.id} query={ownerships} />
-      <HStack className="row-hover" color="gray.600" align="middle">
-        <View />
-        <AuthorizeComponent
-          config={{
-            privilege: 'ownership:update',
-            subject: {
-              id: info.row.original.id,
-            },
-          }}
-        >
-          <Edit />
-        </AuthorizeComponent>
-        <AuthorizeComponent
-          config={{
-            privilege: 'ownership:delete',
-            subject: {
-              id: info.row.original.id,
-            },
-          }}
-        >
-          <Delete />
-        </AuthorizeComponent>
-      </HStack>
+      <TableRowActions actions={actions} />
     </HStack>
   );
 };
@@ -81,13 +41,16 @@ export const OwnershipsGlobalPage = () => {
           config={globalOwnershipAuthConfig('ownership:create')}
         >
           <RouterLink
+            style={{ display: 'flex' }}
             title="Grant new tenant resource ownership"
             to={ownershipGlobalCreateRoute.fullPath}
             params={(previous: any) => ({
               ...previous,
             })}
           >
-            <Button leftIcon={<BiPlus />}>Grant new</Button>
+            <Button as="div" leftIcon={<BiPlus />}>
+              Grant new
+            </Button>
           </RouterLink>
         </AuthorizeComponent>
       }

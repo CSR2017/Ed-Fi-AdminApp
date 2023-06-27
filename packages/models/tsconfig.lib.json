@@ -4,10 +4,6 @@
     "outDir": "../../dist/out-tsc",
     "declaration": true
   },
-  "include": [
-    "src/**/*.ts",
-    "../../types/*.d.ts",
-    "../api/src/auth/authorization/tenant-cache.interface.ts"
-  ],
+  "include": ["src/**/*.ts", "../../types/*.d.ts"],
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]
 }

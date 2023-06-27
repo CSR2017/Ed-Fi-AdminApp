@@ -6,10 +6,13 @@ import {
   ISbe,
   ITenant,
 } from '@edanalytics/models';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 
 @Entity()
+@Unique(['tenantId', 'sbeId'])
+@Unique(['tenantId', 'odsId'])
+@Unique(['tenantId', 'edorgId'])
 export class Ownership extends EntityBase implements IOwnership {
   @ManyToOne('Tenant', (tenant: ITenant) => tenant.ownerships)
   tenant: ITenant;

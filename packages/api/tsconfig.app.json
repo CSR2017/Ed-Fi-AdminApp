@@ -13,7 +13,8 @@
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"],
   "include": [
     "src/**/*.ts",
-    "../../types/*.d.ts",
-    "src/tenants/sbes/starting-blocks/test.js"
+    "typings",
+    "src/modes/dev.ts",
+    "../../types/*.d.ts"
   ]
 }

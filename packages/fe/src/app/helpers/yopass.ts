@@ -1,6 +1,5 @@
 import * as openpgp from 'openpgp/lightweight';
 import urlJoin from 'url-join';
-import { environment } from '../../environments/environment.local';
 
 const decryptMessage = async (
   data: string,
@@ -14,7 +13,9 @@ const decryptMessage = async (
 };
 
 export const getMessage = async (uuid: string, pwd: string) => {
-  const data = await fetch(urlJoin(environment.YOPASS_URL, 'secret', uuid))
+  const data = await fetch(
+    urlJoin(import.meta.env.VITE_API_URL, 'api', 'secret', uuid)
+  )
     .then((res) => {
       if (res.status === 404) {
         throw 404;

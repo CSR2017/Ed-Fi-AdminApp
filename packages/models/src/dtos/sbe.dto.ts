@@ -1,15 +1,26 @@
+import { stdDetailed } from '@edanalytics/utils';
 import { Expose, Type } from 'class-transformer';
+import { IsOptional, IsString } from 'class-validator';
 import {
   ISbe,
   ISbeConfigPrivate,
   ISbeConfigPublic,
 } from '../interfaces/sbe.interface';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
+import { IsEdanalyticsUrl } from '../utils/is-edanalytics-url';
 import { makeSerializer } from '../utils/make-serializer';
 import { DtoPostBase, PostDto } from '../utils/post-base.dto';
-import { DtoPutBase, PutDto } from '../utils/put-base.dto';
-import { stdDetailed, stdShort } from '@edanalytics/utils';
 export class GetSbeConfigPublic implements ISbeConfigPublic {
+  @Expose()
+  adminApiUrl?: string;
+  @Expose()
+  adminApiKey?: string;
+  @Expose()
+  adminApiClientDisplayName?: string | undefined;
+  @Expose()
+  sbeMetaUrl?: string;
+  @Expose()
+  sbeMetaKey?: string;
   @Expose()
   hasOdsRefresh: false;
   @Expose()
@@ -47,15 +58,7 @@ export class GetSbeConfigPublic implements ISbeConfigPublic {
 
 export class SbeConfigPrivate implements ISbeConfigPrivate {
   @Expose()
-  adminApiUrl: string;
-  @Expose()
-  adminApiKey: string;
-  @Expose()
   adminApiSecret: string;
-  @Expose()
-  sbeMetaUrl: string;
-  @Expose()
-  sbeMetaKey: string;
   @Expose()
   sbeMetaSecret: string;
 }
@@ -76,19 +79,52 @@ export class GetSbeDto
 }
 export const toGetSbeDto = makeSerializer<GetSbeDto, ISbe>(GetSbeDto);
 
-export class PutSbeDto
-  extends DtoPutBase
-  implements
-    PutDto<
-      ISbe,
-      'ownerships' | 'odss' | 'edorgs' | 'configPrivate' | 'configPublic'
-    >
-{
+export class PutSbeAdminApiRegister {
+  modifiedById?: number | undefined;
+  id: number;
+
+  @IsString()
+  @IsEdanalyticsUrl()
   @Expose()
-  envLabel: string;
+  adminRegisterUrl?: string;
+}
+export class PutSbeAdminApi {
+  modifiedById?: number | undefined;
+  id: number;
+
+  @IsString()
+  @IsOptional()
   @Expose()
-  @Type(() => SbeConfigPrivate)
-  configPrivate?: SbeConfigPrivate;
+  adminUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  @Expose()
+  adminKey?: string;
+
+  @IsString()
+  @IsOptional()
+  @Expose()
+  adminSecret?: string;
+}
+export class PutSbeMeta {
+  modifiedById?: number | undefined;
+  id: number;
+
+  @IsString()
+  @IsOptional()
+  @Expose()
+  metaUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  @Expose()
+  metaKey?: string;
+
+  @IsString()
+  @IsOptional()
+  @Expose()
+  metaSecret?: string;
 }
 
 export class PostSbeDto
@@ -115,6 +151,9 @@ export class SbeCheckConnectionDto {
 
   @Expose()
   sbMeta: boolean;
+
+  @Expose()
+  messages: string[];
 }
 export const toSbeCCDto = makeSerializer(SbeCheckConnectionDto);
 

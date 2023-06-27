@@ -10,6 +10,8 @@ import { EditUser } from './EditUser';
 import { ViewUser } from './ViewUser';
 import { ReactNode } from 'react';
 import { PageTemplate } from '../PageTemplate';
+import { ActionBarActions } from '../../helpers/ActionBarActions';
+import _ from 'lodash';
 
 export const UserPage = (): ReactNode => {
   const navigate = useNavigate();
@@ -28,38 +30,13 @@ export const UserPage = (): ReactNode => {
   }).data;
   const { edit } = useSearch({ from: userIndexRoute.id });
 
+  const actions = {};
+
   return (
     <PageTemplate
       constrainWidth
       title={user?.displayName || 'User'}
-      actions={
-        user ? (
-          <>
-            <Button
-              isDisabled={edit}
-              leftIcon={<BiEdit />}
-              onClick={() => {
-                navigate({
-                  search: { edit: true },
-                });
-              }}
-            >
-              Edit
-            </Button>
-            <ConfirmAction
-              action={() => deleteUser.mutate(user.id)}
-              headerText={`Delete ${user.displayName}?`}
-              bodyText="You won't be able to get it back"
-            >
-              {(props) => (
-                <Button {...props} leftIcon={<BiTrash />}>
-                  Delete
-                </Button>
-              )}
-            </ConfirmAction>
-          </>
-        ) : null
-      }
+      actions={<ActionBarActions actions={_.omit(actions, 'View')} />}
     >
       {user ? edit ? <EditUser /> : <ViewUser /> : null}
     </PageTemplate>

@@ -7,5 +7,17 @@
       "name": "SBAA",
       "database": "${workspaceFolder:sbaa_se}/packages/api/db.sqlite"
     }
+  ],
+  "eslint.validate": ["json"],
+  "cSpell.words": [
+    "chakra",
+    "claimset",
+    "claimsets",
+    "edanalytics",
+    "edorg",
+    "edorgs",
+    "hookform",
+    "tanstack",
+    "typeorm"
   ]
 }

@@ -1,34 +1,13 @@
-import {
-  GetSessionDataDto,
-  Ids,
-  PostOdsDto,
-  PrivilegeCode,
-  PutOdsDto,
-  toGetOdsDto,
-} from '@edanalytics/models';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-} from '@nestjs/common';
-import { ReqUser } from '../../../auth/helpers/user.decorator';
-import { OdssService } from './odss.service';
+import { Ids, toGetOdsDto } from '@edanalytics/models';
+import { Ods } from '@edanalytics/models-server';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import {
-  Ods,
-  addUserCreating,
-  addUserModifying,
-} from '@edanalytics/models-server';
-import { InjectFilter } from '../../../auth/helpers/inject-filter';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { whereIds } from '../../../auth/helpers/where-ids';
+import { Repository } from 'typeorm';
 import { Authorize } from '../../../auth/authorization';
+import { InjectFilter } from '../../../auth/helpers/inject-filter';
+import { whereIds } from '../../../auth/helpers/where-ids';
+import { OdssService } from './odss.service';
 
 @ApiTags('Ods')
 @Controller()
@@ -41,7 +20,7 @@ export class OdssController {
 
   @Get()
   @Authorize({
-    privilege: 'tenant.sbe.edorg:read',
+    privilege: 'tenant.sbe.ods:read',
     subject: {
       id: '__filtered__',
       sbeId: 'sbeId',
@@ -63,7 +42,7 @@ export class OdssController {
 
   @Get(':odsId')
   @Authorize({
-    privilege: 'tenant.sbe.edorg:read',
+    privilege: 'tenant.sbe.ods:read',
     subject: {
       id: 'odsId',
       sbeId: 'sbeId',

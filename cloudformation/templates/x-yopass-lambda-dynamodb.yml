@@ -1,0 +1,187 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Lambda Functions, roles, and policies
+Parameters:
+  EnvLabel:
+    Description: Provide a label for your environment to identify resources easier.
+    Type: String
+  BuildNumber:
+    Description: Leave blank when first deploying.  Will be set later by CodePipeline.
+    Type: String
+    Default: ''
+
+Conditions:
+  DeployFunction: !Not [!Equals [!Ref BuildNumber, '']]
+
+Resources:
+  YoPassLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+  
+  YoPassLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub 'YoPass-Lambda-${EnvLabel}-${AWS::Region}-policy'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'dynamodb:BatchGetItem'
+              - 'dynamodb:BatchWriteItem'
+              - 'dynamodb:TagResource'
+              - 'dynamodb:UntagResource'
+              - 'dynamodb:PutItem'
+              - 'dynamodb:DeleteItem'
+              - 'dynamodb:GetItem'
+              - 'dynamodb:PartiQLUpdate'
+              - 'dynamodb:PartiQLSelect'
+              - 'dynamodb:PartiQLDelete'
+              - 'dynamodb:Scan'
+              - 'dynamodb:Query'
+              - 'dynamodb:UpdateItem'
+            Resource: !GetAtt 'YoPassDynamoDBTable.Arn'
+              
+      Roles:
+        - !Ref 'YoPassLambdaRole'
+  
+  YoPassLambdaFunction:
+    Type: AWS::Lambda::Function
+    Condition: DeployFunction
+    Properties:
+      Handler: main
+      Description: YoPass Back End
+      FunctionName: !Sub 'YoPass-${EnvLabel}'
+      Role: !GetAtt 'YoPassLambdaRole.Arn'
+      Runtime: go1.x
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref YoPassDynamoDBTable
+      Timeout: 15
+      Code:
+        S3Bucket: !Sub 'build-deployment-${AWS::AccountId}-${EnvLabel}'
+        S3Key: !Sub 'main-${BuildNumber}.zip'
+
+  YoPassLambdaVersion:
+    Type: AWS::Lambda::Version
+    Condition: DeployFunction
+    Properties:
+      FunctionName: !Ref 'YoPassLambdaFunction'
+
+  YoPassDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub 'YoPass-DynamoDb-${EnvLabel}'
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+       - AttributeName: id
+         KeyType: HASH
+  
+
+  #Setting Up API Gateway
+  YoPassApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub 'YoPass-ApiGatewayRestApi-${EnvLabel}'
+
+  YoPassAPIGatewayResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref YoPassApiGatewayRestApi
+      ParentId: !GetAtt 'YoPassApiGatewayRestApi.RootResourceId'
+      PathPart: '{proxy+}'
+
+  YoPassApiGatewayMethod:
+    Type: AWS::ApiGateway::Method
+    Condition: DeployFunction
+    Properties:
+      RestApiId: !Ref YoPassApiGatewayRestApi
+      ResourceId: !Ref YoPassAPIGatewayResource
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+      Integration:
+        Type: AWS_PROXY
+        IntegrationResponses:
+          - StatusCode: 200
+        IntegrationHttpMethod: POST
+        Uri: !Sub 
+          - 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${YoPassLambdaFunctionArn}/invocations'
+          - YoPassLambdaFunctionArn: !GetAtt YoPassLambdaFunction.Arn
+
+  YoPassApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Condition: DeployFunction
+    DependsOn:
+      - YoPassApiGatewayMethod
+      - ApiGwAccountConfig
+    Properties:
+      RestApiId: !Ref YoPassApiGatewayRestApi
+      StageName: 'prod'
+      StageDescription:
+        LoggingLevel: INFO
+        AccessLogSetting:
+          DestinationArn: !GetAtt YopassApiGatewayLogs.Arn
+          Format: '$context.requestId $context.identity.userAgent $context.identity.sourceIp $context.requestTime $context.httpMethod $context.resourcePath $context.protocol $context.status $context.responseLength $context.integrationErrorMessage'
+    
+  YoPassApiGatewayPermission:
+    Type: AWS::Lambda::Permission
+    Condition: DeployFunction
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt YoPassLambdaFunction.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${YoPassApiGatewayRestApi}/*/*/*"
+
+  YopassApiGatewayLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+         LogGroupName: !Sub '/aws/api-gateway/${YoPassApiGatewayRestApi}'
+         RetentionInDays: 30
+
+  ApiGwAccountConfig:
+    Type: "AWS::ApiGateway::Account"
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Delete
+    Properties:
+      CloudWatchRoleArn: !GetAtt "ApiGatewayLoggingRole.Arn"
+
+  ApiGatewayLoggingRole:
+    Type: "AWS::IAM::Role"
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "apigateway.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+
+Outputs:
+  ApiGatewayUrl:
+    Description: 'URL for the Prod stage in API Gateway'
+    Value: !Sub 'https://${YoPassApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/prod/'

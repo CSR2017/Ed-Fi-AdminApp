@@ -6,18 +6,35 @@
   "tags": [],
   "targets": {
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["packages/common-ui/**/*.{ts,tsx,js,jsx}"]
       }
     },
+    "chakra-cli": {
+      "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "commands": [
+          "chakra-cli tokens packages/common-ui/src/lib/theme/index.ts"
+        ]
+      }
+    },
+    "chakra-cli:watch": {
+      "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "commands": [
+          "chakra-cli tokens packages/common-ui/src/lib/theme/index.ts --watch"
+        ]
+      }
+    },
     "storybook": {
-      "executor": "@nrwl/storybook:storybook",
+      "executor": "@nx/storybook:storybook",
       "options": {
         "port": 4400,
-        "configDir": "packages/common-ui/.storybook",
-        "uiFramework": "@storybook/react"
+        "configDir": "packages/common-ui/.storybook"
       },
       "configurations": {
         "ci": {
@@ -26,12 +43,11 @@
       }
     },
     "build-storybook": {
-      "executor": "@nrwl/storybook:build",
+      "executor": "@nx/storybook:build",
       "outputs": ["{options.outputDir}"],
       "options": {
         "outputDir": "dist/storybook/common-ui",
-        "configDir": "packages/common-ui/.storybook",
-        "uiFramework": "@storybook/react"
+        "configDir": "packages/common-ui/.storybook"
       },
       "configurations": {
         "ci": {

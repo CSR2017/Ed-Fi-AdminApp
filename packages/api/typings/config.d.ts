@@ -1,0 +1,55 @@
+declare module 'config' {
+  export interface IDbSecret {
+    DB_HOST: string;
+    DB_PORT: number;
+    DB_USERNAME: string;
+    DB_PASSWORD: string;
+    DB_DATABASE: string;
+  }
+
+  export interface IDbEncryptionSecret {
+    KEY: string;
+    IV: string;
+  }
+
+  interface IConfig {
+    AWS_DB_SECRET?: string | undefined;
+    DB_SECRET_VALUE: never;
+    DB_CONNECTION_STRING: string | Promise<string>;
+
+    AWS_DB_ENCRYPTION_SECRET?: string | undefined;
+    DB_ENCRYPTION_SECRET_VALUE: never;
+    DB_ENCRYPTION_SECRET: IDbEncryptionSecret | Promise<IDbEncryptionSecret>;
+
+    AWS_REGION?: string | undefined;
+    DB_SSL: boolean;
+    DB_RUN_MIGRATIONS: boolean;
+    DB_SYNCHRONIZE: boolean;
+    FE_URL: string;
+    MY_URL: string;
+    YOPASS_URL: string;
+    API_PORT: number;
+    SAMPLE_SBE_CONFIG?: {
+      adminApiUrl: string;
+      adminApiKey: string;
+      adminApiSecret: string;
+      sbeMetaUrl: string;
+      sbeMetaKey: string;
+      sbeMetaSecret: string;
+    };
+    SAMPLE_OIDC_CONFIG?: {
+      issuer: string;
+      clientSecret: string;
+      clientId: string;
+      scope: string;
+    };
+    SAMPLE_APP_LAUNCHER_CONFIG?: {
+      url: string;
+      poolId: string;
+      clientId: string;
+    };
+  }
+
+  const config: IConfig;
+  export = config;
+}

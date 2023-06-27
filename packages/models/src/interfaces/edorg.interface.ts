@@ -11,12 +11,13 @@ export interface IEdorg extends IEntityBase {
   sbeId: number;
   ods: IOds;
   odsId: number;
+  odsDbName: string;
 
   children: IEdorg[];
   parent?: IEdorg;
   parentId?: number;
 
-  educationOrganizationId: string;
+  educationOrganizationId: number;
   nameOfInstitution: string;
   discriminator: EdorgType;
 }

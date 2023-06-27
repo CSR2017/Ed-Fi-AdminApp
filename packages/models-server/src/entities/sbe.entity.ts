@@ -8,9 +8,9 @@ import {
 } from '@edanalytics/models';
 import { FakeMeUsing, deployEnv, schoolYear } from '@edanalytics/utils';
 import { faker } from '@faker-js/faker';
-import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
-import { JSONEncryptionTransformer } from 'typeorm-encrypted';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
+import { JSONEncryptionTransformer } from 'typeorm-encrypted';
 
 @Entity()
 export class Sbe extends EntityBase implements ISbe {
@@ -25,9 +25,10 @@ export class Sbe extends EntityBase implements ISbe {
   @Column()
   @FakeMeUsing(() => `${deployEnv()}-${schoolYear()}-${faker.random.alpha(5)}`)
   envLabel: string;
-  @Column({ type: 'simple-json' })
+
   @FakeMeUsing({ hasOdsRefresh: false })
-  configPublic: ISbeConfigPublic;
+  @Column({ type: 'jsonb', nullable: true })
+  configPublic: ISbeConfigPublic | null;
 
   @FakeMeUsing(() => ({
     adminApiUrl: '<adminApiUrl>',
@@ -38,14 +39,34 @@ export class Sbe extends EntityBase implements ISbe {
     awsLambdaSecret: '<awsLambdaSecret>',
   }))
   @Column({
-    type: 'simple-json',
-    nullable: false,
-    transformer: new JSONEncryptionTransformer({
-      key: DB_SECRETS_ENCRYPTION.DB_SECRETS_ENCRYPTION_KEY,
-      algorithm: 'aes-256-cbc',
-      iv: DB_SECRETS_ENCRYPTION.DB_SECRETS_ENCRYPTION_IV,
-      ivLength: 16,
-    }),
+    type: 'jsonb',
+    nullable: true,
+    transformer: {
+      from(value) {
+        if ('DB_SECRETS_ENCRYPTION' in global) {
+          return new JSONEncryptionTransformer({
+            key: DB_SECRETS_ENCRYPTION.KEY,
+            algorithm: 'aes-256-cbc',
+            iv: DB_SECRETS_ENCRYPTION.IV,
+            ivLength: 16,
+          }).from(value);
+        } else {
+          throw new Error('DB_SECRETS_ENCRYPTION not defined');
+        }
+      },
+      to(value) {
+        if ('DB_SECRETS_ENCRYPTION' in global) {
+          return new JSONEncryptionTransformer({
+            key: DB_SECRETS_ENCRYPTION.KEY,
+            algorithm: 'aes-256-cbc',
+            iv: DB_SECRETS_ENCRYPTION.IV,
+            ivLength: 16,
+          }).to(value);
+        } else {
+          throw new Error('DB_SECRETS_ENCRYPTION not defined');
+        }
+      },
+    },
   })
-  configPrivate: ISbeConfigPrivate;
+  configPrivate: ISbeConfigPrivate | null;
 }

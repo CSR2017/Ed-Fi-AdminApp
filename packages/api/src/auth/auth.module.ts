@@ -1,6 +1,8 @@
 import {
+  AppLauncher,
   Edorg,
   Ods,
+  Oidc,
   Ownership,
   Sbe,
   Tenant,
@@ -14,19 +16,10 @@ import { UsersModule } from '../tenants/users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { SessionSerializer } from './helpers/session.serializer';
-import { OidcStrategy, buildOpenIdClient } from './login/oidc.strategy';
+import { IdpService } from './idp.service';
+import { RegisterAlIdpsService } from './login/applauncher.strategy';
 import { LocalStrategy } from './login/local.strategy';
-import { ApplauncherStrategy } from './login/applauncher.strategy';
-
-const OidcStrategyFactory = {
-  provide: 'OidcStrategy',
-  useFactory: async (authService: AuthService) => {
-    const client = await buildOpenIdClient();
-    const strategy = new OidcStrategy(authService, client);
-    return strategy;
-  },
-  inject: [AuthService],
-};
+import { RegisterOidcIdpsService } from './login/oidc.strategy';
 
 @Global()
 @Module({
@@ -41,15 +34,18 @@ const OidcStrategyFactory = {
       Ownership,
       UserTenantMembership,
       Tenant,
+      Oidc,
+      AppLauncher,
     ]),
   ],
   controllers: [AuthController],
   providers: [
-    OidcStrategyFactory,
     AuthService,
+    IdpService,
     LocalStrategy,
-    ApplauncherStrategy,
     SessionSerializer,
+    RegisterOidcIdpsService,
+    RegisterAlIdpsService,
   ],
   exports: [AuthService],
 })

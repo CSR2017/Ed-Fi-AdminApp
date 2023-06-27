@@ -123,12 +123,14 @@ export class GetEdorgDto
   sbeId: number;
   @Expose()
   odsId: number;
+  @Expose()
+  odsDbName: string;
 
   @Expose()
   parentId?: number;
 
   @Expose()
-  educationOrganizationId: string;
+  educationOrganizationId: number;
   @Expose()
   nameOfInstitution: string;
   @Expose()
@@ -143,7 +145,10 @@ export const toGetEdorgDto = makeSerializer(GetEdorgDto);
 export class PutEdorgDto
   extends DtoPutBase
   implements
-    PutDto<IEdorg, 'ownerships' | 'ods' | 'odsId' | 'sbe' | 'sbeId' | 'parent'>
+    PutDto<
+      IEdorg,
+      'ownerships' | 'ods' | 'odsId' | 'odsDbName' | 'sbe' | 'sbeId' | 'parent'
+    >
 {
   @Expose()
   children: IEdorg[];
@@ -154,7 +159,7 @@ export class PutEdorgDto
 
   @IsString()
   @Expose()
-  educationOrganizationId: string;
+  educationOrganizationId: number;
 
   @IsString()
   @Expose()
@@ -166,7 +171,8 @@ export class PutEdorgDto
 
 export class PostEdorgDto
   extends DtoPostBase
-  implements PostDto<IEdorg, 'ownerships' | 'ods' | 'parent' | 'sbe'>
+  implements
+    PostDto<IEdorg, 'ownerships' | 'ods' | 'odsDbName' | 'parent' | 'sbe'>
 {
   @Expose()
   @IsNumber()
@@ -185,7 +191,7 @@ export class PostEdorgDto
 
   @IsString()
   @Expose()
-  educationOrganizationId: string;
+  educationOrganizationId: number;
 
   @IsString()
   @Expose()

@@ -1,4 +1,5 @@
-import { extendTheme } from '@chakra-ui/react';
+import { defineStyle, extendTheme } from '@chakra-ui/react';
+import { transparentize } from '@chakra-ui/theme-tools';
 
 export const theme = extendTheme({
   components: {
@@ -63,17 +64,82 @@ export const theme = extendTheme({
           fontSize: 'md',
           margin: 'calc(-2px - 0.25rem)',
         },
+        'table-row': {
+          h: '2rem',
+          fontSize: 'md',
+          px: '0.5em',
+          borderRadius: 0,
+        },
         'action-bar': {
           fontSize: 'sm',
           px: '0.5em',
           h: 6,
+          // boxShadow: 'base',
         },
+      },
+      variants: {
+        'outline-highlight': defineStyle((props) => {
+          const { colorScheme: c } = props;
+          const darkHoverBg = transparentize(`${c}.200`, 0.12)(theme);
+          const darkActiveBg = transparentize(`${c}.200`, 0.24)(theme);
+          return {
+            border: '1px solid',
+            borderColor: c === 'gray' ? 'gray.200' : 'currentColor',
+            '.chakra-button__group[data-attached][data-orientation=horizontal] > &:not(:last-of-type)':
+              { marginEnd: '-1px' },
+            '.chakra-button__group[data-attached][data-orientation=vertical] > &:not(:last-of-type)':
+              { marginBottom: '-1px' },
+            ...(c === 'gray'
+              ? {
+                  color: `gray.900`,
+                  bg: `gray.50`,
+                  _hover: {
+                    bg: `gray.100`,
+                  },
+                  _active: { bg: `gray.200` },
+                }
+              : {
+                  color: `${c}.800`,
+                  bg: `${c}.50`,
+                  _hover: {
+                    bg: `${c}.100`,
+                  },
+                  _active: {
+                    bg: `${c}.200`,
+                  },
+                }),
+          };
+        }),
+        'ghost-dark': defineStyle((props) => {
+          const { colorScheme: c, theme } = props;
+
+          if (c === 'gray') {
+            return {
+              color: 'gray.600',
+              _hover: {
+                bg: `gray.200`,
+              },
+              _active: { bg: `gray.300` },
+            };
+          }
+
+          return {
+            color: `${c}.600`,
+            bg: 'transparent',
+            _hover: {
+              bg: `${c}.100`,
+            },
+            _active: {
+              bg: `${c}.200`,
+            },
+          };
+        }),
       },
     },
     FormLabel: {
       baseStyle: {
-        marginBottom: 1,
-        marginTop: 3,
+        marginBottom: 0,
+        marginTop: 5,
       },
     },
     FormError: {
@@ -81,6 +147,11 @@ export const theme = extendTheme({
         text: {
           marginTop: 1,
         },
+      },
+    },
+    Tag: {
+      baseStyle: {
+        container: { fontFamily: 'mono', fontWeight: 'semibold' },
       },
     },
   },

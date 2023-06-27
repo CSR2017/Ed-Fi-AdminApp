@@ -6,7 +6,7 @@ import {
 } from 'class-transformer';
 
 export const apiClient = axios.create({
-  baseURL: 'http://localhost:3333/api/',
+  baseURL: `${import.meta.env.VITE_API_URL}/api/`,
   withCredentials: true,
 });
 

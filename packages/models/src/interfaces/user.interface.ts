@@ -9,8 +9,8 @@ export interface IUserConfig {
 
 export interface IUser extends Omit<IEntityBase, 'createdBy' | 'createdById'> {
   username: string;
-  givenName: string;
-  familyName: string;
+  givenName: string | null;
+  familyName: string | null;
   fullName: string;
   role?: IRole;
   config?: IUserConfig;

@@ -40,4 +40,6 @@ Thumbs.db
 db.sqlite
 
 # environment variables
-**/environments/*.local.*
+*.local.*
+*.local
+packages/api/config/local*

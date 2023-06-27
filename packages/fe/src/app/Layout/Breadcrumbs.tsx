@@ -5,6 +5,7 @@ import {
   BreadcrumbLink,
   BreadcrumbProps,
   StyleProps,
+  Text,
 } from '@chakra-ui/react';
 import { Link as RouterLink, useMatches } from '@tanstack/router';
 import { useEffect, useState } from 'react';
@@ -36,7 +37,11 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
       size="sm"
       spacing={1}
       color="gray.500"
-      separator={<ChevronRightIcon />}
+      separator={
+        <Text color="gray.200" pb="0.175em" fontSize="2xl" mx="0.3em">
+          /
+        </Text>
+      }
       {...props}
     >
       {breadcrumbs.map((match, i) => {

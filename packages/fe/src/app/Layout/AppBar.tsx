@@ -13,6 +13,7 @@ import { Link as RouterLink, useNavigate } from '@tanstack/router';
 import { RxCaretDown } from 'react-icons/rx';
 import { apiClient, useMe } from '../api';
 import { accountRouteGlobal, publicRoute } from '../routes';
+import logoUrl from '../../assets/starting-blocks.svg';
 
 export const AppBar = () => {
   const me = useMe();
@@ -33,7 +34,7 @@ export const AppBar = () => {
       px={3}
     >
       <RouterLink to="/">
-        <Image h={7} src="/assets/starting-blocks.svg" />
+        <Image h={7} src={logoUrl} />
       </RouterLink>
       <Menu>
         <MenuButton as={Button} variant="unstyled">

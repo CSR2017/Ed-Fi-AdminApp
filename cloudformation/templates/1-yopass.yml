@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  This template creates the YoPass BE infrastructure.
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Environment information
+        Parameters:
+          - S3SourceBucket
+          - EnvLabel
+      - Label:
+          default: CodePipeline information
+        Parameters:
+          - GitHubConnectionArn
+          - BEGitHubRepo
+          - BEGitHubTag
+          - CreateS3Bucket
+
+Parameters:
+  S3SourceBucket:
+    Type: String
+    Description: REQUIRED - This bucket contains the source files for CloudFormation, Lambda, Docker, etc.  MUST be in the same region as the CF Stack.  Recommended to have a separate bucket for each stack.
+  EnvLabel:
+    Description: Provide a label for your environment to identify resources easier.
+    Type: String
+  GitHubConnectionArn:
+    Description: Can be found or created in CodePipeline console, settings, connections.
+    Type: String
+    Default: arn:aws:codestar-connections:us-east-2:179685256884:connection/5b1234e6-559b-4118-a522-282a6d01970e
+  BEGitHubRepo:
+    Type: String
+    Description: GitHub repo name to build from
+    Default: 'jhaals/yopass'
+  # Branch in this project has no effect on the build.
+  # BEGitHubBranch:
+  #   Type: String
+  #   Description: Name of the branch in the GitHub repo to build from.
+  #   Default: 'master'
+  BEGitHubTag:
+    Type: String
+    Description: Name of the Tag in the GitHub repo to build from.
+    Default: '11.5.1'
+  CreateS3Bucket:
+    Type: String
+    Description: Create the S3 bucket named 'codepipeline-artifact-store-{AWS::Region}-{AWS::AccountId}'?  Do not change this value if updating an existing stack.
+    Default: 'The S3 Bucket already exists'
+    AllowedValues:
+      - 'Create the S3 Bucket'
+      - 'The S3 Bucket already exists'
+  BuildNumber:
+    Description: Leave blank when first deploying.  Will be set later by CodePipeline.
+    Type: String
+    Default: ''
+
+Resources:
+  BackEndCodePipelineStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://${S3SourceBucket}.s3.amazonaws.com/cloudformation/templates/x-yopass-code-pipeline-be.yml'
+      Parameters:
+        GitHubBranch: 'master'
+        GitHubConnectionArn: !Ref GitHubConnectionArn
+        EnvLabel: !Ref EnvLabel
+        GitHubRepo: !Ref BEGitHubRepo
+        GitHubTag: !Ref BEGitHubTag
+        CreateS3Bucket: !Ref CreateS3Bucket
+        MasterStack: !Ref AWS::StackName
+
+  LambdaDdbStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://${S3SourceBucket}.s3.amazonaws.com/cloudformation/templates/x-yopass-lambda-dynamodb.yml'
+      Parameters:
+        EnvLabel: !Ref EnvLabel
+        BuildNumber: !Ref BuildNumber
+
+Outputs:
+  ApiGatewayUrl:
+    Description: 'URL for the Prod stage in API Gateway'
+    Value: !GetAtt 'LambdaDdbStack.Outputs.ApiGatewayUrl'

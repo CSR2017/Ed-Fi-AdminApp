@@ -1,19 +1,42 @@
-import { Heading, HStack } from '@chakra-ui/react';
+import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
+import { GetOdsDto } from '@edanalytics/models';
+import { CellContext } from '@tanstack/react-table';
 import { useParams } from '@tanstack/router';
 import { odsQueries, userQueries } from '../../api/queries/queries';
+import { TableRowActions } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { StandardRowActions } from '../../helpers/getStandardActions';
+import { useReadTenantEntity } from '../../helpers/useStandardRowActionsNew';
 import { OdsLink, odsRoute, odssRoute, UserLink } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
+
+const NameCell = (info: CellContext<GetOdsDto, unknown>) => {
+  const params = useParams({ from: odssRoute.id });
+  const entities = odsQueries.useAll({
+    sbeId: params.sbeId,
+    tenantId: params.asId,
+  });
+
+  const View = useReadTenantEntity({
+    entity: info.row.original,
+    params: { odsId: String(info.row.original.id), ...params },
+    privilege: 'tenant.sbe.ods:read',
+    route: odsRoute,
+  });
+  const actions = {
+    ...(View ? { View } : undefined),
+  };
+  return (
+    <HStack justify="space-between">
+      <OdsLink id={info.row.original.id} query={entities} />
+      <TableRowActions actions={actions} />
+    </HStack>
+  );
+};
 
 export const OdssPage = () => {
   const params = useParams({ from: odssRoute.id });
   const odss = odsQueries.useAll({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-  });
-  const deleteOds = odsQueries.useDelete({
     sbeId: params.sbeId,
     tenantId: params.asId,
   });
@@ -26,22 +49,7 @@ export const OdssPage = () => {
         columns={[
           {
             accessorKey: 'displayName',
-            cell: (info) => (
-              <HStack justify="space-between">
-                <OdsLink id={info.row.original.id} query={odss} />
-                <HStack className="row-hover" color="gray.600" align="middle">
-                  <StandardRowActions
-                    info={info}
-                    mutation={deleteOds.mutate}
-                    route={odsRoute}
-                    params={(params: any) => ({
-                      ...params,
-                      odsId: String(info.row.original.id),
-                    })}
-                  />
-                </HStack>
-              </HStack>
-            ),
+            cell: NameCell,
             header: () => 'Name',
           },
           {

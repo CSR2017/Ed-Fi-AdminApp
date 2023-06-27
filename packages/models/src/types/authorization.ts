@@ -184,7 +184,7 @@ export const baseResourcePrivilegesMap: Partial<
     'tenant.role:create',
   ],
   'tenant.ownership': ['tenant.ownership:read'],
-  'tenant.sbe': ['tenant.sbe:read'],
+  'tenant.sbe': ['tenant.sbe:read', 'tenant.sbe:refresh-resources'],
 };
 
 export const sbeResourcePrivilegesMap: Partial<

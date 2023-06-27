@@ -1,19 +1,27 @@
 import {
-  User,
-  Tenant,
-  Ods,
-  Sbe,
+  AppLauncher,
   Edorg,
-  UserTenantMembership,
+  Ods,
+  Oidc,
+  Ownership,
   Privilege,
   Role,
-  Ownership,
+  Sbe,
+  Tenant,
+  User,
+  UserTenantMembership,
 } from '@edanalytics/models-server';
-import { DataSourceOptions } from 'typeorm';
+import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+import { SbeConfigReorg1687190483472 } from './migrations/1687190483472-sbe-config-reorg';
+import { AdOdsNaturalKeyToEdorg1687466013005 } from './migrations/1687466013005-add-ods-natural-key-to-edorg';
+import { EducationOrganizationIdToNumber1687881668666 } from './migrations/1687881668666-educationOrganizationIdToNumber';
+import { UniqueOwnershipConstraints1687900131470 } from './migrations/1687900131470-uniqueOwnershipConstraints';
 
-const config: DataSourceOptions = {
-  type: 'sqlite',
-  database: 'packages/api/db.sqlite',
+const config: Pick<
+  PostgresConnectionOptions,
+  'entities' | 'synchronize' | 'migrations' | 'type' | 'migrationsRun'
+> = {
+  type: 'postgres',
   entities: [
     User,
     Tenant,
@@ -24,10 +32,17 @@ const config: DataSourceOptions = {
     Privilege,
     Role,
     Ownership,
+    Oidc,
+    AppLauncher,
   ],
-  synchronize: true,
-  migrations: ['packages/api/src/database/migrations/*.{ts,js}'],
+  synchronize: false,
+  migrationsRun: true,
+  migrations: [
+    SbeConfigReorg1687190483472,
+    AdOdsNaturalKeyToEdorg1687466013005,
+    EducationOrganizationIdToNumber1687881668666,
+    UniqueOwnershipConstraints1687900131470,
+  ],
   // logging: ['query'],
 };
-
 export default config;

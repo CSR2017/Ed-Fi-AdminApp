@@ -1,0 +1,409 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  This template creates the Podium Embed App FE and BE infrastructure.
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Environment information
+        Parameters:
+          - S3SourceBucket
+          - EnvLabel
+          - DomainName
+          - HostedZoneId
+          - WildcardDomain
+          - ParentVPCStack
+      - Label:
+          default: Front end information
+        Parameters:
+          - S3FrontEndBucket
+          - S3FrontEndBucketStatus
+          - DefaultRootObject
+          - RedirectErrors
+          - ViewerProtocolPolicy
+          - AllowedMethods
+          - CachedMethods
+          - CachePolicy
+          - ResponseHeadersPolicy
+          - Compress
+      - Label:
+          default: Back end Beanstalk information
+        Parameters:
+          - HealthCheckPath
+          - BeanstalkMinInstances
+          - BeanstalkMaxInstances
+          - SshToBeanstalk
+          - SSHSecurityGroup
+          - EC2KeyName
+          - InstanceTypes
+          - LogRetentionInDays
+          - UserPoolUrl
+          - CodeEnv
+          - AppLauncherUrl
+          - SnowSecret
+          - YopassUrl
+      - Label:
+          default: Database (RDS Postgres) information
+        Parameters:
+          - DBInstanceClass
+          - EngineVersion
+          - DBName
+          - DBAllocatedStorage
+          - DBMultiAZ
+          - DBBackupRetentionPeriod
+          - PreferredBackupWindow
+          - PreferredMaintenanceWindow
+          - DBSnapshotIdentifier
+          - DeployAlerts
+          - ParentSSHBastionStack
+          - EnableIAMDatabaseAuthentication  
+      - Label:
+          default: CodePipeline information
+        Parameters:
+          - GitHubConnectionArn
+          - BEGitHubRepo
+          - BEGitHubBranch
+          - CreateS3Bucket
+          - FEGitHubRepo
+          - FEGitHubBranch
+          - AuthAppLauncherLoginUrl
+          - AuthCognitoPoolId
+          - AuthCognitoClientId
+
+Parameters:
+  EnvLabel:
+    Description: Provide a label for your environment to identify resources easier.
+    Type: String
+  DeployAlerts: 
+    Description: Deploy SNS topic and database monitoring alerts?
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  S3FrontEndBucket:
+    Type: String
+    Description: REQUIRED - Name of the S3 bucket containing the front end web files
+      resides.
+  EC2KeyName:
+    Type: String
+    Description: Optional - This provides the name of the EC2 Key Pair to use.
+  SSHSecurityGroup:
+    Type: String
+    Description: Optional - This provides the identifier of the security group to allow SSH from.
+  SshToBeanstalk:
+    Type: String
+    Description: Allow SSH to this Beanstalk Environment
+    AllowedValues:
+      - 'yes'
+      - 'no'
+    Default: 'no'
+  ParentVPCStack:
+    Description: 'REQUIRED - Stack name of the VPC stack based on EA-StandardVPC template.'
+    Type: String
+    Default: 'SB-VPC'
+  InstanceTypes:
+    Type: String
+    Description: Size of the EC2 machines to host the Docker containers
+    Default: t4g.medium,c6g.large
+  BeanstalkMinInstances:
+    Type: Number
+    Description: Minimum Application Server Capacity for EB.
+    Default: 1
+  BeanstalkMaxInstances:
+    Type: Number
+    Description: Maximum Application Server Capacity for EB.
+    Default: 3
+  DomainName:
+    Type: String
+    Description: Fully Qualified Domain Name for the environment
+    Default: dev.getpodium.org
+  WildcardDomain:
+    Type: String
+    Description: Accept requests from *.DomainName ?
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  HostedZoneId:
+    Description: REQUIRED - Route53 HostedZone.  Select the zone for this environment.
+    Type: AWS::Route53::HostedZone::Id
+  S3SourceBucket:
+    Type: String
+    Description: REQUIRED - This bucket contains the source files for CloudFormation, Lambda, Docker, etc.  MUST be in the same region as the CF Stack.  Recommended to have a separate bucket for each stack.
+  ParentSSHBastionStack:
+    Description: 'Optional stack name of parent SSH server stack based on EA-Standard-SSH-Server.yml template.'
+    Type: String
+    Default: ''
+  DBName:
+    Description: 'Optional name of blank database to create when deploying the db instance.  Ignored if DBSnapshotIdentifier is set.'
+    Type: String
+    Default: 'podium'
+  DBSnapshotIdentifier:
+    Description: 'Optional name or Amazon Resource Name (ARN) of the DB snapshot from which you want to restore (leave blank to create an empty database).'
+    Type: String
+    Default: ''
+  DBAllocatedStorage:
+    Description: 'The allocated storage size, specified in GB (ignored when DBSnapshotIdentifier is set, value used from snapshot).'
+    Type: Number
+    Default: 5
+    MinValue: 5
+    MaxValue: 16384
+  DBInstanceClass:
+    Description: 'The instance type of database server.'
+    Type: String
+    Default: 'db.t4g.micro'
+  DBBackupRetentionPeriod:
+    Description: 'The number of days to keep snapshots of the database. (0-35)'
+    Type: Number
+    MinValue: 0
+    MaxValue: 35
+    Default: 7
+  DBMultiAZ:
+    Description: 'Specifies if the database instance is deployed to multiple Availability Zones for HA.'
+    Type: String
+    Default: false
+    AllowedValues: [true, false]
+  PreferredBackupWindow:
+    Description: 'The daily time range in UTC during which you want to create automated backups.'
+    Type: String
+    Default: '09:54-10:24'
+  PreferredMaintenanceWindow:
+    Description: The weekly time range (in UTC) during which system maintenance can occur.
+    Type: String
+    Default: 'sat:07:00-sat:07:30'
+  EngineVersion:
+    Description: 'PostgreSQL version.'
+    Type: String
+    Default: '14.8'
+    AllowedValues: ['12.15', '13.11', '14.8'] # aws rds describe-db-engine-versions --engine postgres --query "DBEngineVersions[].EngineVersion"
+  EnableIAMDatabaseAuthentication:
+    Description: 'Enable mapping of AWS Identity and Access Management (IAM) accounts to database accounts (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.IAMDBAuth.html).'
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'false'
+  S3FrontEndBucketStatus:
+    Type: String
+    Description: Create the S3 bucket named above?  Do not change this value if updating an existing stack.
+    Default: 'Create the S3 Bucket'
+    AllowedValues:
+      - 'Create the S3 Bucket'
+      - 'The S3 Bucket already exists'
+  LogRetentionInDays:
+    Description: Number of days to keep Beanstalk logs in CloudWatch Logs
+    Type: Number
+    Default: 365
+  DefaultRootObject:
+    Type: String
+    Description: The file to serve when the root DomainName is requested.
+    Default: index.html
+  RedirectErrors:
+    Description: Redirect 400, 403, and 404 errors to the DefaultRootObject.
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  ViewerProtocolPolicy:
+    Description: HTTP Behavior
+    Type: String
+    Default: 'redirect-to-https'
+    AllowedValues:
+      - 'allow-all'
+      - 'redirect-to-https'
+      - 'https-only'
+  AllowedMethods:
+    Description: HTTP Methods allowed
+    Type: String
+    Default: 'GET,HEAD,OPTIONS'
+    AllowedValues:
+      - 'GET,HEAD'
+      - 'GET,HEAD,OPTIONS'
+      - 'GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE'
+  CachedMethods:
+    Description: HTTP Methods cached
+    Type: String
+    Default: 'GET,HEAD,OPTIONS'
+    AllowedValues:
+      - 'GET,HEAD'
+      - 'GET,HEAD,OPTIONS'
+  CachePolicy:
+    Description: Cache Policy
+    Type: String
+    Default: CachingOptimized
+    AllowedValues:
+      - CachingOptimized
+      - CachingOptimizedForUncompressedObjects
+      - CachingDisabled
+  Compress:
+    Description: Compress CloudFront responses
+    Type: String
+    Default: True
+    AllowedValues:
+      - True
+      - False
+  ResponseHeadersPolicy:
+    Description: Response Headers Policy
+    Type: String
+    Default: CORS-with-preflight-and-SecurityHeadersPolicy
+    AllowedValues:
+      - SimpleCORS
+      - CORS-With-Preflight
+      - SecurityHeadersPolicy
+      - CORS-and-SecurityHeadersPolicy
+      - CORS-with-preflight-and-SecurityHeadersPolicy
+  HealthCheckPath:
+    Description: Application path for the load balancer to determine application health
+    Type: String
+    Default: /healthcheck
+
+  UserPoolUrl:
+    Description: Url For Validating User JWT values from an AWS Cognito Pool
+    Type: String
+  CodeEnv:
+    Description: Environment string that dictates which local config file is in use
+    Type: String
+  AppLauncherUrl:
+    Description: Url for validating user JWT values against the app launcher API
+    Type: String
+
+  SnowSecret:
+    Description: suffix portion of snowflake secret name in Secrets manager.  'EnvLabel-' will be prepended.
+    Type: String
+    Default: SC-State-Snowflake
+  YopassUrl:
+    Type: String
+    Description: API Url for Yopass backend interactions.
+  GitHubConnectionArn:
+    Description: Can be found or created in CodePipeline console, settings, connections.
+    Type: String
+    Default: arn:aws:codestar-connections:us-east-2:144785690742:connection/a914113f-864f-47ec-8b10-90b7324eb2c5
+
+  BEGitHubRepo:
+    Type: String
+    Description: GitHub repo name to build from
+    Default: 'edanalytics/startingblocks_admin_app'
+  BEGitHubBranch:
+    Type: String
+    Description: Name of the branch in the GitHub repo to build from.
+    Default: SBAA-27-deployment
+  CreateS3Bucket:
+    Type: String
+    Description: Create the S3 bucket named 'codepipeline-artifact-store-{AWS::Region}-{AWS::AccountId}'?  Do not change this value if updating an existing stack.
+    Default: 'The S3 Bucket already exists'
+    AllowedValues:
+      - 'Create the S3 Bucket'
+      - 'The S3 Bucket already exists'
+  FEGitHubRepo:
+    Type: String
+    Description: GitHub repo name to build from
+    Default: 'edanalytics/startingblocks_admin_app'
+  FEGitHubBranch:
+    Type: String
+    Description: Name of the branch in the GitHub repo to build from.
+    Default: SBAA-27-deployment
+  AuthAppLauncherLoginUrl:
+    Type: String
+    Description: App launcher login url
+    Default: 'https://login.rally.edanalytics.org/login'
+  AuthCognitoPoolId:
+    Type: String
+    Description: Cognito pool Id for App Launcher
+    Default: 'us-east-2_GKriiKORy'
+  AuthCognitoClientId:
+    Type: String
+    Description: Cognito client Id for App Launcher
+    Default: '26gf6ua3iholfru7is2tr1ecs4'
+
+Resources:
+  RdsPostgresStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://${S3SourceBucket}.s3.amazonaws.com/templates/sbaa-rds-postgres.yml'
+      Parameters:
+        EnvLabel: !Ref EnvLabel
+        DeployAlerts: !Ref DeployAlerts
+        ParentVPCStack: !Ref ParentVPCStack
+        ParentSSHBastionStack: !Ref ParentSSHBastionStack
+        DBName: !Ref DBName
+        DBSnapshotIdentifier: !Ref DBSnapshotIdentifier
+        DBAllocatedStorage: !Ref DBAllocatedStorage
+        DBInstanceClass: !Ref DBInstanceClass
+        DBBackupRetentionPeriod: !Ref DBBackupRetentionPeriod
+        DBMultiAZ: !Ref DBMultiAZ
+        PreferredBackupWindow:  !Ref PreferredBackupWindow
+        PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
+        EngineVersion: !Ref EngineVersion
+        EnableIAMDatabaseAuthentication: !Ref EnableIAMDatabaseAuthentication
+  BackEndBeanstalkStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://${S3SourceBucket}.s3.amazonaws.com/templates/sbaa-beanstalk.yml'
+      Parameters:
+        BeanstalkMinInstances: !Ref 'BeanstalkMinInstances'
+        BeanstalkMaxInstances: !Ref 'BeanstalkMaxInstances'
+        EnvLabel: !Ref 'EnvLabel'
+        ParentVPCStack: !Ref 'ParentVPCStack'
+        SshToBeanstalk: !Ref 'SshToBeanstalk'
+        SSHSecurityGroup: !Ref 'SSHSecurityGroup'
+        EC2KeyName: !Ref 'EC2KeyName'
+        InstanceTypes: !Ref 'InstanceTypes'
+        DomainName: !Sub 'api.${DomainName}'
+        HostedZoneId: !Ref 'HostedZoneId'
+        DatabaseSecurityGroup: !GetAtt 'RdsPostgresStack.Outputs.SecurityGroupId'
+        LogRetentionInDays: !Ref LogRetentionInDays
+        HealthCheckPath: !Ref HealthCheckPath
+        UserPoolUrl: !Ref UserPoolUrl
+        CodeEnv: !Ref CodeEnv
+        AppLauncherUrl: !Ref AppLauncherUrl
+        SnowSecret: !Ref SnowSecret
+        YopassUrl: !Ref YopassUrl
+        FrontEndUrl: !Sub 'https://${DomainName}'
+  FrontEndS3CloudFrontStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://${S3SourceBucket}.s3.amazonaws.com/templates/sbaa-s3-cloudfront.yml'
+      Parameters:
+        EnvLabel: !Ref EnvLabel
+        S3BucketName: !Ref S3FrontEndBucket
+        CreateS3Bucket: !Ref S3FrontEndBucketStatus
+        DomainName: !Ref DomainName
+        WildcardDomain: !Ref WildcardDomain
+        HostedZoneId: !Ref HostedZoneId
+        S3SourceBucket: !Ref S3SourceBucket
+        DefaultRootObject: !Ref DefaultRootObject
+        RedirectErrors: !Ref RedirectErrors
+        ViewerProtocolPolicy: !Ref ViewerProtocolPolicy
+        AllowedMethods: !Ref AllowedMethods
+        CachedMethods: !Ref CachedMethods
+        CachePolicy: !Ref CachePolicy
+        Compress: !Ref Compress
+        ResponseHeadersPolicy: !Ref ResponseHeadersPolicy
+  FrontEndCodePipelineStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://${S3SourceBucket}.s3.amazonaws.com/templates/sbaa-code-pipeline-fe.yml'
+      Parameters:
+        EnvLabel: !Ref EnvLabel
+        CreateS3Bucket: !Ref CreateS3Bucket
+        GitHubConnectionArn: !Ref GitHubConnectionArn
+        GitHubRepo: !Ref FEGitHubRepo
+        GitHubBranch: !Ref FEGitHubBranch
+        ViteApiUrl: !Sub 'https://api.${DomainName}'
+        FeBucketName: !Ref S3FrontEndBucket
+        DistributionId: !GetAtt 'FrontEndS3CloudFrontStack.Outputs.DistributionId'
+  BackEndCodePipelineStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://${S3SourceBucket}.s3.amazonaws.com/templates/sbaa-code-pipeline-be.yml'
+      Parameters:
+        GitHubBranch: !Ref BEGitHubBranch
+        GitHubConnectionArn: !Ref GitHubConnectionArn
+        EnvLabel: !Ref EnvLabel
+        GitHubRepo: !Ref BEGitHubRepo
+        BsAppName: !GetAtt 'BackEndBeanstalkStack.Outputs.ApplicationName'
+        BsEnvName: !GetAtt 'BackEndBeanstalkStack.Outputs.EnvironmentName'
+        CreateS3Bucket: 'The S3 Bucket already exists'
+        AuthAppLauncherLoginUrl: !Ref AuthAppLauncherLoginUrl
+        AuthCognitoPoolId: !Ref AuthCognitoPoolId
+        AuthCognitoClientId: !Ref AuthCognitoClientId

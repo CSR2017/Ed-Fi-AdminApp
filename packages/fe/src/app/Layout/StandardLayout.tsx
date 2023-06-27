@@ -36,14 +36,14 @@ export const StandardLayout = () => {
         <Nav />
         <Box
           p={3}
-          px="calc(3vw + 0.5em)"
+          px="calc(4vw + 0.5em)"
           maxH="100%"
           h="100%"
           overflow="auto"
           flexGrow="1"
         >
           <Flex flexDir="column" minW="35em" h="100%">
-            <Breadcrumbs mb={3} />
+            <Breadcrumbs mb={5} />
             <Box flexGrow={1}>
               <Outlet />
             </Box>

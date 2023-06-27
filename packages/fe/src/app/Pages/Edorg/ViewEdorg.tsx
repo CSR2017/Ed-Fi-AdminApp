@@ -1,7 +1,7 @@
 import { FormLabel, Text } from '@chakra-ui/react';
 import { useParams } from '@tanstack/router';
-import { edorgQueries } from '../../api';
-import { edorgRoute } from '../../routes';
+import { edorgQueries, odsQueries, sbeQueries } from '../../api';
+import { EdorgLink, OdsLink, SbeLink, edorgRoute } from '../../routes';
 
 export const ViewEdorg = () => {
   const params = useParams({ from: edorgRoute.id });
@@ -10,12 +10,32 @@ export const ViewEdorg = () => {
     sbeId: params.sbeId,
     tenantId: params.asId,
   }).data;
+  const edorgs = edorgQueries.useAll({
+    sbeId: params.sbeId,
+    tenantId: params.asId,
+  });
+  const odss = odsQueries.useAll({
+    sbeId: params.sbeId,
+    tenantId: params.asId,
+  });
+  const sbes = sbeQueries.useAll({
+    tenantId: params.asId,
+  });
 
   return edorg ? (
     <>
-      {/* TODO: replace this with real content */}
-      <FormLabel as="p">Id</FormLabel>
-      <Text>{edorg.id}</Text>
+      <FormLabel as="p">Type</FormLabel>
+      <Text>{edorg.discriminator}</Text>
+      {edorg.parentId ? (
+        <>
+          <FormLabel as="p">Parent</FormLabel>
+          <EdorgLink id={edorg.parentId} query={edorgs} />
+        </>
+      ) : null}
+      <FormLabel as="p">Ods</FormLabel>
+      <OdsLink id={edorg.odsId} query={odss} />
+      <FormLabel as="p">Environment</FormLabel>
+      <SbeLink id={edorg.sbeId} query={sbes} />
     </>
   ) : null;
 };

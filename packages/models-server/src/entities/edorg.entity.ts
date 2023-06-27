@@ -11,6 +11,7 @@ import {
   Tree,
   TreeChildren,
   TreeParent,
+  Unique,
 } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 
@@ -27,14 +28,19 @@ import { EntityBase } from '../utils/entity-base';
       }
 )
 @Tree('closure-table')
+@Unique(['sbeId', 'odsId', 'educationOrganizationId'])
 export class Edorg extends EntityBase implements IEdorg {
   @OneToMany('Ownership', (ownership: IOwnership) => ownership.edorg)
   ownerships: IOwnership[];
 
   @ManyToOne('Ods', (ods: IOds) => ods.edorgs)
   ods: IOds;
+
   @Column()
   odsId: number;
+
+  @Column()
+  odsDbName: string;
 
   @ManyToOne('Sbe', (sbe: ISbe) => sbe.edorgs)
   sbe: ISbe;
@@ -52,7 +58,7 @@ export class Edorg extends EntityBase implements IEdorg {
 
   @Column()
   @FakeMeUsing(() => faker.datatype.number(999999999))
-  educationOrganizationId: string;
+  educationOrganizationId: number;
 
   @Column()
   nameOfInstitution: string;

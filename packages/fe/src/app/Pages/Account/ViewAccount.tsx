@@ -1,5 +1,6 @@
-import { FormLabel, Grid, SimpleGrid, Tag, Text } from '@chakra-ui/react';
+import { Flex, FormLabel, Grid, SimpleGrid, Tag, Text } from '@chakra-ui/react';
 import { useMe } from '../../api';
+import _ from 'lodash';
 
 export const ViewAccount = () => {
   const me = useMe();
@@ -12,19 +13,21 @@ export const ViewAccount = () => {
       <FormLabel as="p">Global role</FormLabel>
       <Text>{user.role?.displayName}</Text>
       <FormLabel as="p">Privileges</FormLabel>
-      <SimpleGrid columns={2}>
-        {user?.role.privileges?.map((p) => (
-          <Tag
-            key={p.code}
-            colorScheme="orange"
-            display="flex"
-            w="max-content"
-            mb={2}
-          >
-            {p.code}
-          </Tag>
-        ))}
-      </SimpleGrid>
+      <Grid gap={2} templateColumns="repeat(4, auto)" w="fit-content">
+        {_.orderBy(user?.role.privileges ?? [], [(p) => p.code], ['asc']).map(
+          (p) => (
+            <Tag
+              key={p.code}
+              colorScheme="orange"
+              display="flex"
+              w="max-content"
+              whiteSpace={'nowrap'}
+            >
+              {p.code}
+            </Tag>
+          )
+        )}
+      </Grid>
     </>
   ) : null;
 };

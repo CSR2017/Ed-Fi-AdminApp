@@ -3,7 +3,7 @@ import { ButtonGroup, chakra } from '@chakra-ui/react';
 export const ActionGroup = (props: Parameters<typeof ButtonGroup>['0']) => (
   <ButtonGroup
     size="action-bar"
-    variant="outline"
+    variant="solid"
     colorScheme="blue"
     display="flex"
     justifyContent="flex-end"

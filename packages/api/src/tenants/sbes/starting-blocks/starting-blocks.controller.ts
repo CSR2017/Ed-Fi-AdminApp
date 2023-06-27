@@ -1,11 +1,14 @@
 import {
   Ids,
   PostApplicationDto,
+  PostApplicationForm,
   PostClaimsetDto,
   PostVendorDto,
   PutApplicationDto,
+  PutApplicationForm,
   PutClaimsetDto,
   PutVendorDto,
+  createEdorgCompositeNaturalKey,
   toApplicationYopassResponseDto,
   toGetApplicationDto,
   toGetClaimsetDto,
@@ -13,6 +16,7 @@ import {
   toPostApplicationResponseDto,
 } from '@edanalytics/models';
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -29,14 +33,22 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { Authorize } from '../../../auth/authorization';
 import { InjectFilter } from '../../../auth/helpers/inject-filter';
-import { filterId } from '../../../auth/helpers/where-ids';
+import { checkId } from '../../../auth/helpers/where-ids';
 import { postYopassSecret, throwNotFound } from '../../../utils';
 import { StartingBlocksService } from './starting-blocks.service';
+import { ValidationError } from 'class-validator';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Edorg } from '@edanalytics/models-server';
+import { Repository } from 'typeorm';
 
 @ApiTags('Ed-Fi Resources')
 @Controller()
 export class StartingBlocksController {
-  constructor(private readonly sbService: StartingBlocksService) {}
+  constructor(
+    private readonly sbService: StartingBlocksService,
+    @InjectRepository(Edorg) private readonly edorgRepository: Repository<Edorg>
+  ) {}
 
   @Get('vendors')
   @Authorize({
@@ -53,7 +65,7 @@ export class StartingBlocksController {
     @InjectFilter('tenant.sbe.vendor:read') validIds: Ids
   ) {
     const allVendors = await this.sbService.getVendors(sbeId);
-    return toGetVendorDto(allVendors.filter((v) => filterId(v.id, validIds)));
+    return toGetVendorDto(allVendors.filter((v) => checkId(v.id, validIds)));
   }
 
   @Get('vendors/:vendorId')
@@ -93,9 +105,9 @@ export class StartingBlocksController {
     @Body() vendor: PutVendorDto
   ) {
     return toGetVendorDto(
-      await this.sbService.putVendor(sbeId, vendorId, vendor).catch((err) => {
-        throw new NotFoundException();
-      })
+      await this.sbService
+        .putVendor(sbeId, vendorId, vendor)
+        .catch(throwNotFound)
     );
   }
 
@@ -120,7 +132,7 @@ export class StartingBlocksController {
   @Authorize({
     privilege: 'tenant.sbe.vendor:delete',
     subject: {
-      id: 'odsId',
+      id: 'vendorId',
       sbeId: 'sbeId',
       tenantId: 'tenantId',
     },
@@ -130,9 +142,7 @@ export class StartingBlocksController {
     @Param('tenantId', new ParseIntPipe()) tenantId: number,
     @Param('vendorId', new ParseIntPipe()) vendorId: number
   ) {
-    return this.sbService.deleteVendor(sbeId, vendorId).catch((err) => {
-      throw new NotFoundException();
-    });
+    return this.sbService.deleteVendor(sbeId, vendorId).catch(throwNotFound);
   }
 
   @Get('vendors/:vendorId/applications')
@@ -157,7 +167,13 @@ export class StartingBlocksController {
     );
     return toGetApplicationDto(
       allApplications.filter((a) =>
-        filterId(a.educationOrganizationId, validIds)
+        checkId(
+          createEdorgCompositeNaturalKey({
+            educationOrganizationId: a.educationOrganizationId,
+            odsDbName: 'EdFi_Ods_' + a.odsInstanceName,
+          }),
+          validIds
+        )
       )
     );
   }
@@ -180,7 +196,13 @@ export class StartingBlocksController {
     const allApplications = await this.sbService.getApplications(sbeId);
     return toGetApplicationDto(
       allApplications.filter((a) =>
-        filterId(String(a.educationOrganizationId), validIds)
+        checkId(
+          createEdorgCompositeNaturalKey({
+            educationOrganizationId: a.educationOrganizationId,
+            odsDbName: 'EdFi_Ods_' + a.odsInstanceName,
+          }),
+          validIds
+        )
       )
     );
   }
@@ -204,10 +226,18 @@ export class StartingBlocksController {
     const application = await this.sbService
       .getApplication(sbeId, applicationId)
       .catch(throwNotFound);
-    if (filterId(String(application.educationOrganizationId), validIds)) {
+    if (
+      checkId(
+        createEdorgCompositeNaturalKey({
+          educationOrganizationId: application.educationOrganizationId,
+          odsDbName: 'EdFi_Ods_' + application.odsInstanceName,
+        }),
+        validIds
+      )
+    ) {
       return toGetApplicationDto(application);
     } else {
-      throwNotFound();
+      throw new NotFoundException();
     }
   }
 
@@ -224,20 +254,34 @@ export class StartingBlocksController {
     @Param('sbeId', new ParseIntPipe()) sbeId: number,
     @Param('tenantId', new ParseIntPipe()) tenantId: number,
     @Param('applicationId', new ParseIntPipe()) applicationId: number,
-    @Body() application: PutApplicationDto,
-    @InjectFilter('tenant.sbe.edorg.application:read')
+    @Body() application: PutApplicationForm,
+    @InjectFilter('tenant.sbe.edorg.application:update')
     validIds: Ids
   ) {
+    const dto = plainToInstance(PutApplicationDto, {
+      ...instanceToPlain(application),
+      educationOrganizationIds: [application.educationOrganizationId],
+    });
+    const edorg = await this.edorgRepository.findOneByOrFail({
+      educationOrganizationId: application.educationOrganizationId,
+    });
     if (
-      application.educationOrganizationIds.every((id) =>
-        filterId(String(id), validIds)
+      checkId(
+        createEdorgCompositeNaturalKey({
+          educationOrganizationId: application.educationOrganizationId,
+          odsDbName: edorg.odsDbName,
+        }),
+        validIds
       )
     ) {
       return toGetApplicationDto(
-        await this.sbService.putApplication(sbeId, applicationId, application)
+        await this.sbService.putApplication(sbeId, applicationId, dto)
       );
     } else {
-      throw new HttpException('Unauthorized', 403);
+      const err = new ValidationError();
+      err.property = 'educationOrganizationId';
+      err.value = 'Invalid education organization ID';
+      throw new BadRequestException([err]);
     }
   }
 
@@ -254,20 +298,41 @@ export class StartingBlocksController {
     @Param('sbeId', new ParseIntPipe()) sbeId: number,
     @Param('tenantId', new ParseIntPipe()) tenantId: number,
     @Query('returnRaw') returnRaw: boolean | undefined,
-    @Body() application: PostApplicationDto
+    @Body() application: PostApplicationForm,
+    @InjectFilter('tenant.sbe.edorg.application:create')
+    validIds: Ids
   ) {
-    const adminApiResponse = await this.sbService.postApplication(
-      sbeId,
-      application
-    );
-    if (returnRaw) {
-      return toPostApplicationResponseDto(adminApiResponse);
+    const dto = plainToInstance(PostApplicationDto, {
+      ...instanceToPlain(application),
+      educationOrganizationIds: [application.educationOrganizationId],
+    });
+    const edorg = await this.edorgRepository.findOneByOrFail({
+      educationOrganizationId: application.educationOrganizationId,
+    });
+    if (
+      checkId(
+        createEdorgCompositeNaturalKey({
+          educationOrganizationId: application.educationOrganizationId,
+          odsDbName: edorg.odsDbName,
+        }),
+        validIds
+      )
+    ) {
+      const adminApiResponse = await this.sbService.postApplication(sbeId, dto);
+      if (returnRaw) {
+        return toPostApplicationResponseDto(adminApiResponse);
+      } else {
+        const yopass = await postYopassSecret(adminApiResponse);
+        return toApplicationYopassResponseDto({
+          link: yopass.link,
+          applicationId: adminApiResponse.applicationId,
+        });
+      }
     } else {
-      const yopass = await postYopassSecret(adminApiResponse);
-      return toApplicationYopassResponseDto({
-        link: yopass.link,
-        applicationId: adminApiResponse.applicationId,
-      });
+      const err = new ValidationError();
+      err.property = 'educationOrganizationId';
+      err.value = 'Invalid education organization ID';
+      throw new BadRequestException([err]);
     }
   }
 
@@ -283,13 +348,29 @@ export class StartingBlocksController {
   async deleteApplication(
     @Param('sbeId', new ParseIntPipe()) sbeId: number,
     @Param('tenantId', new ParseIntPipe()) tenantId: number,
-    @Param('applicationId', new ParseIntPipe()) applicationId: number
+    @Param('applicationId', new ParseIntPipe()) applicationId: number,
+    @InjectFilter('tenant.sbe.edorg.application:delete')
+    validIds: Ids
   ) {
-    return this.sbService
-      .deleteApplication(sbeId, applicationId)
-      .catch((err) => {
-        throw new NotFoundException();
-      });
+    const application = await this.sbService.getApplication(
+      sbeId,
+      applicationId
+    );
+    if (
+      checkId(
+        createEdorgCompositeNaturalKey({
+          educationOrganizationId: application.educationOrganizationId,
+          odsDbName: 'EdFi_Ods_' + application.odsInstanceName,
+        }),
+        validIds
+      )
+    ) {
+      return this.sbService
+        .deleteApplication(sbeId, applicationId)
+        .catch(throwNotFound);
+    } else {
+      throw new NotFoundException();
+    }
   }
 
   @Put('applications/:applicationId/reset-credential')
@@ -305,14 +386,22 @@ export class StartingBlocksController {
     @Param('sbeId', new ParseIntPipe()) sbeId: number,
     @Param('tenantId', new ParseIntPipe()) tenantId: number,
     @Param('applicationId', new ParseIntPipe()) applicationId: number,
-    @InjectFilter('tenant.sbe.edorg.application:read')
+    @InjectFilter('tenant.sbe.edorg.application:reset-credentials')
     validIds: Ids
   ) {
     const application = await this.sbService.getApplication(
       sbeId,
       applicationId
     );
-    if (filterId(String(application.educationOrganizationId), validIds)) {
+    if (
+      checkId(
+        createEdorgCompositeNaturalKey({
+          educationOrganizationId: application.educationOrganizationId,
+          odsDbName: 'EdFi_Ods_' + application.odsInstanceName,
+        }),
+        validIds
+      )
+    ) {
       const adminApiResponse = await this.sbService.resetApplicationCredentials(
         sbeId,
         applicationId
@@ -344,7 +433,7 @@ export class StartingBlocksController {
   ) {
     const allClaimsets = await this.sbService.getClaimsets(sbeId);
     return toGetClaimsetDto(
-      allClaimsets.filter((c) => filterId(c.id, validIds))
+      allClaimsets.filter((c) => checkId(c.id, validIds))
     );
   }
 

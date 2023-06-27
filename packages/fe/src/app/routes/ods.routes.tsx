@@ -36,8 +36,6 @@ const OdsBreadcrumb = () => {
 export const odsRoute = new Route({
   getParentRoute: () => odssRoute,
   path: '$odsId',
-  validateSearch: (search): { edit?: boolean } =>
-    typeof search.edit === 'boolean' ? { edit: search.edit } : {},
   getContext: ({ params }) => {
     return {
       breadcrumb: () => ({ title: OdsBreadcrumb, params }),

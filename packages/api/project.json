@@ -15,13 +15,13 @@
       }
     },
     "build-migration-config": {
-      "executor": "@nrwl/webpack:webpack",
+      "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
       "options": {
         "target": "node",
         "compiler": "tsc",
         "outputPath": "dist/packages/migration",
-        "main": "packages/api/src/database/typeorm.config.ts",
+        "main": "packages/api/src/database/migrations.datasource.ts",
         "tsConfig": "packages/api/tsconfig.app.json",
         "webpackConfig": "packages/api/webpack.config.js"
       }
@@ -49,7 +49,7 @@
       "dependsOn": ["build-migration-config"]
     },
     "build": {
-      "executor": "@nrwl/webpack:webpack",
+      "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
@@ -76,15 +76,15 @@
         "production": {
           "fileReplacements": [
             {
-              "replace": "packages/api/src/environments/environment.local.ts",
-              "with": "packages/api/src/environments/environment.prod.ts"
+              "replace": "packages/api/src/modes/dev.ts",
+              "with": "packages/api/src/modes/prod.ts"
             }
           ]
         }
       }
     },
     "serve": {
-      "executor": "@nrwl/js:node",
+      "executor": "@nx/js:node",
       "defaultConfiguration": "development",
       "options": {
         "buildTarget": "api:build"
@@ -99,10 +99,24 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["packages/api/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/api/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        }
       }
     }
   },

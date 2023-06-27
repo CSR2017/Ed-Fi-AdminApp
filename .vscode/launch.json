@@ -31,11 +31,29 @@
       "console": "integratedTerminal"
     },
     {
+      "name": "ts-node:api",
+      "type": "node",
+      "request": "launch",
+      "args": ["${relativeFile}"],
+      "runtimeArgs": [
+        "-r",
+        "ts-node/register",
+        "-r",
+        "tsconfig-paths/register"
+      ],
+      "env": {
+        "TS_NODE_PROJECT": "packages/api/tsconfig.app.json"
+      },
+      "cwd": "${workspaceRoot}",
+      "protocol": "inspector",
+      "console": "integratedTerminal"
+    },
+    {
       "type": "msedge",
       "request": "launch",
       "name": "Launch client",
       "url": "http://localhost:4200",
-      "webRoot": "${workspaceFolder}/packages/fe"
+      "webRoot": "${workspaceFolder}/packages/fe/"
     }
   ]
 }

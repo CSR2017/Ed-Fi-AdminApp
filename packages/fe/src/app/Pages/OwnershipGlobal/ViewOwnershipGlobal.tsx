@@ -16,8 +16,6 @@ export const ViewOwnershipGlobal = () => {
     <>
       <FormLabel as="p">Tenant</FormLabel>
       <Text>{getRelationDisplayName(ownership.tenantId, tenants)}</Text>
-      <FormLabel as="p">Role</FormLabel>
-      <Text>{getRelationDisplayName(ownership.roleId, roles)}</Text>
       <FormLabel as="p">Resource</FormLabel>
       <Text>
         {ownership.edorg
@@ -28,6 +26,8 @@ export const ViewOwnershipGlobal = () => {
           ? ownership.sbe.displayName
           : '-'}
       </Text>
+      <FormLabel as="p">Role</FormLabel>
+      <Text>{getRelationDisplayName(ownership.roleId, roles)}</Text>
     </>
   ) : null;
 };

@@ -1,22 +1,17 @@
-import { defineAbility, subject } from '@casl/ability';
+import {
+  AuthorizationCache,
+  ITenantCache,
+  isGlobalPrivilege,
+} from '@edanalytics/models';
 import {
   CanActivate,
   ExecutionContext,
   Inject,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthService } from '../auth.service';
-import { AUTHORIZE_KEY, AuthorizeMetadata } from './authorize.decorator';
 import { IS_PUBLIC_KEY } from './public.decorator';
-import {
-  ITenantCache,
-  isSbePrivilege,
-  Ids,
-  AuthorizationCache,
-  isGlobalPrivilege,
-} from '@edanalytics/models';
 
 @Injectable()
 export class AuthCacheGuard implements CanActivate {
@@ -48,19 +43,21 @@ export class AuthCacheGuard implements CanActivate {
       authorizationCache[p] = true;
     });
 
-    let tenantCache: ITenantCache = {};
+    let userTenantCache: ITenantCache = {};
     if (typeof tenantIdStr === 'string') {
       const tenantId = Number(tenantIdStr);
-      tenantCache = await this.authService.buildTenantOwnershipCache(tenantId);
-      Object.keys(tenantCache).forEach((k: keyof ITenantCache) => {
+      userTenantCache = await this.authService.buildTenantOwnershipCache(
+        tenantId
+      );
+      Object.keys(userTenantCache).forEach((k: keyof ITenantCache) => {
         if (userPrivileges.has(k)) {
-          authorizationCache[k] = tenantCache[k] as any;
+          authorizationCache[k] = userTenantCache[k] as any;
         } else {
-          delete tenantCache[k];
+          delete userTenantCache[k];
         }
       });
     }
-    request['tenantCache'] = tenantCache;
+    request['userTenantCache'] = userTenantCache;
     request['authorizationCache'] = authorizationCache;
     request['userPrivileges'] = userPrivileges;
 

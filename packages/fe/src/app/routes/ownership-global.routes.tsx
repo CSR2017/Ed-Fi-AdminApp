@@ -46,6 +46,16 @@ export const ownershipGlobalRoute = new Route({
 export const ownershipGlobalCreateRoute = new Route({
   getParentRoute: () => ownershipsGlobalRoute,
   path: 'create',
+  validateSearch: (
+    search
+  ): Partial<{
+    type: 'edorg' | 'ods' | 'sbe';
+    sbeId: number;
+    odsId: number;
+    edorgId: number;
+    tenantId: number;
+    roleId: number;
+  }> => search,
   getContext: ({ params }) => {
     return {
       breadcrumb: () => ({ title: () => 'Create', params }),

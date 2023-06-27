@@ -1,19 +1,15 @@
 import {
-  BadRequestException,
   Controller,
   Get,
-  InternalServerErrorException,
+  Next,
   Param,
-  ParseIntPipe,
   Post,
   Query,
-  Redirect,
   Request,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-
 import {
   AuthorizationCache,
   GetSessionDataDto,
@@ -24,54 +20,90 @@ import {
   toGetSessionDataDto,
   toGetTenantDto,
 } from '@edanalytics/models';
-import { LocalAuthGuard } from './login/local-auth.guard';
-import { OidcAuthGuard } from './login/oidc-auth.guard';
-import { Public } from './authorization/public.decorator';
-import { ApiTags } from '@nestjs/swagger';
-import { environment } from '../environments/environment.local';
-import { ApplauncherAuthGuard } from './login/applauncher-auth.guard';
-import { ReqUser } from './helpers/user.decorator';
-import { Authorize } from './authorization';
-import { subject } from '@casl/ability';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Tenant } from '@edanalytics/models-server';
+import { ApiTags } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
+import config from 'config';
+import passport from 'passport';
 import { Repository } from 'typeorm';
-import { UserPrivileges } from './helpers/inject-user-privileges';
+import { Authorize } from './authorization';
+import { Public } from './authorization/public.decorator';
 import { AuthCache } from './helpers/inject-auth-cache';
+import { UserPrivileges } from './helpers/inject-user-privileges';
+import { ReqUser } from './helpers/user.decorator';
+import { IdpService } from './idp.service';
+import { LocalAuthGuard } from './login/local-auth.guard';
+import { randomUUID } from 'crypto';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
     @InjectRepository(Tenant)
-    private readonly tenantsRepository: Repository<Tenant>
+    private readonly tenantsRepository: Repository<Tenant>,
+    private readonly idpService: IdpService
   ) {}
+
   @Public()
-  @Get('/applauncher/login')
-  @Redirect(environment.APPLAUNCHER_LOGIN_URL)
-  applauncherLogin() {
-    // let redirect decorator handle it
+  @Get('/applauncher/:appLauncherId/login')
+  async applauncherLogin(
+    @Param('appLauncherId') appLauncherId: number,
+    @Res() res: Response
+  ) {
+    const alConfig = await this.idpService.getAppLauncherConnection(
+      appLauncherId
+    );
+    res.redirect(alConfig.url);
   }
 
-  @UseGuards(ApplauncherAuthGuard)
   @Public()
-  @Get('/applauncher/callback/:authResult')
-  applauncherLoginCallback(@Res() res: Response, @Request() req) {
-    res.redirect(`${environment.FE_URL}${req.query?.state || ''}`); // currently applauncher doesn't support redirect `state` but maybe it will eventually.
+  @Get('/applauncher/:appLauncherId/callback/:authResult')
+  applauncherLoginCallback(
+    @Param('appLauncherId') appLauncherId: number,
+    @Res() res: Response,
+    @Request() req,
+    @Next() next
+  ) {
+    passport.authenticate(`al-${appLauncherId}`, {
+      successRedirect: `${config.FE_URL}`,
+      failWithError: true,
+    })(req, res, next);
   }
 
-  @UseGuards(OidcAuthGuard)
   @Public()
-  @Get('/oidc/login')
-  oidcLogin() {
-    // let passport trigger redirect
+  @Get('/oidc/:oidcId/login')
+  oidcLogin(
+    @Param('oidcId') oidcId: number,
+    @Res() res: Response,
+    @Request() req,
+    @Next() next
+  ) {
+    passport.authenticate(`oidc-${oidcId}`, {
+      state: JSON.stringify({
+        redirect: req.query?.redirect ?? '/',
+        random: randomUUID(),
+      }),
+    })(req, res, next);
   }
 
-  @UseGuards(OidcAuthGuard)
   @Public()
-  @Get('/oidc/callback')
-  oidcLoginCallback(@Res() res: Response, @Request() req) {
-    res.redirect(`${environment.FE_URL}${req.query?.state || ''}`);
+  @Get('/oidc/:oidcId/callback')
+  oidcLoginCallback(
+    @Param('oidcId') oidcId: number,
+    @Res() res: Response,
+    @Request() req,
+    @Next() next
+  ) {
+    let redirect = '/';
+    try {
+      redirect = JSON.parse(req.query.state).redirect;
+    } catch (error) {
+      // no redirect
+    }
+    passport.authenticate(`oidc-${oidcId}`, {
+      successRedirect: `${config.FE_URL}${redirect}`,
+      failWithError: true,
+    })(req, res, next);
   }
 
   @UseGuards(LocalAuthGuard)
@@ -146,7 +178,6 @@ export class AuthController {
   async logout(@Request() req /* @Res() res: Response */) {
     return req.session.destroy(async () => {
       return undefined;
-      // res.redirect(`${environment.FE_URL}/public`);
     });
   }
 }

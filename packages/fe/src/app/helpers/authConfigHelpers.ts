@@ -28,6 +28,14 @@ export const globalOwnershipAuthConfig = (
     id: '__filtered__',
   },
 });
+export const globalTenantAuthConfig = (
+  privilege: BasePrivilege
+): AuthorizeConfig | undefined => ({
+  privilege,
+  subject: {
+    id: '__filtered__',
+  },
+});
 
 export const utmAuthConfig = (
   tenantId: number | undefined,
@@ -58,7 +66,7 @@ export const ownershipAuthConfig = (
       };
 
 export const applicationAuthConfig = (
-  edorgId: number | undefined,
+  edorgId: string | undefined,
   sbeId: number | undefined,
   tenantId: number | undefined,
   privilege: TenantSbePrivilege
@@ -124,8 +132,8 @@ export const odsAuthConfig = (
       };
 
 export const sbeAuthConfig = (
-  sbeId: number | '__filtered__' | undefined,
-  tenantId: number | undefined,
+  sbeId: string | number | '__filtered__' | undefined,
+  tenantId: string | number | undefined,
   privilege: TenantBasePrivilege
 ): AuthorizeConfig | undefined =>
   sbeId === undefined || tenantId === undefined
@@ -133,8 +141,8 @@ export const sbeAuthConfig = (
     : {
         privilege,
         subject: {
-          tenantId: tenantId,
-          id: sbeId,
+          tenantId: Number(tenantId),
+          id: sbeId === '__filtered__' ? sbeId : Number(sbeId),
         },
       };
 

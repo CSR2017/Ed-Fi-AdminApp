@@ -1,6 +1,5 @@
 import {
   ApplicationYopassResponseDto,
-  BasePrivilege,
   GetApplicationDto,
   GetClaimsetDto,
   GetEdorgDto,
@@ -13,9 +12,7 @@ import {
   GetUserDto,
   GetUserTenantMembershipDto,
   GetVendorDto,
-  Ids,
-  PostApplicationDto,
-  PostApplicationResponseDto,
+  PostApplicationForm,
   PostClaimsetDto,
   PostEdorgDto,
   PostOdsDto,
@@ -28,12 +25,14 @@ import {
   PostVendorDto,
   PrivilegeCode,
   PutApplicationDto,
+  PutApplicationForm,
   PutClaimsetDto,
   PutEdorgDto,
   PutOdsDto,
   PutOwnershipDto,
-  PutRoleDto,
-  PutSbeDto,
+  PutSbeAdminApi,
+  PutSbeAdminApiRegister,
+  PutSbeMeta,
   PutTenantDto,
   PutUserDto,
   PutUserTenantMembershipDto,
@@ -41,8 +40,6 @@ import {
   SbeCheckConnectionDto,
   SbeRefreshResourcesDto,
   SpecificIds,
-  TenantBasePrivilege,
-  TenantSbePrivilege,
 } from '@edanalytics/models';
 import {
   QueryKey,
@@ -53,11 +50,11 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { AxiosResponse } from 'axios';
 import { ClassConstructor } from 'class-transformer';
 import kebabCase from 'kebab-case';
 import path from 'path-browserify';
 import { apiClient, methods } from '../methods';
-import { AxiosResponse } from 'axios';
 
 const baseUrl = '';
 
@@ -94,7 +91,7 @@ export const tenantUrl = (url: string, tenantId?: number | string) =>
     ? path.join(baseUrl, url)
     : path.join(baseUrl, 'tenants', String(tenantId), url);
 
-enum TenantOptions {
+export enum TenantOptions {
   Never,
   Optional,
   Required,
@@ -374,7 +371,7 @@ export const privilegeQueries = makeQueries({
 export const roleQueries = makeQueries({
   name: 'Role',
   getDto: GetRoleDto,
-  putDto: PutRoleDto,
+  putDto: class Nothing {},
   postDto: PostRoleDto,
   includeSbe: false,
   includeTenant: TenantOptions.Optional,
@@ -383,7 +380,7 @@ export const roleQueries = makeQueries({
 export const sbeQueries = makeQueries({
   name: 'Sbe',
   getDto: GetSbeDto,
-  putDto: PutSbeDto,
+  putDto: class Nothing {},
   postDto: PostSbeDto,
   includeSbe: false,
   includeTenant: TenantOptions.Optional,
@@ -428,8 +425,8 @@ export const vendorQueries = makeQueries({
 export const applicationQueries = makeQueries({
   name: 'Application',
   getDto: GetApplicationDto,
-  putDto: PutApplicationDto,
-  postDto: PostApplicationDto,
+  putDto: PutApplicationForm,
+  postDto: PostApplicationForm,
   includeSbe: true,
   includeTenant: TenantOptions.Required,
 });
@@ -443,6 +440,60 @@ export const claimsetQueries = makeQueries({
   includeTenant: TenantOptions.Required,
 });
 
+export const useSbeEditSbMeta = (callback?: () => void) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (sbe: PutSbeMeta) =>
+      methods.put(
+        `${baseUrl}/sbes/${sbe.id}/sbe-meta`,
+        PutSbeMeta,
+        GetSbeDto,
+        sbe
+      ),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ['sbes', 'detail', String(data.id)],
+      });
+      callback && callback();
+    },
+  });
+};
+export const useSbeEditAdminApi = (callback?: () => void) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (sbe: PutSbeAdminApi) =>
+      methods.put(
+        `${baseUrl}/sbes/${sbe.id}/admin-api`,
+        PutSbeAdminApi,
+        GetSbeDto,
+        sbe
+      ),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ['sbes', 'detail', String(data.id)],
+      });
+      callback && callback();
+    },
+  });
+};
+export const useSbeRegisterAdminApi = (callback?: () => void) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (sbe: PutSbeAdminApi) =>
+      methods.put(
+        `${baseUrl}/sbes/${sbe.id}/register-admin-api`,
+        PutSbeAdminApiRegister,
+        GetSbeDto,
+        sbe
+      ),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ['sbes', 'detail', String(data.id)],
+      });
+      callback && callback();
+    },
+  });
+};
 export const useSbeCheckConnection = (callback?: () => void) => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -488,10 +539,10 @@ export const useApplicationPost = (args: {
 }) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (entity: PostApplicationDto) =>
+    mutationFn: (entity: PostApplicationForm) =>
       methods.post(
         tenantUrl(`sbes/${args.sbeId}/applications`, args.tenantId),
-        PostApplicationDto,
+        PostApplicationForm,
         ApplicationYopassResponseDto,
         entity
       ),
@@ -579,7 +630,7 @@ export function usePrivilegeCache<
 >(config: ConfigType[]) {
   return useQueries({
     queries: config.map((c) => ({
-      staleTime: 20 * 1000,
+      staleTime: 15 * 1000,
       queryKey: ['authorizations', c.tenantId, c.sbeId, c.privilege],
       queryFn: () =>
         apiClient

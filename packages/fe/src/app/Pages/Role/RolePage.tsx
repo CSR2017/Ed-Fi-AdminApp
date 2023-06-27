@@ -1,5 +1,5 @@
-import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ActionGroup, ConfirmAction } from '@edanalytics/common-ui';
+import { Button } from '@chakra-ui/react';
+import { ConfirmAction } from '@edanalytics/common-ui';
 import { useNavigate, useParams, useSearch } from '@tanstack/router';
 import { ReactNode } from 'react';
 import { BiEdit, BiTrash } from 'react-icons/bi';
@@ -10,9 +10,12 @@ import {
   useNavToParent,
 } from '../../helpers';
 import { roleIndexRoute } from '../../routes';
+import { PageTemplate } from '../PageTemplate';
 import { EditRole } from './EditRole';
 import { ViewRole } from './ViewRole';
-import { PageTemplate } from '../PageTemplate';
+import { useRoleActions } from './useRoleActions';
+import { ActionBarActions } from '../../helpers/ActionBarActions';
+import _ from 'lodash';
 
 export const RolePage = (): ReactNode => {
   const navigate = useNavigate();
@@ -30,55 +33,13 @@ export const RolePage = (): ReactNode => {
     tenantId: params.asId,
   }).data;
   const { edit } = useSearch({ from: roleIndexRoute.id });
+  const actions = useRoleActions(role);
 
   return (
     <PageTemplate
       constrainWidth
       title={role?.displayName || 'Role'}
-      actions={
-        role ? (
-          <>
-            <AuthorizeComponent
-              config={tenantRoleAuthConfig(
-                role.id,
-                role.tenantId,
-                'tenant.role:update'
-              )}
-            >
-              <Button
-                isDisabled={edit}
-                leftIcon={<BiEdit />}
-                onClick={() => {
-                  navigate({
-                    search: { edit: true },
-                  });
-                }}
-              >
-                Edit
-              </Button>
-            </AuthorizeComponent>
-            <AuthorizeComponent
-              config={tenantRoleAuthConfig(
-                role.id,
-                role.tenantId,
-                'tenant.role:delete'
-              )}
-            >
-              <ConfirmAction
-                action={() => deleteRole.mutate(role.id)}
-                headerText={`Delete ${role.displayName}?`}
-                bodyText="You won't be able to get it back"
-              >
-                {(props) => (
-                  <Button {...props} leftIcon={<BiTrash />}>
-                    Delete
-                  </Button>
-                )}
-              </ConfirmAction>
-            </AuthorizeComponent>
-          </>
-        ) : null
-      }
+      actions={<ActionBarActions actions={_.omit(actions, 'View')} />}
     >
       {role ? edit ? <EditRole /> : <ViewRole /> : null}
     </PageTemplate>

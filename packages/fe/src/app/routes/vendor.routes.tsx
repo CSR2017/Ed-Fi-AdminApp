@@ -55,7 +55,6 @@ export const vendorIndexRoute = new Route({
 export const VendorLink = (props: {
   id: number | undefined;
   query: UseQueryResult<Record<string | number, GetVendorDto>, unknown>;
-  sbeId: string;
 }) => {
   const vendor = getEntityFromQuery(props.id, props.query);
   return vendor ? (
@@ -66,7 +65,6 @@ export const VendorLink = (props: {
         params={(previous: any) => ({
           ...previous,
           vendorId: String(vendor.vendorId),
-          sbeId: props.sbeId,
         })}
       >
         {getRelationDisplayName(vendor.id, props.query)}

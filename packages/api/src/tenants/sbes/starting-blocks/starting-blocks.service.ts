@@ -9,14 +9,19 @@ import {
   PutVendorDto,
 } from '@edanalytics/models';
 import { Sbe } from '@edanalytics/models-server';
-import { Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { aws4Interceptor } from 'aws4-axios';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import ClientOAuth2 from 'client-oauth2';
 import NodeCache from 'node-cache';
 import { throwNotFound } from '../../../utils';
 import { SbesService } from '../sbes.service';
 import { IStartingBlocksService } from './starting-blocks.service.interface';
+import crypto from 'crypto';
 /* eslint @typescript-eslint/no-explicit-any: 0 */ // --> OFF
 
 @Injectable()
@@ -28,28 +33,69 @@ export class StartingBlocksService implements IStartingBlocksService {
   }
 
   async logIntoAdminApi(sbe: Sbe) {
+    const url = `${sbe.configPublic.adminApiUrl.replace(
+      /\/$/,
+      ''
+    )}/connect/token`;
+    try {
+      new URL(url);
+    } catch (InvalidUrl) {
+      console.log(InvalidUrl);
+      throw new Error('Invalid URL');
+    }
     const AdminApiAuth = new ClientOAuth2({
-      clientId: sbe.configPrivate.adminApiKey,
+      clientId: sbe.configPublic.adminApiKey,
       clientSecret: sbe.configPrivate.adminApiSecret,
-      accessTokenUri: `${sbe.configPrivate.adminApiUrl.replace(
+      accessTokenUri: `${sbe.configPublic.adminApiUrl.replace(
         /\/$/,
         ''
       )}/connect/token`,
       scopes: ['edfi_admin_api/full_access'],
     });
 
-    await AdminApiAuth.credentials.getToken().then((v) => {
-      this.adminApiTokens.set(
-        sbe.id,
-        v.accessToken,
-        Number(v.data.expires_in) - 60
-      );
-    });
+    await AdminApiAuth.credentials
+      .getToken()
+      .then((v) => {
+        this.adminApiTokens.set(
+          sbe.id,
+          v.accessToken,
+          Number(v.data.expires_in) - 60
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new Error(err.message);
+      });
+  }
+
+  async selfRegisterAdminApi(url: string) {
+    const ClientId = crypto.randomBytes(12).toString('base64');
+    const ClientSecret = crypto.randomBytes(36).toString('base64');
+    const DisplayName = `SBAA ${Number(new Date())}ms`;
+    const config = {
+      ClientId,
+      ClientSecret,
+      DisplayName,
+    };
+
+    await axios
+      .post(`${url.replace(/\/$/, '')}/connect/register`, config, {
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      })
+      .catch((err: AxiosError<any>) => {
+        if (err.response?.data?.errors) {
+          console.warn(JSON.stringify(err.response.data.errors));
+        } else {
+          console.warn(err);
+        }
+        throw new InternalServerErrorException('Self-registration failed.');
+      });
+    return config;
   }
 
   private getAdminApiClient(sbe: Sbe) {
     const client = axios.create({
-      baseURL: sbe.configPrivate.adminApiUrl,
+      baseURL: sbe.configPublic.adminApiUrl,
     });
     client.interceptors.response.use((value) => {
       return value.data.result;
@@ -67,7 +113,7 @@ export class StartingBlocksService implements IStartingBlocksService {
   }
 
   private getSbeLambdaClient(sbe: Sbe) {
-    const { configPrivate } = sbe;
+    const { configPrivate, configPublic } = sbe;
     const client = axios.create();
     client.interceptors.request.use(
       aws4Interceptor({
@@ -76,10 +122,13 @@ export class StartingBlocksService implements IStartingBlocksService {
           region: 'us-east-1',
           service: 'lambda',
         },
-        credentials: {
-          accessKeyId: configPrivate.sbeMetaKey,
-          secretAccessKey: configPrivate.sbeMetaSecret,
-        },
+        credentials:
+          configPublic.sbeMetaKey && configPrivate.sbeMetaSecret
+            ? {
+                accessKeyId: configPublic.sbeMetaKey,
+                secretAccessKey: configPrivate.sbeMetaSecret,
+              }
+            : undefined,
       })
     );
     client.interceptors.response.use((response) => {
@@ -97,6 +146,7 @@ export class StartingBlocksService implements IStartingBlocksService {
     return this.getAdminApiClient(sbe).get<any, any>(`v1/vendors/${vendorId}`);
   }
   async putVendor(sbeId: Sbe['id'], vendorId: number, vendor: PutVendorDto) {
+    vendor.vendorId = vendorId;
     const sbe = await this.sbesService.findOne(sbeId);
     return this.getAdminApiClient(sbe).put<any, any>(
       `v1/vendors/${vendorId}`,
@@ -211,8 +261,15 @@ export class StartingBlocksService implements IStartingBlocksService {
   }
   async getSbMeta(sbeId: Sbe['id']) {
     const sbe = await this.sbesService.findOne(sbeId);
-    return this.getSbeLambdaClient(sbe).get<any, any>(
-      sbe.configPrivate.sbeMetaUrl
-    );
+    return this.getSbeLambdaClient(sbe)
+      .get<any, any>(sbe.configPublic.sbeMetaUrl)
+      .catch((err) => {
+        console.log(err);
+        if (err?.response?.data?.message) {
+          throw new Error(err.response.data.message);
+        } else {
+          throw err;
+        }
+      });
   }
 }

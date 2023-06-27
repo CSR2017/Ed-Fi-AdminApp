@@ -1,15 +1,23 @@
-import { Box, Select, Text, chakra, useBoolean } from '@chakra-ui/react';
+import { Box, Text, chakra, useBoolean } from '@chakra-ui/react';
+import { GetTenantDto } from '@edanalytics/models';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, useRouter } from '@tanstack/router';
 import Cookies from 'js-cookie';
 import { Resizable } from 're-resizable';
 import { useEffect, useState } from 'react';
 import { BsPerson, BsPersonFill } from 'react-icons/bs';
 import { useMe, useMyTenants } from '../api';
+import {
+  AuthorizeComponent,
+  authorize,
+  globalTenantAuthConfig,
+  usePrivilegeCacheForConfig,
+} from '../helpers';
 import { accountRouteGlobal, asRoute } from '../routes';
 import { GlobalNav } from './GlobalNav';
 import { NavButton } from './NavButton';
 import { TenantNav } from './TenantNav';
-import { AuthorizeComponent } from '../helpers';
+import { Select } from 'chakra-react-select';
 
 export const Nav = () => {
   const params = useParams({ from: asRoute.id });
@@ -23,6 +31,16 @@ export const Nav = () => {
   const tenants = useMyTenants();
   const router = useRouter();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const tenantAuthConfig = globalTenantAuthConfig('tenant:read');
+  const tenantAuth = usePrivilegeCacheForConfig(tenantAuthConfig);
+
+  const hasGlobalTenantsRead = authorize({
+    queryClient,
+    config: tenantAuthConfig,
+  });
+  const selectedTenant =
+    tenantId === undefined ? undefined : tenants.data?.[tenantId];
 
   useEffect(() => {
     Cookies.set('defaultTenant', String(tenantId));
@@ -37,12 +55,22 @@ export const Nav = () => {
     }
   }, [tenantId, router.state.currentMatches, navigate, params.asId]);
 
+  useEffect(() => {
+    if (
+      Object.keys(tenants.data || {}).length === 1 &&
+      !hasGlobalTenantsRead &&
+      params.asId === undefined
+    ) {
+      setTenantId(Number(Object.keys(tenants.data || {})[0]));
+    }
+  }, [Object.keys(tenants.data || {}), hasGlobalTenantsRead]);
+
   const [isResizing, setIsResizing] = useBoolean(false);
 
   return (
     <Box
       py={3}
-      flex="0 0 15em"
+      flex="0 0 20em"
       overflowX="hidden"
       overflowY="auto"
       bg="rgb(248,248,248)"
@@ -58,21 +86,29 @@ export const Nav = () => {
       maxWidth="min(40em, 80%)"
       as={Resizable}
     >
-      {Object.keys(tenants.data ?? {}).length > 1 ? (
-        <Box px={3}>
+      {Object.keys(tenants.data ?? {}).length > 1 || hasGlobalTenantsRead ? (
+        <Box mb={3} px={3}>
           <Select
-            bg="white"
-            mb={3}
-            value={String(tenantId)}
-            css={
-              tenantId === undefined
-                ? { fontStyle: 'italic', color: 'gray.500' }
-                : undefined
+            value={
+              selectedTenant === undefined
+                ? {
+                    label: 'No tenant (global)',
+                    value: undefined,
+                    styles: {
+                      fontStyle: 'italic',
+                      color: 'gray.500',
+                      fontSize: 'large',
+                    },
+                  }
+                : {
+                    label: selectedTenant.displayName,
+                    value: selectedTenant.id,
+                  }
             }
-            onChange={(e) => {
-              const value = e.target.value;
+            onChange={(option) => {
+              const value = option?.value ?? undefined;
               const newTenantId =
-                value === 'undefined' ? undefined : Number(value);
+                value === undefined ? undefined : Number(value);
               if (
                 newTenantId !== undefined &&
                 router.state.currentMatches
@@ -97,22 +133,45 @@ export const Nav = () => {
                 }
               }
             }}
-          >
-            {Object.values(tenants.data ?? {})
-              .sort((a, b) => Number(a.displayName > b.displayName) - 0.5)
-              .map((t) => (
-                <chakra.option fontStyle="normal" key={t.id} value={t.id}>
-                  {t.displayName}
-                </chakra.option>
-              ))}
-            <chakra.option
-              color="gray.500"
-              fontStyle="italic"
-              value={'undefined'}
-            >
-              None
-            </chakra.option>
-          </Select>
+            options={[
+              {
+                label: 'No tenant (global)',
+                value: undefined,
+                styles: {
+                  fontStyle: 'italic',
+                  color: 'gray.500',
+                  fontSize: 'large',
+                },
+              },
+              ...Object.values(
+                tenants.data ?? ({} as Record<string, GetTenantDto>)
+              )
+                .sort((a, b) => Number(a.displayName > b.displayName) - 0.5)
+                .map((t) => ({
+                  label: t.displayName,
+                  value: t.id,
+                })),
+            ]}
+            selectedOptionStyle="check"
+            chakraStyles={{
+              option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+                return {
+                  ...styles,
+                  ...data?.styles,
+                };
+              },
+              singleValue: (styles, { data, isDisabled }) => {
+                return {
+                  ...styles,
+                  ...data?.styles,
+                };
+              },
+              dropdownIndicator: (styles) => ({
+                ...styles,
+                width: '1.5em',
+              }),
+            }}
+          />
         </Box>
       ) : null}
       <Text px={3} as="h3" color="gray.500" mb={2} fontWeight="600">

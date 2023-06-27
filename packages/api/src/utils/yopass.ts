@@ -1,9 +1,8 @@
 import { PostApplicationResponseDto } from '@edanalytics/models';
 import axios, { AxiosResponse } from 'axios';
+import config from 'config';
 import { webcrypto } from 'crypto';
-import dayjs from 'dayjs';
 import { createMessage, encrypt } from 'openpgp';
-import { environment } from '../environments/environment.local';
 
 type Response = {
   message: string;
@@ -31,7 +30,7 @@ const randomInt = (min: number, max: number): number => {
   return min + (byteArray[0] % range);
 };
 
-const backendDomain = environment.YOPASS_URL;
+const backendDomain = config.YOPASS_URL;
 
 export const postYopassSecret = async (body: PostApplicationResponseDto) => {
   const pwd = randomString();
@@ -55,7 +54,7 @@ ${body.secret}`,
   const uuid = yopassResponse.data.message;
 
   return {
-    link: [environment.FE_URL, 'secret', uuid, pwd].join('/'),
+    link: [config.FE_URL, 'secret', uuid, pwd].join('/'),
   };
 };
 

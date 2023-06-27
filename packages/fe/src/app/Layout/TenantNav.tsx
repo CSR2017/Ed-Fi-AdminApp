@@ -140,7 +140,7 @@ export const TenantNav = (props: { tenantId: string }) => {
       authorize({
         queryClient,
         config: {
-          privilege: 'tenant.user:read',
+          privilege: 'tenant.role:read',
           subject: { tenantId, id: '__filtered__' },
         },
       }),
@@ -156,7 +156,7 @@ export const TenantNav = (props: { tenantId: string }) => {
       authorize({
         queryClient,
         config: {
-          privilege: 'tenant.user:read',
+          privilege: 'tenant.ownership:read',
           subject: { tenantId, id: '__filtered__' },
         },
       }),

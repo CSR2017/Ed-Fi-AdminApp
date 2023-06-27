@@ -1,6 +1,8 @@
-import '../environments/environment.local';
+process.env['NODE_CONFIG_DIR'] = './packages/api/config';
 import { PrivilegeCode, RoleType } from '@edanalytics/models';
 import {
+  AppLauncher,
+  Oidc,
   Privilege,
   Role,
   Sbe,
@@ -15,10 +17,15 @@ import * as _ from 'lodash';
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import typeormConfig from './typeorm.config';
-import { environment } from '../environments/environment.local';
+import config from 'config';
 
-const db = new DataSource({ ...typeormConfig, synchronize: false });
-async function populate() {
+const run = async () => {
+  await config.DB_ENCRYPTION_SECRET;
+  const db = new DataSource({
+    ...typeormConfig,
+    synchronize: false,
+    url: await config.DB_CONNECTION_STRING,
+  });
   await db.initialize();
   await db.synchronize(true);
   db.transaction(async (dataSource) => {
@@ -65,6 +72,7 @@ async function populate() {
       'tenant.user-tenant-membership:delete',
       'tenant.user-tenant-membership:create',
       'tenant.sbe:read',
+      'tenant.sbe:refresh-resources',
       'tenant.sbe.vendor:read',
       'tenant.sbe.vendor:update',
       'tenant.sbe.vendor:delete',
@@ -144,11 +152,23 @@ async function populate() {
       )
     );
 
-    const realSbe = await dataSource.getRepository(Sbe).save({
-      configPrivate: environment.SAMPLE_SBE_CONFIG,
-      configPublic: { hasOdsRefresh: false },
-      envLabel: 'test-env-label',
-    });
+    if (config.SAMPLE_SBE_CONFIG) {
+      await dataSource.getRepository(Sbe).save({
+        configPrivate: config.SAMPLE_SBE_CONFIG,
+        configPublic: { hasOdsRefresh: false },
+        envLabel: 'test-env-label',
+      });
+    }
+
+    if (config.SAMPLE_OIDC_CONFIG) {
+      await dataSource.getRepository(Oidc).save(config.SAMPLE_OIDC_CONFIG);
+    }
+
+    if (config.SAMPLE_APP_LAUNCHER_CONFIG) {
+      await dataSource
+        .getRepository(AppLauncher)
+        .save(config.SAMPLE_APP_LAUNCHER_CONFIG);
+    }
 
     const upwardInheritancePrivileges = privileges.filter((p) =>
       [
@@ -178,11 +198,9 @@ async function populate() {
         type: RoleType.ResourceOwnership,
         privileges: [
           ...upwardInheritancePrivileges,
-          privilegesMap.get('tenant.sbe.vendor:read'),
           privilegesMap.get('tenant.sbe.vendor:update'),
           privilegesMap.get('tenant.sbe.vendor:create'),
           privilegesMap.get('tenant.sbe.vendor:delete'),
-          privilegesMap.get('tenant.sbe.claimset:read'),
           privilegesMap.get('tenant.sbe.claimset:update'),
           privilegesMap.get('tenant.sbe.claimset:create'),
           privilegesMap.get('tenant.sbe.claimset:delete'),
@@ -208,8 +226,6 @@ async function populate() {
           privilegesMap.get('tenant.role:read'),
           privilegesMap.get('tenant.user:read'),
           privilegesMap.get('tenant.user-tenant-membership:read'),
-          privilegesMap.get('tenant.sbe.vendor:read'),
-          privilegesMap.get('tenant.sbe.claimset:read'),
           privilegesMap.get('tenant.sbe.edorg.application:read'),
         ],
       },
@@ -221,8 +237,6 @@ async function populate() {
           privilegesMap.get('tenant.role:read'),
           privilegesMap.get('tenant.user:read'),
           privilegesMap.get('tenant.user-tenant-membership:read'),
-          privilegesMap.get('tenant.sbe.vendor:read'),
-          privilegesMap.get('tenant.sbe.claimset:read'),
           privilegesMap.get('tenant.sbe.edorg.application:read'),
           privilegesMap.get('tenant.sbe.edorg.application:update'),
           privilegesMap.get('tenant.sbe.edorg.application:create'),
@@ -249,5 +263,5 @@ async function populate() {
 
     console.log(colors.green('\nDone.'));
   });
-}
-populate();
+};
+run();

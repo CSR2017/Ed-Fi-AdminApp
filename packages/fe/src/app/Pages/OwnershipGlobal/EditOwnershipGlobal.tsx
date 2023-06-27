@@ -4,19 +4,26 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Input,
+  Text,
 } from '@chakra-ui/react';
-import { GetOwnershipDto, PutOwnershipDto } from '@edanalytics/models';
+import {
+  GetOwnershipDto,
+  PutOwnershipDto,
+  RoleType,
+} from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useNavigate, useParams } from '@tanstack/router';
 import { useForm } from 'react-hook-form';
-import { ownershipQueries } from '../../api';
+import { ownershipQueries, tenantQueries } from '../../api';
+import { getRelationDisplayName } from '../../helpers';
 import { ownershipGlobalIndexRoute, ownershipGlobalRoute } from '../../routes';
+import { SelectRole } from '../../helpers/FormPickers';
 
 const resolver = classValidatorResolver(PutOwnershipDto);
 
 export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
   const { ownership } = props;
+  const tenants = tenantQueries.useAll({});
 
   const navigate = useNavigate();
   const goToView = () => {
@@ -35,6 +42,7 @@ export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
   ownershipFormDefaults.roleId = ownership?.roleId;
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isLoading },
   } = useForm({
@@ -51,9 +59,26 @@ export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
         })
       )}
     >
-      <FormControl isInvalid={!!errors.roleId}>
+      <FormLabel as="p">Tenant</FormLabel>
+      <Text>{getRelationDisplayName(ownership.tenantId, tenants)}</Text>
+      <FormLabel as="p">Resource</FormLabel>
+      <Text>
+        {ownership.edorg
+          ? ownership.edorg.displayName
+          : ownership.ods
+          ? ownership.ods.displayName
+          : ownership.sbe
+          ? ownership.sbe.displayName
+          : '-'}
+      </Text>
+      <FormControl w="20em" isInvalid={!!errors.roleId}>
         <FormLabel>Role</FormLabel>
-        <Input {...register('roleId')} placeholder="Role" />
+        <SelectRole
+          types={[RoleType.ResourceOwnership]}
+          tenantId={undefined}
+          name={'roleId'}
+          control={control}
+        />
         <FormErrorMessage>{errors.roleId?.message}</FormErrorMessage>
       </FormControl>
       <ButtonGroup>

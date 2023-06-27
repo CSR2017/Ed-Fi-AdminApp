@@ -22,7 +22,10 @@ export class GetUserDto
   familyName: string;
 
   get fullName() {
-    return this.givenName + ' ' + this.familyName;
+    return typeof this.givenName === 'string' &&
+      typeof this.familyName === 'string'
+      ? this.givenName + ' ' + this.familyName
+      : this.username;
   }
   config?: IUserConfig;
 

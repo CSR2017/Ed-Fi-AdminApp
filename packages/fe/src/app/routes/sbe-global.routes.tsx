@@ -14,7 +14,7 @@ export const sbesGlobalRoute = new Route({
   getParentRoute: () => mainLayoutRoute,
   path: 'sbes',
   getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Sbes', params }),
+    breadcrumb: () => ({ title: () => 'Environments', params }),
   }),
 });
 
@@ -33,8 +33,10 @@ const SbeGlobalBreadcrumb = () => {
 export const sbeGlobalRoute = new Route({
   getParentRoute: () => sbesGlobalRoute,
   path: '$sbeId',
-  validateSearch: (search): { edit?: boolean } =>
-    typeof search.edit === 'boolean' ? { edit: search.edit } : {},
+  validateSearch: (search): { edit?: 'admin-api' | 'sbe-meta' } =>
+    ['admin-api', 'sbe-meta'].includes(search.edit as any)
+      ? { edit: search.edit as any }
+      : {},
   getContext: ({ params }) => {
     return {
       breadcrumb: () => ({ title: SbeGlobalBreadcrumb, params }),

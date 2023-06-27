@@ -1,115 +1,18 @@
 import { FakeMeUsing, generateFake } from '@edanalytics/utils';
 import { faker } from '@faker-js/faker';
-import { Expose } from 'class-transformer';
-import { makeSerializer } from '../utils/make-serializer';
+import { Expose, Type } from 'class-transformer';
 import {
-  IsDefined,
-  IsOptional,
-  Equals,
-  NotEquals,
-  IsEmpty,
-  IsNotEmpty,
-  IsIn,
-  IsNotIn,
-  IsBoolean,
-  IsDate,
-  IsString,
-  IsNumber,
-  IsInt,
-  IsArray,
-  IsEnum,
-  IsDivisibleBy,
-  IsPositive,
-  IsNegative,
-  Min,
-  Max,
-  MinDate,
-  MaxDate,
-  IsBooleanString,
-  IsDateString,
-  IsNumberString,
-  Contains,
-  NotContains,
-  IsAlpha,
-  IsAlphanumeric,
-  IsDecimal,
-  IsAscii,
-  IsBase32,
-  IsBase58,
-  IsBase64,
-  IsIBAN,
-  IsBIC,
-  IsByteLength,
-  IsCreditCard,
-  IsCurrency,
-  IsISO4217CurrencyCode,
-  IsEthereumAddress,
-  IsBtcAddress,
-  IsDataURI,
-  IsEmail,
-  IsFQDN,
-  IsFullWidth,
-  IsHalfWidth,
-  IsVariableWidth,
-  IsHexColor,
-  IsHSL,
-  IsRgbColor,
-  IsIdentityCard,
-  IsPassportNumber,
-  IsPostalCode,
-  IsHexadecimal,
-  IsOctal,
-  IsMACAddress,
-  IsIP,
-  IsPort,
-  IsISBN,
-  IsEAN,
-  IsISIN,
-  IsISO8601,
-  IsJSON,
-  IsJWT,
-  IsObject,
-  IsNotEmptyObject,
-  IsLowercase,
-  IsLatLong,
-  IsLatitude,
-  IsLongitude,
-  IsMobilePhone,
-  IsISO31661Alpha2,
-  IsISO31661Alpha3,
-  IsLocale,
-  IsPhoneNumber,
-  IsMongoId,
-  IsMultibyte,
-  IsSurrogatePair,
-  IsTaxId,
-  IsUrl,
-  IsMagnetURI,
-  IsUUID,
-  IsFirebasePushId,
-  IsUppercase,
-  Length,
-  MinLength,
-  MaxLength,
-  Matches,
-  IsMilitaryTime,
-  IsTimeZone,
-  IsHash,
-  IsMimeType,
-  IsSemVer,
-  IsISSN,
-  IsISRC,
-  IsRFC3339,
-  IsStrongPassword,
-  ArrayContains,
-  ArrayNotContains,
-  ArrayNotEmpty,
-  ArrayMinSize,
   ArrayMaxSize,
-  ArrayUnique,
-  IsInstance,
-  Allow,
+  ArrayMinSize,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+  ValidateIf,
 } from 'class-validator';
+import { makeSerializer } from '../utils/make-serializer';
+import { IsEdanalyticsUrl } from '../utils/is-edanalytics-url';
 
 export class PostVendorDto {
   @Expose()
@@ -150,6 +53,11 @@ export class GetVendorDto extends PostVendorDto {
 }
 export class PutVendorDto extends GetVendorDto {}
 export const toGetVendorDto = makeSerializer(GetVendorDto);
+
+class ApplicationProfileDto {
+  @Expose()
+  id: number;
+}
 
 class AuthStrategyDto {
   @Expose()
@@ -229,7 +137,7 @@ export class PostApplicationDto {
 
   @Expose()
   @IsNumber()
-  vendorId: string;
+  vendorId: number;
 
   @Expose()
   @IsString()
@@ -241,18 +149,16 @@ export class PostApplicationDto {
   @IsNumber()
   profileId: number;
 
-  get educationOrganizationId() {
-    return this.educationOrganizationIds?.[0];
-  }
-  set educationOrganizationId(value: number) {
-    this.educationOrganizationIds = [value];
-  }
-
   @Expose()
-  @IsNumber(undefined, { each: true })
-  @ArrayMaxSize(1)
-  @ArrayMinSize(1)
   educationOrganizationIds: number[];
+}
+
+export class PostApplicationForm extends (PostApplicationDto as any as {
+  new (): Omit<PostApplicationDto, 'educationOrganizationIds'>;
+}) {
+  @Expose()
+  @IsNumber()
+  educationOrganizationId: number | undefined;
 }
 
 export class PostApplicationResponseDto {
@@ -280,6 +186,15 @@ export const toApplicationYopassResponseDto = makeSerializer(
 );
 
 export class PutApplicationDto extends PostApplicationDto {
+  @Expose()
+  applicationId: number;
+
+  get id() {
+    return this.applicationId;
+  }
+}
+
+export class PutApplicationForm extends PostApplicationForm {
   @Expose()
   applicationId: number;
 
@@ -316,6 +231,11 @@ export class GetApplicationDto {
   educationOrganizationId: number;
   @Expose()
   odsInstanceName: string;
+  @Expose()
+  vendorId: number;
+  @Expose()
+  @Type(() => ApplicationProfileDto)
+  profiles: ApplicationProfileDto[];
 
   get displayName() {
     return this.applicationName;

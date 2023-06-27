@@ -1,11 +1,9 @@
 import {
-  Box,
   Button,
   ButtonGroup,
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Heading,
   Input,
   Link,
   Modal,
@@ -14,34 +12,27 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
-  Select,
   Text,
   useClipboard,
 } from '@chakra-ui/react';
 import {
   ApplicationYopassResponseDto,
-  PostApplicationDto,
-  PutApplicationDto,
+  PostApplicationForm,
 } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useNavigate, useParams } from '@tanstack/router';
 import { ReactNode, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import {
-  claimsetQueries,
-  edorgQueries,
-  useApplicationPost,
-  vendorQueries,
-} from '../../api';
+import { useForm } from 'react-hook-form';
+import { useApplicationPost } from '../../api';
 import { useNavToParent } from '../../helpers';
+import {
+  SelectClaimset,
+  SelectEdorg,
+  SelectVendor,
+} from '../../helpers/FormPickers';
 import { applicationIndexRoute, applicationRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
-import {
-  ClaimsetPickerOptions,
-  EdorgPickerOptions,
-  VendorPickerOptions,
-} from '../../helpers/FormPickerOptions';
-const resolver = classValidatorResolver(PutApplicationDto);
+const resolver = classValidatorResolver(PostApplicationForm);
 
 export const CreateApplicationPage = (): ReactNode => {
   const navigate = useNavigate();
@@ -74,9 +65,9 @@ export const CreateApplicationPage = (): ReactNode => {
     handleSubmit,
     formState: { errors, isLoading },
     control,
-  } = useForm<PostApplicationDto>({
+  } = useForm<PostApplicationForm>({
     resolver,
-    defaultValues: new PostApplicationDto(),
+    defaultValues: new PostApplicationForm(),
   });
 
   return (
@@ -116,67 +107,43 @@ export const CreateApplicationPage = (): ReactNode => {
         </FormControl>
         <FormControl isInvalid={!!errors.educationOrganizationId}>
           <FormLabel>Ed-org</FormLabel>
-          <Controller
-            control={control}
+          <SelectEdorg
+            tenantId={params.asId}
             name="educationOrganizationId"
-            render={(props) => (
-              <Select
-                placeholder="Select an Ed-org"
-                {...props.field}
-                onChange={(event) => {
-                  props.field.onChange(Number(event.target.value));
-                }}
-              >
-                <EdorgPickerOptions
-                  sbeId={params.sbeId}
-                  tenantId={params.asId}
-                />
-              </Select>
-            )}
+            useEdorgId
+            sbeId={params.sbeId}
+            control={control}
           />
           <FormErrorMessage>
-            {errors.educationOrganizationIds?.message}
+            {errors.educationOrganizationId?.message}
           </FormErrorMessage>
         </FormControl>
         <FormControl isInvalid={!!errors.vendorId}>
           <FormLabel>Vendor</FormLabel>
-          <Controller
-            control={control}
+          <SelectVendor
+            tenantId={params.asId}
             name="vendorId"
-            render={(props) => (
-              <Select
-                placeholder="Select a vendor"
-                {...props.field}
-                onChange={(event) => {
-                  props.field.onChange(Number(event.target.value));
-                }}
-              >
-                <VendorPickerOptions
-                  tenantId={params.asId}
-                  sbeId={params.sbeId}
-                />
-              </Select>
-            )}
+            sbeId={params.sbeId}
+            control={control}
           />
           <FormErrorMessage>{errors.vendorId?.message}</FormErrorMessage>
         </FormControl>
         <FormControl isInvalid={!!errors.claimSetName}>
           <FormLabel>Claimset</FormLabel>
-          <Select placeholder="Select a claimset" {...register('claimSetName')}>
-            <ClaimsetPickerOptions
-              tenantId={params.asId}
-              sbeId={params.sbeId}
-            />
-          </Select>
+          <SelectClaimset
+            useName
+            tenantId={params.asId}
+            name="claimSetName"
+            sbeId={params.sbeId}
+            control={control}
+          />
           <FormErrorMessage>{errors.claimSetName?.message}</FormErrorMessage>
         </FormControl>
-        <ButtonGroup>
-          <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+        <ButtonGroup mt={4} colorScheme="teal">
+          <Button isLoading={isLoading} type="submit">
             Save
           </Button>
           <Button
-            mt={4}
-            colorScheme="teal"
             variant="ghost"
             isLoading={isLoading}
             type="reset"

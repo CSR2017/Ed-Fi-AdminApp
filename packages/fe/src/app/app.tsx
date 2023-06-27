@@ -5,10 +5,9 @@ import {
   QueryClientProvider,
   useQueryErrorResetBoundary,
 } from '@tanstack/react-query';
-import { Routes } from './routes';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ErrorBoundary } from 'react-error-boundary';
-import { environment } from '../environments/environment.local';
+import { Routes } from './routes';
 
 // Create a client
 export const queryClient = new QueryClient({
@@ -30,9 +29,7 @@ function App() {
           fallbackRender={({ resetErrorBoundary, error }) => error}
         >
           <Routes />
-          {environment.production ? null : (
-            <ReactQueryDevtools initialIsOpen={false} position="bottom-left" />
-          )}
+          <ReactQueryDevtools initialIsOpen={false} position="bottom-left" />
         </ErrorBoundary>
       </QueryClientProvider>
     </ChakraProvider>

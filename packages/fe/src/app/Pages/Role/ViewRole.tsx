@@ -1,4 +1,11 @@
-import { FormLabel, Tag, Text, Tooltip } from '@chakra-ui/react';
+import {
+  FormLabel,
+  Grid,
+  SimpleGrid,
+  Tag,
+  Text,
+  Tooltip,
+} from '@chakra-ui/react';
 import { useParams } from '@tanstack/router';
 import { roleQueries } from '../../api';
 import { roleRoute } from '../../routes';
@@ -17,17 +24,13 @@ export const ViewRole = () => {
       <FormLabel as="p">Type</FormLabel>
       <Text>{role.type ?? '-'}</Text>
       <FormLabel as="p">Privileges</FormLabel>
-      {role.privileges?.map((p) => (
-        <Tag
-          key={p.code}
-          colorScheme="orange"
-          display="flex"
-          w="max-content"
-          mb={2}
-        >
-          {p.code}
-        </Tag>
-      ))}
+      <Grid gap={2} templateColumns="repeat(4, auto)" w="fit-content">
+        {role.privileges?.map((p) => (
+          <Tag key={p.code} colorScheme="orange" display="flex" w="max-content">
+            {p.code}
+          </Tag>
+        ))}
+      </Grid>
     </>
   ) : null;
 };
