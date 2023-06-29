@@ -15,7 +15,6 @@ import { sbeGlobalRoute } from '../../routes';
 import _ from 'lodash';
 
 const resolver = classValidatorResolver(PutSbeMeta);
-console.log(import.meta.env.VITE_RUNNING_LOCALLY, 'blah sbsanotehuasoe');
 
 export const EditSbeMeta = (props: { sbe: GetSbeDto }) => {
   const navigate = useNavigate();

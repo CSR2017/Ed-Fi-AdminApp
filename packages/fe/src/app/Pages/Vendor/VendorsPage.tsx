@@ -25,11 +25,7 @@ export const VendorsPage = () => {
             accessorKey: 'company',
             cell: (info) => (
               <HStack justify="space-between">
-                <VendorLink
-                  id={info.row.original.vendorId}
-                  query={vendors}
-                  sbeId={params.sbeId}
-                />
+                <VendorLink id={info.row.original.vendorId} query={vendors} />
                 <HStack
                   className="row-hover"
                   color="gray.600"

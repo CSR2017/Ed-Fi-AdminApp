@@ -1,7 +1,8 @@
-import { Box, Text, chakra, useBoolean } from '@chakra-ui/react';
+import { Box, Text, useBoolean } from '@chakra-ui/react';
 import { GetTenantDto } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, useRouter } from '@tanstack/router';
+import { Select } from 'chakra-react-select';
 import Cookies from 'js-cookie';
 import { Resizable } from 're-resizable';
 import { useEffect, useState } from 'react';
@@ -17,7 +18,6 @@ import { accountRouteGlobal, asRoute } from '../routes';
 import { GlobalNav } from './GlobalNav';
 import { NavButton } from './NavButton';
 import { TenantNav } from './TenantNav';
-import { Select } from 'chakra-react-select';
 
 export const Nav = () => {
   const params = useParams({ from: asRoute.id });
@@ -166,6 +166,10 @@ export const Nav = () => {
                   ...data?.styles,
                 };
               },
+              container: (styles) => ({
+                ...styles,
+                bg: 'white',
+              }),
               dropdownIndicator: (styles) => ({
                 ...styles,
                 width: '1.5em',

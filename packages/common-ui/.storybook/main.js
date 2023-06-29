@@ -1,24 +1,13 @@
-module.exports = {
-  stories: [
-    '../src/lib/**/*.stories.mdx',
-    '../src/lib/**/*.stories.@(js|jsx|ts|tsx)',
-  ],
-  addons: [
-    '@storybook/addon-essentials',
-    '@nx/react/plugins/storybook',
-    '@chakra-ui/storybook-addon',
-  ],
-  features: {
-    emotionAlias: false,
-  },
+const config = {
+  stories: ['../src/lib/**/*.stories.@(js|jsx|ts|tsx|mdx)'],
+  addons: ['@storybook/addon-essentials', '@chakra-ui/storybook-addon'],
   framework: {
-    name: '@storybook/react-webpack5',
+    name: '@storybook/react-vite',
     options: {},
   },
-  docs: {
-    autodocs: true,
-  },
 };
+
+export default config;
 
 // To customize your webpack configuration you can use the webpackFinal field.
 // Check https://storybook.js.org/docs/react/builders/webpack#extending-storybooks-webpack-config

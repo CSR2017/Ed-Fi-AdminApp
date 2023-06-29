@@ -54,6 +54,18 @@
           "quiet": true
         }
       }
+    },
+    "static-storybook": {
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "common-ui:build-storybook",
+        "staticFilePath": "dist/storybook/common-ui"
+      },
+      "configurations": {
+        "ci": {
+          "buildTarget": "common-ui:build-storybook:ci"
+        }
+      }
     }
   }
 }

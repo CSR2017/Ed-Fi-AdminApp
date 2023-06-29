@@ -5,6 +5,7 @@ import {
   PutSbeAdminApiRegister,
   PutSbeMeta,
   toGetSbeDto,
+  toOperationResultDto,
   toSbeCCDto,
   toSbeRRDto,
 } from '@edanalytics/models';
@@ -93,10 +94,9 @@ export class SbesGlobalController {
     @Param('sbeId', new ParseIntPipe()) sbeId: number,
     @ReqUser() user: GetSessionDataDto
   ) {
-    return toSbeRRDto({
-      id: sbeId,
-      ...(await this.sbeService.refreshResources(sbeId, user)),
-    });
+    return toOperationResultDto(
+      await this.sbeService.refreshResources(sbeId, user)
+    );
   }
 
   @Put(':sbeId/check-connection')
@@ -107,7 +107,7 @@ export class SbesGlobalController {
     },
   })
   async checkConnections(@Param('sbeId', new ParseIntPipe()) sbeId: number) {
-    return toSbeCCDto({
+    return toOperationResultDto({
       id: sbeId,
       ...(await this.sbeService.checkConnections(sbeId)),
     });

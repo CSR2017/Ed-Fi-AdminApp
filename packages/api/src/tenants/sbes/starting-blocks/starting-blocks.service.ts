@@ -7,6 +7,7 @@ import {
   PutApplicationDto,
   PutClaimsetDto,
   PutVendorDto,
+  SbMetaEnv,
 } from '@edanalytics/models';
 import { Sbe } from '@edanalytics/models-server';
 import {
@@ -262,7 +263,7 @@ export class StartingBlocksService implements IStartingBlocksService {
   async getSbMeta(sbeId: Sbe['id']) {
     const sbe = await this.sbesService.findOne(sbeId);
     return this.getSbeLambdaClient(sbe)
-      .get<any, any>(sbe.configPublic.sbeMetaUrl)
+      .get<SbMetaEnv, SbMetaEnv>(sbe.configPublic.sbeMetaUrl)
       .catch((err) => {
         console.log(err);
         if (err?.response?.data?.message) {

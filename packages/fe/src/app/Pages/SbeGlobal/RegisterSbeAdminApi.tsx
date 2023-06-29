@@ -19,7 +19,7 @@ export const RegisterSbeAdminApi = (props: { sbe: GetSbeDto }) => {
   const checkConnection = useSbeCheckConnection();
   useEffect(() => {
     checkConnection.mutateAsync(sbe).then((result) => {
-      if (result.adminApi) {
+      if (result.statuses.find((s) => s.name === 'Admin API' && s.success)) {
         setIsRegistered.on();
       }
     });

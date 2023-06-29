@@ -12,6 +12,7 @@ import {
   GetUserDto,
   GetUserTenantMembershipDto,
   GetVendorDto,
+  OperationResultDto,
   PostApplicationForm,
   PostClaimsetDto,
   PostEdorgDto,
@@ -501,7 +502,7 @@ export const useSbeCheckConnection = (callback?: () => void) => {
       methods.put(
         `${baseUrl}/sbes/${sbe.id}/check-connection`,
         class Nothing {},
-        SbeCheckConnectionDto,
+        OperationResultDto,
         {}
       ),
     onSuccess: (data) => {
@@ -520,7 +521,7 @@ export const useSbeRefreshResources = (callback?: () => void) => {
       methods.put(
         `${baseUrl}/sbes/${sbe.id}/refresh-resources`,
         class Nothing {},
-        SbeRefreshResourcesDto,
+        OperationResultDto,
         {}
       ),
     onSuccess: (data) => {

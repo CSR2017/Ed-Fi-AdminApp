@@ -1,19 +1,5 @@
-import {
-  ListItem,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalHeader,
-  ModalOverlay,
-  Spinner,
-  Text,
-  UnorderedList,
-  useBoolean,
-  useDisclosure,
-  useToast,
-} from '@chakra-ui/react';
-import { SuccessFailureBadge } from '@edanalytics/common-ui';
+import { Spinner, useBoolean, useDisclosure, useToast } from '@chakra-ui/react';
+import { useOperationResultDisclosure } from '@edanalytics/common-ui';
 import { GetSbeDto, SbeCheckConnectionDto } from '@edanalytics/models';
 import { useNavigate, useRouter } from '@tanstack/router';
 import { useState } from 'react';
@@ -62,6 +48,8 @@ export const useSbeGlobalActions = (
   const deleteSbe = sbeQueries.useDelete({});
   const searchParams = useRouter().state.currentLocation.search;
   const edit = 'edit' in searchParams ? searchParams.edit : undefined;
+  const syncDisclosure = useOperationResultDisclosure();
+  const connectionCheckDisclosure = useOperationResultDisclosure();
 
   const navigate = useNavigate();
   const path = sbeGlobalRoute.fullPath;
@@ -128,37 +116,7 @@ export const useSbeGlobalActions = (
         }) => {
           return (
             <>
-              {checkResult && (
-                <Modal isOpen={checkAlert.isOpen} onClose={checkAlert.onClose}>
-                  <ModalOverlay />
-                  <ModalContent>
-                    <ModalHeader>Connection not successful</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                      <Text as="p">
-                        Admin API:{' '}
-                        <SuccessFailureBadge
-                          pastTense
-                          bool={checkResult.adminApi}
-                        />
-                      </Text>
-                      <Text as="p">
-                        SB Meta:{' '}
-                        <SuccessFailureBadge
-                          pastTense
-                          bool={checkResult.sbMeta}
-                        />
-                      </Text>
-                      <Text as="p">Messages:</Text>
-                      <UnorderedList>
-                        {checkResult.messages.map((m) => (
-                          <ListItem>{m}</ListItem>
-                        ))}
-                      </UnorderedList>
-                    </ModalBody>
-                  </ModalContent>
-                </Modal>
-              )}
+              <connectionCheckDisclosure.ModalRoot />
               <AuthorizeComponent
                 config={{
                   privilege: 'sbe:read',
@@ -176,18 +134,7 @@ export const useSbeGlobalActions = (
                   onClick={async () => {
                     setCheckLoading.on();
                     const result = await checkConnection.mutateAsync(sbe);
-                    const totalSuccess = result.adminApi && result.sbMeta;
-                    if (totalSuccess) {
-                      toast({
-                        title: 'Connection successful.',
-                        duration: 5000,
-                        colorScheme: 'green',
-                        isClosable: true,
-                      });
-                    } else {
-                      setCheckResult(result);
-                      checkAlert.onOpen();
-                    }
+                    connectionCheckDisclosure.disclose(result);
                     setCheckLoading.off();
                   }}
                 />
@@ -199,46 +146,35 @@ export const useSbeGlobalActions = (
           children: (props: ActionProps) => JSX.Element;
         }) => {
           return (
-            <AuthorizeComponent
-              config={{
-                privilege: 'sbe:refresh-resources',
-                subject: {
-                  id: sbe.id,
-                },
-              }}
-            >
-              <props.children
-                icon={() =>
-                  refreshLoading ? <Spinner size="sm" /> : <BiDownload />
-                }
-                text="Sync with SB"
-                title="Sync ODSs and Ed-Orgs from Starting Blocks to SBAA."
-                onClick={async () => {
-                  setRefreshLoading.on();
-                  try {
-                    const result = await refreshResources.mutateAsync(sbe);
-                    toast({
-                      title: 'Refresh completed.',
-                      colorScheme: 'green',
-                      description: `${result.odsCount} ODS's. ${result.edorgCount} Ed-Orgs.`,
-                      duration: 9000,
-                      isClosable: true,
-                    });
-                  } catch (refreshFailed) {
-                    console.log(refreshFailed);
-
-                    toast({
-                      colorScheme: 'red',
-                      title: 'Refresh failed.',
-                      description: String(refreshFailed),
-                      duration: 20000,
-                      isClosable: true,
-                    });
-                  }
-                  setRefreshLoading.off();
+            <>
+              <syncDisclosure.ModalRoot />
+              <AuthorizeComponent
+                config={{
+                  privilege: 'sbe:refresh-resources',
+                  subject: {
+                    id: sbe.id,
+                  },
                 }}
-              />
-            </AuthorizeComponent>
+              >
+                <props.children
+                  icon={() =>
+                    refreshLoading ? <Spinner size="sm" /> : <BiDownload />
+                  }
+                  text="Sync with SB"
+                  title="Sync ODSs and Ed-Orgs from Starting Blocks to SBAA."
+                  onClick={async () => {
+                    setRefreshLoading.on();
+                    try {
+                      const result = await refreshResources.mutateAsync(sbe);
+                      syncDisclosure.disclose(result);
+                    } catch (refreshFailed) {
+                      throw refreshFailed;
+                    }
+                    setRefreshLoading.off();
+                  }}
+                />
+              </AuthorizeComponent>
+            </>
           );
         },
         EditSbMeta: (props: {
