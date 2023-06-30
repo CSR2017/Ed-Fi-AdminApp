@@ -13,12 +13,11 @@ import {
   useBoolean,
 } from '@chakra-ui/react';
 import { ConfirmAction } from '@edanalytics/common-ui';
-import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { BsInfoCircle } from 'react-icons/bs';
+import { useLocation, useParams } from 'react-router-dom';
 import { useMe } from '../../api';
 import { getMessage } from '../../helpers';
-import { secretRoute } from '../../routes/secret.routes';
 
 const placeholder = `KEY:
 123abc123abc
@@ -28,6 +27,8 @@ SECRET:
 
 export const SecretPage = () => {
   const params = useParams();
+  const { hash } = useLocation();
+  const [hashMark, uuid, key] = hash.split('/');
   const [secret, setSecret] = useState<string | null>(null);
   const [show, setShow] = useBoolean(false);
   const [isError, setIsError] = useBoolean(false);
@@ -35,9 +36,9 @@ export const SecretPage = () => {
 
   useEffect(() => {
     const func = async () => {
-      if (params.uuid && params.key && show && !secret) {
+      if (uuid && key && show && !secret) {
         try {
-          const secret = await getMessage(params.uuid, params.key);
+          const secret = await getMessage(uuid, key);
           setSecret(secret.data.toString());
         } catch (error) {
           if (error === 404) {
@@ -47,7 +48,7 @@ export const SecretPage = () => {
       }
     };
     func();
-  }, [params.uuid, params.key, show]);
+  }, [uuid, key, show]);
   return (
     <VStack p={10}>
       <Box w="100%" maxW="40em">

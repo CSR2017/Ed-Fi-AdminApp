@@ -54,7 +54,7 @@ ${body.secret}`,
   const uuid = yopassResponse.data.message;
 
   return {
-    link: [config.FE_URL, 'secret', uuid, pwd].join('/'),
+    link: [config.FE_URL, 'secret/#', uuid, pwd].join('/'),
   };
 };
 

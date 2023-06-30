@@ -6,6 +6,8 @@ import {
 } from '@edanalytics/models';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { methods } from '../methods';
+import axios from 'axios';
+import { plainToInstance } from 'class-transformer';
 
 const baseUrl = '';
 
@@ -14,13 +16,13 @@ export const useMe = () =>
     staleTime: 30 * 1000,
     queryKey: [`me`],
     queryFn: () =>
-      methods
-        .getOne(`${baseUrl}/auth/me`, GetSessionDataDto)
+      axios
+        .get(`${baseUrl}/auth/me`, { withCredentials: true })
         .then((res) => {
-          return res;
+          return plainToInstance(GetSessionDataDto, res.data);
         })
         .catch((err) => {
-          if (err.statusCode === 403) {
+          if (err.response.status === 403 || err.response.status === 401) {
             return null;
           } else {
             throw err;

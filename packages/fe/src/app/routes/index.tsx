@@ -83,6 +83,8 @@ import {
   applicationsIndexRoute,
   applicationsRoute,
 } from './application.routes';
+import { secretRoute } from './secret.routes';
+import { PublicAppLayout } from '../Layout/PublicAppLayout';
 export * from './account.routes';
 export * from './application.routes';
 export * from './claimset.routes';
@@ -125,6 +127,11 @@ export const loginRoute: RouteObject = {
 };
 export const asRoute: RouteObject = {
   path: '/as/:asId',
+};
+export const publicLayoutRoute: RouteObject = {
+  element: <PublicAppLayout />,
+  errorElement: <ErrorFallback />,
+  children: [publicRoute, secretRoute],
 };
 export const mainLayoutRoute: RouteObject = {
   element: <StandardLayout />,
@@ -206,8 +213,8 @@ export const mainLayoutRoute: RouteObject = {
 };
 export const routes = [
   mainLayoutRoute,
+  publicLayoutRoute,
   loginRoute,
-  publicRoute,
   fallback404Route,
 ];
 const addPathToHandle = (r: RouteObject) => {

@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Header,
   Next,
   Param,
   Post,
@@ -120,6 +121,7 @@ export class AuthController {
       id: '__filtered__',
     },
   })
+  @Header('Cache-Control', 'none')
   async me(@ReqUser() session: GetSessionDataDto) {
     return toGetSessionDataDto(session);
   }

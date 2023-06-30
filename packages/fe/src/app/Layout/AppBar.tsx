@@ -13,11 +13,13 @@ import { RxCaretDown } from 'react-icons/rx';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import logoUrl from '../../assets/starting-blocks.svg';
 import { apiClient, useMe } from '../api';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const AppBar = () => {
   const me = useMe();
 
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   return (
     <HStack
@@ -45,8 +47,9 @@ export const AppBar = () => {
         <MenuList>
           <MenuItem
             onClick={() => {
+              navigate('/public');
               apiClient.post('/auth/logout', {}).then(() => {
-                navigate('/public');
+                queryClient.invalidateQueries({ queryKey: ['me'] });
               });
             }}
           >
