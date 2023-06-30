@@ -8,7 +8,7 @@ import {
 } from '@chakra-ui/react';
 import { GetSbeDto, PutSbeMeta } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useNavigate } from '@tanstack/router';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useSbeEditAdminApi, useSbeEditSbMeta } from '../../api';
 import { sbeGlobalRoute } from '../../routes';
@@ -18,13 +18,8 @@ const resolver = classValidatorResolver(PutSbeMeta);
 
 export const EditSbeMeta = (props: { sbe: GetSbeDto }) => {
   const navigate = useNavigate();
-  const goToView = () => {
-    navigate({
-      to: sbeGlobalRoute.fullPath,
-      params: (old: any) => old,
-      search: (old: any) => _.omit(old, 'edit'),
-    });
-  };
+  const params = useParams() as { sbeId: string };
+  const goToView = () => navigate(`/sbes/${params.sbeId}`);
   const putSbe = useSbeEditSbMeta(goToView);
   const { sbe } = props;
   const sbeFormDefaults: PutSbeMeta = {

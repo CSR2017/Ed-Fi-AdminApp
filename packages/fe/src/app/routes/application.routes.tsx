@@ -1,84 +1,64 @@
 import { Link, Text } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
-import { Link as RouterLink, Route, useParams } from '@tanstack/router';
-import { UseQueryResult } from '@tanstack/react-query';
 import { GetApplicationDto } from '@edanalytics/models';
-import { mainLayoutRoute, sbeRoute } from '.';
-import { getRelationDisplayName } from '../helpers';
-import { applicationQueries } from '../api';
+import { UseQueryResult } from '@tanstack/react-query';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { ApplicationPage } from '../Pages/Application/ApplicationPage';
 import { ApplicationsPage } from '../Pages/Application/ApplicationsPage';
+import { applicationQueries } from '../api';
+import { getRelationDisplayName } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 import { CreateApplicationPage } from '../Pages/Application/CreateApplicationPage';
 
-export const applicationsRoute = new Route({
-  getParentRoute: () => sbeRoute,
-  path: 'applications',
-  getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Applications', params }),
-  }),
-});
-
-export const applicationsIndexRoute = new Route({
-  getParentRoute: () => applicationsRoute,
-  path: '/',
-  component: ApplicationsPage,
-});
-
 const ApplicationBreadcrumb = () => {
-  const params = useParams({ from: applicationRoute.id });
+  const params = useParams() as {
+    applicationId: string;
+    asId: string;
+    sbeId: string;
+  };
   const application = applicationQueries.useOne({
     id: params.applicationId,
-    sbeId: params.sbeId,
     tenantId: params.asId,
+    sbeId: params.sbeId,
   });
   return application.data?.displayName ?? params.applicationId;
 };
+export const applicationIndexRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/applications/:applicationId/',
+  element: <ApplicationPage />,
+};
+export const applicationCreateRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/applications/create',
+  handle: { crumb: () => 'Create' },
+  element: <CreateApplicationPage />,
+};
 
-export const applicationRoute = new Route({
-  getParentRoute: () => applicationsRoute,
-  path: '$applicationId',
-  validateSearch: (search): { edit?: boolean } =>
-    typeof search.edit === 'boolean' ? { edit: search.edit } : {},
-  getContext: ({ params }) => {
-    return {
-      breadcrumb: () => ({ title: ApplicationBreadcrumb, params }),
-    };
-  },
-});
-export const applicationPostRoute = new Route({
-  getParentRoute: () => applicationsRoute,
-  path: 'create',
-  getContext: ({ params }) => {
-    return {
-      breadcrumb: () => ({ title: () => 'Create', params }),
-    };
-  },
-  component: CreateApplicationPage,
-});
-
-export const applicationIndexRoute = new Route({
-  getParentRoute: () => applicationRoute,
-  path: '/',
-  component: ApplicationPage,
-});
+export const applicationRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/applications/:applicationId',
+  handle: { crumb: ApplicationBreadcrumb },
+};
+export const applicationsIndexRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/applications/',
+  element: <ApplicationsPage />,
+};
+export const applicationsRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/applications',
+  handle: { crumb: () => 'Applications' },
+};
 
 export const ApplicationLink = (props: {
   id: number | undefined;
   query: UseQueryResult<Record<string | number, GetApplicationDto>, unknown>;
-  sbeId: string;
 }) => {
   const application = getEntityFromQuery(props.id, props.query);
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+  };
   return application ? (
     <Link as="span">
       <RouterLink
         title="Go to application"
-        to={applicationRoute.fullPath}
-        params={(previous: any) => ({
-          ...previous,
-          applicationId: String(application.id),
-          sbeId: props.sbeId,
-        })}
+        to={`/as/${params.asId}/sbes/${params.sbeId}/applications/${application.id}`}
       >
         {getRelationDisplayName(application.id, props.query)}
       </RouterLink>

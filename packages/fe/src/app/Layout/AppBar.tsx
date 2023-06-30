@@ -9,11 +9,10 @@ import {
   MenuItem,
   MenuList,
 } from '@chakra-ui/react';
-import { Link as RouterLink, useNavigate } from '@tanstack/router';
 import { RxCaretDown } from 'react-icons/rx';
-import { apiClient, useMe } from '../api';
-import { accountRouteGlobal, publicRoute } from '../routes';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import logoUrl from '../../assets/starting-blocks.svg';
+import { apiClient, useMe } from '../api';
 
 export const AppBar = () => {
   const me = useMe();
@@ -47,20 +46,13 @@ export const AppBar = () => {
           <MenuItem
             onClick={() => {
               apiClient.post('/auth/logout', {}).then(() => {
-                navigate({
-                  to: publicRoute.fullPath,
-                });
+                navigate('/public');
               });
             }}
           >
             Sign out
           </MenuItem>
-          <MenuItem
-            to={accountRouteGlobal.fullPath}
-            params={{}}
-            search={{}}
-            as={RouterLink}
-          >
+          <MenuItem to="/me" as={RouterLink}>
             My profile
           </MenuItem>
         </MenuList>

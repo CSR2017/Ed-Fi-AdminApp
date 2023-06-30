@@ -1,10 +1,13 @@
 import { FormLabel, Text } from '@chakra-ui/react';
-import { useParams } from '@tanstack/router';
+import { useParams } from 'react-router-dom';
 import { vendorQueries } from '../../api';
-import { vendorRoute } from '../../routes';
 
 export const ViewVendor = () => {
-  const params = useParams({ from: vendorRoute.id });
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+    vendorId: string;
+  };
   const vendor = vendorQueries.useOne({
     id: params.vendorId,
     sbeId: params.sbeId,

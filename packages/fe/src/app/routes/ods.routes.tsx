@@ -1,30 +1,15 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetOdsDto } from '@edanalytics/models';
 import { UseQueryResult } from '@tanstack/react-query';
-import { Route, Link as RouterLink, useParams } from '@tanstack/router';
-import { asRoute, sbeRoute } from '.';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { OdsPage } from '../Pages/Ods/OdsPage';
 import { OdssPage } from '../Pages/Ods/OdssPage';
 import { odsQueries } from '../api';
 import { getRelationDisplayName } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
-export const odssRoute = new Route({
-  getParentRoute: () => sbeRoute,
-  path: 'odss',
-  getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Odss', params }),
-  }),
-});
-
-export const odssIndexRoute = new Route({
-  getParentRoute: () => odssRoute,
-  path: '/',
-  component: OdssPage,
-});
-
 const OdsBreadcrumb = () => {
-  const params = useParams({ from: odsRoute.id });
+  const params = useParams() as { odsId: string; asId: string; sbeId: string };
   const ods = odsQueries.useOne({
     id: params.odsId,
     tenantId: params.asId,
@@ -32,39 +17,35 @@ const OdsBreadcrumb = () => {
   });
   return ods.data?.displayName ?? params.odsId;
 };
+export const odsIndexRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/odss/:odsId/',
+  element: <OdsPage />,
+};
 
-export const odsRoute = new Route({
-  getParentRoute: () => odssRoute,
-  path: '$odsId',
-  getContext: ({ params }) => {
-    return {
-      breadcrumb: () => ({ title: OdsBreadcrumb, params }),
-    };
-  },
-});
-
-export const odsIndexRoute = new Route({
-  getParentRoute: () => odsRoute,
-  path: '/',
-  component: OdsPage,
-});
+export const odsRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/odss/:odsId',
+  handle: { crumb: OdsBreadcrumb },
+};
+export const odssIndexRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/odss/',
+  element: <OdssPage />,
+};
+export const odssRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/odss',
+  handle: { crumb: () => 'Odss' },
+};
 
 export const OdsLink = (props: {
   id: number | undefined;
   query: UseQueryResult<Record<string | number, GetOdsDto>, unknown>;
 }) => {
   const ods = getEntityFromQuery(props.id, props.query);
-  const params = useParams({ from: asRoute.id });
+  const params = useParams() as { asId: string; sbeId: string };
   return ods ? (
     <Link as="span">
       <RouterLink
         title="Go to ods"
-        to={odsRoute.fullPath}
-        params={{
-          asId: params.asId,
-          sbeId: String(ods.sbeId),
-          odsId: String(props.id),
-        }}
+        to={`/as/${params.asId}/sbes/${params.sbeId}/odss/${ods.id}`}
       >
         {getRelationDisplayName(ods.id, props.query)}
       </RouterLink>

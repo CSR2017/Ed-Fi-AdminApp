@@ -1,4 +1,4 @@
-import { useParams, useSearch } from '@tanstack/router';
+import { useParams, useSearchParams } from 'react-router-dom';
 import _ from 'lodash';
 import { ReactNode } from 'react';
 import { sbeQueries } from '../../api';
@@ -11,13 +11,16 @@ import { RegisterSbeAdminApi } from './RegisterSbeAdminApi';
 import { ViewSbeGlobal } from './ViewSbeGlobal';
 import { useSbeGlobalActions } from './useSbeGlobalActions';
 import { ActionBarActions } from '../../helpers/ActionBarActions';
+import { useSearchParamsObject } from '../../helpers/useSearch';
 
-export const SbeGlobalPage = (): ReactNode => {
-  const params = useParams({ from: sbeGlobalIndexRoute.id });
+export const SbeGlobalPage = () => {
+  const params = useParams() as { sbeId: string };
   const sbe = sbeQueries.useOne({
     id: params.sbeId,
   }).data;
-  const { edit } = useSearch({ from: sbeGlobalIndexRoute.id });
+  const { edit } = useSearchParamsObject() as {
+    edit?: 'admin-api' | 'sbe-meta';
+  };
 
   const actions = useSbeGlobalActions(sbe);
 

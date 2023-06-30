@@ -44,7 +44,7 @@ import {
 import { PutRoleDto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useNavigate, useParams, useSearch } from '@tanstack/router';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { roleRoute, roleIndexRoute } from '../../routes';
 import { roleQueries } from '../../api';
@@ -53,14 +53,11 @@ const resolver = classValidatorResolver(PutRoleDto);
 
 export const EditRole = () => {
   const navigate = useNavigate();
-  const goToView = () => {
-    navigate({
-      to: roleRoute.fullPath,
-      params: (old: any) => old,
-      search: {},
-    });
+  const params = useParams() as {
+    asId: string;
+    roleId: string;
   };
-  const params = useParams({ from: roleIndexRoute.id });
+  const goToView = () => navigate(`/as/${params.asId}/roles/${params.roleId}`);
   const putRole = roleQueries.usePut({
     callback: goToView,
     tenantId: params.asId,

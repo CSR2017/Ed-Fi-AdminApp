@@ -1,27 +1,24 @@
+import {
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
+  Spinner,
+  Text,
+  useClipboard,
+} from '@chakra-ui/react';
 import { GetApplicationDto } from '@edanalytics/models';
+import { BiPlus, BiShieldX } from 'react-icons/bi';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useApplicationResetCredential } from '../../api';
 import {
   ActionPropsConfirm,
   ActionsType,
   AuthorizeComponent,
   LinkActionProps,
 } from '../../helpers';
-import { HiOutlineEye } from 'react-icons/hi';
-import { applicationPostRoute } from '../../routes';
-import { BiPlus, BiShieldX } from 'react-icons/bi';
-import { Link, useNavigate } from '@tanstack/router';
-import { useResetCredentials } from './useResetCredentials';
-import {
-  useClipboard,
-  Modal,
-  Text,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  Spinner,
-} from '@chakra-ui/react';
-import { useApplicationResetCredential } from '../../api';
 
 export const useApplicationActions = ({
   application,
@@ -53,10 +50,6 @@ export const useApplicationActions = ({
         Reset: (props: {
           children: (props: ActionPropsConfirm) => JSX.Element;
         }) => {
-          const toOptions = {
-            to: applicationPostRoute.fullPath,
-            params: (old: any) => old,
-          };
           return (
             <>
               <Modal isOpen={clipboard.value !== ''} onClose={onClose}>
@@ -68,7 +61,7 @@ export const useApplicationActions = ({
                     <Text as="p">
                       Use this one-time link to see your Key and Secret:
                     </Text>
-                    <Link href={clipboard.value} color="blue.600">
+                    <Link to={clipboard.value} color="blue.600">
                       {clipboard.value}
                     </Link>
                     <Text my={5} as="p" fontStyle="italic">
@@ -114,26 +107,10 @@ export const useApplicationsActions = ({
   tenantId: string;
 }): ActionsType => {
   const navigate = useNavigate();
-
-  const clipboard = useClipboard('');
-
-  const resetCreds = useApplicationResetCredential({
-    sbeId: sbeId,
-    tenantId: tenantId,
-    callback: (result) => {
-      clipboard.setValue(result.link);
-    },
-  });
-  const onClose = () => {
-    clipboard.setValue('');
-  };
-
+  const params = useParams() as { asId: string; sbeId: string };
+  const to = `/as/${params.asId}/sbes/${params.sbeId}/applications/create`;
   return {
     Create: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
-      const toOptions = {
-        to: applicationPostRoute.fullPath,
-        params: (old: any) => old,
-      };
       return (
         <AuthorizeComponent
           config={{
@@ -149,8 +126,8 @@ export const useApplicationsActions = ({
             icon={BiPlus}
             text="New"
             title="New application"
-            linkProps={toOptions}
-            onClick={() => navigate(toOptions)}
+            to={to}
+            onClick={() => navigate(to)}
           />
         </AuthorizeComponent>
       );

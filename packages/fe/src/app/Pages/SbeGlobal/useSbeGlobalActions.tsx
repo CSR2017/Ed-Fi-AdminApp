@@ -1,8 +1,6 @@
-import { Spinner, useBoolean, useDisclosure, useToast } from '@chakra-ui/react';
+import { Spinner, useBoolean, useToast } from '@chakra-ui/react';
 import { useOperationResultDisclosure } from '@edanalytics/common-ui';
-import { GetSbeDto, SbeCheckConnectionDto } from '@edanalytics/models';
-import { useNavigate, useRouter } from '@tanstack/router';
-import { useState } from 'react';
+import { GetSbeDto } from '@edanalytics/models';
 import {
   BiCog,
   BiData,
@@ -12,6 +10,7 @@ import {
   BiTrash,
 } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
+import { useNavigate } from 'react-router-dom';
 import {
   sbeQueries,
   useSbeCheckConnection,
@@ -24,11 +23,7 @@ import {
   ActionsType,
   LinkActionProps,
 } from '../../helpers/ActionsType';
-import {
-  ownershipGlobalCreateRoute,
-  sbeGlobalRoute,
-  sbesGlobalRoute,
-} from '../../routes';
+import { useSearchParamsObject } from '../../helpers/useSearch';
 
 export const useSbeGlobalActions = (
   sbe: GetSbeDto | undefined
@@ -37,35 +32,24 @@ export const useSbeGlobalActions = (
 
   const checkConnection = useSbeCheckConnection();
   const [checkLoading, setCheckLoading] = useBoolean(false);
-  const checkAlert = useDisclosure();
-  const [checkResult, setCheckResult] = useState<null | SbeCheckConnectionDto>(
-    null
-  );
 
   const refreshResources = useSbeRefreshResources();
   const [refreshLoading, setRefreshLoading] = useBoolean(false);
 
   const deleteSbe = sbeQueries.useDelete({});
-  const searchParams = useRouter().state.currentLocation.search;
+  const searchParams = useSearchParamsObject();
   const edit = 'edit' in searchParams ? searchParams.edit : undefined;
   const syncDisclosure = useOperationResultDisclosure();
   const connectionCheckDisclosure = useOperationResultDisclosure();
 
   const navigate = useNavigate();
-  const path = sbeGlobalRoute.fullPath;
   return sbe === undefined
     ? {}
     : {
         GrantOwnership: (props: {
           children: (props: LinkActionProps) => JSX.Element;
         }) => {
-          const toOptions = {
-            to: ownershipGlobalCreateRoute.fullPath,
-            search: {
-              sbeId: sbe.id,
-              type: 'sbe' as 'sbe',
-            },
-          };
+          const to = `/sbes/${sbe.id}?type=sbe`;
           return (
             <AuthorizeComponent
               config={{
@@ -79,8 +63,8 @@ export const useSbeGlobalActions = (
                 icon={BiKey}
                 text="Grant ownership"
                 title={'Grant ownership of ' + sbe.displayName}
-                linkProps={toOptions}
-                onClick={() => navigate(toOptions)}
+                to={to}
+                onClick={() => navigate(to)}
               />
             </AuthorizeComponent>
           );
@@ -88,10 +72,7 @@ export const useSbeGlobalActions = (
         View: (props: {
           children: (props: LinkActionProps) => JSX.Element;
         }) => {
-          const toOptions = {
-            to: path,
-            params: (old: any) => ({ ...old, sbeId: String(sbe.id) }),
-          };
+          const to = `/sbes/${sbe.id}`;
           return (
             <AuthorizeComponent
               config={{
@@ -105,8 +86,8 @@ export const useSbeGlobalActions = (
                 icon={HiOutlineEye}
                 text="View"
                 title={'View ' + sbe.displayName}
-                linkProps={toOptions}
-                onClick={() => navigate(toOptions)}
+                to={to}
+                onClick={() => navigate(to)}
               />
             </AuthorizeComponent>
           );
@@ -180,11 +161,7 @@ export const useSbeGlobalActions = (
         EditSbMeta: (props: {
           children: (props: LinkActionProps) => JSX.Element;
         }) => {
-          const toOptions = {
-            to: path,
-            params: (old: any) => ({ ...old, sbeId: String(sbe.id) }),
-            search: { edit: 'sbe-meta' as 'sbe-meta' },
-          };
+          const to = `/sbes/${sbe.id}?edit=sbe-meta`;
           return (
             <AuthorizeComponent
               config={{
@@ -199,8 +176,8 @@ export const useSbeGlobalActions = (
                 icon={BiData}
                 text="Connect SB Meta"
                 title="Setup connection to Starting Blocks metadata API"
-                linkProps={toOptions}
-                onClick={() => navigate(toOptions)}
+                to={to}
+                onClick={() => navigate(to)}
               />
             </AuthorizeComponent>
           );
@@ -208,11 +185,7 @@ export const useSbeGlobalActions = (
         RegisterAdminApi: (props: {
           children: (props: LinkActionProps) => JSX.Element;
         }) => {
-          const toOptions = {
-            to: path,
-            params: (old: any) => ({ ...old, sbeId: String(sbe.id) }),
-            search: { edit: 'admin-api' as 'admin-api' },
-          };
+          const to = `/sbes/${sbe.id}?edit=admin-api`;
           return (
             <AuthorizeComponent
               config={{
@@ -227,8 +200,8 @@ export const useSbeGlobalActions = (
                 icon={BiCog}
                 text="Connect Admin API"
                 title="Setup connection to Ed-Fi Admin API"
-                linkProps={toOptions}
-                onClick={() => navigate(toOptions)}
+                to={to}
+                onClick={() => navigate(to)}
               />
             </AuthorizeComponent>
           );
@@ -252,7 +225,7 @@ export const useSbeGlobalActions = (
                 confirmBody="This will permanently delete the environment."
                 onClick={() =>
                   deleteSbe.mutateAsync(sbe.id, {
-                    onSuccess: () => navigate({ to: sbesGlobalRoute.fullPath }),
+                    onSuccess: () => navigate(`/sbes`),
                   })
                 }
                 confirm={true}

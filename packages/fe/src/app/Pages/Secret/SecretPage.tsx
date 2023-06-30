@@ -13,7 +13,7 @@ import {
   useBoolean,
 } from '@chakra-ui/react';
 import { ConfirmAction } from '@edanalytics/common-ui';
-import { useParams } from '@tanstack/router';
+import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { BsInfoCircle } from 'react-icons/bs';
 import { useMe } from '../../api';
@@ -27,7 +27,7 @@ SECRET:
 123abc123abc123abc123abc`;
 
 export const SecretPage = () => {
-  const params = useParams({ from: secretRoute.id });
+  const params = useParams();
   const [secret, setSecret] = useState<string | null>(null);
   const [show, setShow] = useBoolean(false);
   const [isError, setIsError] = useBoolean(false);

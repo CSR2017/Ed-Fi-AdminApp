@@ -2,7 +2,7 @@ import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetEdorgDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
-import { useParams } from '@tanstack/router';
+import { useParams } from 'react-router-dom';
 import { edorgQueries, odsQueries, userQueries } from '../../api';
 import { TableRowActions } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
@@ -11,7 +11,10 @@ import { EdorgLink, edorgsRoute, OdsLink, UserLink } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 
 const NameCell = (info: CellContext<GetEdorgDto, unknown>) => {
-  const params = useParams({ from: edorgsRoute.id });
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+  };
   const entities = edorgQueries.useAll({
     tenantId: params.asId,
     sbeId: params.sbeId,
@@ -19,7 +22,7 @@ const NameCell = (info: CellContext<GetEdorgDto, unknown>) => {
 
   const View = useReadTenantEntity({
     entity: info.row.original,
-    params: { odsId: String(info.row.original.id), ...params },
+    params: { ...params },
     privilege: 'tenant.sbe.edorg:read',
     route: edorgsRoute,
   });
@@ -35,7 +38,10 @@ const NameCell = (info: CellContext<GetEdorgDto, unknown>) => {
 };
 
 export const EdorgsPage = () => {
-  const params = useParams({ from: edorgsRoute.id });
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+  };
   const odss = odsQueries.useAll({
     tenantId: params.asId,
     sbeId: params.sbeId,

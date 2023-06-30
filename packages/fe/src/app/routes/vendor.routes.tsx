@@ -1,71 +1,59 @@
 import { Link, Text } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
-import { Link as RouterLink, Route, useParams } from '@tanstack/router';
-import { UseQueryResult } from '@tanstack/react-query';
 import { GetVendorDto } from '@edanalytics/models';
-import { mainLayoutRoute, sbeRoute } from '.';
-import { getRelationDisplayName } from '../helpers';
-import { vendorQueries } from '../api';
+import { UseQueryResult } from '@tanstack/react-query';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { VendorPage } from '../Pages/Vendor/VendorPage';
 import { VendorsPage } from '../Pages/Vendor/VendorsPage';
+import { vendorQueries } from '../api';
+import { getRelationDisplayName } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
-export const vendorsRoute = new Route({
-  getParentRoute: () => sbeRoute,
-  path: 'vendors',
-  getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Vendors', params }),
-  }),
-});
-
-export const vendorsIndexRoute = new Route({
-  getParentRoute: () => vendorsRoute,
-  path: '/',
-  component: VendorsPage,
-});
-
 const VendorBreadcrumb = () => {
-  const params = useParams({ from: vendorRoute.id });
+  const params = useParams() as {
+    vendorId: string;
+    asId: string;
+    sbeId: string;
+  };
   const vendor = vendorQueries.useOne({
+    id: params.vendorId,
     tenantId: params.asId,
     sbeId: params.sbeId,
-    id: params.vendorId,
   });
-  return vendor.data?.company ?? params.vendorId;
+  return vendor.data?.displayName ?? params.vendorId;
+};
+export const vendorIndexRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/vendors/:vendorId/',
+  element: <VendorPage />,
 };
 
-export const vendorRoute = new Route({
-  getParentRoute: () => vendorsRoute,
-  path: '$vendorId',
-  validateSearch: (search): { edit?: boolean } =>
-    typeof search.edit === 'boolean' ? { edit: search.edit } : {},
-  getContext: ({ params }) => {
-    return {
-      breadcrumb: () => ({ title: VendorBreadcrumb, params }),
-    };
-  },
-});
-
-export const vendorIndexRoute = new Route({
-  getParentRoute: () => vendorRoute,
-  path: '/',
-  component: VendorPage,
-});
+export const vendorRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/vendors/:vendorId',
+  handle: { crumb: VendorBreadcrumb },
+};
+export const vendorsIndexRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/vendors/',
+  element: <VendorsPage />,
+};
+export const vendorsRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/vendors',
+  handle: { crumb: () => 'Vendors' },
+};
 
 export const VendorLink = (props: {
   id: number | undefined;
   query: UseQueryResult<Record<string | number, GetVendorDto>, unknown>;
 }) => {
   const vendor = getEntityFromQuery(props.id, props.query);
+  const params = useParams() as {
+    vendorId: string;
+    asId: string;
+    sbeId: string;
+  };
   return vendor ? (
     <Link as="span">
       <RouterLink
         title="Go to vendor"
-        to={vendorRoute.fullPath}
-        params={(previous: any) => ({
-          ...previous,
-          vendorId: String(vendor.vendorId),
-        })}
+        to={`/as/${params.asId}/sbes/${params.sbeId}/vendors/${vendor.id}`}
       >
         {getRelationDisplayName(vendor.id, props.query)}
       </RouterLink>

@@ -1,14 +1,16 @@
-import { useParams } from '@tanstack/router';
 import _ from 'lodash';
-import { ReactNode } from 'react';
+import { useParams } from 'react-router-dom';
 import { odsQueries } from '../../api';
 import { ActionBarActions } from '../../helpers';
-import { odsIndexRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 import { ViewOds } from './ViewOds';
 
-export const OdsPage = (): ReactNode => {
-  const params = useParams({ from: odsIndexRoute.id });
+export const OdsPage = () => {
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+    odsId: string;
+  };
   const ods = odsQueries.useOne({
     id: params.odsId,
     sbeId: params.sbeId,

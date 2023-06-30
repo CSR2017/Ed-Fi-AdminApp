@@ -1,42 +1,14 @@
 import { Heading } from '@chakra-ui/react';
-import {
-  RootRoute,
-  Route,
-  Router,
-  RouterProvider,
-  useSearch,
-} from '@tanstack/router';
-import { TanStackRouterDevtools } from '@tanstack/router-devtools';
 import { memo, useEffect } from 'react';
+import {
+  RouteObject,
+  RouterProvider,
+  createBrowserRouter,
+} from 'react-router-dom';
 import { ErrorFallback } from '../Layout/Fallback404';
-import { PublicAppLayout } from '../Layout/PublicAppLayout';
 import { StandardLayout } from '../Layout/StandardLayout';
+import { useSearchParamsObject } from '../helpers/useSearch';
 import { accountRouteGlobal } from './account.routes';
-import {
-  applicationIndexRoute,
-  applicationPostRoute,
-  applicationRoute,
-  applicationsIndexRoute,
-  applicationsRoute,
-} from './application.routes';
-import {
-  claimsetIndexRoute,
-  claimsetRoute,
-  claimsetsIndexRoute,
-  claimsetsRoute,
-} from './claimset.routes';
-import {
-  edorgIndexRoute,
-  edorgRoute,
-  edorgsIndexRoute,
-  edorgsRoute,
-} from './edorg.routes';
-import {
-  odsIndexRoute,
-  odsRoute,
-  odssIndexRoute,
-  odssRoute,
-} from './ods.routes';
 import {
   ownershipGlobalCreateRoute,
   ownershipGlobalIndexRoute,
@@ -68,7 +40,6 @@ import {
   sbesIndexRoute,
   sbesRoute,
 } from './sbe.routes';
-import { secretRoute } from './secret.routes';
 import {
   tenantIndexRoute,
   tenantRoute,
@@ -82,11 +53,36 @@ import {
   usersRoute,
 } from './user.routes';
 import {
-  vendorIndexRoute,
-  vendorRoute,
-  vendorsIndexRoute,
+  claimsetsRoute,
+  claimsetsIndexRoute,
+  claimsetRoute,
+  claimsetIndexRoute,
+} from './claimset.routes';
+import {
+  edorgsRoute,
+  edorgsIndexRoute,
+  edorgRoute,
+  edorgIndexRoute,
+} from './edorg.routes';
+import {
+  odssRoute,
+  odssIndexRoute,
+  odsRoute,
+  odsIndexRoute,
+} from './ods.routes';
+import {
   vendorsRoute,
+  vendorsIndexRoute,
+  vendorRoute,
+  vendorIndexRoute,
 } from './vendor.routes';
+import {
+  applicationCreateRoute,
+  applicationIndexRoute,
+  applicationRoute,
+  applicationsIndexRoute,
+  applicationsRoute,
+} from './application.routes';
 export * from './account.routes';
 export * from './application.routes';
 export * from './claimset.routes';
@@ -101,68 +97,20 @@ export * from './tenant.routes';
 export * from './user.routes';
 export * from './vendor.routes';
 
-export const rootRoute = new RootRoute();
-
-export const fallback404Route = new Route({
-  getParentRoute: () => rootRoute,
+export const fallback404Route: RouteObject = {
   path: '*',
-  component: () => <ErrorFallback message="404 - Not found." />,
-});
-
-export const mainLayoutRoute = new Route({
-  errorComponent: (props: {
-    error: { error: string; message: string; statusCode: number } | any;
-  }) => (
-    <ErrorFallback
-      message={
-        props.error?.statusCode
-          ? `${props.error.statusCode} - ${props.error.message}.`
-          : "Oops, there's been an error."
-      }
-    />
-  ),
-  getParentRoute: () => rootRoute,
-  id: 'main-layout',
-  component: StandardLayout,
-  getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Home', params }),
-  }),
-});
-
-export const indexRoute = new Route({
-  getParentRoute: () => mainLayoutRoute,
-  path: '/home',
-  component: () => <Heading size="page-heading">Home</Heading>,
-});
-
-export const publicAppLayoutRoute = new Route({
-  errorComponent: (props: {
-    error: { error: string; message: string; statusCode: number } | any;
-  }) => (
-    <ErrorFallback
-      message={
-        props.error?.statusCode
-          ? `${props.error.statusCode} - ${props.error.message}.`
-          : "Oops, there's been an error."
-      }
-    />
-  ),
-  getParentRoute: () => rootRoute,
-  id: 'public-app-layout',
-  component: PublicAppLayout,
-  getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Home', params }),
-  }),
-});
-
-export const publicRoute = new Route({
-  getParentRoute: () => publicAppLayoutRoute,
+  element: <ErrorFallback />,
+};
+export const indexRoute: RouteObject = {
+  path: '/',
+  element: <Heading size="page-heading">Home</Heading>,
+};
+export const publicRoute: RouteObject = {
   path: '/public',
-  component: () => <a href="/login">Login</a>,
-});
-
+  element: <a href="/login">Login</a>,
+};
 const Login = memo(() => {
-  const { redirect } = useSearch({ from: loginRoute.id });
+  const { redirect } = useSearchParamsObject();
   useEffect(() => {
     window.location.href = `${
       import.meta.env.VITE_API_URL
@@ -170,94 +118,110 @@ const Login = memo(() => {
   }, []);
   return null;
 });
-
-export const loginRoute = new Route({
-  getParentRoute: () => rootRoute,
-  path: 'login',
-  component: Login,
-  validateSearch: (search): { redirect?: string } =>
-    typeof search.redirect === 'string'
-      ? { redirect: decodeURIComponent(search.redirect) }
-      : {},
-});
-
-export const asRoute = new Route({
-  getParentRoute: () => mainLayoutRoute,
-  path: 'as/$asId',
-});
-
-const routeTree = rootRoute.addChildren([
-  mainLayoutRoute.addChildren([
+export const loginRoute: RouteObject = {
+  path: '/login',
+  element: <Login />,
+  errorElement: <ErrorFallback />,
+};
+export const asRoute: RouteObject = {
+  path: '/as/:asId',
+};
+export const mainLayoutRoute: RouteObject = {
+  element: <StandardLayout />,
+  errorElement: <ErrorFallback />,
+  handle: { crumb: () => 'Home' },
+  children: [
     indexRoute,
-    sbesGlobalRoute.addChildren([
-      sbesGlobalIndexRoute,
-      sbeGlobalRoute.addChildren([sbeGlobalIndexRoute]),
-    ]),
-    ownershipsGlobalRoute.addChildren([
-      ownershipsGlobalIndexRoute,
-      ownershipGlobalCreateRoute,
-      ownershipGlobalRoute.addChildren([ownershipGlobalIndexRoute]),
-    ]),
-    asRoute.addChildren([
-      ownershipsRoute.addChildren([
-        ownershipsIndexRoute,
-        ownershipRoute.addChildren([ownershipIndexRoute]),
-      ]),
-      rolesRoute.addChildren([
-        rolesIndexRoute,
-        roleRoute.addChildren([roleIndexRoute]),
-      ]),
-      sbesRoute.addChildren([
-        sbesIndexRoute,
-        sbeRoute.addChildren([
-          sbeIndexRoute,
-          odssRoute.addChildren([
-            odssIndexRoute,
-            odsRoute.addChildren([odsIndexRoute]),
-          ]),
-          edorgsRoute.addChildren([
-            edorgsIndexRoute,
-            edorgRoute.addChildren([edorgIndexRoute]),
-          ]),
-          vendorsRoute.addChildren([
-            vendorsIndexRoute,
-            vendorRoute.addChildren([vendorIndexRoute]),
-          ]),
-          applicationsRoute.addChildren([
-            applicationsIndexRoute,
-            applicationPostRoute,
-            applicationRoute.addChildren([applicationIndexRoute]),
-          ]),
-          claimsetsRoute.addChildren([
-            claimsetsIndexRoute,
-            claimsetRoute.addChildren([claimsetIndexRoute]),
-          ]),
-        ]),
-      ]),
-      usersRoute.addChildren([
-        usersIndexRoute,
-        userRoute.addChildren([userIndexRoute]),
-      ]),
-    ]),
+
+    sbesGlobalRoute,
+    sbesGlobalIndexRoute,
+    sbeGlobalRoute,
+    sbeGlobalIndexRoute,
+
+    ownershipsGlobalRoute,
+    ownershipsGlobalIndexRoute,
+    ownershipGlobalRoute,
+    ownershipGlobalIndexRoute,
+    ownershipGlobalCreateRoute,
+
+    sbesRoute,
+    sbesIndexRoute,
+    sbeRoute,
+    sbeIndexRoute,
+
+    odssRoute,
+    odssIndexRoute,
+    odsRoute,
+    odsIndexRoute,
+
+    odssRoute,
+    odssIndexRoute,
+    odsRoute,
+    odsIndexRoute,
+
+    rolesRoute,
+    rolesIndexRoute,
+    roleRoute,
+    roleIndexRoute,
+
+    tenantsRoute,
+    tenantsIndexRoute,
+    tenantRoute,
+    tenantIndexRoute,
+
+    usersRoute,
+    usersIndexRoute,
+    userRoute,
+    userIndexRoute,
+
+    ownershipsRoute,
+    ownershipsIndexRoute,
+    ownershipRoute,
+    ownershipIndexRoute,
+
+    edorgsRoute,
+    edorgsIndexRoute,
+    edorgRoute,
+    edorgIndexRoute,
+
+    claimsetsRoute,
+    claimsetsIndexRoute,
+    claimsetRoute,
+    claimsetIndexRoute,
+
+    applicationsRoute,
+    applicationsIndexRoute,
+    applicationRoute,
+    applicationIndexRoute,
+    applicationCreateRoute,
+
+    vendorsRoute,
+    vendorsIndexRoute,
+    vendorRoute,
+    vendorIndexRoute,
+
+    asRoute,
     accountRouteGlobal,
-    tenantsRoute.addChildren([
-      tenantsIndexRoute,
-      tenantRoute.addChildren([tenantIndexRoute]),
-    ]),
-  ]),
-  publicAppLayoutRoute.addChildren([publicRoute, secretRoute]),
+  ],
+};
+export const routes = [
+  mainLayoutRoute,
   loginRoute,
+  publicRoute,
   fallback404Route,
-]);
-
-// Create the router using your route tree
-export const router = new Router({ routeTree });
-
+];
+const addPathToHandle = (r: RouteObject) => {
+  r.handle = {
+    ...r.handle,
+    path: r.path,
+  };
+  r.children?.forEach((route) => addPathToHandle(route));
+};
+routes.forEach(addPathToHandle);
+const flattenRoute = (r: RouteObject): RouteObject[] =>
+  [r, ...(r.children ?? []).map((route) => flattenRoute(route))].flat();
+const router = createBrowserRouter(routes);
+export const flatRoutes = routes.flatMap(flattenRoute);
 export const Routes = () => {
-  return (
-    <>
-      <RouterProvider router={router} />
-      <TanStackRouterDevtools position="bottom-right" router={router} />
-    </>
-  );
+  return <RouterProvider router={router} />;
 };

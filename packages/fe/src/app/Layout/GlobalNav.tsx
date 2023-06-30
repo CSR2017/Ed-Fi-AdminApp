@@ -1,103 +1,127 @@
 import { Text } from '@chakra-ui/react';
 import {
-  AnyRoute,
-  AnyRoutesInfo,
-  RouteMatch,
-  useRouter,
-} from '@tanstack/router';
-import _ from 'lodash';
-import {
+  BsBuildings,
+  BsBuildingsFill,
   BsClipboard,
   BsClipboardFill,
   BsFolder,
   BsFolderFill,
 } from 'react-icons/bs';
+import { useMatches } from 'react-router-dom';
 import { sbeQueries } from '../api/queries/queries';
-import {
-  ownershipGlobalRoute,
-  ownershipsGlobalRoute,
-  sbeGlobalRoute,
-  sbesGlobalRoute,
-} from '../routes';
 import { INavButtonProps, NavButton } from './NavButton';
+import { queryClient } from '../app';
+import { usePrivilegeCacheForConfig, arrayElemIf, authorize } from '../helpers';
+import { useQueryClient } from '@tanstack/react-query';
+
+export const isMatch = (activeRoute: string, item: INavButtonProps) => {
+  const paramsEqual = activeRoute.startsWith(item.route);
+  const sameRoute = item.route === activeRoute;
+
+  return sameRoute && paramsEqual;
+};
+
+export const tagMatch = (
+  items: INavButtonProps[],
+  match: string | null
+): INavButtonProps[] =>
+  match === null
+    ? items
+    : items.map((item) => ({
+        ...item,
+        isActive: isMatch(match, item),
+        childItems: tagMatch(item.childItems || [], match),
+      }));
 
 export const GlobalNav = (props: object) => {
   const sbes = sbeQueries.useAll({});
+  const queryClient = useQueryClient();
 
-  const items: INavButtonProps[] = [
-    // // TODO these come later. for now just the SBEs are built in the global version
-    // {
-    //   route: usersRoute,
-    //   params: { asId: props.tenantId },
-    //   icon: BsCloudRain,
-    //   activeIcon: BsCloudRainFill,
-    //   text: 'Users',
-    // },
-    // {
-    //   route: rolesRoute,
-    //   params: { asId: props.tenantId },
-    //   icon: BsGear,
-    //   activeIcon: BsGearFill,
-    //   text: 'Roles',
-    // },
+  usePrivilegeCacheForConfig([
     {
-      route: ownershipsGlobalRoute,
-      icon: BsClipboard,
-      activeIcon: BsClipboardFill,
-      text: 'Ownerships',
+      privilege: 'ownership:read',
+      subject: {
+        id: '__filtered__',
+      },
     },
     {
-      route: sbesGlobalRoute,
-      params: {},
-      icon: BsFolder,
-      activeIcon: BsFolderFill,
-      text: 'Environments',
-      childItems: Object.values(sbes.data || {}).map((sbe) => ({
-        route: sbeGlobalRoute,
-        params: { sbeId: String(sbe.id) },
+      privilege: 'tenant:read',
+      subject: {
+        id: '__filtered__',
+      },
+    },
+    {
+      privilege: 'sbe:read',
+      subject: {
+        id: '__filtered__',
+      },
+    },
+  ]);
+  const items: INavButtonProps[] = [
+    ...arrayElemIf(
+      authorize({
+        queryClient,
+        config: {
+          privilege: 'tenant:read',
+          subject: { id: '__filtered__' },
+        },
+      }),
+      {
+        route: `/tenants`,
+        icon: BsBuildings,
+        activeIcon: BsBuildingsFill,
+        text: 'Tenants',
+      }
+    ),
+    ...arrayElemIf(
+      authorize({
+        queryClient,
+        config: {
+          privilege: 'ownership:read',
+          subject: { id: '__filtered__' },
+        },
+      }),
+      {
+        route: `/ownerships`,
+        icon: BsClipboard,
+        activeIcon: BsClipboardFill,
+        text: 'Ownerships',
+      }
+    ),
+    ...arrayElemIf(
+      authorize({
+        queryClient,
+        config: {
+          privilege: 'sbe:read',
+          subject: { id: '__filtered__' },
+        },
+      }),
+      {
+        route: `/sbes`,
         icon: BsFolder,
         activeIcon: BsFolderFill,
-        text: sbe.displayName,
-        // TODO these come later. for now just the SBEs are built in the global version
-        // childItems: [
-        //   {
-        //     route: odssRoute,
-        //     params: { asId: props.tenantId, sbeId: String(sbe.id) },
-        //     icon: BsDatabase,
-        //     activeIcon: BsDatabaseFill,
-        //     text: 'ODSs',
-        //   },
-        //   {
-        //     route: edorgsRoute,
-        //     params: { asId: props.tenantId, sbeId: String(sbe.id) },
-        //     icon: BsBook,
-        //     activeIcon: BsBookFill,
-        //     text: 'Ed-Orgs',
-        //   },
-        //   {
-        //     route: vendorsRoute,
-        //     params: { asId: props.tenantId, sbeId: String(sbe.id) },
-        //     icon: BsBuilding,
-        //     activeIcon: BsBuildingFill,
-        //     text: 'Vendors',
-        //   },
-        //   {
-        //     route: applicationsRoute,
-        //     params: { asId: props.tenantId, sbeId: String(sbe.id) },
-        //     icon: BsKey,
-        //     activeIcon: BsKeyFill,
-        //     text: 'Applications',
-        //   },
-        //   {
-        //     route: claimsetsRoute,
-        //     params: { asId: props.tenantId, sbeId: String(sbe.id) },
-        //     icon: BsShieldLock,
-        //     activeIcon: BsShieldLockFill,
-        //     text: 'Claimsets',
-        //   },
-        // ],
-      })),
-    },
+        text: 'Environments',
+        childItems: Object.values(sbes.data || {})
+          .map((sbe) =>
+            arrayElemIf(
+              authorize({
+                queryClient,
+                config: {
+                  privilege: 'sbe:read',
+                  subject: { id: sbe.id },
+                },
+              }),
+              {
+                route: `/sbes/${sbe.id}`,
+                icon: BsFolder,
+                activeIcon: BsFolderFill,
+                text: sbe.displayName,
+              }
+            )
+          )
+          .flat(),
+      }
+    ),
   ];
 
   const flatten = (item: INavButtonProps): INavButtonProps[] => [
@@ -107,40 +131,13 @@ export const GlobalNav = (props: object) => {
   const flatItems = items.flatMap((item) => flatten(item));
 
   let deepestMatch = null;
-  const router = useRouter();
+  const currentMatches = useMatches();
 
-  const isMatch = <
-    M extends Pick<RouteMatch<AnyRoutesInfo, AnyRoute>, 'params' | 'route'>
-  >(
-    activeRoute: M,
-    item: INavButtonProps
-  ) => {
-    const itemParams = item.params || {};
-    const paramsEqual = _.isMatch(activeRoute.params, itemParams);
-    const sameRoute = item.route.id === activeRoute.route.id;
-
-    return sameRoute && paramsEqual;
-  };
-
-  router.state.currentMatches.forEach((m) => {
-    if (flatItems.some((item) => isMatch(m, item))) {
-      deepestMatch = m;
+  currentMatches.forEach((m) => {
+    if (flatItems.some((item) => isMatch(m.pathname, item))) {
+      deepestMatch = m.pathname;
     }
   });
-
-  const tagMatch = <
-    M extends Pick<RouteMatch<AnyRoutesInfo, AnyRoute>, 'params' | 'route'>
-  >(
-    items: INavButtonProps[],
-    match: M | null
-  ): INavButtonProps[] =>
-    match === null
-      ? items
-      : items.map((item) => ({
-          ...item,
-          isActive: isMatch(match, item),
-          childItems: tagMatch(item.childItems || [], match),
-        }));
 
   return (
     <>
@@ -148,7 +145,7 @@ export const GlobalNav = (props: object) => {
         Resources
       </Text>
       {tagMatch(items, deepestMatch).map((item) => (
-        <NavButton key={item.text + item.route.fullPath} {...item} />
+        <NavButton key={item.text + item.route} {...item} />
       ))}
     </>
   );

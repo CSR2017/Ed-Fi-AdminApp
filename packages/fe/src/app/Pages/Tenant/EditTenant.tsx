@@ -1,66 +1,23 @@
 import {
-  Box,
   Button,
   ButtonGroup,
-  Checkbox,
-  CheckboxGroup,
-  Editable,
-  EditableInput,
-  EditablePreview,
-  EditableTextarea,
-  Flex,
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Grid,
-  HStack,
-  IconButton,
   Input,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  PinInput,
-  PinInputField,
-  Radio,
-  RadioGroup,
-  RangeSlider,
-  RangeSliderFilledTrack,
-  RangeSliderThumb,
-  RangeSliderTrack,
-  Select,
-  Slider,
-  SliderFilledTrack,
-  SliderMark,
-  SliderThumb,
-  SliderTrack,
-  Stack,
-  Switch,
-  Textarea,
-  Tooltip,
-  VStack,
 } from '@chakra-ui/react';
 import { PutTenantDto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useNavigate, useParams, useSearch } from '@tanstack/router';
 import { useForm } from 'react-hook-form';
-import { tenantRoute, tenantIndexRoute } from '../../routes';
+import { useNavigate, useParams } from 'react-router-dom';
 import { tenantQueries } from '../../api';
 
 const resolver = classValidatorResolver(PutTenantDto);
 
 export const EditTenant = () => {
   const navigate = useNavigate();
-  const goToView = () => {
-    navigate({
-      to: tenantRoute.fullPath,
-      params: (old: any) => old,
-      search: {},
-    });
-  };
-  const params = useParams({ from: tenantIndexRoute.id });
+  const params = useParams() as { tenantId: string };
+  const goToView = () => navigate(`tenants/${params.tenantId}`);
   const putTenant = tenantQueries.usePut({
     callback: goToView,
   });

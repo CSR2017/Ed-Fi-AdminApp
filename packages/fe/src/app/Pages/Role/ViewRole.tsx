@@ -1,17 +1,12 @@
-import {
-  FormLabel,
-  Grid,
-  SimpleGrid,
-  Tag,
-  Text,
-  Tooltip,
-} from '@chakra-ui/react';
-import { useParams } from '@tanstack/router';
+import { FormLabel, Grid, Tag, Text } from '@chakra-ui/react';
+import { useParams } from 'react-router-dom';
 import { roleQueries } from '../../api';
-import { roleRoute } from '../../routes';
 
 export const ViewRole = () => {
-  const params = useParams({ from: roleRoute.id });
+  const params = useParams() as {
+    asId: string;
+    roleId: string;
+  };
   const role = roleQueries.useOne({
     id: params.roleId,
     tenantId: params.asId,

@@ -1,4 +1,3 @@
-import { ChevronRightIcon } from '@chakra-ui/icons';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,12 +6,29 @@ import {
   StyleProps,
   Text,
 } from '@chakra-ui/react';
-import { Link as RouterLink, useMatches } from '@tanstack/router';
 import { useEffect, useState } from 'react';
+import { Link as RouterLink, generatePath, useMatches } from 'react-router-dom';
+import { flatRoutes, routes } from '../routes';
 
 export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
   const matches = useMatches();
-  const breadcrumbs = matches.filter((m) => m?.routeContext?.breadcrumb);
+  const lastMatch = matches[matches.length - 1];
+  const breadcrumbs = flatRoutes
+    .filter(
+      (m) =>
+        m.path && lastMatch?.handle?.path?.startsWith(m.path) && m.handle?.crumb
+    )
+    .sort((a, b) => {
+      const aPath = a.path;
+      const bPath = b.path;
+      return aPath && bPath
+        ? aPath.startsWith(bPath)
+          ? 1
+          : bPath.startsWith(aPath)
+          ? -1
+          : 0
+        : 0;
+    });
 
   const [terminalItemRef, setTerminalItemRef] =
     useState<HTMLAnchorElement | null>(null);
@@ -38,30 +54,37 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
       spacing={1}
       color="gray.500"
       separator={
-        <Text color="gray.200" pb="0.175em" fontSize="2xl" mx="0.3em">
+        <Text
+          color="gray.200"
+          pb="0.175em"
+          fontSize="2xl"
+          mx="0.3em"
+          lineHeight={0}
+        >
           /
         </Text>
       }
       {...props}
     >
-      {breadcrumbs.map((match, i) => {
-        const breadcrumb = match?.routeContext?.breadcrumb;
-        const LinkTitle = breadcrumb && breadcrumb()?.title;
-        const props: any = {
-          as: RouterLink,
-          to: match.route.fullPath,
-          search: {},
-          params: breadcrumb().params,
-        };
+      <BreadcrumbItem>
+        <BreadcrumbLink as={RouterLink} to={'/'}>
+          Home
+        </BreadcrumbLink>
+      </BreadcrumbItem>
+      {breadcrumbs.map((route, i) => {
+        const Breadcrumb = route.handle.crumb!;
+        const path = route.path!;
+        const to = generatePath(path, lastMatch.params);
         return (
-          <BreadcrumbItem key={match.pathname}>
+          <BreadcrumbItem key={to}>
             <BreadcrumbLink
               ref={(newRef) => {
                 i === breadcrumbs.length - 1 && setTerminalItemRef(newRef);
               }}
-              {...props}
+              as={RouterLink}
+              to={to}
             >
-              <LinkTitle />
+              <Breadcrumb />
             </BreadcrumbLink>
           </BreadcrumbItem>
         );

@@ -8,23 +8,16 @@ import {
 } from '@chakra-ui/react';
 import { GetSbeDto, PutSbeAdminApi } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useNavigate } from '@tanstack/router';
 import { useForm } from 'react-hook-form';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useSbeEditAdminApi } from '../../api';
-import { sbeGlobalRoute } from '../../routes';
-import _ from 'lodash';
 
 const resolver = classValidatorResolver(PutSbeAdminApi);
 
 export const EditSbeAdminApi = (props: { sbe: GetSbeDto }) => {
   const navigate = useNavigate();
-  const goToView = () => {
-    navigate({
-      to: sbeGlobalRoute.fullPath,
-      params: (old: any) => old,
-      search: (old: any) => _.omit(old, 'edit'),
-    });
-  };
+  const params = useParams() as { sbeId: string };
+  const goToView = () => navigate(`/sbes/${params.sbeId}`);
   const putSbe = useSbeEditAdminApi(goToView);
   const { sbe } = props;
   const sbeFormDefaults: PutSbeAdminApi = {

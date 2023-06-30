@@ -1,6 +1,6 @@
 import { Button } from '@chakra-ui/react';
 import { ConfirmAction } from '@edanalytics/common-ui';
-import { useNavigate, useParams, useSearch } from '@tanstack/router';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ReactNode } from 'react';
 import { BiEdit, BiTrash } from 'react-icons/bi';
 import { roleQueries } from '../../api';
@@ -16,12 +16,16 @@ import { ViewRole } from './ViewRole';
 import { useRoleActions } from './useRoleActions';
 import { ActionBarActions } from '../../helpers/ActionBarActions';
 import _ from 'lodash';
+import { useSearchParamsObject } from '../../helpers/useSearch';
 
-export const RolePage = (): ReactNode => {
+export const RolePage = () => {
   const navigate = useNavigate();
   const navToParentOptions = useNavToParent();
 
-  const params = useParams({ from: roleIndexRoute.id });
+  const params = useParams() as {
+    asId: string;
+    roleId: string;
+  };
   const deleteRole = roleQueries.useDelete({
     callback: () => {
       navigate(navToParentOptions);
@@ -32,7 +36,7 @@ export const RolePage = (): ReactNode => {
     id: params.roleId,
     tenantId: params.asId,
   }).data;
-  const { edit } = useSearch({ from: roleIndexRoute.id });
+  const { edit } = useSearchParamsObject() as { edit?: boolean };
   const actions = useRoleActions(role);
 
   return (

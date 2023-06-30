@@ -1,5 +1,5 @@
 import { GetRoleDto } from '@edanalytics/models';
-import { useNavigate, useParams } from '@tanstack/router';
+import { useNavigate, useParams } from 'react-router-dom';
 import { BiEdit, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { roleQueries } from '../../api';
@@ -13,22 +13,19 @@ import {
 
 export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
   const navigate = useNavigate();
-  const path = roleIndexRoute.fullPath;
+  const to = (id: number | string) => `/roles/${id}`;
   const deleteRole = roleQueries.useDelete({});
-  const params = useParams({ from: rolesRoute.id });
+  const params = useParams() as {
+    asId: string;
+    roleId: string;
+  };
   return role === undefined
     ? {}
     : {
         View: (props: {
           children: (props: LinkActionProps) => JSX.Element;
         }) => {
-          const toOptions = {
-            to: path,
-            params: (old: any) => ({
-              ...old,
-              roleId: String(role.id),
-            }),
-          };
+          const path = to(role.id);
           return (
             <AuthorizeComponent
               config={tenantRoleAuthConfig(
@@ -41,8 +38,8 @@ export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
                 icon={HiOutlineEye}
                 text="View"
                 title={'View ' + role.displayName}
-                linkProps={toOptions}
-                onClick={() => navigate(toOptions)}
+                to={path}
+                onClick={() => navigate(path)}
               />
             </AuthorizeComponent>
           );
@@ -50,14 +47,7 @@ export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
         Edit: (props: {
           children: (props: LinkActionProps) => JSX.Element;
         }) => {
-          const toOptions = {
-            to: path,
-            params: (old: any) => ({
-              ...old,
-              roleId: String(role.id),
-            }),
-            search: { edit: true },
-          };
+          const path = to(role.id);
           return (
             <AuthorizeComponent
               config={tenantRoleAuthConfig(
@@ -70,8 +60,8 @@ export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
                 icon={BiEdit}
                 text="Edit"
                 title={'Edit ' + role.displayName}
-                linkProps={toOptions}
-                onClick={() => navigate(toOptions)}
+                to={to + '?edit=true'}
+                onClick={() => navigate(to + '?edit=true')}
               />
             </AuthorizeComponent>
           );
@@ -94,11 +84,7 @@ export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
                 confirmBody="This will permanently delete the role."
                 onClick={() =>
                   deleteRole.mutateAsync(role.id, {
-                    onSuccess: () =>
-                      navigate({
-                        to: rolesRoute.fullPath,
-                        params: (old: any) => old,
-                      }),
+                    onSuccess: () => navigate(`/as/${params.asId}/roles`),
                   })
                 }
                 confirm={true}

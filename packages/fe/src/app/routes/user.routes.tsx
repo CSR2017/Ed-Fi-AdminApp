@@ -1,69 +1,49 @@
 import { Link, Text } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
-import { Link as RouterLink, Route, useParams } from '@tanstack/router';
-import { UseQueryResult } from '@tanstack/react-query';
 import { GetUserDto } from '@edanalytics/models';
-import { asRoute } from '.';
-import { getRelationDisplayName } from '../helpers';
-import { userQueries } from '../api';
+import { UseQueryResult } from '@tanstack/react-query';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { UserPage } from '../Pages/User/UserPage';
 import { UsersPage } from '../Pages/User/UsersPage';
+import { userQueries } from '../api';
+import { getRelationDisplayName } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
-export const usersRoute = new Route({
-  getParentRoute: () => asRoute,
-  path: 'users',
-  getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Users', params }),
-  }),
-});
-
-export const usersIndexRoute = new Route({
-  getParentRoute: () => usersRoute,
-  path: '/',
-  component: UsersPage,
-});
-
 const UserBreadcrumb = () => {
-  const params = useParams({ from: userRoute.id });
-  const user = userQueries.useOne({ id: params.userId, tenantId: params.asId });
+  const params = useParams() as { userId: string; asId: string };
+  const user = userQueries.useOne({
+    id: params.userId,
+    tenantId: params.asId,
+  });
   return user.data?.displayName ?? params.userId;
 };
 
-export const userRoute = new Route({
-  getParentRoute: () => usersRoute,
-  path: '$userId',
-  validateSearch: (search): { edit?: boolean } =>
-    typeof search.edit === 'boolean' ? { edit: search.edit } : {},
-  getContext: ({ params }) => {
-    return {
-      breadcrumb: () => ({ title: UserBreadcrumb, params }),
-    };
-  },
-});
+export const userIndexRoute: RouteObject = {
+  path: '/as/:asId/users/:userId/',
+  element: <UserPage />,
+};
+export const userRoute: RouteObject = {
+  path: '/as/:asId/users/:userId',
+  handle: { crumb: UserBreadcrumb },
+};
 
-export const userIndexRoute = new Route({
-  getParentRoute: () => userRoute,
-  path: '/',
-  component: UserPage,
-});
+export const usersIndexRoute: RouteObject = {
+  path: '/as/:asId/users/',
+  element: <UsersPage />,
+};
+export const usersRoute: RouteObject = {
+  path: '/as/:asId/users',
+  handle: { crumb: () => 'Users' },
+};
 
 export const UserLink = (props: {
   id: number | undefined;
   query: UseQueryResult<Record<string | number, GetUserDto>, unknown>;
 }) => {
-  const params = useParams({ from: asRoute.id });
   const user = getEntityFromQuery(props.id, props.query);
+  const params = useParams() as { asId: string };
   return user ? (
     <Link as="span">
-      <RouterLink
-        title="Go to user"
-        to={userRoute.fullPath}
-        params={{
-          asId: params.asId,
-          userId: String(user.id),
-        }}
-      >
+      <RouterLink title="Go to user" to={`/as/${params.asId}/users/${user.id}`}>
         {getRelationDisplayName(user.id, props.query)}
       </RouterLink>
     </Link>

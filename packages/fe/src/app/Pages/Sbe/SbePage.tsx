@@ -1,4 +1,4 @@
-import { useParams } from '@tanstack/router';
+import { useParams } from 'react-router-dom';
 import { ReactNode } from 'react';
 import { sbeQueries } from '../../api';
 import { sbeIndexRoute } from '../../routes';
@@ -7,8 +7,11 @@ import { ActionBarActions } from '../../helpers/ActionBarActions';
 import { ViewSbe } from './ViewSbe';
 import _ from 'lodash';
 
-export const SbePage = (): ReactNode => {
-  const params = useParams({ from: sbeIndexRoute.id });
+export const SbePage = () => {
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+  };
   const sbe = sbeQueries.useOne({
     id: params.sbeId,
     tenantId: params.asId,

@@ -1,78 +1,16 @@
-import { Button, Icon, IconButton, MenuItem } from '@chakra-ui/react';
 import { ConfirmAction } from '@edanalytics/common-ui';
-import { MutateOptions } from '@tanstack/react-query';
-import { AnyRoute, Link } from '@tanstack/router';
-import { AxiosResponse } from 'axios';
-import { BiEdit, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
+import { Button, Icon, IconButton, MenuItem } from '@chakra-ui/react';
+import { Link } from 'react-router-dom';
 import {
   ActionProps,
   ActionPropsConfirm,
   LinkActionProps,
 } from './ActionsType';
 
-export const StandardRowActions = <
-  RowType extends {
-    getValue: () => unknown;
-    row: { original: { id: number } };
-  },
-  RouteType extends AnyRoute = AnyRoute,
-  ParamsType extends object = object
->(props: {
-  route: RouteType;
-  info: RowType;
-  params: ParamsType;
-  mutation: (
-    variables: number,
-    options?:
-      | MutateOptions<
-          AxiosResponse<unknown, any>,
-          unknown,
-          number | string,
-          unknown
-        >
-      | undefined
-  ) => void;
-}) => {
-  const path = props.route.fullPath;
-  return (
-    <>
-      <Link title="View" to={path} params={props.params}>
-        <Icon fontSize="md" as={HiOutlineEye} />
-      </Link>
-      <Link
-        title="Edit"
-        to={path}
-        params={props.params}
-        search={{ edit: true }}
-      >
-        <Icon fontSize="md" as={BiEdit} />
-      </Link>
-      <ConfirmAction
-        headerText={`Delete ${props.info.getValue()}?`}
-        bodyText="You won't be able to get it back"
-        action={() => {
-          props.mutation(props.info.row.original.id);
-        }}
-      >
-        {(props) => (
-          <Icon
-            role="button"
-            fontSize="md"
-            _hover={{ cursor: 'pointer' }}
-            as={BiTrash}
-            {...props}
-          />
-        )}
-      </ConfirmAction>
-    </>
-  );
-};
-
 export const ActionBarButton = (
   props: ActionProps | ActionPropsConfirm | LinkActionProps
 ) =>
-  'linkProps' in props ? (
+  'to' in props ? (
     <ActionBarButtons.link {...props} />
   ) : 'confirm' in props ? (
     <ActionBarButtons.confirm {...props} />
@@ -115,7 +53,7 @@ export const ActionBarButtons = {
   link: (props: LinkActionProps) => (
     <Button
       as={Link}
-      {...props.linkProps}
+      to={props.to}
       isDisabled={props.isDisabled}
       leftIcon={props.icon({})}
       title={props.title}
@@ -127,7 +65,7 @@ export const ActionBarButtons = {
 export const ActionMenuButton = (
   props: ActionProps | ActionPropsConfirm | LinkActionProps
 ) =>
-  'linkProps' in props ? (
+  'to' in props ? (
     <ActionMenuButtons.link {...props} />
   ) : 'confirm' in props ? (
     <ActionMenuButtons.confirm {...props} />
@@ -173,7 +111,7 @@ export const ActionMenuButtons = {
     <MenuItem
       gap={2}
       as={Link}
-      {...props.linkProps}
+      to={props.to}
       isDisabled={props.isDisabled}
       title={props.title}
     >
@@ -186,7 +124,7 @@ export const ActionMenuButtons = {
 export const TdIconButton = (
   props: ActionProps | ActionPropsConfirm | LinkActionProps
 ) =>
-  'linkProps' in props ? (
+  'to' in props ? (
     <TdIconButtons.link {...props} />
   ) : 'confirm' in props ? (
     <TdIconButtons.confirm {...props} />
@@ -199,7 +137,7 @@ export const TdIconButtons = {
     <IconButton
       as={Link}
       isDisabled={props.isDisabled}
-      {...(props.linkProps as any)}
+      to={props.to}
       aria-label={props.text}
       title={props.title}
       px="0.3rem"

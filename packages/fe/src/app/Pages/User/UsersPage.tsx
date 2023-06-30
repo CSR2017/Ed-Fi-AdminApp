@@ -1,33 +1,28 @@
-import { Box, HStack } from '@chakra-ui/react';
+import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetUserTenantMembershipDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
-import { useParams } from '@tanstack/router';
+import { useParams } from 'react-router-dom';
 import {
   roleQueries,
   userQueries,
   userTenantMembershipQueries,
 } from '../../api';
+import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { useReadTenantEntity } from '../../helpers/useStandardRowActionsNew';
-import { RoleLink, UserLink, userRoute, usersRoute } from '../../routes';
+import { RoleLink, UserLink, userRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
-import { ActionsType } from '../../helpers/ActionsType';
-import { TableRowActions } from '../../helpers/TableRowActions';
-import _ from 'lodash';
 
 const NameCell = (info: CellContext<GetUserTenantMembershipDto, unknown>) => {
-  const params = useParams({ from: usersRoute.id });
+  const params = useParams() as { asId: string };
   const users = userQueries.useAll({
-    tenantId: params.asId,
-  });
-  const deleteUser = userQueries.useDelete({
     tenantId: params.asId,
   });
 
   const View = useReadTenantEntity({
     entity: info.row.original,
-    params: { userId: String(info.row.original.userId), ...params },
+    params: { ...params },
     privilege: 'tenant.user:read',
     route: userRoute,
   });
@@ -42,7 +37,7 @@ const NameCell = (info: CellContext<GetUserTenantMembershipDto, unknown>) => {
   );
 };
 export const UsersPage = () => {
-  const params = useParams({ from: usersRoute.id });
+  const params = useParams() as { asId: string };
   const users = userQueries.useAll({
     tenantId: params.asId,
   });

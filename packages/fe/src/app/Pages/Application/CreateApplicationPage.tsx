@@ -20,9 +20,9 @@ import {
   PostApplicationForm,
 } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useNavigate, useParams } from '@tanstack/router';
-import { ReactNode, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useApplicationPost } from '../../api';
 import { useNavToParent } from '../../helpers';
 import {
@@ -30,22 +30,14 @@ import {
   SelectEdorg,
   SelectVendor,
 } from '../../helpers/FormPickers';
-import { applicationIndexRoute, applicationRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 const resolver = classValidatorResolver(PostApplicationForm);
 
-export const CreateApplicationPage = (): ReactNode => {
+export const CreateApplicationPage = () => {
   const navigate = useNavigate();
-  const params = useParams({ from: applicationIndexRoute.id });
+  const params = useParams() as { asId: string; sbeId: string };
   const navToParentOptions = useNavToParent();
 
-  const goToView = (id: string) => {
-    navigate({
-      to: applicationRoute.fullPath,
-      params: (old: any) => ({ ...old, applicationId: id }),
-      search: {},
-    });
-  };
   const [result, setResult] = useState<ApplicationYopassResponseDto | null>(
     null
   );
@@ -77,7 +69,10 @@ export const CreateApplicationPage = (): ReactNode => {
         onClose={() => {
           setResult(null);
           clipboard.setValue('');
-          result && goToView(String(result.applicationId));
+          result &&
+            navigate(
+              `/as/${params.asId}/sbes/${params.sbeId}/applications/${result.applicationId}`
+            );
         }}
       >
         <ModalOverlay />

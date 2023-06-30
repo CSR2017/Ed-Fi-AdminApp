@@ -8,7 +8,7 @@ import {
 } from '@chakra-ui/react';
 import { PutUserDto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useNavigate } from '@tanstack/router';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useMe, usePutMe } from '../../api';
 

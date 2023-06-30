@@ -1,23 +1,13 @@
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  Flex,
-  Grid,
-  HStack,
-  Stack,
-  Text,
-  Tooltip,
-  FormLabel,
-  VStack,
-} from '@chakra-ui/react';
-import { useParams, useSearch } from '@tanstack/router';
+import { FormLabel, Text } from '@chakra-ui/react';
+import { useParams } from 'react-router-dom';
 import { ownershipQueries } from '../../api';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { ownershipRoute, ownershipIndexRoute } from '../../routes';
 
 export const ViewOwnership = () => {
-  const params = useParams({ from: ownershipRoute.id });
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+    ownershipId: string;
+  };
   const ownership = ownershipQueries.useOne({
     id: params.ownershipId,
     tenantId: params.asId,

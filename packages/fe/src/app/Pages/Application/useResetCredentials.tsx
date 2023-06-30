@@ -3,7 +3,6 @@ import {
   AlertDescription,
   AlertIcon,
   AlertTitle,
-  Box,
   Button,
   CloseButton,
   Collapse,
@@ -19,11 +18,7 @@ import {
   Text,
   useClipboard,
 } from '@chakra-ui/react';
-import {
-  ApplicationYopassResponseDto,
-  GetApplicationDto,
-} from '@edanalytics/models';
-import { useState } from 'react';
+import { GetApplicationDto } from '@edanalytics/models';
 import { BiShieldX } from 'react-icons/bi';
 import { useApplicationResetCredential } from '../../api';
 

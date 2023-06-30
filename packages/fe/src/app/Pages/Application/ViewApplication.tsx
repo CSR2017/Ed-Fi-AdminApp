@@ -1,40 +1,24 @@
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  Flex,
-  FormLabel,
-  Grid,
-  HStack,
-  Stack,
-  Text,
-  Tooltip,
-  VStack,
-} from '@chakra-ui/react';
-import { useParams, useSearch } from '@tanstack/router';
+import { FormLabel, Text } from '@chakra-ui/react';
+import { useParams } from 'react-router-dom';
 import {
   applicationQueries,
   claimsetQueries,
   edorgQueries,
   vendorQueries,
 } from '../../api';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import {
-  applicationRoute,
-  applicationIndexRoute,
-  EdorgLink,
-  VendorLink,
-  ClaimsetLink,
-} from '../../routes';
+import { ClaimsetLink, EdorgLink, VendorLink } from '../../routes';
 
 export const ViewApplication = () => {
-  const params = useParams({ from: applicationRoute.id });
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+    applicationId: string;
+  };
   const application = applicationQueries.useOne({
     id: params.applicationId,
     sbeId: params.sbeId,
     tenantId: params.asId,
   }).data;
-  const { edit } = useSearch({ from: applicationIndexRoute.id });
 
   const edorgs = edorgQueries.useAll({
     tenantId: params.asId,
@@ -68,11 +52,7 @@ export const ViewApplication = () => {
       <FormLabel as="p">Vendor</FormLabel>
       <VendorLink id={application?.vendorId} query={vendors} />
       <FormLabel as="p">Claimset</FormLabel>
-      <ClaimsetLink
-        sbeId={params.sbeId}
-        id={claimsetByName?.id}
-        query={claimsets}
-      />
+      <ClaimsetLink id={claimsetByName?.id} query={claimsets} />
     </>
   ) : null;
 };

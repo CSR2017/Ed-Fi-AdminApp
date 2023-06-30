@@ -1,14 +1,16 @@
-import { useParams } from '@tanstack/router';
-import { ReactNode } from 'react';
+import _ from 'lodash';
+import { useParams } from 'react-router-dom';
 import { edorgQueries } from '../../api';
-import { edorgIndexRoute } from '../../routes';
+import { ActionBarActions } from '../../helpers';
 import { PageTemplate } from '../PageTemplate';
 import { ViewEdorg } from './ViewEdorg';
-import { ActionBarActions } from '../../helpers';
-import _ from 'lodash';
 
-export const EdorgPage = (): ReactNode => {
-  const params = useParams({ from: edorgIndexRoute.id });
+export const EdorgPage = () => {
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+    edorgId: string;
+  };
   const edorg = edorgQueries.useOne({
     id: params.edorgId,
     sbeId: params.sbeId,

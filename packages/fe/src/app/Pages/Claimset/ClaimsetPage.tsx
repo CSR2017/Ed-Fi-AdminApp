@@ -1,21 +1,22 @@
-import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ActionGroup, ConfirmAction } from '@edanalytics/common-ui';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useNavigate, useParams, useSearch } from '@tanstack/router';
+import { Button } from '@chakra-ui/react';
+import { ConfirmAction } from '@edanalytics/common-ui';
 import { BiEdit, BiTrash } from 'react-icons/bi';
-import { claimsetQueries, userQueries } from '../../api';
-import { claimsetIndexRoute } from '../../routes';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { claimsetQueries } from '../../api';
 import { useNavToParent } from '../../helpers';
-import { EditClaimset } from './EditClaimset';
-import { ViewClaimset } from './ViewClaimset';
-import { ReactNode } from 'react';
+import { useSearchParamsObject } from '../../helpers/useSearch';
 import { PageTemplate } from '../PageTemplate';
+import { ViewClaimset } from './ViewClaimset';
 
-export const ClaimsetPage = (): ReactNode => {
+export const ClaimsetPage = () => {
   const navigate = useNavigate();
   const navToParentOptions = useNavToParent();
 
-  const params = useParams({ from: claimsetIndexRoute.id });
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+    claimsetId: string;
+  };
   const deleteClaimset = claimsetQueries.useDelete({
     callback: () => {
       navigate(navToParentOptions);
@@ -29,7 +30,8 @@ export const ClaimsetPage = (): ReactNode => {
     sbeId: params.sbeId,
     tenantId: params.asId,
   }).data;
-  const { edit } = useSearch({ from: claimsetIndexRoute.id });
+  const { edit } = useSearchParamsObject();
+  const [search, setSearch] = useSearchParams();
 
   return (
     <PageTemplate
@@ -42,9 +44,7 @@ export const ClaimsetPage = (): ReactNode => {
               isDisabled={edit}
               leftIcon={<BiEdit />}
               onClick={() => {
-                navigate({
-                  search: { edit: true },
-                });
+                setSearch((prev) => ({ ...prev, edit: true }));
               }}
             >
               Edit
@@ -64,7 +64,7 @@ export const ClaimsetPage = (): ReactNode => {
         ) : null
       }
     >
-      {claimset ? edit ? <EditClaimset /> : <ViewClaimset /> : null}
+      {claimset ? <ViewClaimset /> : null}
     </PageTemplate>
   );
 };

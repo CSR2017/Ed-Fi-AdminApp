@@ -1,11 +1,12 @@
 import { FormLabel, Text } from '@chakra-ui/react';
-import { useParams } from '@tanstack/router';
+import { useParams } from 'react-router-dom';
 import { ownershipQueries, roleQueries, tenantQueries } from '../../api';
-import { ownershipGlobalRoute } from '../../routes';
 import { getRelationDisplayName } from '../../helpers';
 
 export const ViewOwnershipGlobal = () => {
-  const params = useParams({ from: ownershipGlobalRoute.id });
+  const params = useParams() as {
+    ownershipId: string;
+  };
   const ownership = ownershipQueries.useOne({
     id: params.ownershipId,
   }).data;

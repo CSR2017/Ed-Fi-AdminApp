@@ -1,31 +1,15 @@
 import { Link, Text } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
-import { Link as RouterLink, Route, useParams } from '@tanstack/router';
-import { UseQueryResult } from '@tanstack/react-query';
 import { GetOwnershipDto } from '@edanalytics/models';
-import { asRoute, mainLayoutRoute } from '.';
-import { getRelationDisplayName } from '../helpers';
-import { ownershipQueries } from '../api';
+import { UseQueryResult } from '@tanstack/react-query';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { OwnershipPage } from '../Pages/Ownership/OwnershipPage';
 import { OwnershipsPage } from '../Pages/Ownership/OwnershipsPage';
+import { ownershipQueries } from '../api';
+import { getRelationDisplayName } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
-export const ownershipsRoute = new Route({
-  getParentRoute: () => asRoute,
-  path: 'ownerships',
-  getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Ownerships', params }),
-  }),
-});
-
-export const ownershipsIndexRoute = new Route({
-  getParentRoute: () => ownershipsRoute,
-  path: '/',
-  component: OwnershipsPage,
-});
-
 const OwnershipBreadcrumb = () => {
-  const params = useParams({ from: ownershipRoute.id });
+  const params = useParams() as { ownershipId: string; asId: string };
   const ownership = ownershipQueries.useOne({
     id: params.ownershipId,
     tenantId: params.asId,
@@ -33,39 +17,35 @@ const OwnershipBreadcrumb = () => {
   return ownership.data?.displayName ?? params.ownershipId;
 };
 
-export const ownershipRoute = new Route({
-  getParentRoute: () => ownershipsRoute,
-  path: '$ownershipId',
-  validateSearch: (search): { edit?: boolean } =>
-    typeof search.edit === 'boolean' ? { edit: search.edit } : {},
-  getContext: ({ params }) => {
-    return {
-      breadcrumb: () => ({ title: OwnershipBreadcrumb, params }),
-    };
-  },
-});
+export const ownershipIndexRoute: RouteObject = {
+  path: '/as/:asId/ownerships/:ownershipId/',
+  element: <OwnershipPage />,
+};
+export const ownershipRoute: RouteObject = {
+  path: '/as/:asId/ownerships/:ownershipId',
+  handle: { crumb: OwnershipBreadcrumb },
+};
 
-export const ownershipIndexRoute = new Route({
-  getParentRoute: () => ownershipRoute,
-  path: '/',
-  component: OwnershipPage,
-});
+export const ownershipsIndexRoute: RouteObject = {
+  path: '/as/:asId/ownerships/',
+  element: <OwnershipsPage />,
+};
+export const ownershipsRoute: RouteObject = {
+  path: '/as/:asId/ownerships',
+  handle: { crumb: () => 'Ownerships' },
+};
 
 export const OwnershipLink = (props: {
   id: number | undefined;
   query: UseQueryResult<Record<string | number, GetOwnershipDto>, unknown>;
 }) => {
-  const params = useParams({ from: asRoute.id });
   const ownership = getEntityFromQuery(props.id, props.query);
+  const params = useParams() as { asId: string };
   return ownership ? (
     <Link as="span">
       <RouterLink
         title="Go to ownership"
-        to={ownershipRoute.fullPath}
-        params={{
-          asId: params.asId,
-          ownershipId: String(ownership.id),
-        }}
+        to={`/as/${params.asId}/ownerships/${ownership.id}`}
       >
         {getRelationDisplayName(ownership.id, props.query)}
       </RouterLink>

@@ -1,18 +1,13 @@
 import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
-import { useParams } from '@tanstack/router';
 import { tenantQueries, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { StandardRowActions } from '../../helpers/getStandardActions';
-import { TenantLink, tenantRoute, tenantsRoute, UserLink } from '../../routes';
+import { TenantLink, UserLink } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 
 export const TenantsPage = () => {
-  const params = useParams({ from: tenantsRoute.id });
   const tenants = tenantQueries.useAll({});
-  const deleteTenant = tenantQueries.useDelete({});
-  // TODO fix this as soon as tenant urls are validated using fake .Required flag
-  const users = userQueries.useAll({ tenantId: 1 });
+  const users = userQueries.useAll({});
 
   return (
     <PageTemplate title="Tenants">
@@ -24,17 +19,6 @@ export const TenantsPage = () => {
             cell: (info) => (
               <HStack justify="space-between">
                 <TenantLink id={info.row.original.id} query={tenants} />
-                <HStack className="row-hover" color="gray.600" align="middle">
-                  <StandardRowActions
-                    info={info}
-                    mutation={deleteTenant.mutate}
-                    route={tenantRoute}
-                    params={(params: any) => ({
-                      ...params,
-                      tenantId: String(info.row.original.id),
-                    })}
-                  />
-                </HStack>
               </HStack>
             ),
             header: () => 'Name',

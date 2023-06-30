@@ -1,5 +1,5 @@
 import { GetOwnershipDto } from '@edanalytics/models';
-import { useNavigate } from '@tanstack/router';
+import { useNavigate, useParams } from 'react-router-dom';
 import { BiEdit, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { ownershipQueries } from '../../api';
@@ -14,8 +14,11 @@ import {
 export const useOwnershipGlobalActions = (
   ownership: GetOwnershipDto | undefined
 ): ActionsType => {
+  const params = useParams() as {
+    ownershipId: string;
+  };
   const navigate = useNavigate();
-  const path = ownershipGlobalIndexRoute.fullPath;
+  const to = (id: number | string) => `/ownerships/${id}`;
   const deleteOwnership = ownershipQueries.useDelete({});
   return ownership === undefined
     ? {}
@@ -23,13 +26,7 @@ export const useOwnershipGlobalActions = (
         View: (props: {
           children: (props: LinkActionProps) => JSX.Element;
         }) => {
-          const toOptions = {
-            to: path,
-            params: (old: any) => ({
-              ...old,
-              ownershipId: String(ownership.id),
-            }),
-          };
+          const path = to(ownership.id);
           return (
             <AuthorizeComponent
               config={{
@@ -43,8 +40,8 @@ export const useOwnershipGlobalActions = (
                 icon={HiOutlineEye}
                 text="View"
                 title={'View ' + ownership.displayName}
-                linkProps={toOptions}
-                onClick={() => navigate(toOptions)}
+                to={path}
+                onClick={() => navigate(path)}
               />
             </AuthorizeComponent>
           );
@@ -52,14 +49,7 @@ export const useOwnershipGlobalActions = (
         Edit: (props: {
           children: (props: LinkActionProps) => JSX.Element;
         }) => {
-          const toOptions = {
-            to: path,
-            params: (old: any) => ({
-              ...old,
-              ownershipId: String(ownership.id),
-            }),
-            search: { edit: true },
-          };
+          const path = to(ownership.id);
           return (
             <AuthorizeComponent
               config={{
@@ -73,8 +63,8 @@ export const useOwnershipGlobalActions = (
                 icon={BiEdit}
                 text="Edit"
                 title={'Edit ' + ownership.displayName}
-                linkProps={toOptions}
-                onClick={() => navigate(toOptions)}
+                to={path + '?edit=true'}
+                onClick={() => navigate(path + '?edit=true')}
               />
             </AuthorizeComponent>
           );
@@ -98,8 +88,7 @@ export const useOwnershipGlobalActions = (
                 confirmBody="This will permanently delete the ownership."
                 onClick={() =>
                   deleteOwnership.mutateAsync(ownership.id, {
-                    onSuccess: () =>
-                      navigate({ to: ownershipsGlobalRoute.fullPath }),
+                    onSuccess: () => navigate(`/ownerships`),
                   })
                 }
                 confirm={true}

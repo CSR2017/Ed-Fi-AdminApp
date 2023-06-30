@@ -1,19 +1,15 @@
-import { Box, Button, HStack } from '@chakra-ui/react';
+import { Button, HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetOwnershipDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
-import { Link as RouterLink, useParams } from '@tanstack/router';
 import { BiPlus } from 'react-icons/bi';
+import { Link as RouterLink, useParams } from 'react-router-dom';
 import { ownershipQueries, roleQueries, tenantQueries } from '../../api';
 import { AuthorizeComponent, globalOwnershipAuthConfig } from '../../helpers';
-import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import {
-  OwnershipGlobalLink,
-  ownershipGlobalCreateRoute,
-  ownershipsGlobalRoute,
-} from '../../routes';
-import { PageTemplate } from '../PageTemplate';
 import { TableRowActions } from '../../helpers/TableRowActions';
+import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
+import { OwnershipGlobalLink, ownershipGlobalCreateRoute } from '../../routes';
+import { PageTemplate } from '../PageTemplate';
 import { useOwnershipGlobalActions } from './useOwnershipGlobalActions';
 
 const OwnershipsNameCell = (info: CellContext<GetOwnershipDto, unknown>) => {
@@ -28,7 +24,7 @@ const OwnershipsNameCell = (info: CellContext<GetOwnershipDto, unknown>) => {
 };
 
 export const OwnershipsGlobalPage = () => {
-  const params = useParams({ from: ownershipsGlobalRoute.id });
+  const params = useParams();
   const ownerships = ownershipQueries.useAll({});
   const roles = roleQueries.useAll({});
   const tenants = tenantQueries.useAll({});
@@ -43,10 +39,7 @@ export const OwnershipsGlobalPage = () => {
           <RouterLink
             style={{ display: 'flex' }}
             title="Grant new tenant resource ownership"
-            to={ownershipGlobalCreateRoute.fullPath}
-            params={(previous: any) => ({
-              ...previous,
-            })}
+            to={`/ownerships/create`}
           >
             <Button as="div" leftIcon={<BiPlus />}>
               Grant new

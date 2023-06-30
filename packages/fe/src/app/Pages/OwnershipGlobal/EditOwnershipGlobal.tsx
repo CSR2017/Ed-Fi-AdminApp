@@ -12,7 +12,7 @@ import {
   RoleType,
 } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useNavigate, useParams } from '@tanstack/router';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { ownershipQueries, tenantQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers';
@@ -26,14 +26,10 @@ export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
   const tenants = tenantQueries.useAll({});
 
   const navigate = useNavigate();
-  const goToView = () => {
-    navigate({
-      to: ownershipGlobalRoute.fullPath,
-      params: (old: any) => old,
-      search: {},
-    });
+  const params = useParams() as {
+    ownershipId: string;
   };
-  const params = useParams({ from: ownershipGlobalIndexRoute.id });
+  const goToView = () => navigate(`/ownerships/${params.ownershipId}`);
   const putOwnership = ownershipQueries.usePut({
     callback: goToView,
   });

@@ -1,66 +1,30 @@
 import {
-  Box,
   Button,
   ButtonGroup,
-  Checkbox,
-  CheckboxGroup,
-  Editable,
-  EditableInput,
-  EditablePreview,
-  EditableTextarea,
-  Flex,
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Grid,
-  HStack,
-  IconButton,
   Input,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  PinInput,
-  PinInputField,
-  Radio,
-  RadioGroup,
-  RangeSlider,
-  RangeSliderFilledTrack,
-  RangeSliderThumb,
-  RangeSliderTrack,
-  Select,
-  Slider,
-  SliderFilledTrack,
-  SliderMark,
-  SliderThumb,
-  SliderTrack,
-  Stack,
-  Switch,
-  Textarea,
-  Tooltip,
-  VStack,
 } from '@chakra-ui/react';
 import { PutVendorDto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useNavigate, useParams, useSearch } from '@tanstack/router';
 import { useForm } from 'react-hook-form';
-import { vendorIndexRoute, vendorRoute } from '../../routes';
+import { useNavigate, useParams } from 'react-router-dom';
 import { vendorQueries } from '../../api';
 
 const resolver = classValidatorResolver(PutVendorDto);
 
 export const EditVendor = () => {
   const navigate = useNavigate();
-  const goToView = () => {
-    navigate({
-      to: vendorRoute.fullPath,
-      params: (old: any) => old,
-      search: {},
-    });
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+    vendorId: string;
   };
-  const params = useParams({ from: vendorIndexRoute.id });
+  const goToView = () =>
+    navigate(
+      `/as/${params.asId}/sbes/${params.sbeId}/vendors/${params.vendorId}`
+    );
   const putVendor = vendorQueries.usePut({
     callback: goToView,
     sbeId: params.sbeId,
@@ -71,7 +35,6 @@ export const EditVendor = () => {
     sbeId: params.sbeId,
     tenantId: params.asId,
   }).data;
-  const { edit } = useSearch({ from: vendorIndexRoute.id });
   const {
     register,
     handleSubmit,
@@ -80,7 +43,7 @@ export const EditVendor = () => {
 
   return vendor ? (
     <form onSubmit={handleSubmit((data) => putVendor.mutate(data))}>
-      {/* TODO: replace this with real content */}
+      {/* TODO add the rest of the form */}
       <FormControl isInvalid={!!errors.company}>
         <FormLabel>Company</FormLabel>
         <Input {...register('company')} placeholder="company" />

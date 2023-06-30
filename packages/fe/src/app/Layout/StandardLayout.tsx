@@ -1,6 +1,6 @@
 import { Box, Flex, HStack, VStack } from '@chakra-ui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Outlet } from '@tanstack/router';
+import { Outlet } from 'react-router-dom';
 import React from 'react';
 import { AppBar } from './AppBar';
 import { Breadcrumbs } from './Breadcrumbs';

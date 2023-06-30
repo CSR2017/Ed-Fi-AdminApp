@@ -1,15 +1,13 @@
-import { Box, HStack } from '@chakra-ui/react';
+import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetSbeDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
-import { useParams } from '@tanstack/router';
 import { sbeQueries } from '../../api';
+import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { SbeGlobalLink, UserLink, sbesGlobalRoute } from '../../routes';
+import { SbeGlobalLink, UserLink } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 import { useSbeGlobalActions } from './useSbeGlobalActions';
-import { BiDotsHorizontalRounded } from 'react-icons/bi';
-import { TableRowActions } from '../../helpers/TableRowActions';
 
 const SbesNameCell = (info: CellContext<GetSbeDto, unknown>) => {
   const deleteSbe = sbeQueries.useDelete({});
@@ -24,7 +22,6 @@ const SbesNameCell = (info: CellContext<GetSbeDto, unknown>) => {
 };
 
 export const SbesGlobalPage = () => {
-  const params = useParams({ from: sbesGlobalRoute.id });
   const sbes = sbeQueries.useAll({});
   const users = { data: undefined } as any; // userQueries.useAll({  }); //TODO add users into global scope as well
 

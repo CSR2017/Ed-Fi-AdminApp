@@ -9,13 +9,10 @@ import {
   Text,
   useDisclosure,
 } from '@chakra-ui/react';
-import { AnyRoute, Link as RouterLink } from '@tanstack/router';
-import { useEffect } from 'react';
 import { BsCaretRightFill } from 'react-icons/bs';
+import { Link as RouterLink } from 'react-router-dom';
 export interface INavButtonProps {
-  route: AnyRoute;
-  params?: object;
-  onClick?: () => void;
+  route: string;
   icon?: As;
   activeIcon?: As;
   text: string;
@@ -59,11 +56,8 @@ export const NavButton = (props: INavButtonProps) => {
           // close sub-tree only on redundant re-selection (not if navigating from a different item)
           toggleIsExpanded();
         }
-        props.onClick && props.onClick();
       }}
-      to={props.route.fullPath}
-      params={(props.params as any) || {}}
-      search={{}}
+      to={props.route}
       w="100%"
       borderRadius="0px"
       px={`calc(0.25em + ${depthOffset})`}
@@ -135,7 +129,7 @@ export const NavButton = (props: INavButtonProps) => {
           <Box fontSize="1em">
             {props.childItems?.map((child) => (
               <NavButton
-                key={child.text + child.route.fullPath}
+                key={child.text + child.route}
                 {...child}
                 depth={(props.depth || 0) + 1}
               />

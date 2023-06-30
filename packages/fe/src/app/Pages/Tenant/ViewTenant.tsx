@@ -1,23 +1,9 @@
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  Flex,
-  Grid,
-  HStack,
-  Stack,
-  Text,
-  Tooltip,
-  FormLabel,
-  VStack,
-} from '@chakra-ui/react';
-import { useParams, useSearch } from '@tanstack/router';
+import { FormLabel, Text } from '@chakra-ui/react';
+import { useParams } from 'react-router-dom';
 import { tenantQueries } from '../../api';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { tenantRoute, tenantIndexRoute } from '../../routes';
 
 export const ViewTenant = () => {
-  const params = useParams({ from: tenantRoute.id });
+  const params = useParams() as { tenantId: string };
   const tenant = tenantQueries.useOne({
     id: params.tenantId,
   }).data;

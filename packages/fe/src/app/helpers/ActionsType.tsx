@@ -1,4 +1,3 @@
-import { ToOptions } from '@tanstack/router';
 import { IconType } from 'react-icons/lib';
 
 export type ActionsType = Record<
@@ -23,5 +22,5 @@ export type ActionPropsConfirm = ActionProps & {
 };
 
 export type LinkActionProps = ActionProps & {
-  linkProps: ToOptions;
+  to: string;
 };

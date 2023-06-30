@@ -1,21 +1,19 @@
-import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ActionGroup, ConfirmAction } from '@edanalytics/common-ui';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useNavigate, useParams, useSearch } from '@tanstack/router';
+import { Button } from '@chakra-ui/react';
+import { ConfirmAction } from '@edanalytics/common-ui';
 import { BiEdit, BiTrash } from 'react-icons/bi';
-import { tenantQueries, userQueries } from '../../api';
-import { tenantIndexRoute } from '../../routes';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { tenantQueries } from '../../api';
 import { useNavToParent } from '../../helpers';
+import { PageTemplate } from '../PageTemplate';
 import { EditTenant } from './EditTenant';
 import { ViewTenant } from './ViewTenant';
-import { ReactNode } from 'react';
-import { PageTemplate } from '../PageTemplate';
+import { useSearchParamsObject } from '../../helpers/useSearch';
 
-export const TenantPage = (): ReactNode => {
+export const TenantPage = () => {
   const navigate = useNavigate();
   const navToParentOptions = useNavToParent();
 
-  const params = useParams({ from: tenantIndexRoute.id });
+  const params = useParams() as { tenantId: string };
   const deleteTenant = tenantQueries.useDelete({
     callback: () => {
       navigate(navToParentOptions);
@@ -24,7 +22,7 @@ export const TenantPage = (): ReactNode => {
   const tenant = tenantQueries.useOne({
     id: params.tenantId,
   }).data;
-  const { edit } = useSearch({ from: tenantIndexRoute.id });
+  const { edit } = useSearchParamsObject() as { edit?: boolean };
 
   return (
     <PageTemplate
@@ -36,9 +34,7 @@ export const TenantPage = (): ReactNode => {
               isDisabled={edit}
               leftIcon={<BiEdit />}
               onClick={() => {
-                navigate({
-                  search: { edit: true },
-                });
+                navigate(`tenants/${params.tenantId}?edit=true`);
               }}
             >
               Edit

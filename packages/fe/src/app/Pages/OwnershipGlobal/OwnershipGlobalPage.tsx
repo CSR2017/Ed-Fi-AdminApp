@@ -1,20 +1,21 @@
-import { useParams, useSearch } from '@tanstack/router';
 import _ from 'lodash';
-import { ReactNode } from 'react';
+import { useParams } from 'react-router-dom';
 import { ownershipQueries } from '../../api';
-import { ownershipGlobalIndexRoute } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
 import { ActionBarActions } from '../../helpers/ActionBarActions';
+import { useSearchParamsObject } from '../../helpers/useSearch';
+import { PageTemplate } from '../PageTemplate';
 import { EditOwnershipGlobal } from './EditOwnershipGlobal';
 import { ViewOwnershipGlobal } from './ViewOwnershipGlobal';
 import { useOwnershipGlobalActions } from './useOwnershipGlobalActions';
 
-export const OwnershipGlobalPage = (): ReactNode => {
-  const params = useParams({ from: ownershipGlobalIndexRoute.id });
+export const OwnershipGlobalPage = () => {
+  const params = useParams() as {
+    ownershipId: string;
+  };
   const ownership = ownershipQueries.useOne({
     id: params.ownershipId,
   }).data;
-  const { edit } = useSearch({ from: ownershipGlobalIndexRoute.id });
+  const { edit } = useSearchParamsObject() as { edit?: boolean };
   const actions = useOwnershipGlobalActions(ownership);
 
   return (

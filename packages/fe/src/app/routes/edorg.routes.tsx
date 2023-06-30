@@ -1,31 +1,19 @@
 import { Link, Text } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
-import { Link as RouterLink, Route, useParams } from '@tanstack/router';
-import { UseQueryResult } from '@tanstack/react-query';
 import { GetEdorgDto } from '@edanalytics/models';
-import { asRoute, mainLayoutRoute, sbeRoute } from '.';
-import { getRelationDisplayName } from '../helpers';
-import { edorgQueries } from '../api';
+import { UseQueryResult } from '@tanstack/react-query';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { EdorgPage } from '../Pages/Edorg/EdorgPage';
 import { EdorgsPage } from '../Pages/Edorg/EdorgsPage';
+import { edorgQueries } from '../api';
+import { getRelationDisplayName } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
-export const edorgsRoute = new Route({
-  getParentRoute: () => sbeRoute,
-  path: 'edorgs',
-  getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Edorgs', params }),
-  }),
-});
-
-export const edorgsIndexRoute = new Route({
-  getParentRoute: () => edorgsRoute,
-  path: '/',
-  component: EdorgsPage,
-});
-
 const EdorgBreadcrumb = () => {
-  const params = useParams({ from: edorgRoute.id });
+  const params = useParams() as {
+    edorgId: string;
+    asId: string;
+    sbeId: string;
+  };
   const edorg = edorgQueries.useOne({
     id: params.edorgId,
     tenantId: params.asId,
@@ -33,39 +21,38 @@ const EdorgBreadcrumb = () => {
   });
   return edorg.data?.displayName ?? params.edorgId;
 };
+export const edorgIndexRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/edorgs/:edorgId/',
+  element: <EdorgPage />,
+};
 
-export const edorgRoute = new Route({
-  getParentRoute: () => edorgsRoute,
-  path: '$edorgId',
-  getContext: ({ params }) => {
-    return {
-      breadcrumb: () => ({ title: EdorgBreadcrumb, params }),
-    };
-  },
-});
-
-export const edorgIndexRoute = new Route({
-  getParentRoute: () => edorgRoute,
-  path: '/',
-  component: EdorgPage,
-});
+export const edorgRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/edorgs/:edorgId',
+  handle: { crumb: EdorgBreadcrumb },
+};
+export const edorgsIndexRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/edorgs/',
+  element: <EdorgsPage />,
+};
+export const edorgsRoute: RouteObject = {
+  path: '/as/:asId/sbes/:sbeId/edorgs',
+  handle: { crumb: () => 'Edorgs' },
+};
 
 export const EdorgLink = (props: {
   id: number | undefined;
   query: UseQueryResult<Record<string | number, GetEdorgDto>, unknown>;
 }) => {
-  const params = useParams({ from: asRoute.id });
   const edorg = getEntityFromQuery(props.id, props.query);
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+  };
   return edorg ? (
     <Link as="span">
       <RouterLink
         title="Go to edorg"
-        to={edorgRoute.fullPath}
-        params={{
-          asId: params.asId,
-          sbeId: String(edorg.sbeId),
-          edorgId: String(props.id),
-        }}
+        to={`/as/${params.asId}/sbes/${params.sbeId}/edorgs/${edorg.id}`}
       >
         {getRelationDisplayName(edorg.id, props.query)}
       </RouterLink>

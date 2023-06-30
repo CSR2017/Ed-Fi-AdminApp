@@ -1,11 +1,5 @@
 import { Text } from '@chakra-ui/react';
-import {
-  AnyRoute,
-  AnyRoutesInfo,
-  RouteMatch,
-  useRouter,
-} from '@tanstack/router';
-import _ from 'lodash';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   BsBook,
   BsBookFill,
@@ -13,16 +7,14 @@ import {
   BsBuildingFill,
   BsClipboard,
   BsClipboardFill,
-  BsCloudRain,
-  BsCloudRainFill,
   BsDatabase,
   BsDatabaseFill,
+  BsFillMortarboardFill,
   BsFolder,
   BsFolderFill,
-  BsGear,
-  BsGearFill,
   BsKey,
   BsKeyFill,
+  BsMortarboard,
   BsPeople,
   BsPeopleFill,
   BsPersonVcard,
@@ -30,26 +22,21 @@ import {
   BsShieldLock,
   BsShieldLockFill,
 } from 'react-icons/bs';
+import { useMatches } from 'react-router-dom';
 import { sbeQueries } from '../api/queries/queries';
 import {
-  applicationsRoute,
-  claimsetsRoute,
-  edorgsRoute,
-  odssRoute,
-  ownershipsRoute,
-  rolesRoute,
-  sbeRoute,
-  sbesRoute,
-  usersRoute,
-  vendorsRoute,
-} from '../routes';
+  AuthorizeConfig,
+  arrayElemIf,
+  authorize,
+  usePrivilegeCacheForConfig,
+} from '../helpers';
+import { isMatch, tagMatch } from './GlobalNav';
 import { INavButtonProps, NavButton } from './NavButton';
-import { arrayElemIf, authorize, usePrivilegeCacheForConfig } from '../helpers';
-import { useQueryClient } from '@tanstack/react-query';
 
 export const TenantNav = (props: { tenantId: string }) => {
   const tenantId = Number(props.tenantId);
   const sbes = sbeQueries.useAll({ tenantId: props.tenantId });
+
   usePrivilegeCacheForConfig([
     {
       privilege: 'tenant.role:read',
@@ -72,9 +59,7 @@ export const TenantNav = (props: { tenantId: string }) => {
         tenantId: tenantId,
       },
     },
-  ]);
-  usePrivilegeCacheForConfig(
-    Object.keys(sbes.data || {}).flatMap((sbeId) => [
+    ...Object.keys(sbes.data || {}).flatMap((sbeId): AuthorizeConfig[] => [
       {
         privilege: 'tenant.sbe.ods:read',
         subject: {
@@ -115,8 +100,8 @@ export const TenantNav = (props: { tenantId: string }) => {
           id: '__filtered__',
         },
       },
-    ])
-  );
+    ]),
+  ]);
   const queryClient = useQueryClient();
 
   const items: INavButtonProps[] = [
@@ -129,8 +114,7 @@ export const TenantNav = (props: { tenantId: string }) => {
         },
       }),
       {
-        route: usersRoute,
-        params: { asId: props.tenantId },
+        route: `/as/${props.tenantId}/users`,
         icon: BsPeople,
         activeIcon: BsPeopleFill,
         text: 'Users',
@@ -145,8 +129,7 @@ export const TenantNav = (props: { tenantId: string }) => {
         },
       }),
       {
-        route: rolesRoute,
-        params: { asId: props.tenantId },
+        route: `/as/${props.tenantId}/roles`,
         icon: BsPersonVcard,
         activeIcon: BsPersonVcardFill,
         text: 'Roles',
@@ -161,22 +144,19 @@ export const TenantNav = (props: { tenantId: string }) => {
         },
       }),
       {
-        route: ownershipsRoute,
-        params: { asId: props.tenantId },
+        route: `/as/${props.tenantId}/ownerships`,
         icon: BsClipboard,
         activeIcon: BsClipboardFill,
         text: 'Ownerships',
       }
     ),
     {
-      route: sbesRoute,
-      params: { asId: props.tenantId },
+      route: `/as/${props.tenantId}/sbes`,
       icon: BsFolder,
       activeIcon: BsFolderFill,
       text: 'Environments',
       childItems: Object.values(sbes.data || {}).map((sbe) => ({
-        route: sbeRoute,
-        params: { asId: props.tenantId, sbeId: String(sbe.id) },
+        route: `/as/${props.tenantId}/sbes/${sbe.id}`,
         icon: BsFolder,
         activeIcon: BsFolderFill,
         text: sbe.displayName,
@@ -194,8 +174,7 @@ export const TenantNav = (props: { tenantId: string }) => {
               },
             }),
             {
-              route: odssRoute,
-              params: { asId: props.tenantId, sbeId: String(sbe.id) },
+              route: `/as/${props.tenantId}/sbes/${sbe.id}/odss`,
               icon: BsDatabase,
               activeIcon: BsDatabaseFill,
               text: 'ODSs',
@@ -214,10 +193,9 @@ export const TenantNav = (props: { tenantId: string }) => {
               },
             }),
             {
-              route: edorgsRoute,
-              params: { asId: props.tenantId, sbeId: String(sbe.id) },
-              icon: BsBook,
-              activeIcon: BsBookFill,
+              route: `/as/${props.tenantId}/sbes/${sbe.id}/edorgs`,
+              icon: BsMortarboard,
+              activeIcon: BsFillMortarboardFill,
               text: 'Ed-Orgs',
             }
           ),
@@ -234,8 +212,7 @@ export const TenantNav = (props: { tenantId: string }) => {
               },
             }),
             {
-              route: vendorsRoute,
-              params: { asId: props.tenantId, sbeId: String(sbe.id) },
+              route: `/as/${props.tenantId}/sbes/${sbe.id}/vendors`,
               icon: BsBuilding,
               activeIcon: BsBuildingFill,
               text: 'Vendors',
@@ -254,8 +231,7 @@ export const TenantNav = (props: { tenantId: string }) => {
               },
             }),
             {
-              route: applicationsRoute,
-              params: { asId: props.tenantId, sbeId: String(sbe.id) },
+              route: `/as/${props.tenantId}/sbes/${sbe.id}/applications`,
               icon: BsKey,
               activeIcon: BsKeyFill,
               text: 'Applications',
@@ -274,8 +250,7 @@ export const TenantNav = (props: { tenantId: string }) => {
               },
             }),
             {
-              route: claimsetsRoute,
-              params: { asId: props.tenantId, sbeId: String(sbe.id) },
+              route: `/as/${props.tenantId}/sbes/${sbe.id}/claimsets`,
               icon: BsShieldLock,
               activeIcon: BsShieldLockFill,
               text: 'Claimsets',
@@ -293,40 +268,13 @@ export const TenantNav = (props: { tenantId: string }) => {
   const flatItems = items.flatMap((item) => flatten(item));
 
   let deepestMatch = null;
-  const router = useRouter();
+  const currentMatches = useMatches();
 
-  const isMatch = <
-    M extends Pick<RouteMatch<AnyRoutesInfo, AnyRoute>, 'params' | 'route'>
-  >(
-    activeRoute: M,
-    item: INavButtonProps
-  ) => {
-    const itemParams = item.params || {};
-    const paramsEqual = _.isMatch(activeRoute.params, itemParams);
-    const sameRoute = item.route.id === activeRoute.route.id;
-
-    return sameRoute && paramsEqual;
-  };
-
-  router.state.currentMatches.forEach((m) => {
-    if (flatItems.some((item) => isMatch(m, item))) {
-      deepestMatch = m;
+  currentMatches.forEach((m) => {
+    if (flatItems.some((item) => isMatch(m.pathname, item))) {
+      deepestMatch = m.pathname;
     }
   });
-
-  const tagMatch = <
-    M extends Pick<RouteMatch<AnyRoutesInfo, AnyRoute>, 'params' | 'route'>
-  >(
-    items: INavButtonProps[],
-    match: M | null
-  ): INavButtonProps[] =>
-    match === null
-      ? items
-      : items.map((item) => ({
-          ...item,
-          isActive: isMatch(match, item),
-          childItems: tagMatch(item.childItems || [], match),
-        }));
 
   return (
     <>
@@ -334,7 +282,7 @@ export const TenantNav = (props: { tenantId: string }) => {
         Resources
       </Text>
       {tagMatch(items, deepestMatch).map((item) => (
-        <NavButton key={item.text + item.route.fullPath} {...item} />
+        <NavButton key={item.text + item.route} {...item} />
       ))}
     </>
   );

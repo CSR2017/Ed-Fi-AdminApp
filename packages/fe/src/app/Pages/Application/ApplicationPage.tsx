@@ -1,29 +1,29 @@
-import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ActionGroup, ConfirmAction } from '@edanalytics/common-ui';
-import { useNavigate, useParams, useSearch } from '@tanstack/router';
-import { ReactNode } from 'react';
+import { Button } from '@chakra-ui/react';
+import { ConfirmAction } from '@edanalytics/common-ui';
+import { createEdorgCompositeNaturalKey } from '@edanalytics/models';
 import { BiEdit, BiTrash } from 'react-icons/bi';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { applicationQueries } from '../../api';
 import {
   AuthorizeComponent,
   applicationAuthConfig,
   useNavToParent,
 } from '../../helpers';
-import { applicationIndexRoute } from '../../routes';
+import { useSearchParamsObject } from '../../helpers/useSearch';
+import { PageTemplate } from '../PageTemplate';
 import { EditApplication } from './EditApplication';
 import { ViewApplication } from './ViewApplication';
 import { useResetCredentials } from './useResetCredentials';
-import { PageTemplate } from '../PageTemplate';
-import {
-  GetApplicationDto,
-  createEdorgCompositeNaturalKey,
-} from '@edanalytics/models';
 
-export const ApplicationPage = (): ReactNode => {
+export const ApplicationPage = () => {
   const navigate = useNavigate();
   const navToParentOptions = useNavToParent();
 
-  const params = useParams({ from: applicationIndexRoute.id });
+  const params = useParams() as {
+    sbeId: string;
+    asId: string;
+    applicationId: string;
+  };
 
   const deleteApplication = applicationQueries.useDelete({
     sbeId: params.sbeId,
@@ -34,7 +34,8 @@ export const ApplicationPage = (): ReactNode => {
     sbeId: params.sbeId,
     tenantId: params.asId,
   }).data;
-  const { edit } = useSearch({ from: applicationIndexRoute.id });
+  const { edit } = useSearchParamsObject();
+  const [search, setSearch] = useSearchParams();
 
   const [ResetButton, ResetModal, ResetAlert] = useResetCredentials({
     application: application,
@@ -79,9 +80,7 @@ export const ApplicationPage = (): ReactNode => {
                 isDisabled={edit}
                 leftIcon={<BiEdit />}
                 onClick={() => {
-                  navigate({
-                    search: { edit: true },
-                  });
+                  setSearch((prev) => ({ ...prev, edit: true }));
                 }}
               >
                 Edit

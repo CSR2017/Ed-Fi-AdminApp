@@ -4,7 +4,7 @@ import {
   isSbePrivilege,
 } from '@edanalytics/models';
 import { MutateOptions } from '@tanstack/react-query';
-import { AnyRoute, useNavigate } from '@tanstack/router';
+import { AnyRoute, useNavigate } from 'react-router-dom';
 import { AxiosResponse } from 'axios';
 import { BiEdit, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
@@ -97,7 +97,7 @@ export const useEditTenantEntity = (props: {
               icon={BiEdit}
               text="Edit"
               title={'Edit ' + entity.displayName}
-              linkProps={toOptions}
+              to={toOptions}
               onClick={() => navigate(toOptions)}
             />
           </AuthorizeComponent>
@@ -142,7 +142,7 @@ export const useReadTenantEntity = (props: {
               icon={HiOutlineEye}
               text="View"
               title={'View ' + entity.displayName}
-              linkProps={toOptions}
+              to={toOptions}
               onClick={() => navigate(toOptions)}
             />
           </AuthorizeComponent>

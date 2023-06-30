@@ -1,36 +1,24 @@
 import { Link, Text } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
-import { Link as RouterLink, useParams } from '@tanstack/router';
-import {
-  ownershipQueries,
-  roleQueries,
-  sbeQueries,
-  userQueries,
-} from '../../api';
+import { Link as RouterLink, useParams } from 'react-router-dom';
+import { ownershipQueries, roleQueries, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import {
   RoleLink,
   UserLink,
   edorgRoute,
   odsRoute,
-  ownershipsRoute,
   sbeRoute,
 } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 
 export const OwnershipsPage = () => {
-  const params = useParams({ from: ownershipsRoute.id });
+  const params = useParams() as { asId: string };
   const ownerships = ownershipQueries.useAll({
-    tenantId: params.asId,
-  });
-  const deleteOwnership = ownershipQueries.useDelete({
     tenantId: params.asId,
   });
   const users = userQueries.useAll({ tenantId: params.asId });
   const roles = roleQueries.useAll({ tenantId: params.asId });
-  const sbes = sbeQueries.useAll({
-    tenantId: params.asId,
-  });
 
   return (
     <PageTemplate title="Ownerships">
@@ -59,12 +47,7 @@ export const OwnershipsPage = () => {
                 <Link as="span">
                   <RouterLink
                     title="Go to edorg"
-                    to={edorgRoute.fullPath}
-                    params={{
-                      asId: params.asId,
-                      sbeId: String(original.edorg.sbeId),
-                      edorgId: String(original.edorg.id),
-                    }}
+                    to={`/as/${params.asId}/sbes/${original.edorg.sbeId}/odss/${original.edorg.id}`}
                   >
                     {`Ed-Org - ${original.edorg.displayName}`}
                   </RouterLink>
@@ -73,12 +56,7 @@ export const OwnershipsPage = () => {
                 <Link as="span">
                   <RouterLink
                     title="Go to ods"
-                    to={odsRoute.fullPath}
-                    params={{
-                      asId: params.asId,
-                      sbeId: String(original.ods.sbeId),
-                      odsId: String(original.ods.id),
-                    }}
+                    to={`/as/${params.asId}/sbes/${original.ods.sbeId}/odss/${original.ods.id}`}
                   >
                     {`ODS - ${original.ods.displayName}`}
                   </RouterLink>
@@ -87,11 +65,7 @@ export const OwnershipsPage = () => {
                 <Link as="span">
                   <RouterLink
                     title="Go to sbe"
-                    to={sbeRoute.fullPath}
-                    params={{
-                      asId: params.asId,
-                      sbeId: String(original.sbe.id),
-                    }}
+                    to={`/as/${params.asId}/sbes/${original.sbe.id}`}
                   >
                     {`Environment - ${original.sbe.displayName}`}
                   </RouterLink>

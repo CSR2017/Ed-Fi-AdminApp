@@ -1,6 +1,6 @@
 import { Box, VStack } from '@chakra-ui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Outlet } from '@tanstack/router';
+import { Outlet } from 'react-router-dom';
 import React from 'react';
 import { useMe } from '../api';
 import { AppBar } from './AppBar';

@@ -2,16 +2,19 @@ import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetOdsDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
-import { useParams } from '@tanstack/router';
+import { useParams } from 'react-router-dom';
 import { odsQueries, userQueries } from '../../api/queries/queries';
 import { TableRowActions } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { useReadTenantEntity } from '../../helpers/useStandardRowActionsNew';
-import { OdsLink, odsRoute, odssRoute, UserLink } from '../../routes';
+import { OdsLink, UserLink, odsRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 
 const NameCell = (info: CellContext<GetOdsDto, unknown>) => {
-  const params = useParams({ from: odssRoute.id });
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+  };
   const entities = odsQueries.useAll({
     sbeId: params.sbeId,
     tenantId: params.asId,
@@ -19,7 +22,7 @@ const NameCell = (info: CellContext<GetOdsDto, unknown>) => {
 
   const View = useReadTenantEntity({
     entity: info.row.original,
-    params: { odsId: String(info.row.original.id), ...params },
+    params: { ...params },
     privilege: 'tenant.sbe.ods:read',
     route: odsRoute,
   });
@@ -35,7 +38,10 @@ const NameCell = (info: CellContext<GetOdsDto, unknown>) => {
 };
 
 export const OdssPage = () => {
-  const params = useParams({ from: odssRoute.id });
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+  };
   const odss = odsQueries.useAll({
     sbeId: params.sbeId,
     tenantId: params.asId,

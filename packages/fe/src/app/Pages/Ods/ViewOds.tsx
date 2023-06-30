@@ -1,10 +1,14 @@
-import { FormLabel, Text } from '@chakra-ui/react';
-import { useParams } from '@tanstack/router';
+import { FormLabel } from '@chakra-ui/react';
+import { useParams } from 'react-router-dom';
 import { odsQueries, sbeQueries } from '../../api';
-import { SbeLink, odsRoute } from '../../routes';
+import { SbeLink } from '../../routes';
 
 export const ViewOds = () => {
-  const params = useParams({ from: odsRoute.id });
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+    odsId: string;
+  };
   const ods = odsQueries.useOne({
     id: params.odsId,
     sbeId: params.sbeId,

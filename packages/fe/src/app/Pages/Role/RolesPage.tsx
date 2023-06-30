@@ -2,7 +2,7 @@ import { Box, HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetRoleDto, RoleType } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
-import { useParams } from '@tanstack/router';
+import { useParams } from 'react-router-dom';
 import { roleQueries, useMyTenants, userQueries } from '../../api';
 import { getEntityFromQuery } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
@@ -12,7 +12,7 @@ import { TableRowActions } from '../../helpers/TableRowActions';
 import { useRoleActions } from './useRoleActions';
 
 const NameCell = (info: CellContext<GetRoleDto, unknown>) => {
-  const params = useParams({ from: rolesRoute.id });
+  const params = useParams() as { asId: string };
   const entities = roleQueries.useAll({
     tenantId: params.asId,
   });
@@ -26,7 +26,7 @@ const NameCell = (info: CellContext<GetRoleDto, unknown>) => {
 };
 
 export const RolesPage = () => {
-  const params = useParams({ from: rolesRoute.id });
+  const params = useParams();
   const tenantId = Number(params.asId);
   const roles = roleQueries.useAll({
     tenantId: params.asId,

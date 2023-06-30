@@ -1,17 +1,17 @@
-import { Box, HStack } from '@chakra-ui/react';
+import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetSbeDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
-import { useParams } from '@tanstack/router';
+import { useParams } from 'react-router-dom';
 import { sbeQueries, userQueries } from '../../api';
+import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { useReadTenantEntity } from '../../helpers/useStandardRowActionsNew';
-import { SbeLink, sbeRoute, sbesRoute, UserLink } from '../../routes';
+import { SbeLink, UserLink, sbeRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
-import { TableRowActions } from '../../helpers/TableRowActions';
 
 const NameCell = (info: CellContext<GetSbeDto, unknown>) => {
-  const params = useParams({ from: sbesRoute.id });
+  const params = useParams() as { asId: string };
   const sbes = sbeQueries.useAll({
     tenantId: params.asId,
   });
@@ -33,7 +33,7 @@ const NameCell = (info: CellContext<GetSbeDto, unknown>) => {
 };
 
 export const SbesPage = () => {
-  const params = useParams({ from: sbesRoute.id });
+  const params = useParams();
   const sbes = sbeQueries.useAll({
     tenantId: params.asId,
   });

@@ -1,12 +1,12 @@
 import { Heading, HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
-import { useParams } from '@tanstack/router';
+import { useParams } from 'react-router-dom';
 import { vendorQueries } from '../../api';
 import { VendorLink, vendorsRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 
 export const VendorsPage = () => {
-  const params = useParams({ from: vendorsRoute.id });
+  const params = useParams() as { asId: string; sbeId: string };
   const vendors = vendorQueries.useAll({
     sbeId: params.sbeId,
     tenantId: params.asId,

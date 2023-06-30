@@ -1,54 +1,40 @@
 import { Link, Text } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
-import { Link as RouterLink, Route, useParams } from '@tanstack/router';
-import { UseQueryResult } from '@tanstack/react-query';
 import { GetTenantDto } from '@edanalytics/models';
-import { mainLayoutRoute } from '.';
-import { getRelationDisplayName } from '../helpers';
-import { tenantQueries } from '../api';
+import { UseQueryResult } from '@tanstack/react-query';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { TenantPage } from '../Pages/Tenant/TenantPage';
 import { TenantsPage } from '../Pages/Tenant/TenantsPage';
+import { tenantQueries } from '../api';
+import { getRelationDisplayName } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
-export const tenantsRoute = new Route({
-  getParentRoute: () => mainLayoutRoute,
-  path: 'tenants',
-  getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Tenants', params }),
-  }),
-});
-
-export const tenantsIndexRoute = new Route({
-  getParentRoute: () => tenantsRoute,
-  path: '/',
-  component: TenantsPage,
-});
-
 const TenantBreadcrumb = () => {
-  const params = useParams({ from: tenantRoute.id });
-  const tenant = tenantQueries.useOne({
-    id: params.tenantId,
-  });
+  const params = useParams() as { tenantId: string };
+  const tenant = tenantQueries.useOne({ id: params.tenantId });
   return tenant.data?.displayName ?? params.tenantId;
 };
+export const tenantCreateRoute: RouteObject = {
+  path: 'tenants/create',
+  handle: { crumb: () => 'Create' },
+  element: <></>,
+};
 
-export const tenantRoute = new Route({
-  getParentRoute: () => tenantsRoute,
-  path: '$tenantId',
-  validateSearch: (search): { edit?: boolean } =>
-    typeof search.edit === 'boolean' ? { edit: search.edit } : {},
-  getContext: ({ params }) => {
-    return {
-      breadcrumb: () => ({ title: TenantBreadcrumb, params }),
-    };
-  },
-});
-
-export const tenantIndexRoute = new Route({
-  getParentRoute: () => tenantRoute,
-  path: '/',
-  component: TenantPage,
-});
+export const tenantIndexRoute: RouteObject = {
+  path: 'tenants/:tenantId/',
+  element: <TenantPage />,
+};
+export const tenantRoute: RouteObject = {
+  path: 'tenants/:tenantId',
+  handle: { crumb: TenantBreadcrumb },
+};
+export const tenantsIndexRoute: RouteObject = {
+  path: 'tenants/',
+  element: <TenantsPage />,
+};
+export const tenantsRoute: RouteObject = {
+  path: 'tenants',
+  handle: { crumb: () => 'Tenants' },
+};
 
 export const TenantLink = (props: {
   id: number | undefined;
@@ -57,13 +43,7 @@ export const TenantLink = (props: {
   const tenant = getEntityFromQuery(props.id, props.query);
   return tenant ? (
     <Link as="span">
-      <RouterLink
-        title="Go to tenant"
-        to={tenantRoute.fullPath}
-        params={{
-          tenantId: String(tenant.id),
-        }}
-      >
+      <RouterLink title="Go to tenant" to={`/tenants/${tenant.id}`}>
         {getRelationDisplayName(tenant.id, props.query)}
       </RouterLink>
     </Link>

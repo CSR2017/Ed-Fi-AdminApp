@@ -1,21 +1,22 @@
-import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ActionGroup, ConfirmAction } from '@edanalytics/common-ui';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useNavigate, useParams, useSearch } from '@tanstack/router';
-import { BiEdit, BiTrash } from 'react-icons/bi';
-import { vendorQueries, userQueries } from '../../api';
-import { vendorIndexRoute } from '../../routes';
+import { Button } from '@chakra-ui/react';
+import { BiEdit } from 'react-icons/bi';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { vendorQueries } from '../../api';
 import { AuthorizeComponent, useNavToParent } from '../../helpers';
+import { PageTemplate } from '../PageTemplate';
 import { EditVendor } from './EditVendor';
 import { ViewVendor } from './ViewVendor';
-import { ReactNode } from 'react';
-import { PageTemplate } from '../PageTemplate';
+import { useSearchParamsObject } from '../../helpers/useSearch';
 
-export const VendorPage = (): ReactNode => {
+export const VendorPage = () => {
   const navigate = useNavigate();
   const navToParentOptions = useNavToParent();
 
-  const params = useParams({ from: vendorIndexRoute.id });
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+    vendorId: string;
+  };
   const tenantId = Number(params.asId);
   const sbeId = Number(params.sbeId);
   const id = Number(params.vendorId);
@@ -31,7 +32,7 @@ export const VendorPage = (): ReactNode => {
     id: params.vendorId,
     sbeId: params.sbeId,
   }).data;
-  const { edit } = useSearch({ from: vendorIndexRoute.id });
+  const { edit } = useSearchParamsObject() as { edit?: boolean };
 
   return (
     <PageTemplate
@@ -53,9 +54,9 @@ export const VendorPage = (): ReactNode => {
               isDisabled={edit}
               leftIcon={<BiEdit />}
               onClick={() => {
-                navigate({
-                  search: { edit: true },
-                });
+                navigate(
+                  `as/${params.asId}/sbes/${params.sbeId}/vendors/${params.vendorId}?edit=true`
+                );
               }}
             >
               Edit

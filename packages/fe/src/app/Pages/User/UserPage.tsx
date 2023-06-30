@@ -1,23 +1,21 @@
-import { Box, Button, ButtonGroup, Heading } from '@chakra-ui/react';
-import { ActionGroup, ConfirmAction } from '@edanalytics/common-ui';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useNavigate, useParams, useSearch } from '@tanstack/router';
-import { BiEdit, BiTrash } from 'react-icons/bi';
+import _ from 'lodash';
+import { useNavigate, useParams } from 'react-router-dom';
 import { userQueries } from '../../api';
-import { userIndexRoute } from '../../routes';
 import { useNavToParent } from '../../helpers';
+import { ActionBarActions } from '../../helpers/ActionBarActions';
+import { useSearchParamsObject } from '../../helpers/useSearch';
+import { PageTemplate } from '../PageTemplate';
 import { EditUser } from './EditUser';
 import { ViewUser } from './ViewUser';
-import { ReactNode } from 'react';
-import { PageTemplate } from '../PageTemplate';
-import { ActionBarActions } from '../../helpers/ActionBarActions';
-import _ from 'lodash';
 
-export const UserPage = (): ReactNode => {
+export const UserPage = () => {
   const navigate = useNavigate();
   const navToParentOptions = useNavToParent();
 
-  const params = useParams({ from: userIndexRoute.id });
+  const params = useParams() as {
+    asId: string;
+    userId: string;
+  };
   const deleteUser = userQueries.useDelete({
     callback: () => {
       navigate(navToParentOptions);
@@ -28,7 +26,7 @@ export const UserPage = (): ReactNode => {
     id: params.userId,
     tenantId: params.asId,
   }).data;
-  const { edit } = useSearch({ from: userIndexRoute.id });
+  const { edit } = useSearchParamsObject() as { edit?: boolean };
 
   const actions = {};
 

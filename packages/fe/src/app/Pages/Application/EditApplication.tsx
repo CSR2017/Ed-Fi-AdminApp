@@ -7,36 +7,28 @@ import {
   FormLabel,
   Input,
 } from '@chakra-ui/react';
-import {
-  GetApplicationDto,
-  PutApplicationDto,
-  PutApplicationForm,
-} from '@edanalytics/models';
+import { GetApplicationDto, PutApplicationForm } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useNavigate, useParams } from '@tanstack/router';
-import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { useForm } from 'react-hook-form';
+import { useNavigate, useParams } from 'react-router-dom';
 import { applicationQueries, claimsetQueries, edorgQueries } from '../../api';
 import {
   SelectClaimset,
   SelectEdorg,
   SelectVendor,
 } from '../../helpers/FormPickers';
-import { applicationIndexRoute, applicationRoute } from '../../routes';
 
 const resolver = classValidatorResolver(PutApplicationForm);
 
 export const EditApplication = (props: { application: GetApplicationDto }) => {
   const { application } = props;
+  const params = useParams() as { asId: string; sbeId: string };
   const navigate = useNavigate();
   const goToView = () => {
-    navigate({
-      to: applicationRoute.fullPath,
-      params: (old: any) => old,
-      search: {},
-    });
+    navigate(
+      `/as/${params.asId}/sbes/${params.sbeId}/applications/${application.id}`
+    );
   };
-  const params = useParams({ from: applicationIndexRoute.id });
   const edorgs = edorgQueries.useAll({
     sbeId: params.sbeId,
     tenantId: params.asId,

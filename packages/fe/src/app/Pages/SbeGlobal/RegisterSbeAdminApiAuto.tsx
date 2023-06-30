@@ -8,7 +8,7 @@ import {
 } from '@chakra-ui/react';
 import { GetSbeDto, PutSbeAdminApiRegister } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useNavigate } from '@tanstack/router';
+import { useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
 import { useSbeRegisterAdminApi } from '../../api';

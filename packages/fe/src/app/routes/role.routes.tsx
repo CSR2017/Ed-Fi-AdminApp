@@ -1,69 +1,48 @@
 import { Link, Text } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
-import { Link as RouterLink, Route, useParams } from '@tanstack/router';
-import { UseQueryResult } from '@tanstack/react-query';
 import { GetRoleDto } from '@edanalytics/models';
-import { asRoute, mainLayoutRoute } from '.';
-import { getRelationDisplayName } from '../helpers';
-import { roleQueries } from '../api';
+import { UseQueryResult } from '@tanstack/react-query';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { RolePage } from '../Pages/Role/RolePage';
 import { RolesPage } from '../Pages/Role/RolesPage';
+import { roleQueries } from '../api';
+import { getRelationDisplayName } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
-export const rolesRoute = new Route({
-  getParentRoute: () => asRoute,
-  path: 'roles',
-  getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Roles', params }),
-  }),
-});
-
-export const rolesIndexRoute = new Route({
-  getParentRoute: () => rolesRoute,
-  path: '/',
-  component: RolesPage,
-});
-
 const RoleBreadcrumb = () => {
-  const params = useParams({ from: roleRoute.id });
-  const role = roleQueries.useOne({ id: params.roleId, tenantId: params.asId });
+  const params = useParams() as { roleId: string; asId: string };
+  const role = roleQueries.useOne({
+    id: params.roleId,
+    tenantId: params.asId,
+  });
   return role.data?.displayName ?? params.roleId;
 };
 
-export const roleRoute = new Route({
-  getParentRoute: () => rolesRoute,
-  path: '$roleId',
-  validateSearch: (search): { edit?: boolean } =>
-    typeof search.edit === 'boolean' ? { edit: search.edit } : {},
-  getContext: ({ params }) => {
-    return {
-      breadcrumb: () => ({ title: RoleBreadcrumb, params }),
-    };
-  },
-});
-
-export const roleIndexRoute = new Route({
-  getParentRoute: () => roleRoute,
-  path: '/',
-  component: RolePage,
-});
+export const roleIndexRoute: RouteObject = {
+  path: '/as/:asId/roles/:roleId/',
+  element: <RolePage />,
+};
+export const roleRoute: RouteObject = {
+  path: '/as/:asId/roles/:roleId',
+  handle: { crumb: RoleBreadcrumb },
+};
+export const rolesIndexRoute: RouteObject = {
+  path: '/as/:asId/roles/',
+  element: <RolesPage />,
+};
+export const rolesRoute: RouteObject = {
+  path: '/as/:asId/roles',
+  handle: { crumb: () => 'Roles' },
+};
 
 export const RoleLink = (props: {
   id: number | undefined;
   query: UseQueryResult<Record<string | number, GetRoleDto>, unknown>;
 }) => {
-  const params = useParams({ from: asRoute.id });
   const role = getEntityFromQuery(props.id, props.query);
+  const params = useParams() as { asId: string };
   return role ? (
     <Link as="span">
-      <RouterLink
-        title="Go to role"
-        to={roleRoute.fullPath}
-        params={{
-          asId: params.asId,
-          roleId: String(role.id),
-        }}
-      >
+      <RouterLink title="Go to role" to={`/as/${params.asId}/roles/${role.id}`}>
         {getRelationDisplayName(role.id, props.query)}
       </RouterLink>
     </Link>

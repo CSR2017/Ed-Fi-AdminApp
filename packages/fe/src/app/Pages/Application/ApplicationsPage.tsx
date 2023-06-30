@@ -5,7 +5,7 @@ import {
   GetEdorgDto,
   createEdorgCompositeNaturalKey,
 } from '@edanalytics/models';
-import { useParams } from '@tanstack/router';
+import { useParams } from 'react-router-dom';
 import _ from 'lodash';
 import {
   applicationQueries,
@@ -25,7 +25,7 @@ import { PageTemplate } from '../PageTemplate';
 import { useApplicationsActions } from './useApplicationActions';
 
 export const ApplicationsPage = () => {
-  const params = useParams({ from: applicationsRoute.id });
+  const params = useParams() as { sbeId: string; asId: string };
   const applications = applicationQueries.useAll({
     sbeId: params.sbeId,
     tenantId: params.asId,
@@ -87,19 +87,7 @@ export const ApplicationsPage = () => {
                 <ApplicationLink
                   id={info.row.original.id}
                   query={applications}
-                  sbeId={params.sbeId}
                 />
-                <HStack className="row-hover" color="gray.600" align="middle">
-                  {/* <StandardRowActions
-                    info={info}
-                    mutation={deleteApplication.mutate}
-                    route={applicationRoute}
-                    params={(params: any) => ({
-                      ...params,
-                      applicationId: String(info.row.original.id),
-                    })}
-                  /> */}
-                </HStack>
               </HStack>
             ),
             header: () => 'Name',
@@ -140,7 +128,6 @@ export const ApplicationsPage = () => {
               <ClaimsetLink
                 query={claimsets}
                 id={claimsetsByName.data[info.row.original.claimSetName]?.id}
-                sbeId={params.sbeId}
               />
             ),
           },

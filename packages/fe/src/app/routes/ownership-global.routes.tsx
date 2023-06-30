@@ -1,74 +1,41 @@
 import { Link, Text } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
-import { Link as RouterLink, Route, useParams } from '@tanstack/router';
-import { UseQueryResult } from '@tanstack/react-query';
 import { GetOwnershipDto } from '@edanalytics/models';
-import { mainLayoutRoute } from '.';
-import { getRelationDisplayName } from '../helpers';
-import { ownershipQueries } from '../api';
-import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
+import { UseQueryResult } from '@tanstack/react-query';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
+import { CreateOwnershipGlobalPage } from '../Pages/OwnershipGlobal/CreateOwnershipGlobalPage';
 import { OwnershipGlobalPage } from '../Pages/OwnershipGlobal/OwnershipGlobalPage';
 import { OwnershipsGlobalPage } from '../Pages/OwnershipGlobal/OwnershipsGlobalPage';
-import { CreateOwnershipGlobalPage } from '../Pages/OwnershipGlobal/CreateOwnershipGlobalPage';
-
-export const ownershipsGlobalRoute = new Route({
-  getParentRoute: () => mainLayoutRoute,
-  path: 'ownerships',
-  getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Ownerships', params }),
-  }),
-});
-
-export const ownershipsGlobalIndexRoute = new Route({
-  getParentRoute: () => ownershipsGlobalRoute,
-  path: '/',
-  component: OwnershipsGlobalPage,
-});
+import { ownershipQueries } from '../api';
+import { getRelationDisplayName } from '../helpers';
+import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const OwnershipGlobalBreadcrumb = () => {
-  const params = useParams({ from: ownershipGlobalRoute.id });
+  const params = useParams() as { ownershipId: string };
   const ownership = ownershipQueries.useOne({ id: params.ownershipId });
   return ownership.data?.displayName ?? params.ownershipId;
 };
+export const ownershipGlobalCreateRoute: RouteObject = {
+  path: 'ownerships/create',
+  handle: { crumb: () => 'Create' },
+  element: <CreateOwnershipGlobalPage />,
+};
 
-export const ownershipGlobalRoute = new Route({
-  getParentRoute: () => ownershipsGlobalRoute,
-  path: '$ownershipId',
-  validateSearch: (search): { edit?: boolean } =>
-    typeof search.edit === 'boolean' ? { edit: search.edit } : {},
-  getContext: ({ params }) => {
-    return {
-      breadcrumb: () => ({ title: OwnershipGlobalBreadcrumb, params }),
-    };
-  },
-});
-
-export const ownershipGlobalCreateRoute = new Route({
-  getParentRoute: () => ownershipsGlobalRoute,
-  path: 'create',
-  validateSearch: (
-    search
-  ): Partial<{
-    type: 'edorg' | 'ods' | 'sbe';
-    sbeId: number;
-    odsId: number;
-    edorgId: number;
-    tenantId: number;
-    roleId: number;
-  }> => search,
-  getContext: ({ params }) => {
-    return {
-      breadcrumb: () => ({ title: () => 'Create', params }),
-    };
-  },
-  component: CreateOwnershipGlobalPage,
-});
-
-export const ownershipGlobalIndexRoute = new Route({
-  getParentRoute: () => ownershipGlobalRoute,
-  path: '/',
-  component: OwnershipGlobalPage,
-});
+export const ownershipGlobalIndexRoute: RouteObject = {
+  path: 'ownerships/:ownershipId/',
+  element: <OwnershipGlobalPage />,
+};
+export const ownershipGlobalRoute: RouteObject = {
+  path: 'ownerships/:ownershipId',
+  handle: { crumb: OwnershipGlobalBreadcrumb },
+};
+export const ownershipsGlobalIndexRoute: RouteObject = {
+  path: 'ownerships/',
+  element: <OwnershipsGlobalPage />,
+};
+export const ownershipsGlobalRoute: RouteObject = {
+  path: 'ownerships',
+  handle: { crumb: () => 'Ownerships' },
+};
 
 export const OwnershipGlobalLink = (props: {
   id: number | undefined;
@@ -77,13 +44,7 @@ export const OwnershipGlobalLink = (props: {
   const ownership = getEntityFromQuery(props.id, props.query);
   return ownership ? (
     <Link as="span">
-      <RouterLink
-        title="Go to ownership"
-        to={ownershipGlobalRoute.fullPath}
-        params={{
-          ownershipId: String(ownership.id),
-        }}
-      >
+      <RouterLink title="Go to ownership" to={`/ownerships/${ownership.id}`}>
         {getRelationDisplayName(ownership.id, props.query)}
       </RouterLink>
     </Link>

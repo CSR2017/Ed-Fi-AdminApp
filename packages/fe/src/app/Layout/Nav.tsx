@@ -1,7 +1,7 @@
 import { Box, Text, useBoolean } from '@chakra-ui/react';
 import { GetTenantDto } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useParams, useRouter } from '@tanstack/router';
+import { useMatch, useMatches, useNavigate, useParams } from 'react-router-dom';
 import { Select } from 'chakra-react-select';
 import Cookies from 'js-cookie';
 import { Resizable } from 're-resizable';
@@ -20,7 +20,7 @@ import { NavButton } from './NavButton';
 import { TenantNav } from './TenantNav';
 
 export const Nav = () => {
-  const params = useParams({ from: asRoute.id });
+  const params = useParams();
   const defaultTenant: any = params?.asId ?? Cookies.get('defaultTenant');
   const [tenantId, setTenantId] = useState(
     typeof defaultTenant === 'string' && defaultTenant !== 'undefined'
@@ -29,7 +29,7 @@ export const Nav = () => {
   );
   const me = useMe();
   const tenants = useMyTenants();
-  const router = useRouter();
+  const currentMatches = useMatches();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const tenantAuthConfig = globalTenantAuthConfig('tenant:read');
@@ -45,15 +45,14 @@ export const Nav = () => {
   useEffect(() => {
     Cookies.set('defaultTenant', String(tenantId));
   }, [tenantId]);
-
+  const isInTenantContext = currentMatches.some((m) =>
+    m.pathname.startsWith('/as/')
+  );
   useEffect(() => {
-    if (
-      String(tenantId) !== params.asId &&
-      router.state.currentMatches.map((m) => m.route.id).includes(asRoute.id)
-    ) {
+    if (String(tenantId) !== params.asId && isInTenantContext) {
       setTenantId(Number(params.asId));
     }
-  }, [tenantId, router.state.currentMatches, navigate, params.asId]);
+  }, [tenantId, currentMatches, navigate, params.asId]);
 
   useEffect(() => {
     if (
@@ -109,25 +108,12 @@ export const Nav = () => {
               const value = option?.value ?? undefined;
               const newTenantId =
                 value === undefined ? undefined : Number(value);
-              if (
-                newTenantId !== undefined &&
-                router.state.currentMatches
-                  .map((m) => m.route.id)
-                  .includes(asRoute.id)
-              ) {
-                navigate({
-                  to: asRoute.fullPath,
-                  params: (old: any) => ({ ...old, asId: String(newTenantId) }),
-                });
+              if (newTenantId !== undefined && isInTenantContext) {
+                navigate(`/as/${newTenantId}`);
               } else {
-                if (
-                  router.state.currentMatches
-                    .map((m) => m.route.id)
-                    .includes(asRoute.id)
-                ) {
-                  navigate({ to: '/' }).then(() => {
-                    setTenantId(newTenantId);
-                  });
+                if (isInTenantContext) {
+                  navigate('/');
+                  setTenantId(newTenantId);
                 } else {
                   setTenantId(newTenantId);
                 }
@@ -183,13 +169,13 @@ export const Nav = () => {
       </Text>
       <NavButton
         {...{
-          route: accountRouteGlobal,
+          route: '/account',
           icon: BsPerson,
           activeIcon: BsPersonFill,
           text: 'Account',
-          isActive: router.state.currentMatches
-            .map((m) => m.route.id)
-            .includes(accountRouteGlobal.id),
+          isActive: currentMatches.some((m) =>
+            m.pathname.startsWith('/account')
+          ),
         }}
       />
       {tenantId === undefined ? (

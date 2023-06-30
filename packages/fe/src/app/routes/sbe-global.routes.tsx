@@ -1,54 +1,35 @@
 import { Link, Text } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
-import { Link as RouterLink, Route, useParams } from '@tanstack/router';
-import { UseQueryResult } from '@tanstack/react-query';
 import { GetSbeDto } from '@edanalytics/models';
-import { mainLayoutRoute } from '.';
-import { getRelationDisplayName } from '../helpers';
-import { sbeQueries } from '../api';
-import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
+import { UseQueryResult } from '@tanstack/react-query';
+import { RouteObject, useParams, Link as RouterLink } from 'react-router-dom';
 import { SbeGlobalPage } from '../Pages/SbeGlobal/SbeGlobalPage';
 import { SbesGlobalPage } from '../Pages/SbeGlobal/SbesGlobalPage';
-
-export const sbesGlobalRoute = new Route({
-  getParentRoute: () => mainLayoutRoute,
-  path: 'sbes',
-  getContext: ({ params }) => ({
-    breadcrumb: () => ({ title: () => 'Environments', params }),
-  }),
-});
-
-export const sbesGlobalIndexRoute = new Route({
-  getParentRoute: () => sbesGlobalRoute,
-  path: '/',
-  component: SbesGlobalPage,
-});
+import { sbeQueries } from '../api';
+import { getRelationDisplayName } from '../helpers';
+import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const SbeGlobalBreadcrumb = () => {
-  const params = useParams({ from: sbeGlobalRoute.id });
+  const params = useParams() as { sbeId: string };
   const sbe = sbeQueries.useOne({ id: params.sbeId });
   return sbe.data?.displayName ?? params.sbeId;
 };
 
-export const sbeGlobalRoute = new Route({
-  getParentRoute: () => sbesGlobalRoute,
-  path: '$sbeId',
-  validateSearch: (search): { edit?: 'admin-api' | 'sbe-meta' } =>
-    ['admin-api', 'sbe-meta'].includes(search.edit as any)
-      ? { edit: search.edit as any }
-      : {},
-  getContext: ({ params }) => {
-    return {
-      breadcrumb: () => ({ title: SbeGlobalBreadcrumb, params }),
-    };
-  },
-});
-
-export const sbeGlobalIndexRoute = new Route({
-  getParentRoute: () => sbeGlobalRoute,
-  path: '/',
-  component: SbeGlobalPage,
-});
+export const sbeGlobalIndexRoute: RouteObject = {
+  path: 'sbes/:sbeId/',
+  element: <SbeGlobalPage />,
+};
+export const sbeGlobalRoute: RouteObject = {
+  path: 'sbes/:sbeId',
+  handle: { crumb: SbeGlobalBreadcrumb },
+};
+export const sbesGlobalIndexRoute: RouteObject = {
+  path: 'sbes/',
+  element: <SbesGlobalPage />,
+};
+export const sbesGlobalRoute: RouteObject = {
+  path: 'sbes',
+  handle: { crumb: () => 'Environments' },
+};
 
 export const SbeGlobalLink = (props: {
   id: number | undefined;
@@ -57,13 +38,7 @@ export const SbeGlobalLink = (props: {
   const sbe = getEntityFromQuery(props.id, props.query);
   return sbe ? (
     <Link as="span">
-      <RouterLink
-        title="Go to sbe"
-        to={sbeGlobalRoute.fullPath}
-        params={{
-          sbeId: String(sbe.id),
-        }}
-      >
+      <RouterLink title="Go to sbe" to={`/sbes/${sbe.id}`}>
         {getRelationDisplayName(sbe.id, props.query)}
       </RouterLink>
     </Link>
