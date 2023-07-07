@@ -5,30 +5,37 @@ import {
   PutUserDto,
 } from '@edanalytics/models';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { methods } from '../methods';
 import axios from 'axios';
 import { plainToInstance } from 'class-transformer';
+import { useNavigate } from 'react-router';
+import { methods } from '../methods';
 
 const baseUrl = '';
 
-export const useMe = () =>
-  useQuery({
+export const useMe = () => {
+  const navigate = useNavigate();
+  return useQuery({
     staleTime: 30 * 1000,
     queryKey: [`me`],
     queryFn: () =>
       axios
         .get(`${baseUrl}/auth/me`, { withCredentials: true })
         .then((res) => {
-          return plainToInstance(GetSessionDataDto, res.data);
+          const me = plainToInstance(GetSessionDataDto, res.data);
+          if (me.roleId === null || me.roleId === undefined) {
+            navigate('/no-role');
+          }
+          return me;
         })
         .catch((err) => {
-          if (err.response.status === 403 || err.response.status === 401) {
+          if (err.response.status === 401) {
             return null;
           } else {
             throw err;
           }
         }),
   });
+};
 export const useMyTenants = () =>
   useQuery({
     staleTime: 30 * 1000,

@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   ImATeapotException,
+  Logger,
   NotFoundException,
   Param,
 } from '@nestjs/common';
@@ -30,7 +31,7 @@ export class AppController {
         return res.data;
       })
       .catch((err) => {
-        console.log(err);
+        Logger.log(err);
       });
   }
 }

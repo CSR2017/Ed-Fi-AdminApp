@@ -1,0 +1,53 @@
+// packages/api/config/local-development.js
+
+module.exports = {
+  API_PORT: 3333,
+  DB_SSL: false,
+  AWS_REGION: 'us-east-2',
+  FE_URL: 'http://localhost:4200',
+  MY_URL: 'http://localhost:3333',
+  YOPASS_URL: 'https://i2970wh4a8.execute-api.us-east-2.amazonaws.com/prod/',
+
+  DB_SECRET_VALUE: {
+    DB_HOST: 'localhost',
+    DB_PORT: 3306,
+    DB_USERNAME: 'sbaa',
+    DB_DATABASE: 'sbaa',
+    DB_PASSWORD: 'dev',
+  },
+  DB_ENCRYPTION_SECRET_VALUE: {
+    KEY: '<your value>',
+    IV: '<your value>',
+  },
+
+  // Optional (can delete): seed a demo starting blocks environment.
+  SAMPLE_SBE_CONFIG: {
+    adminApiUrl: 'https://adminapi.mth-dev-61a.eaedfi.edanalytics.org/',
+    adminApiKey: 'sbaa-test-admin-api-client',
+
+    // ask
+    adminApiSecret: '<ask bjorn, mark, or eshara>',
+    sbeMetaUrl: 'https://4hvkyakhfjuzbmxnluphomjy3a0wlroq.lambda-url.us-east-1.on.aws/',
+    sbeMetaKey: 'AKIASTVQTN22JHW4FT5E',
+
+    // ask
+    sbeMetaSecret: '<ask bjorn, mark, or eshara>',
+  },
+
+  // Optional (can delete): seed IdP configs for your local Keycloak and EA App Launcher
+  SAMPLE_OIDC_CONFIG: {
+    issuer: 'http://localhost:8080/realms/example',
+    clientId: 'sbaa',
+    clientSecret: 'big-secret-123',
+    scope: '',
+  },
+  SAMPLE_APP_LAUNCHER_CONFIG: {
+    url: 'https://login.rally.edanalytics.org',
+    poolId: 'us-east-2_GKriiKORy',
+    clientId: '26gf6ua3iholfru7is2tr1ecs4',
+  },
+
+  // Optional: generate some fake data:
+  SEED_DEMO_DATA: true,
+
+};

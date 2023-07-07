@@ -1,14 +1,11 @@
-FROM public.ecr.aws/docker/library/node:16.13.1-alpine
+FROM public.ecr.aws/docker/library/node:18-alpine
 
 WORKDIR /usr/src/app
 
 # Add dependency files  install
 COPY package*.json ./
 
-RUN apk add --no-cache --virtual .build-deps python3 make g++ \
-    && npm ci \  
-    && apk del .build-deps
-
+RUN npm ci
 COPY . .
 
 RUN wget https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem

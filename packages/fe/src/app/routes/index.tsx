@@ -111,6 +111,10 @@ export const publicRoute: RouteObject = {
   path: '/public',
   element: <a href="/login">Login</a>,
 };
+export const noRoleRoute: RouteObject = {
+  path: '/no-role',
+  element: <>You have not been assigned a role.</>,
+};
 const Login = memo(() => {
   const { redirect } = useSearchParamsObject();
   useEffect(() => {
@@ -131,7 +135,7 @@ export const asRoute: RouteObject = {
 export const publicLayoutRoute: RouteObject = {
   element: <PublicAppLayout />,
   errorElement: <ErrorFallback />,
-  children: [publicRoute, secretRoute],
+  children: [publicRoute, secretRoute, noRoleRoute],
 };
 export const mainLayoutRoute: RouteObject = {
   element: <StandardLayout />,

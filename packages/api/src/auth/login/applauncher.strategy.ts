@@ -1,5 +1,5 @@
 import { AppLauncher } from '@edanalytics/models-server';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
@@ -32,14 +32,14 @@ export class RegisterAlIdpsService {
                 Buffer.from(req.params.authResult, 'base64url').toString()
               );
             } catch (unusableCallbackData) {
-              console.warn('Unusable data in applauncher callback');
+              Logger.warn('Unusable data in applauncher callback');
               throw unusableCallbackData;
             }
             let payload: CognitoAccessTokenPayload;
             try {
               payload = await verifier.verify(decodedAuthResult.token);
             } catch (invalidToken) {
-              console.warn('Invalid applauncher cognito token');
+              Logger.warn('Invalid applauncher cognito token');
               throw invalidToken;
             }
 

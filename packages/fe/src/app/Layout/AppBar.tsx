@@ -55,9 +55,11 @@ export const AppBar = () => {
           >
             Sign out
           </MenuItem>
-          <MenuItem to="/me" as={RouterLink}>
-            My profile
-          </MenuItem>
+          {me.data?.role ? (
+            <MenuItem to="/me" as={RouterLink}>
+              My profile
+            </MenuItem>
+          ) : null}
         </MenuList>
       </Menu>
     </HStack>

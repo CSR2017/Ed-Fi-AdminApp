@@ -2,10 +2,13 @@ import {
   Controller,
   Get,
   Header,
+  HttpException,
+  HttpStatus,
   Next,
   Param,
   Post,
   Query,
+  Req,
   Request,
   Res,
   UseGuards,
@@ -115,15 +118,14 @@ export class AuthController {
   }
 
   @Get('me')
-  @Authorize({
-    privilege: 'me:read',
-    subject: {
-      id: '__filtered__',
-    },
-  })
+  @Public()
   @Header('Cache-Control', 'none')
-  async me(@ReqUser() session: GetSessionDataDto) {
-    return toGetSessionDataDto(session);
+  async me(@ReqUser() session: GetSessionDataDto, @Req() req) {
+    if (req?.isAuthenticated()) {
+      return toGetSessionDataDto(session);
+    } else {
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
   }
   @Get('authorizations/:privilege/:tenantId?')
   @Authorize({

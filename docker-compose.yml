@@ -1,0 +1,9 @@
+services:
+  db:
+    image: postgres:13
+    ports:
+      - 3306:5432
+    environment:
+      POSTGRES_USER: sbaa
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: sbaa

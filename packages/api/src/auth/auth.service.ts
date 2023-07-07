@@ -13,7 +13,12 @@ import {
   UserTenantMembership,
 } from '@edanalytics/models-server';
 import { faker } from '@faker-js/faker';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, IsNull, Repository, TreeRepository } from 'typeorm';
 import { CacheService } from '../app/cache.module';
@@ -100,7 +105,7 @@ export class AuthService {
     } else {
       const newUser = await this.usersRepo.save({
         ...user,
-        isActive: false,
+        isActive: true,
         roleId: null,
       });
       return await this.getUser(newUser.username);
@@ -140,18 +145,18 @@ export class AuthService {
           if (o.sbe) {
             sbePrivileges.set(
               o.sbe.id,
-              new Set(o.role.privileges.map((p) => p.code))
+              new Set(o.role?.privileges.map((p) => p.code) ?? [])
             );
           } else if (o.ods) {
             odsPrivileges.set(
               o.ods.id,
-              new Set(o.role.privileges.map((p) => p.code))
+              new Set(o.role?.privileges.map((p) => p.code) ?? [])
             );
             ownedOdss.push(o);
           } else if (o.edorg) {
             edorgPrivileges.set(
               o.edorg.id,
-              new Set(o.role.privileges.map((p) => p.code))
+              new Set(o.role?.privileges.map((p) => p.code) ?? [])
             );
             ownedEdorgs.push(o);
           }
@@ -264,7 +269,7 @@ export class AuthService {
           );
 
           const ownedPrivileges = new Set(
-            ownership.role.privileges.map((p) => p.code)
+            ownership.role?.privileges.map((p) => p.code) ?? []
           );
 
           cacheEdorgPrivilegesUpward(cache, edorg, ownedPrivileges, ancestors);
@@ -275,7 +280,7 @@ export class AuthService {
           const ods = ownership.ods!;
 
           const ownedPrivileges = new Set(
-            ownership.role.privileges.map((p) => p.code)
+            ownership.role?.privileges.map((p) => p.code) ?? []
           );
           const appliedPrivileges = new Set(
             [...ownedPrivileges].filter((p) =>

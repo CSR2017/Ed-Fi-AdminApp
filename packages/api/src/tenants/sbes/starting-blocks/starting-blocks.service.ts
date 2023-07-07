@@ -11,18 +11,19 @@ import {
 } from '@edanalytics/models';
 import { Sbe } from '@edanalytics/models-server';
 import {
-  HttpException,
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { aws4Interceptor } from 'aws4-axios';
 import axios, { AxiosError } from 'axios';
 import ClientOAuth2 from 'client-oauth2';
+import crypto from 'crypto';
 import NodeCache from 'node-cache';
 import { throwNotFound } from '../../../utils';
 import { SbesService } from '../sbes.service';
 import { IStartingBlocksService } from './starting-blocks.service.interface';
-import crypto from 'crypto';
 /* eslint @typescript-eslint/no-explicit-any: 0 */ // --> OFF
 
 @Injectable()
@@ -34,6 +35,9 @@ export class StartingBlocksService implements IStartingBlocksService {
   }
 
   async logIntoAdminApi(sbe: Sbe) {
+    if (typeof sbe.configPublic.adminApiUrl !== 'string') {
+      throw new Error('No Admin API URL configured.');
+    }
     const url = `${sbe.configPublic.adminApiUrl.replace(
       /\/$/,
       ''
@@ -41,7 +45,7 @@ export class StartingBlocksService implements IStartingBlocksService {
     try {
       new URL(url);
     } catch (InvalidUrl) {
-      console.log(InvalidUrl);
+      Logger.log(InvalidUrl);
       throw new Error('Invalid URL');
     }
     const AdminApiAuth = new ClientOAuth2({
@@ -64,7 +68,7 @@ export class StartingBlocksService implements IStartingBlocksService {
         );
       })
       .catch((err) => {
-        console.log(err);
+        Logger.log(err);
         throw new Error(err.message);
       });
   }
@@ -85,9 +89,9 @@ export class StartingBlocksService implements IStartingBlocksService {
       })
       .catch((err: AxiosError<any>) => {
         if (err.response?.data?.errors) {
-          console.warn(JSON.stringify(err.response.data.errors));
+          Logger.warn(JSON.stringify(err.response.data.errors));
         } else {
-          console.warn(err);
+          Logger.warn(err);
         }
         throw new InternalServerErrorException('Self-registration failed.');
       });
@@ -104,8 +108,17 @@ export class StartingBlocksService implements IStartingBlocksService {
     client.interceptors.request.use(async (config) => {
       let token: undefined | string = this.adminApiTokens.get(sbe.id);
       if (token === undefined) {
-        await this.logIntoAdminApi(sbe);
-        token = this.adminApiTokens.get(sbe.id);
+        try {
+          await this.logIntoAdminApi(sbe);
+          token = this.adminApiTokens.get(sbe.id);
+        } catch (ConnectionError) {
+          Logger.error(ConnectionError);
+          if (ConnectionError.message === 'No Admin API URL configured.') {
+            throw new BadRequestException(
+              'Unable to connect to Ed-Fi Admin API. Connection parameters may be misconfigured.'
+            );
+          }
+        }
       }
       config.headers.Authorization = `Bearer ${token}`;
       return config;
@@ -265,7 +278,7 @@ export class StartingBlocksService implements IStartingBlocksService {
     return this.getSbeLambdaClient(sbe)
       .get<SbMetaEnv, SbMetaEnv>(sbe.configPublic.sbeMetaUrl)
       .catch((err) => {
-        console.log(err);
+        Logger.log(err);
         if (err?.response?.data?.message) {
           throw new Error(err.response.data.message);
         } else {

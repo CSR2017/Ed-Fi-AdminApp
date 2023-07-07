@@ -42,4 +42,7 @@ db.sqlite
 # environment variables
 *.local.*
 *.local
+!sbaa-keycloak-config.local.yml
+
 packages/api/config/local*
+!*.copyme*

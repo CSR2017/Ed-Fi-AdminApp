@@ -16,6 +16,7 @@ import { SbeConfigReorg1687190483472 } from './migrations/1687190483472-sbe-conf
 import { AdOdsNaturalKeyToEdorg1687466013005 } from './migrations/1687466013005-add-ods-natural-key-to-edorg';
 import { EducationOrganizationIdToNumber1687881668666 } from './migrations/1687881668666-educationOrganizationIdToNumber';
 import { UniqueOwnershipConstraints1687900131470 } from './migrations/1687900131470-uniqueOwnershipConstraints';
+import { Initial1688158300508 } from './migrations/1687190483471-initial';
 
 const config: Pick<
   PostgresConnectionOptions,
@@ -38,6 +39,7 @@ const config: Pick<
   synchronize: false,
   migrationsRun: true,
   migrations: [
+    Initial1688158300508,
     SbeConfigReorg1687190483472,
     AdOdsNaturalKeyToEdorg1687466013005,
     EducationOrganizationIdToNumber1687881668666,

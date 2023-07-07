@@ -17,7 +17,7 @@ import {
   Sbe,
   addUserCreating,
 } from '@edanalytics/models-server';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import _ from 'lodash';
 import { DeepPartial, EntityManager, In, Repository } from 'typeorm';
@@ -370,13 +370,13 @@ export class SbesGlobalService {
             throw err;
           });
       } catch (TransformationErr) {
-        console.log(TransformationErr);
+        Logger.log(TransformationErr);
         if (TransformationErr.message) {
           messages.push(`Sync operation: ${TransformationErr.message}`);
         }
       }
     } catch (SbMetaErr) {
-      console.log(SbMetaErr);
+      Logger.log(SbMetaErr);
       if (SbMetaErr.message) {
         messages.push(`SB Meta: ${SbMetaErr.message}`);
       }

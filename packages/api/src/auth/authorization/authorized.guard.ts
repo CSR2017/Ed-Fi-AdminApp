@@ -6,6 +6,7 @@ import {
   HttpException,
   Inject,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthService } from '../auth.service';
@@ -44,9 +45,7 @@ export class AuthorizedGuard implements CanActivate {
 
         if (authorizeRule === undefined) {
           // Each route _must_ define its authorization rule.
-          console.warn(
-            'Authorization rule not defined for route' + request.url
-          );
+          Logger.warn('Authorization rule not defined for route' + request.url);
           return false;
         } else {
           const privilege = authorizeRule.privilege;
@@ -102,7 +101,7 @@ export class AuthorizedGuard implements CanActivate {
           }
         }
       } catch (authorizationSystemError) {
-        console.log(authorizationSystemError);
+        Logger.log(authorizationSystemError);
         return false;
       }
 

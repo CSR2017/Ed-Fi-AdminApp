@@ -3,21 +3,13 @@
   "sqltools.connections": [
     {
       "previewLimit": 50,
-      "driver": "SQLite",
-      "name": "SBAA",
-      "database": "${workspaceFolder:sbaa_se}/packages/api/db.sqlite"
+      "server": "localhost",
+      "port": 3306,
+      "driver": "PostgreSQL",
+      "name": "SBAA - local",
+      "database": "sbaa",
+      "username": "sbaa",
+      "password": "dev"
     }
-  ],
-  "eslint.validate": ["json"],
-  "cSpell.words": [
-    "chakra",
-    "claimset",
-    "claimsets",
-    "edanalytics",
-    "edorg",
-    "edorgs",
-    "hookform",
-    "tanstack",
-    "typeorm"
   ]
 }

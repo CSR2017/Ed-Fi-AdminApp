@@ -1,4 +1,3 @@
-const raw = require('config/raw').raw;
 const defer = require('config/defer').deferConfig;
 const {
   SecretsManagerClient,
@@ -42,7 +41,7 @@ module.exports = {
       });
     } else {
       const { DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE } =
-        this.DB_SECRET_VALUE.resolve();
+        this.DB_SECRET_VALUE;
       return makeConnectionString(
         DB_PORT,
         DB_DATABASE,
@@ -82,7 +81,7 @@ module.exports = {
         global.DB_SECRETS_ENCRYPTION = value;
       });
     } else {
-      out = { ...this.DB_ENCRYPTION_SECRET_VALUE.resolve() };
+      out = { ...this.DB_ENCRYPTION_SECRET_VALUE };
       global.DB_SECRETS_ENCRYPTION = out;
     }
     return out;

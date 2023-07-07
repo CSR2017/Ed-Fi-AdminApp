@@ -29,6 +29,7 @@ declare module 'config' {
     MY_URL: string;
     YOPASS_URL: string;
     API_PORT: number;
+
     SAMPLE_SBE_CONFIG?: {
       adminApiUrl: string;
       adminApiKey: string;
@@ -48,6 +49,10 @@ declare module 'config' {
       poolId: string;
       clientId: string;
     };
+
+    SEED_BASIC: string;
+    SEED_SAMPLE_CONFIG: string;
+    SEED_DEMO_DATA: string;
   }
 
   const config: IConfig;

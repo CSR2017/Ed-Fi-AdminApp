@@ -8,8 +8,8 @@ import { ITenant } from './tenant.interface';
 export interface IOwnership extends IEntityBase {
   tenant: ITenant;
   tenantId: ITenant['id'];
-  role: IRole;
-  roleId: IRole['id'];
+  role: IRole | null;
+  roleId: IRole['id'] | null;
 
   sbe?: ISbe;
   sbeId?: number;

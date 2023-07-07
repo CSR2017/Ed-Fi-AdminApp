@@ -29,6 +29,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CacheModule } from './cache.module';
 import { routes } from './routes';
+import { SeedModule } from '../database/seed.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { routes } from './routes';
         };
       },
     }),
+    SeedModule,
     TypeOrmModule.forFeature([User, Sbe, Ods, Edorg, Ownership]),
     RouterModule.register(routes),
     AuthModule,

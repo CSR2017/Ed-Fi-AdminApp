@@ -1,7 +1,7 @@
 import './modes/dev';
 process.env['NODE_CONFIG_DIR'] = './packages/api/config';
 import './utils/checkEnv';
-
+import colors from 'colors/safe';
 import {
   ClassSerializerInterceptor,
   Logger,
@@ -15,11 +15,10 @@ import * as expressSession from 'express-session';
 import passport from 'passport';
 import { Client } from 'pg';
 import { AppModule } from './app/app.module';
+import { wait } from '@edanalytics/utils';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: ['debug', 'warn', 'error', 'verbose'],
-  });
+  const app = await NestFactory.create(AppModule);
   const globalPrefix = 'api';
   await config.DB_ENCRYPTION_SECRET;
   const pgConnectionStr = await config.DB_CONNECTION_STRING;
@@ -55,6 +54,26 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({ transform: true, stopAtFirstError: false })
   );
+  if (config.FE_URL.includes('localhost')) {
+    wait(1000).then(() => {
+      console.log('');
+      Logger.warn(
+        `Setting up cors for requests from ${colors.cyan(
+          config.FE_URL
+        )}${colors.yellow('. Requests from 127.0.0.1 will fail.')}`
+      );
+    });
+  }
+  if (config.FE_URL.includes('127.0.0.1')) {
+    wait(1000).then(() => {
+      console.log('');
+      Logger.warn(
+        `Setting up cors for requests from ${colors.cyan(
+          config.FE_URL
+        )}${colors.yellow('. Requests from localhost will fail.')}`
+      );
+    });
+  }
   app.enableCors({ origin: config.FE_URL, credentials: true });
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector), {
