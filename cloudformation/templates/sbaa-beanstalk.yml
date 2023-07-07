@@ -68,28 +68,157 @@ Parameters:
   FrontEndUrl:
     Type: String
     Description: URL for front end
+  CRHelperLambdaArn:
+    Type: String
+    Description: ARN of the CRHelper Lambda Layer
 Conditions:
   AllowSshToBeanstalk: !Equals
     - !Ref 'SshToBeanstalk'
     - 'yes'
 Resources:
-  DBEncryptionSecret:
-    Type: AWS::SecretsManager::Secret
+  DbEncryptionSecretRole:
+    Type: AWS::IAM::Role
     Properties:
-      Name: !Sub '${EnvLabel}-DBEncryptionSecret'
-      Description: !Sub 'Key to be used when populating secret values in DB for ${EnvLabel}'
-      Tags:
-        -
-          Key: EnvLabel
-          Value: !Ref EnvLabel
-        -
-          Key: StackID
-          Value: !Ref 'AWS::StackId'
-      GenerateSecretString:
-        SecretStringTemplate: '{}'
-        GenerateStringKey: "key"
-        ExcludePunctuation: true
-        PasswordLength: 128
+      ManagedPolicyArns:
+            - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: "/"
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - secretsmanager:CreateSecret
+            - secretsmanager:UpdateSecret
+            - secretsmanager:DescribeSecret
+            - secretsmanager:GetSecretValue
+            - secretsmanager:ListSecrets
+            - secretsmanager:TagResource
+            - secretsmanager:PutSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${EnvLabel}-DBEncryptionSecret*'
+          Version: '2012-10-17'
+        PolicyName: !Sub ${EnvLabel}-DBEncryptionSecretPolicy
+  DbEncryptionSecretLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Layers:
+        - !Ref 'CRHelperLambdaArn'
+      Description: creates and stores hex encoded byte strings to use as a DB encryption key and initialization vector.
+      FunctionName: !Sub '${EnvLabel}-DbEncryptionSecret'
+      Role: !GetAtt 'DbEncryptionSecretRole.Arn'
+      Runtime: python3.9
+      Timeout: 30
+      Code: 
+        ZipFile: |
+          import secrets
+          import boto3
+          import signal
+          import json
+          from crhelper import CfnResource
+
+          helper = CfnResource()
+
+          def lambda_handler(event, context):
+              signal.alarm(int((context.get_remaining_time_in_millis() / 1000) - 1))
+              helper(event, context)
+
+
+          @helper.create
+          def create(event, _):
+              client = boto3.client('secretsmanager')
+              envlabel = event['ResourceProperties']['envlabel']
+              name = envlabel + '-DBEncryptionSecret'
+
+              secret_exists = check_for_secret(name)
+
+              if not secret_exists:
+                  print("The secret named " + name + " did not exist...creating it now.")
+                  key_token = secrets.token_hex(32)
+                  iv_token = secrets.token_hex(16)
+                  secret_dict = { "KEY": key_token, "IV": iv_token }
+
+                  response = client.create_secret(
+                      Name=name,
+                      Description='Hex encoded byte strings to use as a DB encryption key and initialization vector.',
+                      SecretString=json.dumps(secret_dict)
+                  )
+
+                  print("This secret was successfully created during the deployment and named " + name)
+              else:
+                  print("The secret named " + name + " ALREADY EXISTED in the AWS account and therefore the deployment DID NOT create a secret with this name.")
+
+
+          def check_for_secret(secret_name):
+              sm             = boto3.client('secretsmanager')
+              response        = sm.list_secrets(
+                  Filters=[
+                      {
+                          'Key': 'name',
+                          'Values': [
+                              secret_name
+                          ]
+                      }
+                  ]
+              )
+
+              found = False
+
+              for key in response['SecretList']:
+                  if key['Name'] == secret_name:
+                      found = True
+
+              return found
+
+
+          @helper.update
+          def no_op(_, __):
+              pass
+
+
+          @helper.delete
+          def delete(event, _):
+              client = boto3.client('secretsmanager')
+              envlabel = event['ResourceProperties']['envlabel']
+              name = envlabel + '-DBEncryptionSecret'
+              
+              secret_exists = check_for_secret(name)
+              
+              if secret_exists:
+                  print(f'Secret {name} was found. Deleting.')
+                  client = boto3.client('secretsmanager')
+                  response = client.delete_secret(
+                      SecretId=name,
+                      ForceDeleteWithoutRecovery=True
+                  )
+                  print(f'Secret {name} was deleted without recovery.')
+              else:
+                  print(f'Secret {name} was not found.')
+
+          def timeout_handler(_signal, _frame):
+              '''Handle SIGALRM'''
+              raise Exception('lambda function timeout exceeded')
+
+
+          signal.signal(signal.SIGALRM, timeout_handler)
+
+  DbEncryptionSecretCustomResource:
+    Type: AWS::CloudFormation::CustomResource
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    Properties:
+      ServiceToken: !GetAtt DbEncryptionSecretLambda.Arn
+      envlabel: !Ref EnvLabel
+      region: !Ref AWS::Region
   ElasticBeanstalkEC2Role:
     Type: AWS::IAM::Role
     Properties:
@@ -321,7 +450,7 @@ Resources:
           Value: !Ref YopassUrl
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: DB_ENCRYPTION_SECRET
-          Value: !Ref DBEncryptionSecret
+          Value: !Sub '${EnvLabel}-DbEncryptionSecret'
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: MY_URL
           Value: !Sub 'https://${DomainName}'

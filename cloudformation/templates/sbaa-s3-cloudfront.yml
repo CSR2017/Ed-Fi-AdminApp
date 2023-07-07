@@ -407,3 +407,6 @@ Outputs:
   DistributionId:
     Description: Cloudfront Distribution ID
     Value: !Ref CloudFront
+  CRHelperLayer:
+    Description: Lambda Layer ARN for CR Helper
+    Value: !Ref CRHelperLambdaLayer

@@ -359,6 +359,7 @@ Resources:
         SnowSecret: !Ref SnowSecret
         YopassUrl: !Ref YopassUrl
         FrontEndUrl: !Sub 'https://${DomainName}'
+        CRHelperLambdaArn: !GetAtt 'FrontEndS3CloudFrontStack.Outputs.CRHelperLayer'
   FrontEndS3CloudFrontStack:
     Type: AWS::CloudFormation::Stack
     Properties:
