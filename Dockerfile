@@ -5,7 +5,10 @@ WORKDIR /usr/src/app
 # Add dependency files  install
 COPY package*.json ./
 
-RUN npm ci
+RUN apk add --no-cache --virtual .build-deps python3 make g++ \
+  && npm ci \
+  && apk del .build-deps
+
 COPY . .
 
 RUN wget https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem

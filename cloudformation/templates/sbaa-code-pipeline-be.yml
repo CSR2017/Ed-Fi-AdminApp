@@ -11,7 +11,7 @@ Metadata:
           - CreateS3Bucket
           - GitHubConnectionArn
           - GitHubRepo
-          - GitHubBranch          
+          - GitHubBranch
           - BsAppName
           - BsEnvName
           - AuthAppLauncherLoginUrl
@@ -21,7 +21,7 @@ Metadata:
       GitHubBranch:
         default: Branch to build from
       GitHubConnectionArn:
-       default: ARN of the GitHub connection
+        default: ARN of the GitHub connection
       EnvLabel:
         default: Environment Label
       GitHubRepo:
@@ -96,8 +96,8 @@ Resources:
 
   EcrRepository:
     Type: AWS::ECR::Repository
-    Properties: 
-      ImageScanningConfiguration: 
+    Properties:
+      ImageScanningConfiguration:
         ScanOnPush: true
       RepositoryName: !Sub '${EnvLabel}-repo'
 
@@ -116,17 +116,17 @@ Resources:
       Path: /
       Policies:
         - PolicyName: AllowActions
-          PolicyDocument: 
+          PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
                   - 'iam:PassRole'
-                Resource: 
+                Resource:
                   - '*'
                 Condition:
                   StringEqualsIfExists:
-                    "iam:PassedToService":
+                    'iam:PassedToService':
                       - cloudformation.amazonaws.com
                       - elasticbeanstalk.amazonaws.com
                       - ec2.amazonaws.com
@@ -219,7 +219,7 @@ Resources:
       Path: /
       Policies:
         - PolicyName: CodeBuildBasePolicy
-          PolicyDocument: 
+          PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
@@ -227,7 +227,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: 
+                Resource:
                   - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*'
               - Effect: Allow
                 Action:
@@ -263,19 +263,19 @@ Resources:
                   - ecr:InitiateLayerUpload
                   - ecr:BatchCheckLayerAvailability
                   - ecr:PutImage
-                Resource: 
+                Resource:
                   - '*'
 
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
-    Properties: 
-      ArtifactStore: 
+    Properties:
+      ArtifactStore:
         Location: !Sub 'codepipeline-artifact-store-${AWS::Region}-${AWS::AccountId}'
         Type: S3
       Name: !Sub '${EnvLabel}-BE-pipeline'
       RestartExecutionOnUpdate: True
       RoleArn: !GetAtt 'PipelineRole.Arn'
-      Stages: 
+      Stages:
         - Name: SourceStage
           Actions:
             - Name: Source
@@ -296,13 +296,13 @@ Resources:
         - Name: BuildStage
           Actions:
             - Name: Build
-              ActionTypeId: 
+              ActionTypeId:
                 Category: Build
                 Owner: AWS
                 Provider: CodeBuild
                 Version: 1
               RunOrder: 1
-              Configuration: 
+              Configuration:
                 EnvironmentVariables: !Sub |
                   [
                       {
@@ -312,9 +312,9 @@ Resources:
                       }
                   ]
                 ProjectName: !Ref CodeBuild
-              OutputArtifacts: 
+              OutputArtifacts:
                 - Name: BuildArtifact
-              InputArtifacts: 
+              InputArtifacts:
                 - Name: SourceArtifact
               Region: !Ref 'AWS::Region'
               Namespace: BuildVariables
@@ -330,7 +330,7 @@ Resources:
               Configuration:
                 ApplicationName: !Ref BsAppName
                 EnvironmentName: !Ref BsEnvName
-              InputArtifacts: 
+              InputArtifacts:
                 - Name: BuildArtifact
               Region: !Ref 'AWS::Region'
               Namespace: DeployVariables
@@ -340,16 +340,16 @@ Resources:
     Properties:
       Name: !Sub '${EnvLabel}-BE-build'
       Description: !Sub 'Build project for ${EnvLabel}'
-      Source: 
+      Source:
         Type: CODEPIPELINE
         BuildSpec: packages/api/buildspec.yml
       Artifacts:
         Type: CODEPIPELINE
         Name: !Sub '${EnvLabel}-build'
-      Environment: 
+      Environment:
         Type: ARM_CONTAINER
         Image: aws/codebuild/amazonlinux2-aarch64-standard:3.0
-        ComputeType: BUILD_GENERAL1_SMALL
+        ComputeType: BUILD_GENERAL1_LARGE
         PrivilegedMode: true
         ImagePullCredentialsType: CODEBUILD
       ServiceRole: !GetAtt 'CodeBuildRole.Arn'
@@ -360,4 +360,3 @@ Resources:
           GroupName: !Sub '/aws/codebuild/${EnvLabel}-build'
           Status: ENABLED
       Visibility: PRIVATE
-
