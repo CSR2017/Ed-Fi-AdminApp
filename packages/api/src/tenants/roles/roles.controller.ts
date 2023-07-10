@@ -1,19 +1,5 @@
-import {
-  GetSessionDataDto,
-  PostRoleDto,
-  PutRoleDto,
-  toGetRoleDto,
-} from '@edanalytics/models';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { GetSessionDataDto, PostRoleDto, PutRoleDto, toGetRoleDto } from '@edanalytics/models';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { ReqUser } from '../../auth/helpers/user.decorator';
 import { RolesService } from './roles.service';
 import { ApiTags } from '@nestjs/swagger';
@@ -39,9 +25,7 @@ export class RolesController {
     @Param('tenantId', new ParseIntPipe()) tenantId: number
   ) {
     return toGetRoleDto(
-      await this.roleService.create(
-        addUserCreating({ ...createRoleDto, tenantId }, session)
-      )
+      await this.roleService.create(addUserCreating({ ...createRoleDto, tenantId }, session))
     );
   }
 

@@ -1,25 +1,19 @@
 import { IRole, ITenant, IUser, IUserTenantMembership } from '@edanalytics/models';
-import {
-  Column,
-  Entity,
-  ManyToOne
-} from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 
 @Entity()
-export class UserTenantMembership
-  extends EntityBase
-  implements IUserTenantMembership {
+export class UserTenantMembership extends EntityBase implements IUserTenantMembership {
   @ManyToOne('Tenant', (tenant: ITenant) => tenant.userTenantMemberships)
   tenant: ITenant;
   @Column()
-  tenantId: ITenant['id']
+  tenantId: ITenant['id'];
   @ManyToOne('User', (user: IUser) => user.userTenantMemberships)
-  user: IUser
+  user: IUser;
   @Column()
-  userId: IUser['id']
+  userId: IUser['id'];
   @ManyToOne('Role', { nullable: true })
-  role?: IRole
+  role?: IRole;
   @Column({ nullable: true })
-  roleId?: IRole['id']
+  roleId?: IRole['id'];
 }

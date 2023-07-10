@@ -43,10 +43,7 @@ export const OwnershipLink = (props: {
   const params = useParams() as { asId: string };
   return ownership ? (
     <Link as="span">
-      <RouterLink
-        title="Go to ownership"
-        to={`/as/${params.asId}/ownerships/${ownership.id}`}
-      >
+      <RouterLink title="Go to ownership" to={`/as/${params.asId}/ownerships/${ownership.id}`}>
         {getRelationDisplayName(ownership.id, props.query)}
       </RouterLink>
     </Link>

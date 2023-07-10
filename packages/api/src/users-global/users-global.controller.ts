@@ -1,24 +1,6 @@
-import {
-  GetSessionDataDto,
-  PostUserDto,
-  PutUserDto,
-  toGetUserDto,
-} from '@edanalytics/models';
-import {
-  User,
-  addUserCreating,
-  addUserModifying,
-} from '@edanalytics/models-server';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { GetSessionDataDto, PostUserDto, PutUserDto, toGetUserDto } from '@edanalytics/models';
+import { User, addUserCreating, addUserModifying } from '@edanalytics/models-server';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -43,13 +25,8 @@ export class UsersGlobalController {
       id: '__filtered__',
     },
   })
-  async create(
-    @Body() createUserDto: PostUserDto,
-    @ReqUser() user: GetSessionDataDto
-  ) {
-    return toGetUserDto(
-      await this.userService.create(addUserCreating(createUserDto, user))
-    );
+  async create(@Body() createUserDto: PostUserDto, @ReqUser() user: GetSessionDataDto) {
+    return toGetUserDto(await this.userService.create(addUserCreating(createUserDto, user)));
   }
 
   @Get()
@@ -71,9 +48,7 @@ export class UsersGlobalController {
     },
   })
   async findOne(@Param('userId', new ParseIntPipe()) userId: number) {
-    return toGetUserDto(
-      await this.userService.findOne(userId).catch(throwNotFound)
-    );
+    return toGetUserDto(await this.userService.findOne(userId).catch(throwNotFound));
   }
 
   @Put(':userId')
@@ -89,10 +64,7 @@ export class UsersGlobalController {
     @ReqUser() user: GetSessionDataDto
   ) {
     return toGetUserDto(
-      await this.userService.update(
-        userId,
-        addUserModifying(updateUserDto, user)
-      )
+      await this.userService.update(userId, addUserModifying(updateUserDto, user))
     );
   }
 
@@ -103,10 +75,7 @@ export class UsersGlobalController {
       id: '__filtered__',
     },
   })
-  remove(
-    @Param('userId', new ParseIntPipe()) userId: number,
-    @ReqUser() user: GetSessionDataDto
-  ) {
+  remove(@Param('userId', new ParseIntPipe()) userId: number, @ReqUser() user: GetSessionDataDto) {
     return this.userService.remove(userId, user);
   }
 }

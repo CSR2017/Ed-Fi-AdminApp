@@ -1,15 +1,19 @@
-import { Expose, Type } from "class-transformer";
-import { EdorgType } from "../enums";
-import { FakeMeUsing, deployEnv, districtName, schoolType, schoolYear } from "@edanalytics/utils";
-import { faker } from "@faker-js/faker";
+import { Expose, Type } from 'class-transformer';
+import { EdorgType } from '../enums';
+import { FakeMeUsing, deployEnv, districtName, schoolType, schoolYear } from '@edanalytics/utils';
+import { faker } from '@faker-js/faker';
 
-@FakeMeUsing(() => Math.random() > 0.2 ? ({
-  discriminator: EdorgType['edfi.School'],
-  nameOfInstitution: `${faker.address.street()} ${schoolType()}`,
-}) : ({
-  discriminator: EdorgType['edfi.LocalEducationAgency'],
-  nameOfInstitution: districtName(),
-}))
+@FakeMeUsing(() =>
+  Math.random() > 0.2
+    ? {
+        discriminator: EdorgType['edfi.School'],
+        nameOfInstitution: `${faker.address.street()} ${schoolType()}`,
+      }
+    : {
+        discriminator: EdorgType['edfi.LocalEducationAgency'],
+        nameOfInstitution: districtName(),
+      }
+)
 export class SbMetaEdorg {
   @Expose()
   educationorganizationid: number;
@@ -23,7 +27,7 @@ export class SbMetaEdorg {
 
   @Expose()
   @Type(() => SbMetaEdorg)
-  edorgs?: SbMetaEdorg[]
+  edorgs?: SbMetaEdorg[];
 }
 
 export class SbMetaOds {
@@ -33,7 +37,7 @@ export class SbMetaOds {
 
   @Expose()
   @Type(() => SbMetaEdorg)
-  edorgs?: SbMetaEdorg[]
+  edorgs?: SbMetaEdorg[];
 }
 
 export class SbMetaEnv {
@@ -43,5 +47,5 @@ export class SbMetaEnv {
 
   @Expose()
   @Type(() => SbMetaOds)
-  odss?: SbMetaOds[]
+  odss?: SbMetaOds[];
 }

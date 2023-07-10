@@ -13,17 +13,7 @@ import { IsIn, IsNumber, IsOptional, Validate } from 'class-validator';
 export class GetOwnershipDto
   extends DtoGetBase
   implements
-    GetDto<
-      IOwnership,
-      | 'tenant'
-      | 'role'
-      | 'sbeId'
-      | 'sbe'
-      | 'odsId'
-      | 'ods'
-      | 'edorgId'
-      | 'edorg'
-    >
+    GetDto<IOwnership, 'tenant' | 'role' | 'sbeId' | 'sbe' | 'odsId' | 'ods' | 'edorgId' | 'edorg'>
 {
   @Expose()
   tenantId: ITenant['id'];
@@ -46,24 +36,14 @@ export class GetOwnershipDto
     return 'Resource ownership';
   }
 }
-export const toGetOwnershipDto = makeSerializer<GetOwnershipDto, IOwnership>(
-  GetOwnershipDto
-);
+export const toGetOwnershipDto = makeSerializer<GetOwnershipDto, IOwnership>(GetOwnershipDto);
 
 export class PutOwnershipDto
   extends DtoPutBase
   implements
     PutDto<
       IOwnership,
-      | 'tenant'
-      | 'tenantId'
-      | 'role'
-      | 'sbeId'
-      | 'sbe'
-      | 'odsId'
-      | 'ods'
-      | 'edorgId'
-      | 'edorg'
+      'tenant' | 'tenantId' | 'role' | 'sbeId' | 'sbe' | 'odsId' | 'ods' | 'edorgId' | 'edorg'
     >
 {
   @Expose()
@@ -116,10 +96,6 @@ export class PostOwnershipDto
 
   @IsIn([true], { message: 'You need to select a resource.' })
   get hasResource() {
-    return (
-      this.sbeId !== undefined ||
-      this.odsId !== undefined ||
-      this.edorgId !== undefined
-    );
+    return this.sbeId !== undefined || this.odsId !== undefined || this.edorgId !== undefined;
   }
 }

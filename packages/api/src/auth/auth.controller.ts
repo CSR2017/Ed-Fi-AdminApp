@@ -50,13 +50,8 @@ export class AuthController {
 
   @Public()
   @Get('/applauncher/:appLauncherId/login')
-  async applauncherLogin(
-    @Param('appLauncherId') appLauncherId: number,
-    @Res() res: Response
-  ) {
-    const alConfig = await this.idpService.getAppLauncherConnection(
-      appLauncherId
-    );
+  async applauncherLogin(@Param('appLauncherId') appLauncherId: number, @Res() res: Response) {
+    const alConfig = await this.idpService.getAppLauncherConnection(appLauncherId);
     res.redirect(alConfig.url);
   }
 
@@ -76,12 +71,7 @@ export class AuthController {
 
   @Public()
   @Get('/oidc/:oidcId/login')
-  oidcLogin(
-    @Param('oidcId') oidcId: number,
-    @Res() res: Response,
-    @Request() req,
-    @Next() next
-  ) {
+  oidcLogin(@Param('oidcId') oidcId: number, @Res() res: Response, @Request() req, @Next() next) {
     passport.authenticate(`oidc-${oidcId}`, {
       state: JSON.stringify({
         redirect: req.query?.redirect ?? '/',
@@ -150,11 +140,7 @@ export class AuthController {
         result = cache?.[privilege]?.[sbeId];
       }
     }
-    return result === true
-      ? true
-      : result === false || result === undefined
-      ? false
-      : [...result];
+    return result === true ? true : result === false || result === undefined ? false : [...result];
   }
 
   @Get('my-tenants')
@@ -171,9 +157,7 @@ export class AuthController {
     if (privileges.has('tenant:read')) {
       return toGetTenantDto(await this.tenantsRepository.find());
     } else {
-      return toGetTenantDto(
-        session?.userTenantMemberships?.map((utm) => utm.tenant) ?? []
-      );
+      return toGetTenantDto(session?.userTenantMemberships?.map((utm) => utm.tenant) ?? []);
     }
   }
 

@@ -4,8 +4,7 @@ import { Meta, StoryObj } from '@storybook/react';
 import { useOperationResultDisclosure } from './OperationResult';
 
 const ToastApp: React.FC<OperationResultDto> = (props: OperationResultDto) => {
-  const { disclose, ModalRoot, popModal, popToast } =
-    useOperationResultDisclosure();
+  const { disclose, ModalRoot, popModal, popToast } = useOperationResultDisclosure();
   return (
     <ButtonGroup>
       <Button onClick={() => disclose(props)}>Auto</Button>

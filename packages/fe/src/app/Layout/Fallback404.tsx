@@ -33,13 +33,7 @@ export const ErrorFallback = () => {
             Refresh &#x21BB;
           </Link>
         </HStack>
-        <Text
-          w="auto"
-          textAlign="center"
-          fontWeight="bold"
-          fontSize="5xl"
-          color="gray.300"
-        >
+        <Text w="auto" textAlign="center" fontWeight="bold" fontSize="5xl" color="gray.300">
           {message}
         </Text>
       </VStack>

@@ -1,13 +1,13 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-      "Name": "$DOCKER_TAG",
-      "Update": "true"
+    "Name": "$DOCKER_TAG",
+    "Update": "true"
   },
   "Ports": [
-      {
-          "ContainerPort": "5000",
-          "HostPort": "5000"
-      }
+    {
+      "ContainerPort": "5000",
+      "HostPort": "5000"
+    }
   ]
 }

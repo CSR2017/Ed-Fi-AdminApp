@@ -1,8 +1,5 @@
 const defer = require('config/defer').deferConfig;
-const {
-  SecretsManagerClient,
-  GetSecretValueCommand,
-} = require('@aws-sdk/client-secrets-manager');
+const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
 
 // Test secret retrieval locally if you want by adding creds to the client:
 // credentials: {
@@ -30,9 +27,7 @@ module.exports = {
         );
 
         if (secretValueRaw.SecretString === undefined) {
-          throw new Error(
-            'No connection values defined for postgres when requesting secrets'
-          );
+          throw new Error('No connection values defined for postgres when requesting secrets');
         }
 
         const secret = JSON.parse(secretValueRaw.SecretString);
@@ -40,16 +35,8 @@ module.exports = {
         r(makeConnectionString(port, dbname, username, password, host, ssl));
       });
     } else {
-      const { DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE } =
-        this.DB_SECRET_VALUE;
-      return makeConnectionString(
-        DB_PORT,
-        DB_DATABASE,
-        DB_USERNAME,
-        DB_PASSWORD,
-        DB_HOST,
-        ssl
-      );
+      const { DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE } = this.DB_SECRET_VALUE;
+      return makeConnectionString(DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD, DB_HOST, ssl);
     }
   }),
   DB_ENCRYPTION_SECRET: defer(function () {
@@ -66,9 +53,7 @@ module.exports = {
         );
 
         if (secretValueRaw.SecretString === undefined) {
-          throw new Error(
-            'No client config values defined for OIDC when requesting secrets'
-          );
+          throw new Error('No client config values defined for OIDC when requesting secrets');
         }
 
         const secret = JSON.parse(secretValueRaw.SecretString);

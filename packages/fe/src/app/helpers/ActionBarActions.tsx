@@ -9,10 +9,7 @@ export const ActionBarActions = (props: {
 }) => {
   const { show, actions } = props;
   const hidden = Object.entries(actions);
-  const visible = hidden.splice(
-    0,
-    show === true ? hidden.length : show === undefined ? 6 : show
-  );
+  const visible = hidden.splice(0, show === true ? hidden.length : show === undefined ? 6 : show);
   return (
     <>
       {visible.map(([key, Action]) => (

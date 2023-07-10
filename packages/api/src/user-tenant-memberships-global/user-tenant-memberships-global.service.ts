@@ -26,10 +26,7 @@ export class UserTenantMembershipsGlobalService {
     return this.userTenantMembershipsRepository.findOneByOrFail({ id });
   }
 
-  async update(
-    id: number,
-    updateUserTenantMembershipDto: PutUserTenantMembershipDto
-  ) {
+  async update(id: number, updateUserTenantMembershipDto: PutUserTenantMembershipDto) {
     const old = await this.findOne(id);
     return this.userTenantMembershipsRepository.save({
       ...old,

@@ -28,8 +28,6 @@ export class PrivilegesController {
     },
   })
   async findOne(@Param('privilegeId') privilegeId: string) {
-    return toGetPrivilegeDto(
-      await this.privilegeService.findOne(privilegeId as PrivilegeCode)
-    );
+    return toGetPrivilegeDto(await this.privilegeService.findOne(privilegeId as PrivilegeCode));
   }
 }

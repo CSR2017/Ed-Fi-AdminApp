@@ -22,8 +22,7 @@ export class GetUserDto
   familyName: string;
 
   get fullName() {
-    return typeof this.givenName === 'string' &&
-      typeof this.familyName === 'string'
+    return typeof this.givenName === 'string' && typeof this.familyName === 'string'
       ? this.givenName + ' ' + this.familyName
       : this.username;
   }

@@ -56,7 +56,7 @@ Metadata:
           - DBSnapshotIdentifier
           - DeployAlerts
           - ParentSSHBastionStack
-          - EnableIAMDatabaseAuthentication  
+          - EnableIAMDatabaseAuthentication
       - Label:
           default: CodePipeline information
         Parameters:
@@ -74,7 +74,7 @@ Parameters:
   EnvLabel:
     Description: Provide a label for your environment to identify resources easier.
     Type: String
-  DeployAlerts: 
+  DeployAlerts:
     Description: Deploy SNS topic and database monitoring alerts?
     Type: String
     Default: 'Yes'
@@ -331,7 +331,7 @@ Resources:
         DBInstanceClass: !Ref DBInstanceClass
         DBBackupRetentionPeriod: !Ref DBBackupRetentionPeriod
         DBMultiAZ: !Ref DBMultiAZ
-        PreferredBackupWindow:  !Ref PreferredBackupWindow
+        PreferredBackupWindow: !Ref PreferredBackupWindow
         PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
         EngineVersion: !Ref EngineVersion
         EnableIAMDatabaseAuthentication: !Ref EnableIAMDatabaseAuthentication

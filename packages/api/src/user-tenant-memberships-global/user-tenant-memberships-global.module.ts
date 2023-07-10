@@ -5,14 +5,7 @@ import { UserTenantMembershipsGlobalController } from './user-tenant-memberships
 import { UserTenantMembershipsGlobalService } from './user-tenant-memberships-global.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      Edorg,
-      Ods,
-      UserTenantMembership,
-      UserTenantMembership,
-    ]),
-  ],
+  imports: [TypeOrmModule.forFeature([Edorg, Ods, UserTenantMembership, UserTenantMembership])],
   controllers: [UserTenantMembershipsGlobalController],
   providers: [UserTenantMembershipsGlobalService],
 })

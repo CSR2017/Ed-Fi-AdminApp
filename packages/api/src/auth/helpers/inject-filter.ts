@@ -6,11 +6,7 @@ import {
   PrivilegeCode,
   SpecificIds,
 } from '@edanalytics/models';
-import {
-  createParamDecorator,
-  ExecutionContext,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { createParamDecorator, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 
 export const InjectFilter = createParamDecorator(
   (privilege: PrivilegeCode, ctx: ExecutionContext) => {

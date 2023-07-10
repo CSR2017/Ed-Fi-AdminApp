@@ -9,16 +9,7 @@ import {
   addUserCreating,
   addUserModifying,
 } from '@edanalytics/models-server';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -62,9 +53,7 @@ export class UserTenantMembershipsGlobalController {
     },
   })
   async findAll() {
-    return toGetUserTenantMembershipDto(
-      await this.userTenantMembershipsRepository.find()
-    );
+    return toGetUserTenantMembershipDto(await this.userTenantMembershipsRepository.find());
   }
 
   @Get(':userTenantMembershipId')
@@ -79,9 +68,7 @@ export class UserTenantMembershipsGlobalController {
     userTenantMembershipId: number
   ) {
     return toGetUserTenantMembershipDto(
-      await this.userTenantMembershipService
-        .findOne(userTenantMembershipId)
-        .catch(throwNotFound)
+      await this.userTenantMembershipService.findOne(userTenantMembershipId).catch(throwNotFound)
     );
   }
 
@@ -118,9 +105,6 @@ export class UserTenantMembershipsGlobalController {
     userTenantMembershipId: number,
     @ReqUser() user: GetSessionDataDto
   ) {
-    return this.userTenantMembershipService.remove(
-      userTenantMembershipId,
-      user
-    );
+    return this.userTenantMembershipService.remove(userTenantMembershipId, user);
   }
 }

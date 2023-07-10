@@ -29,7 +29,7 @@ Resources:
             Action:
               - sts:AssumeRole
       Path: /
-  
+
   YoPassLambdaPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -53,10 +53,10 @@ Resources:
               - 'dynamodb:Query'
               - 'dynamodb:UpdateItem'
             Resource: !GetAtt 'YoPassDynamoDBTable.Arn'
-              
+
       Roles:
         - !Ref 'YoPassLambdaRole'
-  
+
   YoPassLambdaFunction:
     Type: AWS::Lambda::Function
     Condition: DeployFunction
@@ -91,9 +91,8 @@ Resources:
         - AttributeName: id
           AttributeType: S
       KeySchema:
-       - AttributeName: id
-         KeyType: HASH
-  
+        - AttributeName: id
+          KeyType: HASH
 
   #Setting Up API Gateway
   YoPassApiGatewayRestApi:
@@ -123,7 +122,7 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
         IntegrationHttpMethod: POST
-        Uri: !Sub 
+        Uri: !Sub
           - 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${YoPassLambdaFunctionArn}/invocations'
           - YoPassLambdaFunctionArn: !GetAtt YoPassLambdaFunction.Arn
 
@@ -141,7 +140,7 @@ Resources:
         AccessLogSetting:
           DestinationArn: !GetAtt YopassApiGatewayLogs.Arn
           Format: '$context.requestId $context.identity.userAgent $context.identity.sourceIp $context.requestTime $context.httpMethod $context.resourcePath $context.protocol $context.status $context.responseLength $context.integrationErrorMessage'
-    
+
   YoPassApiGatewayPermission:
     Type: AWS::Lambda::Permission
     Condition: DeployFunction
@@ -149,37 +148,37 @@ Resources:
       Action: 'lambda:InvokeFunction'
       FunctionName: !GetAtt YoPassLambdaFunction.Arn
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${YoPassApiGatewayRestApi}/*/*/*"
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${YoPassApiGatewayRestApi}/*/*/*'
 
   YopassApiGatewayLogs:
     Type: AWS::Logs::LogGroup
     Properties:
-         LogGroupName: !Sub '/aws/api-gateway/${YoPassApiGatewayRestApi}'
-         RetentionInDays: 30
+      LogGroupName: !Sub '/aws/api-gateway/${YoPassApiGatewayRestApi}'
+      RetentionInDays: 30
 
   ApiGwAccountConfig:
-    Type: "AWS::ApiGateway::Account"
+    Type: 'AWS::ApiGateway::Account'
     DeletionPolicy: Retain
     UpdateReplacePolicy: Delete
     Properties:
-      CloudWatchRoleArn: !GetAtt "ApiGatewayLoggingRole.Arn"
+      CloudWatchRoleArn: !GetAtt 'ApiGatewayLoggingRole.Arn'
 
   ApiGatewayLoggingRole:
-    Type: "AWS::IAM::Role"
+    Type: 'AWS::IAM::Role'
     DeletionPolicy: Retain
     UpdateReplacePolicy: Delete
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
               Service:
-                - "apigateway.amazonaws.com"
-            Action: "sts:AssumeRole"
-      Path: "/"
+                - 'apigateway.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Path: '/'
       ManagedPolicyArns:
-        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
 
 Outputs:
   ApiGatewayUrl:

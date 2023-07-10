@@ -1,8 +1,6 @@
 import 'reflect-metadata';
 
-export const ENTITY_GENERATOR_METADATA = Symbol.for(
-  'entity-generator:attribute-faker'
-);
+export const ENTITY_GENERATOR_METADATA = Symbol.for('entity-generator:attribute-faker');
 
 export type AttributeFaker = (() => any) | any;
 
@@ -27,29 +25,22 @@ type ClassFaker<T extends object> = (() => Partial<T>) | Partial<T>;
  */
 export function FakeMeUsing<T extends object>(faker: AttributeFaker) {
   return function (target: T, propertyKey?: string) {
-    let fn: any
+    let fn: any;
     if (propertyKey === undefined) {
-      fn = typeof faker === 'function' ? faker : () => faker
+      fn = typeof faker === 'function' ? faker : () => faker;
     } else {
       fn = () => ({
-        [propertyKey]: typeof faker === 'function' ? faker() : faker
-      })
+        [propertyKey]: typeof faker === 'function' ? faker() : faker,
+      });
     }
-    const dfnTarget = 'name' in target ? target : target.constructor
-    const existingMeta = Reflect.getMetadata(ENTITY_GENERATOR_METADATA, dfnTarget)
-    Reflect.defineMetadata(
-      ENTITY_GENERATOR_METADATA,
-      [
-        ...(existingMeta || []),
-        fn,
-      ],
-      dfnTarget
-    );
+    const dfnTarget = 'name' in target ? target : target.constructor;
+    const existingMeta = Reflect.getMetadata(ENTITY_GENERATOR_METADATA, dfnTarget);
+    Reflect.defineMetadata(ENTITY_GENERATOR_METADATA, [...(existingMeta || []), fn], dfnTarget);
   };
 }
 
 type ClassConstructor<T> = {
-  new(...args: any[]): T;
+  new (...args: any[]): T;
 };
 
 export type PartialEntityGeneratorFn<T extends object> = () => {
@@ -88,9 +79,7 @@ export function generateFake<T extends object>(
 ) {
   const propertyGenerators: PartialEntityGeneratorFn<ClassConstructor<T>>[] = [
     ...(Reflect.getMetadata(ENTITY_GENERATOR_METADATA, entityClass) || []),
-    ...(overrides
-      ? [typeof overrides === 'function' ? overrides : () => overrides]
-      : []),
+    ...(overrides ? [typeof overrides === 'function' ? overrides : () => overrides] : []),
   ];
 
   const generateEntity = () => {

@@ -95,7 +95,4 @@ export type TenantSbePrivilege =
   | 'tenant.sbe.edorg.application:create'
   | 'tenant.sbe.edorg.application:reset-credentials';
 
-export type PrivilegeCode =
-  | BasePrivilege
-  | TenantBasePrivilege
-  | TenantSbePrivilege;
+export type PrivilegeCode = BasePrivilege | TenantBasePrivilege | TenantSbePrivilege;

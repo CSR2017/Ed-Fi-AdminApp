@@ -154,12 +154,7 @@ function makeQueries<
       callback?: () => void;
     } & SbeParams &
       TenantParams
-  ) => UseMutationResult<
-    AxiosResponse<unknown, any>,
-    unknown,
-    string | number,
-    unknown
-  >;
+  ) => UseMutationResult<AxiosResponse<unknown, any>, unknown, string | number, unknown>;
 };
 
 function makeQueries<
@@ -198,35 +193,22 @@ function makeQueries<
         queryFn: () =>
           methods.getOne(
             tenantUrl(
-              `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${
-                args.id
-              }`,
+              `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${args.id}`,
               args.tenantId
             ),
             getDto
           ),
       }),
-    useAll: (args: {
-      tenantId?: number | string;
-      sbeId?: number | string;
-      enabled?: boolean;
-    }) =>
+    useAll: (args: { tenantId?: number | string; sbeId?: number | string; enabled?: boolean }) =>
       useQuery({
         enabled: args.enabled === undefined || args.enabled,
         queryKey: tenantKey(
-          [
-            ...(includeSbe ? ['sbes', String(args.sbeId)] : []),
-            `${kebabCaseName}s`,
-            'list',
-          ],
+          [...(includeSbe ? ['sbes', String(args.sbeId)] : []), `${kebabCaseName}s`, 'list'],
           args.tenantId
         ),
         queryFn: () =>
           methods.getManyMap(
-            tenantUrl(
-              `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s`,
-              args.tenantId
-            ),
+            tenantUrl(`${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s`, args.tenantId),
             getDto,
             undefined,
             idPropertyKey ?? ('id' as keyof GetType)
@@ -276,10 +258,7 @@ function makeQueries<
       return useMutation({
         mutationFn: (entity: PostType) =>
           methods.post(
-            tenantUrl(
-              `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s`,
-              args.tenantId
-            ),
+            tenantUrl(`${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s`, args.tenantId),
             postDto,
             getDto,
             entity
@@ -287,11 +266,7 @@ function makeQueries<
         onSuccess: (newEntity) => {
           queryClient.invalidateQueries({
             queryKey: tenantKey(
-              [
-                ...(includeSbe ? ['sbes', String(args.sbeId)] : []),
-                `${kebabCaseName}s`,
-                'list',
-              ],
+              [...(includeSbe ? ['sbes', String(args.sbeId)] : []), `${kebabCaseName}s`, 'list'],
               args.tenantId
             ),
           });
@@ -309,20 +284,14 @@ function makeQueries<
         mutationFn: (id: string | number) =>
           methods.delete(
             tenantUrl(
-              `${
-                includeSbe ? `sbes/${args.sbeId}` : ''
-              }/${kebabCaseName}s/${id}`,
+              `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${id}`,
               args.tenantId
             )
           ),
         onSuccess: () => {
           queryClient.invalidateQueries({
             queryKey: tenantKey(
-              [
-                ...(includeSbe ? ['sbes', String(args.sbeId)] : []),
-                `${kebabCaseName}s`,
-                'list',
-              ],
+              [...(includeSbe ? ['sbes', String(args.sbeId)] : []), `${kebabCaseName}s`, 'list'],
               args.tenantId
             ),
           });
@@ -445,12 +414,7 @@ export const useSbeEditSbMeta = (callback?: () => void) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (sbe: PutSbeMeta) =>
-      methods.put(
-        `${baseUrl}/sbes/${sbe.id}/sbe-meta`,
-        PutSbeMeta,
-        GetSbeDto,
-        sbe
-      ),
+      methods.put(`${baseUrl}/sbes/${sbe.id}/sbe-meta`, PutSbeMeta, GetSbeDto, sbe),
     onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: ['sbes', 'detail', String(data.id)],
@@ -463,12 +427,7 @@ export const useSbeEditAdminApi = (callback?: () => void) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (sbe: PutSbeAdminApi) =>
-      methods.put(
-        `${baseUrl}/sbes/${sbe.id}/admin-api`,
-        PutSbeAdminApi,
-        GetSbeDto,
-        sbe
-      ),
+      methods.put(`${baseUrl}/sbes/${sbe.id}/admin-api`, PutSbeAdminApi, GetSbeDto, sbe),
     onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: ['sbes', 'detail', String(data.id)],
@@ -549,10 +508,7 @@ export const useApplicationPost = (args: {
       ),
     onSuccess: (newEntity) => {
       queryClient.invalidateQueries({
-        queryKey: tenantKey(
-          ['sbes', args.sbeId, `applications`, 'list'],
-          args.tenantId
-        ),
+        queryKey: tenantKey(['sbes', args.sbeId, `applications`, 'list'], args.tenantId),
       });
       args.callback && args.callback(newEntity);
     },
@@ -568,10 +524,7 @@ export const useApplicationPut = (args: {
   return useMutation({
     mutationFn: (entity: PutApplicationDto) =>
       methods.put(
-        tenantUrl(
-          `sbes/${args.sbeId}/applications/${entity.applicationId}`,
-          args.tenantId
-        ),
+        tenantUrl(`sbes/${args.sbeId}/applications/${entity.applicationId}`, args.tenantId),
         PutApplicationDto,
         ApplicationYopassResponseDto,
         entity
@@ -579,13 +532,7 @@ export const useApplicationPut = (args: {
     onSuccess: (newEntity) => {
       queryClient.invalidateQueries({
         queryKey: tenantKey(
-          [
-            'sbes',
-            args.sbeId,
-            `applications`,
-            'detail',
-            newEntity.applicationId,
-          ],
+          ['sbes', args.sbeId, `applications`, 'detail', newEntity.applicationId],
           args.tenantId
         ),
       });
@@ -612,10 +559,7 @@ export const useApplicationResetCredential = (args: {
       ),
     onSuccess: (newEntity) => {
       queryClient.invalidateQueries({
-        queryKey: tenantKey(
-          ['sbes', args.sbeId, `applications`, 'list'],
-          args.tenantId
-        ),
+        queryKey: tenantKey(['sbes', args.sbeId, `applications`, 'list'], args.tenantId),
       });
       args.callback && args.callback(newEntity);
     },
@@ -636,15 +580,12 @@ export function usePrivilegeCache<
       queryFn: () =>
         apiClient
           .get(
-            `/auth/authorizations/${c.privilege}/${
-              c.tenantId === undefined ? '' : c.tenantId
-            }${c.sbeId === undefined ? '' : `?sbeId=${c.sbeId}`}`
+            `/auth/authorizations/${c.privilege}/${c.tenantId === undefined ? '' : c.tenantId}${
+              c.sbeId === undefined ? '' : `?sbeId=${c.sbeId}`
+            }`
           )
           .then((res) => {
-            return (Array.isArray(res) ? new Set(res) : res) as
-              | SpecificIds
-              | true
-              | false;
+            return (Array.isArray(res) ? new Set(res) : res) as SpecificIds | true | false;
           }),
     })),
   });

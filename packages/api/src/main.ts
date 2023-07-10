@@ -2,11 +2,7 @@ import './modes/dev';
 process.env['NODE_CONFIG_DIR'] = './packages/api/config';
 import './utils/checkEnv';
 import colors from 'colors/safe';
-import {
-  ClassSerializerInterceptor,
-  Logger,
-  ValidationPipe,
-} from '@nestjs/common';
+import { ClassSerializerInterceptor, Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as config from 'config';
@@ -27,8 +23,7 @@ async function bootstrap() {
   const existingSchema = await pgClient.query(
     "select schema_name from information_schema.schemata where schema_name = 'appsession'"
   );
-  if (existingSchema.rowCount === 0)
-    await pgClient.query('create schema appsession');
+  if (existingSchema.rowCount === 0) await pgClient.query('create schema appsession');
 
   app.use(
     expressSession.default({
@@ -51,16 +46,14 @@ async function bootstrap() {
     done(null, user);
   });
   app.setGlobalPrefix(globalPrefix);
-  app.useGlobalPipes(
-    new ValidationPipe({ transform: true, stopAtFirstError: false })
-  );
+  app.useGlobalPipes(new ValidationPipe({ transform: true, stopAtFirstError: false }));
   if (config.FE_URL.includes('localhost')) {
     wait(1000).then(() => {
       console.log('');
       Logger.warn(
-        `Setting up cors for requests from ${colors.cyan(
-          config.FE_URL
-        )}${colors.yellow('. Requests from 127.0.0.1 will fail.')}`
+        `Setting up cors for requests from ${colors.cyan(config.FE_URL)}${colors.yellow(
+          '. Requests from 127.0.0.1 will fail.'
+        )}`
       );
     });
   }
@@ -68,9 +61,9 @@ async function bootstrap() {
     wait(1000).then(() => {
       console.log('');
       Logger.warn(
-        `Setting up cors for requests from ${colors.cyan(
-          config.FE_URL
-        )}${colors.yellow('. Requests from localhost will fail.')}`
+        `Setting up cors for requests from ${colors.cyan(config.FE_URL)}${colors.yellow(
+          '. Requests from localhost will fail.'
+        )}`
       );
     });
   }
@@ -83,9 +76,7 @@ async function bootstrap() {
   const port = config.API_PORT;
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Starting Blocks Admin App')
-    .setDescription(
-      'OpenAPI spec for the EA Starting Blocks admin console application.'
-    )
+    .setDescription('OpenAPI spec for the EA Starting Blocks admin console application.')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
@@ -93,9 +84,7 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
-  );
+  Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
 }
 
 bootstrap();

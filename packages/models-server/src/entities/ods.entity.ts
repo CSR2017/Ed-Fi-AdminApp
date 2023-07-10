@@ -1,14 +1,7 @@
 import { IEdorg, IOds, IOwnership, ISbe } from '@edanalytics/models';
 import { FakeMeUsing } from '@edanalytics/utils';
 import { faker } from '@faker-js/faker';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  OneToOne,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 
 @Entity()

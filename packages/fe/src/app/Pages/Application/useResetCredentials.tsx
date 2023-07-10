@@ -45,9 +45,7 @@ export const useResetCredentials = (props: {
     () =>
       application ? (
         <Button
-          leftIcon={
-            resetCreds.isLoading ? <Spinner size="sm" /> : <BiShieldX />
-          }
+          leftIcon={resetCreds.isLoading ? <Spinner size="sm" /> : <BiShieldX />}
           onClick={() => {
             resetCreds.mutate(application);
           }}
@@ -62,9 +60,7 @@ export const useResetCredentials = (props: {
           <ModalHeader>Success!</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Text as="p">
-              Use this one-time link to see your Key and Secret:
-            </Text>
+            <Text as="p">Use this one-time link to see your Key and Secret:</Text>
             <Link href={clipboard.value} color="blue.600">
               {clipboard.value}
             </Link>
@@ -77,12 +73,7 @@ export const useResetCredentials = (props: {
     ),
     () => (
       <Collapse in={clipboard.value !== ''}>
-        <Alert
-          flexDir="column"
-          alignItems="left"
-          status="success"
-          variant="subtle"
-        >
+        <Alert flexDir="column" alignItems="left" status="success" variant="subtle">
           <HStack mb={3} w="100%">
             <AlertIcon />
             <AlertTitle flexGrow={1} fontSize="lg">

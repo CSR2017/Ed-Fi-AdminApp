@@ -47,10 +47,9 @@ describe('helper: addIdTo', () => {
 
 describe('helpers', () => {
   const cache: ITenantCache = {};
-  type PartialEdorg = Pick<
-    Edorg,
-    'id' | 'educationOrganizationId' | 'sbeId' | 'odsId'
-  > & { children: PartialEdorg[] };
+  type PartialEdorg = Pick<Edorg, 'id' | 'educationOrganizationId' | 'sbeId' | 'odsId'> & {
+    children: PartialEdorg[];
+  };
   const edorgTree__value: PartialEdorg = {
     id: 0,
     educationOrganizationId: 100,
@@ -150,12 +149,7 @@ describe('helpers', () => {
     expect(cache).toEqual(correctCurrentCacheValue);
   });
   it('cacheEdorgPrivilegesUpward - should error on missing minimum privileges', () => {
-    cacheEdorgPrivilegesUpward(
-      cache,
-      ownedEdorg,
-      edorgOwnershipPrivileges.get(2),
-      ownedAncestors
-    );
+    cacheEdorgPrivilegesUpward(cache, ownedEdorg, edorgOwnershipPrivileges.get(2), ownedAncestors);
 
     correctCurrentCacheValue = {
       ...correctCurrentCacheValue,
@@ -179,9 +173,7 @@ describe('helpers', () => {
         ]),
         ownedAncestors
       )
-    ).toThrow(
-      'Resource ownership lacks required permission tenant.sbe.vendor:read.'
-    );
+    ).toThrow('Resource ownership lacks required permission tenant.sbe.vendor:read.');
     expect(cache).toEqual(correctCurrentCacheValue);
   });
 

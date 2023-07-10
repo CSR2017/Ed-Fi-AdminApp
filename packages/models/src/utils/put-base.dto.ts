@@ -9,10 +9,10 @@ type DtoWriteOmit =
   | 'created'
   | 'modified'
   | 'deleted';
-export type PutDto<
-  EntityInterface extends object,
-  ExcludeProperties extends string = never
-> = Omit<EntityInterface, DtoWriteOmit | ExcludeProperties>;
+export type PutDto<EntityInterface extends object, ExcludeProperties extends string = never> = Omit<
+  EntityInterface,
+  DtoWriteOmit | ExcludeProperties
+>;
 export class DtoPutBase implements Omit<IEntityBase, DtoWriteOmit> {
   /** This is included for convenience so that mutations can take a
    * single argument instead of the body and id separately, even

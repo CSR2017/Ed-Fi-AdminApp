@@ -9,15 +9,10 @@ import { SetMetadata } from '@nestjs/common';
 export const AUTHORIZE_KEY = 'authorize_rule';
 
 export type AuthorizeMetadata<
-  PrivilegeType extends
-    | BasePrivilege
-    | TenantBasePrivilege
-    | TenantSbePrivilege = PrivilegeCode
+  PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege = PrivilegeCode
 > = {
   privilege: PrivilegeType;
-  subject: (PrivilegeType extends BasePrivilege
-    ? object
-    : { tenantId: 'tenantId' }) &
+  subject: (PrivilegeType extends BasePrivilege ? object : { tenantId: 'tenantId' }) &
     (PrivilegeType extends TenantSbePrivilege ? { sbeId: 'sbeId' } : object) & {
       id: string | '__filtered__';
     };

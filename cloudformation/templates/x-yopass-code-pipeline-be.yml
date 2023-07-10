@@ -20,7 +20,7 @@ Parameters:
   GitHubTag:
     Type: String
     Description: Name of the Tag in the GitHub repo.
-    Default: '11.5.0'  
+    Default: '11.5.0'
   CreateS3Bucket:
     Type: String
     Description: Create the S3 bucket named 'codepipeline-artifact-store-{AWS::Region}-{AWS::AccountId}'?  Do not change this value if updating an existing stack.
@@ -32,11 +32,10 @@ Parameters:
     Description: Name of the master cloudformation stack
     Type: String
 
-
 Conditions:
   DoCreateS3Bucket: !Equals [!Ref CreateS3Bucket, 'Create the S3 Bucket']
 
-Resources: 
+Resources:
   ArtifactStoreBucket:
     Type: AWS::S3::Bucket
     Condition: DoCreateS3Bucket
@@ -74,17 +73,17 @@ Resources:
       Path: /
       Policies:
         - PolicyName: AllowActions
-          PolicyDocument: 
+          PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
                   - 'iam:PassRole'
-                Resource: 
+                Resource:
                   - '*'
                 Condition:
                   StringEqualsIfExists:
-                    "iam:PassedToService":
+                    'iam:PassedToService':
                       - cloudformation.amazonaws.com
                       - elasticbeanstalk.amazonaws.com
                       - ec2.amazonaws.com
@@ -177,11 +176,11 @@ Resources:
       Path: /
       Policies:
         - PolicyName: CodeBuildCloudFormation
-          PolicyDocument: 
+          PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
-                Action: 
+                Action:
                   - cloudformation:DescribeStacks
                   - cloudformation:UpdateStack
                   - logs:DescribeLogGroups
@@ -192,14 +191,14 @@ Resources:
                   - iam:PassRole
                 Resource: '*'
         - PolicyName: CodeBuildCustomS3
-          PolicyDocument: 
+          PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action: s3:PutObject
                 Resource: !Sub 'arn:aws:s3:::build-deployment-${AWS::AccountId}-${EnvLabel}*'
         - PolicyName: CodeBuildBasePolicy
-          PolicyDocument: 
+          PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
@@ -207,7 +206,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: 
+                Resource:
                   - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*'
               - Effect: Allow
                 Action:
@@ -226,17 +225,16 @@ Resources:
                   - codebuild:BatchPutCodeCoverages
                 Resource: !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
 
-
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
-    Properties: 
-      ArtifactStore: 
+    Properties:
+      ArtifactStore:
         Location: !Sub 'codepipeline-artifact-store-${AWS::Region}-${AWS::AccountId}'
         Type: S3
       Name: !Sub '${EnvLabel}-api-pipeline'
       RestartExecutionOnUpdate: True
       RoleArn: !GetAtt 'PipelineRole.Arn'
-      Stages: 
+      Stages:
         - Name: SourceStage
           Actions:
             - Name: Source
@@ -258,13 +256,13 @@ Resources:
         - Name: BuildStage
           Actions:
             - Name: Build
-              ActionTypeId: 
+              ActionTypeId:
                 Category: Build
                 Owner: AWS
                 Provider: CodeBuild
                 Version: 1
               RunOrder: 1
-              Configuration: 
+              Configuration:
                 EnvironmentVariables: !Sub |
                   [
                       {
@@ -274,20 +272,19 @@ Resources:
                       }
                   ]
                 ProjectName: !Ref CodeBuild
-              OutputArtifacts: 
+              OutputArtifacts:
                 - Name: BuildArtifact
-              InputArtifacts: 
+              InputArtifacts:
                 - Name: SourceArtifact
               Region: !Ref 'AWS::Region'
               Namespace: BuildVariables
-
 
   CodeBuild:
     Type: AWS::CodeBuild::Project
     Properties:
       Name: !Sub '${EnvLabel}-build'
       Description: !Sub 'Build project for ${EnvLabel}'
-      Source: 
+      Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub |
           version: 0.2
@@ -329,7 +326,7 @@ Resources:
       Artifacts:
         Type: CODEPIPELINE
         Name: !Sub '${EnvLabel}-build'
-      Environment: 
+      Environment:
         Type: LINUX_CONTAINER
         Image: aws/codebuild/amazonlinux2-x86_64-standard:4.0
         ComputeType: BUILD_GENERAL1_MEDIUM
@@ -343,4 +340,3 @@ Resources:
           GroupName: !Sub '/aws/codebuild/${EnvLabel}-build'
           Status: ENABLED
       Visibility: PRIVATE
-

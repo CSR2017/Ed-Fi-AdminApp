@@ -4,11 +4,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ReactNode } from 'react';
 import { BiEdit, BiTrash } from 'react-icons/bi';
 import { roleQueries } from '../../api';
-import {
-  AuthorizeComponent,
-  tenantRoleAuthConfig,
-  useNavToParent,
-} from '../../helpers';
+import { AuthorizeComponent, tenantRoleAuthConfig, useNavToParent } from '../../helpers';
 import { roleIndexRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 import { EditRole } from './EditRole';

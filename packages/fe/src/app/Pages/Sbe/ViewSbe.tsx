@@ -16,15 +16,11 @@ export const ViewSbe = () => {
     <>
       <FormLabel as="p">Environment label</FormLabel>
       <Text>{sbe.envLabel}</Text>
-      <FormLabel as="p">
-        Last successful connection to Starting Blocks
-      </FormLabel>
+      <FormLabel as="p">Last successful connection to Starting Blocks</FormLabel>
       <Text>{sbe.configPublic?.lastSuccessfulConnectionSbMetaLong}</Text>
       <FormLabel as="p">Last failed connection to Starting Blocks</FormLabel>
       <Text>{sbe.configPublic?.lastFailedConnectionSbMetaLong}</Text>
-      <FormLabel as="p">
-        Last successful connection to Ed-Fi Admin API
-      </FormLabel>
+      <FormLabel as="p">Last successful connection to Ed-Fi Admin API</FormLabel>
       <Text>{sbe.configPublic?.lastSuccessfulConnectionAdminApiLong}</Text>
       <FormLabel as="p">Last failed connection to Ed-Fi Admin API</FormLabel>
       <Text>{sbe.configPublic?.lastFailedConnectionAdminApiLong}</Text>

@@ -18,23 +18,13 @@ import { Sbe } from '@edanalytics/models-server';
 export interface IStartingBlocksService {
   getVendors(sbeId: Sbe['id']): Promise<GetVendorDto[]>;
   getVendor(sbeId: Sbe['id'], vendorId: number): Promise<GetVendorDto>;
-  putVendor(
-    sbeId: Sbe['id'],
-    vendorId: number,
-    vendor: PutVendorDto
-  ): Promise<GetVendorDto>;
+  putVendor(sbeId: Sbe['id'], vendorId: number, vendor: PutVendorDto): Promise<GetVendorDto>;
   postVendor(sbeId: Sbe['id'], vendor: PostVendorDto): Promise<GetVendorDto>;
   deleteVendor(sbeId: Sbe['id'], vendorId: number): Promise<void>;
-  getVendorApplications(
-    sbeId: Sbe['id'],
-    vendorId: number
-  ): Promise<GetApplicationDto[]>;
+  getVendorApplications(sbeId: Sbe['id'], vendorId: number): Promise<GetApplicationDto[]>;
 
   getApplications(sbeId: Sbe['id']): Promise<GetApplicationDto[]>;
-  getApplication(
-    sbeId: Sbe['id'],
-    applicationId: number
-  ): Promise<GetApplicationDto>;
+  getApplication(sbeId: Sbe['id'], applicationId: number): Promise<GetApplicationDto>;
   putApplication(
     sbeId: Sbe['id'],
     applicationId: number,
@@ -57,10 +47,7 @@ export interface IStartingBlocksService {
     claimsetId: number,
     claimset: PutClaimsetDto
   ): Promise<GetClaimsetDto>;
-  postClaimset(
-    sbeId: Sbe['id'],
-    claimset: PostClaimsetDto
-  ): Promise<GetClaimsetDto>;
+  postClaimset(sbeId: Sbe['id'], claimset: PostClaimsetDto): Promise<GetClaimsetDto>;
   deleteClaimset(sbeId: Sbe['id'], claimsetId: number): Promise<void>;
 
   getSbMeta(tenantId: ITenant['id'], sbeId: Sbe['id']): Promise<SbMetaEnv>;

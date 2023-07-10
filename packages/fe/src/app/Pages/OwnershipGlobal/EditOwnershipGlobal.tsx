@@ -6,11 +6,7 @@ import {
   FormLabel,
   Text,
 } from '@chakra-ui/react';
-import {
-  GetOwnershipDto,
-  PutOwnershipDto,
-  RoleType,
-} from '@edanalytics/models';
+import { GetOwnershipDto, PutOwnershipDto, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';

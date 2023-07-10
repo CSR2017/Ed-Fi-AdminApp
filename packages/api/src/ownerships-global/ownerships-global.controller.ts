@@ -4,11 +4,7 @@ import {
   PutOwnershipDto,
   toGetOwnershipDto,
 } from '@edanalytics/models';
-import {
-  Ownership,
-  addUserCreating,
-  addUserModifying,
-} from '@edanalytics/models-server';
+import { Ownership, addUserCreating, addUserModifying } from '@edanalytics/models-server';
 import {
   Body,
   Controller,
@@ -44,14 +40,9 @@ export class OwnershipsGlobalController {
       id: '__filtered__',
     },
   })
-  async create(
-    @Body() createOwnershipDto: PostOwnershipDto,
-    @ReqUser() user: GetSessionDataDto
-  ) {
+  async create(@Body() createOwnershipDto: PostOwnershipDto, @ReqUser() user: GetSessionDataDto) {
     return toGetOwnershipDto(
-      await this.ownershipService.create(
-        addUserCreating(createOwnershipDto, user)
-      )
+      await this.ownershipService.create(addUserCreating(createOwnershipDto, user))
     );
   }
 
@@ -74,9 +65,7 @@ export class OwnershipsGlobalController {
     },
   })
   async findOne(@Param('ownershipId', new ParseIntPipe()) ownershipId: number) {
-    return toGetOwnershipDto(
-      await this.ownershipService.findOne(ownershipId).catch(throwNotFound)
-    );
+    return toGetOwnershipDto(await this.ownershipService.findOne(ownershipId).catch(throwNotFound));
   }
 
   @Put(':ownershipId')
@@ -92,10 +81,7 @@ export class OwnershipsGlobalController {
     @ReqUser() user: GetSessionDataDto
   ) {
     return toGetOwnershipDto(
-      await this.ownershipService.update(
-        ownershipId,
-        addUserModifying(updateOwnershipDto, user)
-      )
+      await this.ownershipService.update(ownershipId, addUserModifying(updateOwnershipDto, user))
     );
   }
 

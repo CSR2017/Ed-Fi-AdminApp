@@ -25,12 +25,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import React, { useMemo } from 'react';
-import {
-  FiChevronLeft,
-  FiChevronRight,
-  FiChevronsLeft,
-  FiChevronsRight,
-} from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
 
 /**
  * Wrapper around @tanstack/react-table.
@@ -113,17 +108,12 @@ export function DataTable<T extends object>(props: {
                   >
                     {header.isPlaceholder ? null : (
                       <>
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        {flexRender(header.column.columnDef.header, header.getContext())}
                         {{
                           asc: <>&nbsp;&#9650;</>,
                           desc: <>&nbsp;&#9660;</>,
                         }[header.column.getIsSorted() as string] ?? (
-                          <chakra.span visibility="hidden">
-                            &nbsp;&#9660;
-                          </chakra.span>
+                          <chakra.span visibility="hidden">&nbsp;&#9660;</chakra.span>
                         )}
                       </>
                     )}
@@ -144,10 +134,7 @@ export function DataTable<T extends object>(props: {
                 {row.getVisibleCells().map((cell) => {
                   return (
                     <Td key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </Td>
                   );
                 })}

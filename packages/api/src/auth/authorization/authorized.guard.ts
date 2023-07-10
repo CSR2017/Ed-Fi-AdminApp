@@ -30,8 +30,7 @@ export class AuthorizedGuard implements CanActivate {
     }
     const request = context.switchToHttp().getRequest();
     if (request.isAuthenticated()) {
-      const authorizationCache: AuthorizationCache =
-        request['authorizationCache'];
+      const authorizationCache: AuthorizationCache = request['authorizationCache'];
 
       const tenantIdStr = request.params?.tenantId;
       try {
@@ -39,9 +38,10 @@ export class AuthorizedGuard implements CanActivate {
 
         request['abilities'] = ability;
 
-        const authorizeRule = this.reflector.getAllAndOverride<
-          AuthorizeMetadata | undefined
-        >(AUTHORIZE_KEY, [context.getHandler(), context.getClass()]);
+        const authorizeRule = this.reflector.getAllAndOverride<AuthorizeMetadata | undefined>(
+          AUTHORIZE_KEY,
+          [context.getHandler(), context.getClass()]
+        );
 
         if (authorizeRule === undefined) {
           // Each route _must_ define its authorization rule.
@@ -68,9 +68,7 @@ export class AuthorizedGuard implements CanActivate {
           if ('sbeId' in subjectTemplate) {
             const value = request.params[subjectTemplate.sbeId];
             if (value === undefined) {
-              throw new Error(
-                'Attempting to authorize by sbe but no sbeId found in request.'
-              );
+              throw new Error('Attempting to authorize by sbe but no sbeId found in request.');
             }
             subjectSbe = {
               sbeId: value,
@@ -83,9 +81,7 @@ export class AuthorizedGuard implements CanActivate {
           } else {
             const value = request.params[subjectTemplate.id];
             if (value === undefined) {
-              throw new Error(
-                'Attempting to authorize by Id but no Id found in request.'
-              );
+              throw new Error('Attempting to authorize by Id but no Id found in request.');
             }
             subjectId = value;
           }

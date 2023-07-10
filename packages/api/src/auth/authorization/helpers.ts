@@ -146,10 +146,7 @@ export function cacheAccordingToPrivileges(
 export const cacheEdorgPrivilegesDownward = (
   cache: ITenantCache,
   initialPrivileges: Set<PrivilegeCode>,
-  edorg: Pick<
-    Edorg,
-    'id' | 'children' | 'sbeId' | 'odsDbName' | 'educationOrganizationId'
-  >,
+  edorg: Pick<Edorg, 'id' | 'children' | 'sbeId' | 'odsDbName' | 'educationOrganizationId'>,
   edorgOwnershipPrivileges: Map<number, Set<PrivilegeCode>>
 ) => {
   const myPrivileges = new Set(initialPrivileges.values()); // so the other ODS's iterations use SBE's original privileges
@@ -157,13 +154,7 @@ export const cacheEdorgPrivilegesDownward = (
   if (ownership) {
     [...ownership.values()].forEach((p) => myPrivileges.add(p));
   }
-  cacheAccordingToPrivileges(
-    cache,
-    myPrivileges,
-    'tenant.sbe.edorg',
-    edorg.id,
-    edorg.sbeId
-  );
+  cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.edorg', edorg.id, edorg.sbeId);
   const compositeKey = createEdorgCompositeNaturalKey({
     odsDbName: edorg.odsDbName,
     educationOrganizationId: edorg.educationOrganizationId,
@@ -176,12 +167,7 @@ export const cacheEdorgPrivilegesDownward = (
     edorg.sbeId
   );
   edorg.children?.forEach((childEdorg) =>
-    cacheEdorgPrivilegesDownward(
-      cache,
-      myPrivileges,
-      childEdorg,
-      edorgOwnershipPrivileges
-    )
+    cacheEdorgPrivilegesDownward(cache, myPrivileges, childEdorg, edorgOwnershipPrivileges)
   );
 };
 
@@ -213,33 +199,10 @@ export const cacheEdorgPrivilegesUpward = (
       ancestorEdorg.sbeId
     );
   });
-  cacheAccordingToPrivileges(
-    cache,
-    appliedPrivileges,
-    'tenant.sbe.ods',
-    edorg.odsId,
-    edorg.sbeId
-  );
-  cacheAccordingToPrivileges(
-    cache,
-    appliedPrivileges,
-    'tenant.sbe.claimset',
-    true,
-    edorg.sbeId
-  );
-  cacheAccordingToPrivileges(
-    cache,
-    appliedPrivileges,
-    'tenant.sbe.vendor',
-    true,
-    edorg.sbeId
-  );
-  cacheAccordingToPrivileges(
-    cache,
-    appliedPrivileges,
-    'tenant.sbe',
-    edorg.sbeId
-  );
+  cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe.ods', edorg.odsId, edorg.sbeId);
+  cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe.claimset', true, edorg.sbeId);
+  cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe.vendor', true, edorg.sbeId);
+  cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe', edorg.sbeId);
 };
 
 /**
@@ -254,74 +217,64 @@ export const abilityFromCache = (
   tenantId: number | string | undefined
 ) => {
   const ability = defineAbility((userCan) => {
-    Object.keys(cache ?? {}).forEach(
-      (privilegeCode: keyof AuthorizationCache) => {
-        if (isGlobalPrivilege(privilegeCode)) {
-          // global-scoped privilege
-          const privilegeCache = cache[privilegeCode];
-          if (privilegeCache !== true) {
-            throw new Error(
-              'Encountered global-scoped privilege cache which is not a blanket `true`, but authorization system is not built to handle this.'
-            );
-          }
-          const caslSubject = {};
-          // subject(privilegeCode, caslSubject);
-          userCan(privilegeCode, privilegeCode, caslSubject);
-        } else {
-          // tenant-scoped privilege
-          if (tenantId === undefined || tenantId === 'undefined') {
-            throw new Error(
-              'Attempting to construct tenant ability but no tenantID provided.'
-            );
-          }
+    Object.keys(cache ?? {}).forEach((privilegeCode: keyof AuthorizationCache) => {
+      if (isGlobalPrivilege(privilegeCode)) {
+        // global-scoped privilege
+        const privilegeCache = cache[privilegeCode];
+        if (privilegeCache !== true) {
+          throw new Error(
+            'Encountered global-scoped privilege cache which is not a blanket `true`, but authorization system is not built to handle this.'
+          );
+        }
+        const caslSubject = {};
+        // subject(privilegeCode, caslSubject);
+        userCan(privilegeCode, privilegeCode, caslSubject);
+      } else {
+        // tenant-scoped privilege
+        if (tenantId === undefined || tenantId === 'undefined') {
+          throw new Error('Attempting to construct tenant ability but no tenantID provided.');
+        }
 
-          if (isSbePrivilege(privilegeCode)) {
-            // tenant-scoped privilege whose cache is a map of sbes to the Ids type
-            const privilegeCache = cache[privilegeCode];
-            const sbeIds = Object.keys(privilegeCache);
-            sbeIds.forEach((sbeId) => {
-              const caslSubject =
-                privilegeCache[sbeId] === true
-                  ? {
-                      tenantId: String(tenantId),
-                      sbeId: sbeId,
-                    }
-                  : {
-                      tenantId: String(tenantId),
-                      sbeId: sbeId,
-                      id: {
-                        $in: [
-                          '__filtered__',
-                          ...[...privilegeCache[sbeId]].map((v) => String(v)),
-                        ],
-                      },
-                    };
-              // subject('privilegeCode', caslSubject);
-              userCan(privilegeCode, privilegeCode, caslSubject);
-            });
-          } else {
-            // tenant-scoped privilege whose cache is the Ids type
-            const privilegeCache = cache[privilegeCode];
+        if (isSbePrivilege(privilegeCode)) {
+          // tenant-scoped privilege whose cache is a map of sbes to the Ids type
+          const privilegeCache = cache[privilegeCode];
+          const sbeIds = Object.keys(privilegeCache);
+          sbeIds.forEach((sbeId) => {
             const caslSubject =
-              privilegeCache === true
+              privilegeCache[sbeId] === true
                 ? {
                     tenantId: String(tenantId),
+                    sbeId: sbeId,
                   }
                 : {
                     tenantId: String(tenantId),
+                    sbeId: sbeId,
                     id: {
-                      $in: [
-                        '__filtered__',
-                        ...[...privilegeCache].map((v) => String(v)),
-                      ],
+                      $in: ['__filtered__', ...[...privilegeCache[sbeId]].map((v) => String(v))],
                     },
                   };
             // subject('privilegeCode', caslSubject);
             userCan(privilegeCode, privilegeCode, caslSubject);
-          }
+          });
+        } else {
+          // tenant-scoped privilege whose cache is the Ids type
+          const privilegeCache = cache[privilegeCode];
+          const caslSubject =
+            privilegeCache === true
+              ? {
+                  tenantId: String(tenantId),
+                }
+              : {
+                  tenantId: String(tenantId),
+                  id: {
+                    $in: ['__filtered__', ...[...privilegeCache].map((v) => String(v))],
+                  },
+                };
+          // subject('privilegeCode', caslSubject);
+          userCan(privilegeCode, privilegeCode, caslSubject);
         }
       }
-    );
+    });
   });
   return ability;
 };

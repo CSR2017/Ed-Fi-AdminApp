@@ -3,7 +3,7 @@ import { enumValues } from './enum-values';
 enum Test {
   One,
   Two,
-  Three
+  Three,
 }
 
 describe('enum-values', () => {

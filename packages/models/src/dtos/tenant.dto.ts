@@ -113,7 +113,10 @@ import { Exclude, Expose, Type, Transform } from 'class-transformer';
 import { ITenant } from '../interfaces/tenant.interface';
 import { PostDto, DtoPostBase } from '../utils/post-base.dto';
 
-export class GetTenantDto extends DtoGetBase implements GetDto<ITenant, 'userTenantMemberships' | 'ownerships' | 'roles'> {
+export class GetTenantDto
+  extends DtoGetBase
+  implements GetDto<ITenant, 'userTenantMemberships' | 'ownerships' | 'roles'>
+{
   @Expose()
   name: string;
 
@@ -123,13 +126,19 @@ export class GetTenantDto extends DtoGetBase implements GetDto<ITenant, 'userTen
 }
 export const toGetTenantDto = makeSerializer(GetTenantDto);
 
-export class PutTenantDto extends DtoPutBase implements PutDto<ITenant, 'userTenantMemberships' | 'ownerships' | 'roles'> {
+export class PutTenantDto
+  extends DtoPutBase
+  implements PutDto<ITenant, 'userTenantMemberships' | 'ownerships' | 'roles'>
+{
   @Expose()
   @IsString()
   name: string;
 }
 
-export class PostTenantDto extends DtoPostBase implements PostDto<ITenant, 'userTenantMemberships' | 'ownerships' | 'roles'> {
+export class PostTenantDto
+  extends DtoPostBase
+  implements PostDto<ITenant, 'userTenantMemberships' | 'ownerships' | 'roles'>
+{
   @Expose()
   @IsString()
   name: string;

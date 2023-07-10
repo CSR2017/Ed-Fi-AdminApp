@@ -1,11 +1,6 @@
 import { FormLabel, Text } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
-import {
-  applicationQueries,
-  claimsetQueries,
-  edorgQueries,
-  vendorQueries,
-} from '../../api';
+import { applicationQueries, claimsetQueries, edorgQueries, vendorQueries } from '../../api';
 import { ClaimsetLink, EdorgLink, VendorLink } from '../../routes';
 
 export const ViewApplication = () => {

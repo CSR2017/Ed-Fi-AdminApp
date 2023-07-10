@@ -1,24 +1,6 @@
-import {
-  GetSessionDataDto,
-  PostRoleDto,
-  PutRoleDto,
-  toGetRoleDto,
-} from '@edanalytics/models';
-import {
-  Role,
-  addUserCreating,
-  addUserModifying,
-} from '@edanalytics/models-server';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { GetSessionDataDto, PostRoleDto, PutRoleDto, toGetRoleDto } from '@edanalytics/models';
+import { Role, addUserCreating, addUserModifying } from '@edanalytics/models-server';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -43,13 +25,8 @@ export class RolesGlobalController {
       id: '__filtered__',
     },
   })
-  async create(
-    @Body() createRoleDto: PostRoleDto,
-    @ReqUser() user: GetSessionDataDto
-  ) {
-    return toGetRoleDto(
-      await this.roleService.create(addUserCreating(createRoleDto, user))
-    );
+  async create(@Body() createRoleDto: PostRoleDto, @ReqUser() user: GetSessionDataDto) {
+    return toGetRoleDto(await this.roleService.create(addUserCreating(createRoleDto, user)));
   }
 
   @Get()
@@ -71,9 +48,7 @@ export class RolesGlobalController {
     },
   })
   async findOne(@Param('roleId', new ParseIntPipe()) roleId: number) {
-    return toGetRoleDto(
-      await this.roleService.findOne(roleId).catch(throwNotFound)
-    );
+    return toGetRoleDto(await this.roleService.findOne(roleId).catch(throwNotFound));
   }
 
   @Put(':roleId')
@@ -89,10 +64,7 @@ export class RolesGlobalController {
     @ReqUser() user: GetSessionDataDto
   ) {
     return toGetRoleDto(
-      await this.roleService.update(
-        roleId,
-        addUserModifying(updateRoleDto, user)
-      )
+      await this.roleService.update(roleId, addUserModifying(updateRoleDto, user))
     );
   }
 
@@ -103,10 +75,7 @@ export class RolesGlobalController {
       id: '__filtered__',
     },
   })
-  remove(
-    @Param('roleId', new ParseIntPipe()) roleId: number,
-    @ReqUser() user: GetSessionDataDto
-  ) {
+  remove(@Param('roleId', new ParseIntPipe()) roleId: number, @ReqUser() user: GetSessionDataDto) {
     return this.roleService.remove(roleId, user);
   }
 }

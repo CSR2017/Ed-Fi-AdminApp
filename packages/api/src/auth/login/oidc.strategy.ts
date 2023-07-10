@@ -1,19 +1,8 @@
-import {
-  Inject,
-  Injectable,
-  Scope,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, Scope, UnauthorizedException } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { PassportStrategy } from '@nestjs/passport';
 import config from 'config';
-import {
-  Client,
-  Issuer,
-  Strategy,
-  TokenSet,
-  UserinfoResponse,
-} from 'openid-client';
+import { Client, Issuer, Strategy, TokenSet, UserinfoResponse } from 'openid-client';
 import { AuthService } from '../auth.service';
 import { IdpService } from '../idp.service';
 import { Oidc, AppLauncher } from '@edanalytics/models-server';

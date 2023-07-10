@@ -3,30 +3,30 @@ Description: 'This templates creates an RDS Postgres databaste instance'
 Metadata:
   'AWS::CloudFormation::Interface':
     ParameterGroups:
-    - Label:
-        default: 'Parent Stacks'
-      Parameters:
-      - ParentVPCStack
-      - ParentSSHBastionStack
-    - Label:
-        default: 'RDS Parameters'
-      Parameters:
-      - DeployAlerts
-      - DBName
-      - DBSnapshotIdentifier
-      - EngineVersion
-      - DBAllocatedStorage
-      - DBInstanceClass
-      - DBBackupRetentionPeriod
-      - DBMultiAZ
-      - PreferredBackupWindow
-      - PreferredMaintenanceWindow
-      - EnableIAMDatabaseAuthentication
+      - Label:
+          default: 'Parent Stacks'
+        Parameters:
+          - ParentVPCStack
+          - ParentSSHBastionStack
+      - Label:
+          default: 'RDS Parameters'
+        Parameters:
+          - DeployAlerts
+          - DBName
+          - DBSnapshotIdentifier
+          - EngineVersion
+          - DBAllocatedStorage
+          - DBInstanceClass
+          - DBBackupRetentionPeriod
+          - DBMultiAZ
+          - PreferredBackupWindow
+          - PreferredMaintenanceWindow
+          - EnableIAMDatabaseAuthentication
 Parameters:
   EnvLabel:
     Description: Provide a label for your environment to identify resources easier.
     Type: String
-  DeployAlerts: 
+  DeployAlerts:
     Description: Deploy SNS topic and database monitoring alerts?
     Type: String
     Default: 'Yes'
@@ -92,14 +92,14 @@ Conditions:
   HasAlertTopic: !Equals [!Ref DeployAlerts, 'Yes']
   HasDBSnapshotIdentifier: !Not [!Equals [!Ref DBSnapshotIdentifier, '']]
   NotDBSnapshotIdentifier: !Not [!Condition HasDBSnapshotIdentifier]
-Mappings: 
-  DBFamilyMap: 
-    "12.15":
-      "family": "postgres12"
-    "13.11":
-      "family": "postgres13"
-    "14.8":
-      "family": "postgres14"
+Mappings:
+  DBFamilyMap:
+    '12.15':
+      'family': 'postgres12'
+    '13.11':
+      'family': 'postgres13'
+    '14.8':
+      'family': 'postgres14'
 Resources:
   KmsKey:
     DeletionPolicy: Retain
@@ -121,13 +121,13 @@ Resources:
             Principal:
               AWS: '*'
             Action:
-            - 'kms:Encrypt'
-            - 'kms:Decrypt'
-            - 'kms:ReEncrypt*'
-            - 'kms:GenerateDataKey*'
-            - 'kms:CreateGrant'
-            - 'kms:ListGrants'
-            - 'kms:DescribeKey'
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:CreateGrant'
+              - 'kms:ListGrants'
+              - 'kms:DescribeKey'
             Resource: '*'
             Condition:
               StringEquals:
@@ -140,9 +140,9 @@ Resources:
     Condition: NotDBSnapshotIdentifier
     DependsOn: DBInstance
     Properties:
-      AliasName: !Sub 
+      AliasName: !Sub
         - 'alias/${DBInstance}/${StackGuid}'
-        - StackGuid: !Select [ 2, !Split [ '/', !Ref 'AWS::StackId'] ]
+        - StackGuid: !Select [2, !Split ['/', !Ref 'AWS::StackId']]
       TargetKeyId: !Ref KmsKey
   PostgresMasterSecret:
     Condition: NotDBSnapshotIdentifier
@@ -159,7 +159,7 @@ Resources:
           Value: !Ref 'AWS::StackId'
       GenerateSecretString:
         SecretStringTemplate: '{"username": "postgres"}'
-        GenerateStringKey: "password"
+        GenerateStringKey: 'password'
         ExcludePunctuation: true
         PasswordLength: 32
   PostgresSecretResourcePolicy:
@@ -168,13 +168,13 @@ Resources:
     Properties:
       SecretId: !Ref PostgresMasterSecret
       ResourcePolicy:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
-          - Effect: "Deny"
+          - Effect: 'Deny'
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action: "secretsmanager:DeleteSecret"
-            Resource: "*"
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'secretsmanager:DeleteSecret'
+            Resource: '*'
   SecretTargetAttachment:
     Condition: NotDBSnapshotIdentifier
     Type: 'AWS::SecretsManager::SecretTargetAttachment'
@@ -186,7 +186,7 @@ Resources:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
       GroupDescription: !Ref 'AWS::StackName'
-      VpcId: {'Fn::ImportValue': !Sub '${ParentVPCStack}-VpcId'}
+      VpcId: { 'Fn::ImportValue': !Sub '${ParentVPCStack}-VpcId' }
   DatabaseSecurityGroupInSSHBastion:
     Type: 'AWS::EC2::SecurityGroupIngress'
     Condition: HasSSHBastionSecurityGroup
@@ -195,17 +195,17 @@ Resources:
       IpProtocol: tcp
       FromPort: 5432
       ToPort: 5432
-      SourceSecurityGroupId: {'Fn::ImportValue': !Sub '${ParentSSHBastionStack}-SecurityGroup'}
+      SourceSecurityGroupId: { 'Fn::ImportValue': !Sub '${ParentSSHBastionStack}-SecurityGroup' }
   DBSubnetGroup:
     Type: 'AWS::RDS::DBSubnetGroup'
     Properties:
       DBSubnetGroupDescription: !Ref 'AWS::StackName'
-      SubnetIds: !Split [',', {'Fn::ImportValue': !Sub '${ParentVPCStack}-PrivateSubnets'}]
+      SubnetIds: !Split [',', { 'Fn::ImportValue': !Sub '${ParentVPCStack}-PrivateSubnets' }]
   DBParameterGroup:
     Type: AWS::RDS::DBParameterGroup
-    Properties: 
+    Properties:
       Description: !Sub '${EnvLabel}-ParameterGroup'
-      Family: !FindInMap [DBFamilyMap, !Ref EngineVersion, "family"] 
+      Family: !FindInMap [DBFamilyMap, !Ref EngineVersion, 'family']
       Parameters:
         rds.force_ssl: 1
   DBInstance:
@@ -221,7 +221,8 @@ Resources:
       DBInstanceClass: !Ref DBInstanceClass
       DBInstanceIdentifier: !Sub '${EnvLabel}-psql'
       DBParameterGroupName: !Ref DBParameterGroup
-      DBSnapshotIdentifier: !If [HasDBSnapshotIdentifier, !Ref DBSnapshotIdentifier, !Ref 'AWS::NoValue']
+      DBSnapshotIdentifier:
+        !If [HasDBSnapshotIdentifier, !Ref DBSnapshotIdentifier, !Ref 'AWS::NoValue']
       DBName: !If [NotDBSnapshotIdentifier, !Ref DBName, !Ref 'AWS::NoValue']
       DBSubnetGroupName: !Ref DBSubnetGroup
       EnableIAMDatabaseAuthentication: !Ref EnableIAMDatabaseAuthentication
@@ -230,16 +231,19 @@ Resources:
       KmsKeyId: !If [NotDBSnapshotIdentifier, !Ref KmsKey, !Ref 'AWS::NoValue']
       MasterUsername: !If [HasDBSnapshotIdentifier, !Ref 'AWS::NoValue', 'postgres']
       MasterUserPassword: !If
-      - HasDBSnapshotIdentifier
-      - !Ref 'AWS::NoValue'
-      - !Join ['', ['{{resolve:secretsmanager:', !Ref PostgresMasterSecret, ':SecretString:password}}']]
+        - HasDBSnapshotIdentifier
+        - !Ref 'AWS::NoValue'
+        - !Join [
+            '',
+            ['{{resolve:secretsmanager:', !Ref PostgresMasterSecret, ':SecretString:password}}'],
+          ]
       MultiAZ: !Ref DBMultiAZ
       PreferredBackupWindow: !Ref PreferredBackupWindow
       PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
       StorageType: gp2
       StorageEncrypted: !If [HasDBSnapshotIdentifier, !Ref 'AWS::NoValue', true]
       VPCSecurityGroups:
-      - !Ref DatabaseSecurityGroup
+        - !Ref DatabaseSecurityGroup
   DatabaseSNSTopic:
     Condition: HasAlertTopic
     Type: AWS::SNS::Topic
@@ -253,8 +257,8 @@ Resources:
       AlarmDescription: 'Average database storage burst balance over last 10 minutes too low, expect a significant performance drop soon.'
       ComparisonOperator: LessThanThreshold
       Dimensions:
-      - Name: DBInstanceIdentifier
-        Value: !Ref DBInstance
+        - Name: DBInstanceIdentifier
+          Value: !Ref DBInstance
       EvaluationPeriods: 1
       MetricName: BurstBalance
       Namespace: 'AWS/RDS'
@@ -270,8 +274,8 @@ Resources:
       AlarmDescription: 'Average database CPU utilization over last 10 minutes too high.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
-      - Name: DBInstanceIdentifier
-        Value: !Ref DBInstance
+        - Name: DBInstanceIdentifier
+          Value: !Ref DBInstance
       EvaluationPeriods: 1
       MetricName: CPUUtilization
       Namespace: 'AWS/RDS'
@@ -287,8 +291,8 @@ Resources:
       AlarmDescription: 'Average database CPU credit balance over last 10 minutes too low, expect a significant performance drop soon.'
       ComparisonOperator: LessThanThreshold
       Dimensions:
-      - Name: DBInstanceIdentifier
-        Value: !Ref DBInstance
+        - Name: DBInstanceIdentifier
+          Value: !Ref DBInstance
       EvaluationPeriods: 1
       MetricName: CPUCreditBalance
       Namespace: 'AWS/RDS'
@@ -304,8 +308,8 @@ Resources:
       AlarmDescription: 'Average database disk queue depth over last 10 minutes too high, performance may suffer.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
-      - Name: DBInstanceIdentifier
-        Value: !Ref DBInstance
+        - Name: DBInstanceIdentifier
+          Value: !Ref DBInstance
       EvaluationPeriods: 1
       MetricName: DiskQueueDepth
       Namespace: 'AWS/RDS'
@@ -321,8 +325,8 @@ Resources:
       AlarmDescription: 'Average database freeable memory over last 10 minutes too low, performance may suffer.'
       ComparisonOperator: LessThanThreshold
       Dimensions:
-      - Name: DBInstanceIdentifier
-        Value: !Ref DBInstance
+        - Name: DBInstanceIdentifier
+          Value: !Ref DBInstance
       EvaluationPeriods: 1
       MetricName: FreeableMemory
       Namespace: 'AWS/RDS'
@@ -338,8 +342,8 @@ Resources:
       AlarmDescription: 'Average database free storage space over last 10 minutes too low.'
       ComparisonOperator: LessThanThreshold
       Dimensions:
-      - Name: DBInstanceIdentifier
-        Value: !Ref DBInstance
+        - Name: DBInstanceIdentifier
+          Value: !Ref DBInstance
       EvaluationPeriods: 1
       MetricName: FreeStorageSpace
       Namespace: 'AWS/RDS'
@@ -355,8 +359,8 @@ Resources:
       AlarmDescription: 'Average database swap usage over last 10 minutes too high, performance may suffer.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
-      - Name: DBInstanceIdentifier
-        Value: !Ref DBInstance
+        - Name: DBInstanceIdentifier
+          Value: !Ref DBInstance
       EvaluationPeriods: 1
       MetricName: SwapUsage
       Namespace: 'AWS/RDS'
@@ -369,12 +373,12 @@ Resources:
     Type: 'AWS::RDS::EventSubscription'
     Properties:
       EventCategories:
-      - failover
-      - failure
-      - 'low storage'
-      - maintenance
-      - 'read replica'
-      - recovery
+        - failover
+        - failure
+        - 'low storage'
+        - maintenance
+        - 'read replica'
+        - recovery
       SnsTopicArn: !Ref DatabaseSNSTopic
       SourceIds: [!Ref DBInstance]
       SourceType: 'db-instance'

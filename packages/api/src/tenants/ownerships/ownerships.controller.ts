@@ -24,9 +24,7 @@ export class OwnershipsController {
     },
   })
   async findAll(@Param('tenantId', new ParseIntPipe()) tenantId: number) {
-    return toGetOwnershipDto(
-      await this.ownershipsRepository.findBy({ tenantId })
-    );
+    return toGetOwnershipDto(await this.ownershipsRepository.findBy({ tenantId }));
   }
 
   @Get(':ownershipId')

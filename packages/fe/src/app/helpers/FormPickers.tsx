@@ -14,10 +14,7 @@ import {
   vendorQueries,
 } from '../api';
 
-function SelectWrapper<
-  Dto extends Record<Name, number>,
-  Name extends keyof Dto
->(props: {
+function SelectWrapper<Dto extends Record<Name, number>, Name extends keyof Dto>(props: {
   control: Control<Dto>;
   name: Name;
   options: Record<string, { value: number | string; label: string }>;

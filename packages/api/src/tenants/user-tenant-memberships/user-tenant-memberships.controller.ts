@@ -4,16 +4,7 @@ import {
   PutUserTenantMembershipDto,
   toGetUserTenantMembershipDto,
 } from '@edanalytics/models';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { ReqUser } from '../../auth/helpers/user.decorator';
 import { UserTenantMembershipsService } from './user-tenant-memberships.service';
 import { ApiTags } from '@nestjs/swagger';
@@ -23,9 +14,7 @@ import { Authorize } from '../../auth/authorization';
 @ApiTags('UserTenantMembership')
 @Controller()
 export class UserTenantMembershipsController {
-  constructor(
-    private readonly userTenantMembershipService: UserTenantMembershipsService
-  ) {}
+  constructor(private readonly userTenantMembershipService: UserTenantMembershipsService) {}
 
   @Post()
   @Authorize({
@@ -56,9 +45,7 @@ export class UserTenantMembershipsController {
     },
   })
   async findAll(@Param('tenantId', new ParseIntPipe()) tenantId: number) {
-    return toGetUserTenantMembershipDto(
-      await this.userTenantMembershipService.findAll(tenantId)
-    );
+    return toGetUserTenantMembershipDto(await this.userTenantMembershipService.findAll(tenantId));
   }
 
   @Get(':userTenantMembershipId')
@@ -75,10 +62,7 @@ export class UserTenantMembershipsController {
     @Param('tenantId', new ParseIntPipe()) tenantId: number
   ) {
     return toGetUserTenantMembershipDto(
-      await this.userTenantMembershipService.findOne(
-        tenantId,
-        +userTenantMembershipId
-      )
+      await this.userTenantMembershipService.findOne(tenantId, +userTenantMembershipId)
     );
   }
 
@@ -101,10 +85,7 @@ export class UserTenantMembershipsController {
       await this.userTenantMembershipService.update(
         tenantId,
         userTenantMembershipId,
-        addUserModifying(
-          { ...updateUserTenantMembershipDto, tenantId },
-          session
-        )
+        addUserModifying({ ...updateUserTenantMembershipDto, tenantId }, session)
       )
     );
   }
@@ -123,10 +104,6 @@ export class UserTenantMembershipsController {
     @Param('tenantId', new ParseIntPipe()) tenantId: number,
     @ReqUser() session: GetSessionDataDto
   ) {
-    return this.userTenantMembershipService.remove(
-      tenantId,
-      +userTenantMembershipId,
-      session
-    );
+    return this.userTenantMembershipService.remove(tenantId, +userTenantMembershipId, session);
   }
 }

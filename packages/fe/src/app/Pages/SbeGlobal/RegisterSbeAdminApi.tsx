@@ -34,8 +34,8 @@ export const RegisterSbeAdminApi = (props: { sbe: GetSbeDto }) => {
         <Alert status="warning" mb="2em">
           <AlertIcon />
           <AlertDescription flexGrow={1}>
-            This environment is already registered with the Admin API. Are you
-            sure you want to try creating another client?
+            This environment is already registered with the Admin API. Are you sure you want to try
+            creating another client?
           </AlertDescription>
           <CloseButton onClick={setIsRegistered.off} />
         </Alert>

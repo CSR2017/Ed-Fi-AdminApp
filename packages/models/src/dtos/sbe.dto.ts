@@ -1,11 +1,7 @@
 import { stdDetailed } from '@edanalytics/utils';
 import { Expose, Type } from 'class-transformer';
 import { IsOptional, IsString } from 'class-validator';
-import {
-  ISbe,
-  ISbeConfigPrivate,
-  ISbeConfigPublic,
-} from '../interfaces/sbe.interface';
+import { ISbe, ISbeConfigPrivate, ISbeConfigPublic } from '../interfaces/sbe.interface';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
 import { IsEdanalyticsUrl } from '../utils/is-edanalytics-url';
 import { makeSerializer } from '../utils/make-serializer';
@@ -129,11 +125,7 @@ export class PutSbeMeta {
 
 export class PostSbeDto
   extends DtoPostBase
-  implements
-    PostDto<
-      ISbe,
-      'ownerships' | 'odss' | 'edorgs' | 'configPrivate' | 'configPublic'
-    >
+  implements PostDto<ISbe, 'ownerships' | 'odss' | 'edorgs' | 'configPrivate' | 'configPublic'>
 {
   @Expose()
   envLabel: string;

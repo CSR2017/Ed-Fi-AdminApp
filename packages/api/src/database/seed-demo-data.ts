@@ -102,13 +102,9 @@ export const seedDemoData = async (db: EntityManager) => {
     })
   );
 
-  [
-    `- Users`,
-    `- Tenants`,
-    `- Tenant memberships`,
-    `- Sbes`,
-    `- Sbe ownerships`,
-  ].forEach((str) => Logger.log(colors.cyan(str)));
+  [`- Users`, `- Tenants`, `- Tenant memberships`, `- Sbes`, `- Sbe ownerships`].forEach((str) =>
+    Logger.log(colors.cyan(str))
+  );
 
   Logger.log(colors.cyan('Done.'));
 };

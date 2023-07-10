@@ -5,11 +5,7 @@ import { HiOutlineEye } from 'react-icons/hi';
 import { roleQueries } from '../../api';
 import { AuthorizeComponent, tenantRoleAuthConfig } from '../../helpers';
 import { roleIndexRoute, rolesRoute } from '../../routes';
-import {
-  ActionsType,
-  LinkActionProps,
-  ActionPropsConfirm,
-} from '../../helpers/ActionsType';
+import { ActionsType, LinkActionProps, ActionPropsConfirm } from '../../helpers/ActionsType';
 
 export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
   const navigate = useNavigate();
@@ -22,17 +18,11 @@ export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
   return role === undefined
     ? {}
     : {
-        View: (props: {
-          children: (props: LinkActionProps) => JSX.Element;
-        }) => {
+        View: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
           const path = to(role.id);
           return (
             <AuthorizeComponent
-              config={tenantRoleAuthConfig(
-                role.id,
-                Number(params.asId),
-                'tenant.role:read'
-              )}
+              config={tenantRoleAuthConfig(role.id, Number(params.asId), 'tenant.role:read')}
             >
               <props.children
                 icon={HiOutlineEye}
@@ -44,17 +34,11 @@ export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
             </AuthorizeComponent>
           );
         },
-        Edit: (props: {
-          children: (props: LinkActionProps) => JSX.Element;
-        }) => {
+        Edit: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
           const path = to(role.id);
           return (
             <AuthorizeComponent
-              config={tenantRoleAuthConfig(
-                role.id,
-                role.tenantId,
-                'tenant.role:update'
-              )}
+              config={tenantRoleAuthConfig(role.id, role.tenantId, 'tenant.role:update')}
             >
               <props.children
                 icon={BiEdit}
@@ -66,16 +50,10 @@ export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
             </AuthorizeComponent>
           );
         },
-        Delete: (props: {
-          children: (props: ActionPropsConfirm) => JSX.Element;
-        }) => {
+        Delete: (props: { children: (props: ActionPropsConfirm) => JSX.Element }) => {
           return (
             <AuthorizeComponent
-              config={tenantRoleAuthConfig(
-                role.id,
-                role.tenantId,
-                'tenant.role:delete'
-              )}
+              config={tenantRoleAuthConfig(role.id, role.tenantId, 'tenant.role:delete')}
             >
               <props.children
                 icon={BiTrash}

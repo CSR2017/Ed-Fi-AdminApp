@@ -1,10 +1,7 @@
 import * as openpgp from 'openpgp/lightweight';
 import urlJoin from 'url-join';
 
-const decryptMessage = async (
-  data: string,
-  pwd: string
-): Promise<openpgp.DecryptMessageResult> => {
+const decryptMessage = async (data: string, pwd: string): Promise<openpgp.DecryptMessageResult> => {
   return openpgp.decrypt({
     message: await openpgp.readMessage({ armoredMessage: data }),
     passwords: pwd,
@@ -13,9 +10,7 @@ const decryptMessage = async (
 };
 
 export const getMessage = async (uuid: string, pwd: string) => {
-  const data = await fetch(
-    urlJoin(import.meta.env.VITE_API_URL, 'api', 'secret', uuid)
-  )
+  const data = await fetch(urlJoin(import.meta.env.VITE_API_URL, 'api', 'secret', uuid))
     .then((res) => {
       if (res.status === 404) {
         throw 404;

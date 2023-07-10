@@ -79,28 +79,18 @@ export const CreateOwnershipGlobalPage = () => {
   });
 
   useEffect(() => {
-    reset((values) =>
-      _.defaults(values, { tenantId: ownershipFormDefaults.tenantId })
-    );
+    reset((values) => _.defaults(values, { tenantId: ownershipFormDefaults.tenantId }));
   }, [ownershipFormDefaults.tenantId]);
 
   useEffect(() => {
-    reset((values) =>
-      _.defaults(values, { sbeId: ownershipFormDefaults.sbeId })
-    );
+    reset((values) => _.defaults(values, { sbeId: ownershipFormDefaults.sbeId }));
   }, [ownershipFormDefaults.sbeId]);
 
-  const [type, setType] = useState<'edorg' | 'ods' | 'sbe'>(
-    search.type ?? 'ods'
-  );
+  const [type, setType] = useState<'edorg' | 'ods' | 'sbe'>(search.type ?? 'ods');
   const sbeId = watch('sbeId');
 
   return tenants.data && sbes.data ? (
-    <PageTemplate
-      constrainWidth
-      title={'Grant new resource ownership'}
-      actions={undefined}
-    >
+    <PageTemplate constrainWidth title={'Grant new resource ownership'} actions={undefined}>
       <Box w="20em">
         <FormLabel>Resource type</FormLabel>
         <RadioGroup
@@ -125,20 +115,13 @@ export const CreateOwnershipGlobalPage = () => {
             postOwnership.mutate(data);
           })}
         >
-          <FormControl
-            isInvalid={
-              !!errors.hasResource && (sbeId === undefined || type === 'sbe')
-            }
-          >
+          <FormControl isInvalid={!!errors.hasResource && (sbeId === undefined || type === 'sbe')}>
             <FormLabel>Starting Blocks environment</FormLabel>
             <SelectSbe name="sbeId" control={control} tenantId={undefined} />
             <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
           </FormControl>
           {type === 'ods' && sbeId !== undefined ? (
-            <FormControl
-              isDisabled={sbeId === undefined}
-              isInvalid={!!errors.hasResource}
-            >
+            <FormControl isDisabled={sbeId === undefined} isInvalid={!!errors.hasResource}>
               <FormLabel>ODS</FormLabel>
               <SelectOds
                 sbeId={sbeId}
@@ -151,10 +134,7 @@ export const CreateOwnershipGlobalPage = () => {
             </FormControl>
           ) : null}
           {type === 'edorg' && sbeId !== undefined ? (
-            <FormControl
-              isDisabled={sbeId === undefined}
-              isInvalid={!!errors.hasResource}
-            >
+            <FormControl isDisabled={sbeId === undefined} isInvalid={!!errors.hasResource}>
               <FormLabel>Ed-Org</FormLabel>
               <SelectEdorg
                 sbeId={sbeId}

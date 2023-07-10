@@ -1,11 +1,4 @@
-import {
-  ButtonGroup,
-  Icon,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuList,
-} from '@chakra-ui/react';
+import { ButtonGroup, Icon, IconButton, Menu, MenuButton, MenuList } from '@chakra-ui/react';
 import { ActionMenuButton, TdIconButton } from './getStandardActions';
 import { BiDotsVerticalRounded } from 'react-icons/bi';
 import { ActionsType } from './ActionsType';
@@ -16,10 +9,7 @@ export const TableRowActions = (props: {
 }) => {
   const { show, actions } = props;
   const hidden = Object.entries(actions);
-  const visible = hidden.splice(
-    0,
-    show === true ? hidden.length : show === undefined ? 3 : show
-  );
+  const visible = hidden.splice(0, show === true ? hidden.length : show === undefined ? 3 : show);
   return (
     <ButtonGroup
       className="row-hover"

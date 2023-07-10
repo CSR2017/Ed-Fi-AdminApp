@@ -67,9 +67,7 @@ export const EdorgsPage = () => {
             id: 'parent',
             accessorFn: (info) => getRelationDisplayName(info.parentId, edorgs),
             header: () => 'Parent Ed-Org',
-            cell: (info) => (
-              <EdorgLink query={edorgs} id={info.row.original.parentId} />
-            ),
+            cell: (info) => <EdorgLink query={edorgs} id={info.row.original.parentId} />,
           },
           {
             id: 'educationOrganizationId',
@@ -80,9 +78,7 @@ export const EdorgsPage = () => {
             id: 'ods',
             accessorFn: (info) => getRelationDisplayName(info.odsId, odss),
             header: () => 'ODS',
-            cell: (info) => (
-              <OdsLink query={odss} id={info.row.original.odsId} />
-            ),
+            cell: (info) => <OdsLink query={odss} id={info.row.original.odsId} />,
           },
           {
             id: 'discriminator',
@@ -95,12 +91,9 @@ export const EdorgsPage = () => {
           },
           {
             id: 'createdBy',
-            accessorFn: (info) =>
-              getRelationDisplayName(info.createdById, users),
+            accessorFn: (info) => getRelationDisplayName(info.createdById, users),
             header: () => 'Created by',
-            cell: (info) => (
-              <UserLink query={users} id={info.row.original.createdById} />
-            ),
+            cell: (info) => <UserLink query={users} id={info.row.original.createdById} />,
           },
         ]}
       />

@@ -12,11 +12,7 @@ import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { applicationQueries, claimsetQueries, edorgQueries } from '../../api';
-import {
-  SelectClaimset,
-  SelectEdorg,
-  SelectVendor,
-} from '../../helpers/FormPickers';
+import { SelectClaimset, SelectEdorg, SelectVendor } from '../../helpers/FormPickers';
 
 const resolver = classValidatorResolver(PutApplicationForm);
 
@@ -25,9 +21,7 @@ export const EditApplication = (props: { application: GetApplicationDto }) => {
   const params = useParams() as { asId: string; sbeId: string };
   const navigate = useNavigate();
   const goToView = () => {
-    navigate(
-      `/as/${params.asId}/sbes/${params.sbeId}/applications/${application.id}`
-    );
+    navigate(`/as/${params.asId}/sbes/${params.sbeId}/applications/${application.id}`);
   };
   const edorgs = edorgQueries.useAll({
     sbeId: params.sbeId,
@@ -85,9 +79,7 @@ export const EditApplication = (props: { application: GetApplicationDto }) => {
             sbeId={params.sbeId}
             control={control}
           />
-          <FormErrorMessage>
-            {errors.educationOrganizationId?.message}
-          </FormErrorMessage>
+          <FormErrorMessage>{errors.educationOrganizationId?.message}</FormErrorMessage>
         </FormControl>
         <FormControl isInvalid={!!errors.vendorId}>
           <FormLabel>Vendor</FormLabel>
@@ -114,12 +106,7 @@ export const EditApplication = (props: { application: GetApplicationDto }) => {
           <Button isLoading={isLoading} type="submit">
             Save
           </Button>
-          <Button
-            variant="ghost"
-            isLoading={isLoading}
-            type="reset"
-            onClick={goToView}
-          >
+          <Button variant="ghost" isLoading={isLoading} type="reset" onClick={goToView}>
             Cancel
           </Button>
         </ButtonGroup>

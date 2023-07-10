@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >-
-  This template creates the ElasticBeanstalk applications.  
+  This template creates the ElasticBeanstalk applications.
 Parameters:
   EnvLabel:
     Description: Provide a label for your environment to identify resources easier.
@@ -128,7 +128,7 @@ Resources:
   S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !If [ DoCreateS3Bucket, !Ref S3Bucket, !Ref S3BucketName]
+      Bucket: !If [DoCreateS3Bucket, !Ref S3Bucket, !Ref S3BucketName]
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -324,7 +324,7 @@ Resources:
                       CertificateArn=cert_arn
                   )
                   certificateStatus = statusResponse['Certificate']['Status']
-                  print('Certificate status: ' + certificateStatus)  
+                  print('Certificate status: ' + certificateStatus)
   East1CertFunctionVersion:
     Type: AWS::Lambda::Version
     Properties:
@@ -340,14 +340,14 @@ Resources:
   CloudFront:
     Type: AWS::CloudFront::Distribution
     Properties:
-      DistributionConfig: 
-        Aliases: !If 
+      DistributionConfig:
+        Aliases: !If
           - DoWildcardDomain
           - - !Ref DomainName
             - !Sub '*.${DomainName}'
           - - !Ref DomainName
         Comment: !Sub '${EnvLabel} Front End'
-        CustomErrorResponses: !If 
+        CustomErrorResponses: !If
           - DoRedirectErrors
           - - ErrorCode: 400
               ErrorCachingMinTTL: 10
@@ -362,20 +362,21 @@ Resources:
               ResponseCode: 200
               ResponsePagePath: !Sub '/${DefaultRootObject}'
           - !Ref 'AWS::NoValue'
-        DefaultCacheBehavior: 
+        DefaultCacheBehavior:
           AllowedMethods: !Ref AllowedMethods
           CachedMethods: !Ref CachedMethods
-          CachePolicyId: !FindInMap [ CachePolicyMap, !Ref CachePolicy, ID ]
+          CachePolicyId: !FindInMap [CachePolicyMap, !Ref CachePolicy, ID]
           Compress: !Ref Compress
           SmoothStreaming: false
           TargetOriginId: !Ref S3BucketName
           ViewerProtocolPolicy: !Ref ViewerProtocolPolicy
-          ResponseHeadersPolicyId: !FindInMap [ ResponseHeadersPolicyMap, !Ref ResponseHeadersPolicy, ID ]
+          ResponseHeadersPolicyId:
+            !FindInMap [ResponseHeadersPolicyMap, !Ref ResponseHeadersPolicy, ID]
         DefaultRootObject: !Ref DefaultRootObject
         Enabled: true
         HttpVersion: http2
         IPV6Enabled: true
-        Origins: 
+        Origins:
           - ConnectionAttempts: 3
             ConnectionTimeout: 10
             DomainName: !If
@@ -383,14 +384,14 @@ Resources:
               - !GetAtt 'S3Bucket.RegionalDomainName'
               - !Sub '${S3BucketName}.s3.amazonaws.com'
             Id: !Ref S3BucketName
-            S3OriginConfig: 
+            S3OriginConfig:
               OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
         PriceClass: PriceClass_100
-        ViewerCertificate: 
+        ViewerCertificate:
           AcmCertificateArn: !GetAtt 'East1Cert.Arn'
           MinimumProtocolVersion: TLSv1.2_2021
           SslSupportMethod: sni-only
-      Tags: 
+      Tags:
         - Key: EnvLabel
           Value: !Ref EnvLabel
   CloudFrontRoute53record:

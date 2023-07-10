@@ -281,18 +281,10 @@ export class Initial1688158300508 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "ownership" DROP CONSTRAINT "FK_9e38f4be50b8931ae3f2cc9468e"`
     );
-    await queryRunner.query(
-      `ALTER TABLE "role" DROP CONSTRAINT "FK_1751a572e91385a09d41c624714"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "role" DROP CONSTRAINT "FK_c5d666dd8bf212b0d9ba353cb4f"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "role" DROP CONSTRAINT "FK_30fe66100b98ed08e1c9fdee0e8"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "role" DROP CONSTRAINT "FK_528f294633a808293425ae2ab56"`
-    );
+    await queryRunner.query(`ALTER TABLE "role" DROP CONSTRAINT "FK_1751a572e91385a09d41c624714"`);
+    await queryRunner.query(`ALTER TABLE "role" DROP CONSTRAINT "FK_c5d666dd8bf212b0d9ba353cb4f"`);
+    await queryRunner.query(`ALTER TABLE "role" DROP CONSTRAINT "FK_30fe66100b98ed08e1c9fdee0e8"`);
+    await queryRunner.query(`ALTER TABLE "role" DROP CONSTRAINT "FK_528f294633a808293425ae2ab56"`);
     await queryRunner.query(
       `ALTER TABLE "user_tenant_membership" DROP CONSTRAINT "FK_49e594e22dbe4c5e78689dbcb5e"`
     );
@@ -311,45 +303,19 @@ export class Initial1688158300508 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "user_tenant_membership" DROP CONSTRAINT "FK_c5b276250571c341867e2b7ca1c"`
     );
-    await queryRunner.query(
-      `ALTER TABLE "edorg" DROP CONSTRAINT "FK_bf2fe95bd8a50a2346489472df2"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "edorg" DROP CONSTRAINT "FK_4f7237384382e4796332a25ea48"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "edorg" DROP CONSTRAINT "FK_eacb927c57ecca3c22ab93fb849"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "edorg" DROP CONSTRAINT "FK_00c8aa855170254728ee9fe3864"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "edorg" DROP CONSTRAINT "FK_3e3a6841fcba09f3cf956944fa0"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "edorg" DROP CONSTRAINT "FK_94e49b7b79f2b23d4685809c9e3"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "sbe" DROP CONSTRAINT "FK_ab37768ff29885bd116f519bd3d"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "sbe" DROP CONSTRAINT "FK_8f912321b2a5d074197d2169f72"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "sbe" DROP CONSTRAINT "FK_ce4b1775b7e60418caa2df331a2"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "ods" DROP CONSTRAINT "FK_829131f86e2d025918e2dee5a40"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "ods" DROP CONSTRAINT "FK_cc1b217b80a24fd0031146c944a"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "ods" DROP CONSTRAINT "FK_75491c4f18c4da07baa1da7f9c0"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "ods" DROP CONSTRAINT "FK_fc6df40388b53b0603abb95846a"`
-    );
+    await queryRunner.query(`ALTER TABLE "edorg" DROP CONSTRAINT "FK_bf2fe95bd8a50a2346489472df2"`);
+    await queryRunner.query(`ALTER TABLE "edorg" DROP CONSTRAINT "FK_4f7237384382e4796332a25ea48"`);
+    await queryRunner.query(`ALTER TABLE "edorg" DROP CONSTRAINT "FK_eacb927c57ecca3c22ab93fb849"`);
+    await queryRunner.query(`ALTER TABLE "edorg" DROP CONSTRAINT "FK_00c8aa855170254728ee9fe3864"`);
+    await queryRunner.query(`ALTER TABLE "edorg" DROP CONSTRAINT "FK_3e3a6841fcba09f3cf956944fa0"`);
+    await queryRunner.query(`ALTER TABLE "edorg" DROP CONSTRAINT "FK_94e49b7b79f2b23d4685809c9e3"`);
+    await queryRunner.query(`ALTER TABLE "sbe" DROP CONSTRAINT "FK_ab37768ff29885bd116f519bd3d"`);
+    await queryRunner.query(`ALTER TABLE "sbe" DROP CONSTRAINT "FK_8f912321b2a5d074197d2169f72"`);
+    await queryRunner.query(`ALTER TABLE "sbe" DROP CONSTRAINT "FK_ce4b1775b7e60418caa2df331a2"`);
+    await queryRunner.query(`ALTER TABLE "ods" DROP CONSTRAINT "FK_829131f86e2d025918e2dee5a40"`);
+    await queryRunner.query(`ALTER TABLE "ods" DROP CONSTRAINT "FK_cc1b217b80a24fd0031146c944a"`);
+    await queryRunner.query(`ALTER TABLE "ods" DROP CONSTRAINT "FK_75491c4f18c4da07baa1da7f9c0"`);
+    await queryRunner.query(`ALTER TABLE "ods" DROP CONSTRAINT "FK_fc6df40388b53b0603abb95846a"`);
     await queryRunner.query(
       `ALTER TABLE "tenant" DROP CONSTRAINT "FK_d5a26eda6ff5cef9bbff80770d6"`
     );
@@ -359,31 +325,15 @@ export class Initial1688158300508 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "tenant" DROP CONSTRAINT "FK_372fed256480b89aafbfb2f9e8b"`
     );
-    await queryRunner.query(
-      `ALTER TABLE "user" DROP CONSTRAINT "FK_c28e52f758e7bbc53828db92194"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user" DROP CONSTRAINT "FK_c3062c4102a912dfe7195a72bfb"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user" DROP CONSTRAINT "FK_b7b62199aa0ff55f53e0137b217"`
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user" DROP CONSTRAINT "FK_45c0d39d1f9ceeb56942db93cc5"`
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_535b90f37f800a350ce4de5b90"`
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_b67fab0829f3b586fc9cd24cb9"`
-    );
+    await queryRunner.query(`ALTER TABLE "user" DROP CONSTRAINT "FK_c28e52f758e7bbc53828db92194"`);
+    await queryRunner.query(`ALTER TABLE "user" DROP CONSTRAINT "FK_c3062c4102a912dfe7195a72bfb"`);
+    await queryRunner.query(`ALTER TABLE "user" DROP CONSTRAINT "FK_b7b62199aa0ff55f53e0137b217"`);
+    await queryRunner.query(`ALTER TABLE "user" DROP CONSTRAINT "FK_45c0d39d1f9ceeb56942db93cc5"`);
+    await queryRunner.query(`DROP INDEX "public"."IDX_535b90f37f800a350ce4de5b90"`);
+    await queryRunner.query(`DROP INDEX "public"."IDX_b67fab0829f3b586fc9cd24cb9"`);
     await queryRunner.query(`DROP TABLE "edorg_closure"`);
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_07bc07701aba37968ecf1f4ba1"`
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_d11ab7c8589ca17646c5345fb7"`
-    );
+    await queryRunner.query(`DROP INDEX "public"."IDX_07bc07701aba37968ecf1f4ba1"`);
+    await queryRunner.query(`DROP INDEX "public"."IDX_d11ab7c8589ca17646c5345fb7"`);
     await queryRunner.query(`DROP TABLE "role_privileges_privilege"`);
     await queryRunner.query(`DROP TABLE "app_launcher"`);
     await queryRunner.query(`DROP TABLE "oidc"`);

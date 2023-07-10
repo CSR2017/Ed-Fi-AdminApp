@@ -1,9 +1,4 @@
-import {
-  GetSessionDataDto,
-  GetTenantDto,
-  GetUserDto,
-  PutUserDto,
-} from '@edanalytics/models';
+import { GetSessionDataDto, GetTenantDto, GetUserDto, PutUserDto } from '@edanalytics/models';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { plainToInstance } from 'class-transformer';
@@ -40,8 +35,7 @@ export const useMyTenants = () =>
   useQuery({
     staleTime: 30 * 1000,
     queryKey: [`me`, 'tenants'],
-    queryFn: () =>
-      methods.getManyMap(`${baseUrl}/auth/my-tenants`, GetTenantDto),
+    queryFn: () => methods.getManyMap(`${baseUrl}/auth/my-tenants`, GetTenantDto),
   });
 export const usePutMe = (callback?: () => void) => {
   const queryClient = useQueryClient();

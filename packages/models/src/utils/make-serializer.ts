@@ -1,7 +1,9 @@
 import { ClassConstructor, plainToInstance } from 'class-transformer';
 import { GettersOmit } from './get-base.dto';
 
-export const makeSerializer = <BaseType, InputType = Omit<BaseType, GettersOmit>>(dto: ClassConstructor<BaseType>) => {
+export const makeSerializer = <BaseType, InputType = Omit<BaseType, GettersOmit>>(
+  dto: ClassConstructor<BaseType>
+) => {
   function serialize(input: InputType): BaseType;
   function serialize(input: InputType[]): BaseType[];
   function serialize(input: InputType | InputType[]) {

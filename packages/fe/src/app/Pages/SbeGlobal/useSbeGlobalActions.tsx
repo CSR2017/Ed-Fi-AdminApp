@@ -1,21 +1,10 @@
 import { Spinner, useBoolean, useToast } from '@chakra-ui/react';
 import { useOperationResultDisclosure } from '@edanalytics/common-ui';
 import { GetSbeDto } from '@edanalytics/models';
-import {
-  BiCog,
-  BiData,
-  BiDownload,
-  BiKey,
-  BiPlug,
-  BiTrash,
-} from 'react-icons/bi';
+import { BiCog, BiData, BiDownload, BiKey, BiPlug, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
-import {
-  sbeQueries,
-  useSbeCheckConnection,
-  useSbeRefreshResources,
-} from '../../api';
+import { sbeQueries, useSbeCheckConnection, useSbeRefreshResources } from '../../api';
 import { AuthorizeComponent } from '../../helpers';
 import {
   ActionProps,
@@ -25,9 +14,7 @@ import {
 } from '../../helpers/ActionsType';
 import { useSearchParamsObject } from '../../helpers/useSearch';
 
-export const useSbeGlobalActions = (
-  sbe: GetSbeDto | undefined
-): ActionsType => {
+export const useSbeGlobalActions = (sbe: GetSbeDto | undefined): ActionsType => {
   const toast = useToast();
 
   const checkConnection = useSbeCheckConnection();
@@ -46,9 +33,7 @@ export const useSbeGlobalActions = (
   return sbe === undefined
     ? {}
     : {
-        GrantOwnership: (props: {
-          children: (props: LinkActionProps) => JSX.Element;
-        }) => {
+        GrantOwnership: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
           const to = `/sbes/${sbe.id}?type=sbe`;
           return (
             <AuthorizeComponent
@@ -69,9 +54,7 @@ export const useSbeGlobalActions = (
             </AuthorizeComponent>
           );
         },
-        View: (props: {
-          children: (props: LinkActionProps) => JSX.Element;
-        }) => {
+        View: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
           const to = `/sbes/${sbe.id}`;
           return (
             <AuthorizeComponent
@@ -92,9 +75,7 @@ export const useSbeGlobalActions = (
             </AuthorizeComponent>
           );
         },
-        CheckConnection: (props: {
-          children: (props: ActionProps) => JSX.Element;
-        }) => {
+        CheckConnection: (props: { children: (props: ActionProps) => JSX.Element }) => {
           return (
             <>
               <connectionCheckDisclosure.ModalRoot />
@@ -107,9 +88,7 @@ export const useSbeGlobalActions = (
                 }}
               >
                 <props.children
-                  icon={() =>
-                    checkLoading ? <Spinner size="sm" /> : <BiPlug />
-                  }
+                  icon={() => (checkLoading ? <Spinner size="sm" /> : <BiPlug />)}
                   text="Check connection"
                   title="Check connection to Starting Blocks and Ed-Fi Admin API"
                   onClick={async () => {
@@ -123,9 +102,7 @@ export const useSbeGlobalActions = (
             </>
           );
         },
-        RefreshResources: (props: {
-          children: (props: ActionProps) => JSX.Element;
-        }) => {
+        RefreshResources: (props: { children: (props: ActionProps) => JSX.Element }) => {
           return (
             <>
               <syncDisclosure.ModalRoot />
@@ -138,9 +115,7 @@ export const useSbeGlobalActions = (
                 }}
               >
                 <props.children
-                  icon={() =>
-                    refreshLoading ? <Spinner size="sm" /> : <BiDownload />
-                  }
+                  icon={() => (refreshLoading ? <Spinner size="sm" /> : <BiDownload />)}
                   text="Sync with SB"
                   title="Sync ODSs and Ed-Orgs from Starting Blocks to SBAA."
                   onClick={async () => {
@@ -158,9 +133,7 @@ export const useSbeGlobalActions = (
             </>
           );
         },
-        EditSbMeta: (props: {
-          children: (props: LinkActionProps) => JSX.Element;
-        }) => {
+        EditSbMeta: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
           const to = `/sbes/${sbe.id}?edit=sbe-meta`;
           return (
             <AuthorizeComponent
@@ -182,9 +155,7 @@ export const useSbeGlobalActions = (
             </AuthorizeComponent>
           );
         },
-        RegisterAdminApi: (props: {
-          children: (props: LinkActionProps) => JSX.Element;
-        }) => {
+        RegisterAdminApi: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
           const to = `/sbes/${sbe.id}?edit=admin-api`;
           return (
             <AuthorizeComponent
@@ -206,9 +177,7 @@ export const useSbeGlobalActions = (
             </AuthorizeComponent>
           );
         },
-        Delete: (props: {
-          children: (props: ActionPropsConfirm) => JSX.Element;
-        }) => {
+        Delete: (props: { children: (props: ActionPropsConfirm) => JSX.Element }) => {
           return (
             <AuthorizeComponent
               config={{

@@ -78,17 +78,14 @@ export const useConfirmAction = (
 
 type UseConfirmActionReturn = ReturnType<typeof useConfirmAction>;
 
-const [ConfirmActionProvider, useConfirmActionContext] =
-  createContext<UseConfirmActionReturn>({
-    name: 'confirmActionContext',
-    errorMessage:
-      'useConfirmActionContext: `context` is undefined. Seems you forgot to wrap your button within <ConfirmAction/>',
-  });
+const [ConfirmActionProvider, useConfirmActionContext] = createContext<UseConfirmActionReturn>({
+  name: 'confirmActionContext',
+  errorMessage:
+    'useConfirmActionContext: `context` is undefined. Seems you forgot to wrap your button within <ConfirmAction/>',
+});
 
 export interface ConfirmActionProps extends UseConfirmActionProps {
-  children: (props: {
-    onClick?: MouseEventHandler<DOMElement>;
-  }) => React.ReactNode;
+  children: (props: { onClick?: MouseEventHandler<DOMElement> }) => React.ReactNode;
 }
 
 export const ConfirmAction = (props: ConfirmActionProps) => {
@@ -99,24 +96,15 @@ export const ConfirmAction = (props: ConfirmActionProps) => {
   return (
     <ConfirmActionProvider value={context}>
       <ConfirmActionModal />
-      {typeof children === 'function'
-        ? children(context.getButtonProps())
-        : children}
+      {typeof children === 'function' ? children(context.getButtonProps()) : children}
     </ConfirmActionProvider>
   );
 };
 
 export const ConfirmActionModal = (props: object) => {
   const { getModalProps } = useConfirmActionContext();
-  const {
-    headerText,
-    bodyText,
-    action,
-    yesButtonText,
-    noButtonText,
-    onClose,
-    ...modalProps
-  } = getModalProps(props);
+  const { headerText, bodyText, action, yesButtonText, noButtonText, onClose, ...modalProps } =
+    getModalProps(props);
 
   return (
     <Modal onClose={onClose} {...modalProps}>
@@ -126,13 +114,7 @@ export const ConfirmActionModal = (props: object) => {
         <ModalCloseButton />
         {bodyText ? <ModalBody>{bodyText}</ModalBody> : null}
         <ModalFooter>
-          <Button
-            size="md"
-            variant="solid"
-            colorScheme="blue"
-            mr={3}
-            onClick={action}
-          >
+          <Button size="md" variant="solid" colorScheme="blue" mr={3} onClick={action}>
             {yesButtonText ?? 'Yes'}
           </Button>
           <Button size="md" variant="ghost" onClick={onClose}>

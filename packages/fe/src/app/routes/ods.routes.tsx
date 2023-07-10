@@ -43,10 +43,7 @@ export const OdsLink = (props: {
   const params = useParams() as { asId: string; sbeId: string };
   return ods ? (
     <Link as="span">
-      <RouterLink
-        title="Go to ods"
-        to={`/as/${params.asId}/sbes/${params.sbeId}/odss/${ods.id}`}
-      >
+      <RouterLink title="Go to ods" to={`/as/${params.asId}/sbes/${params.sbeId}/odss/${ods.id}`}>
         {getRelationDisplayName(ods.id, props.query)}
       </RouterLink>
     </Link>

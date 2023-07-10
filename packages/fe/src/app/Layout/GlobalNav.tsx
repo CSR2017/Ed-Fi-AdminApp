@@ -21,10 +21,7 @@ export const isMatch = (activeRoute: string, item: INavButtonProps) => {
   return sameRoute && paramsEqual;
 };
 
-export const tagMatch = (
-  items: INavButtonProps[],
-  match: string | null
-): INavButtonProps[] =>
+export const tagMatch = (items: INavButtonProps[], match: string | null): INavButtonProps[] =>
   match === null
     ? items
     : items.map((item) => ({

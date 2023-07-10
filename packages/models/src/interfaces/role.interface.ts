@@ -7,7 +7,7 @@ export interface IRole extends IEntityBase {
   name: string;
   description?: string;
   tenant?: ITenant;
-  tenantId?: ITenant['id']
-  type: RoleType
+  tenantId?: ITenant['id'];
+  type: RoleType;
   privileges: IPrivilege[];
 }

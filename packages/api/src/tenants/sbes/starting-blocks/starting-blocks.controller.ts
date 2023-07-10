@@ -105,9 +105,7 @@ export class StartingBlocksController {
     @Body() vendor: PutVendorDto
   ) {
     return toGetVendorDto(
-      await this.sbService
-        .putVendor(sbeId, vendorId, vendor)
-        .catch(throwNotFound)
+      await this.sbService.putVendor(sbeId, vendorId, vendor).catch(throwNotFound)
     );
   }
 
@@ -161,10 +159,7 @@ export class StartingBlocksController {
     @InjectFilter('tenant.sbe.edorg.application:read')
     validIds: Ids
   ) {
-    const allApplications = await this.sbService.getVendorApplications(
-      sbeId,
-      vendorId
-    );
+    const allApplications = await this.sbService.getVendorApplications(sbeId, vendorId);
     return toGetApplicationDto(
       allApplications.filter((a) =>
         checkId(
@@ -274,9 +269,7 @@ export class StartingBlocksController {
         validIds
       )
     ) {
-      return toGetApplicationDto(
-        await this.sbService.putApplication(sbeId, applicationId, dto)
-      );
+      return toGetApplicationDto(await this.sbService.putApplication(sbeId, applicationId, dto));
     } else {
       const err = new ValidationError();
       err.property = 'educationOrganizationId';
@@ -352,10 +345,7 @@ export class StartingBlocksController {
     @InjectFilter('tenant.sbe.edorg.application:delete')
     validIds: Ids
   ) {
-    const application = await this.sbService.getApplication(
-      sbeId,
-      applicationId
-    );
+    const application = await this.sbService.getApplication(sbeId, applicationId);
     if (
       checkId(
         createEdorgCompositeNaturalKey({
@@ -365,9 +355,7 @@ export class StartingBlocksController {
         validIds
       )
     ) {
-      return this.sbService
-        .deleteApplication(sbeId, applicationId)
-        .catch(throwNotFound);
+      return this.sbService.deleteApplication(sbeId, applicationId).catch(throwNotFound);
     } else {
       throw new NotFoundException();
     }
@@ -389,10 +377,7 @@ export class StartingBlocksController {
     @InjectFilter('tenant.sbe.edorg.application:reset-credentials')
     validIds: Ids
   ) {
-    const application = await this.sbService.getApplication(
-      sbeId,
-      applicationId
-    );
+    const application = await this.sbService.getApplication(sbeId, applicationId);
     if (
       checkId(
         createEdorgCompositeNaturalKey({
@@ -432,9 +417,7 @@ export class StartingBlocksController {
     validIds: Ids
   ) {
     const allClaimsets = await this.sbService.getClaimsets(sbeId);
-    return toGetClaimsetDto(
-      allClaimsets.filter((c) => checkId(c.id, validIds))
-    );
+    return toGetClaimsetDto(allClaimsets.filter((c) => checkId(c.id, validIds)));
   }
 
   @Get('claimsets/:claimsetId')
@@ -451,9 +434,7 @@ export class StartingBlocksController {
     @Param('tenantId', new ParseIntPipe()) tenantId: number,
     @Param('claimsetId', new ParseIntPipe()) claimsetId: number
   ) {
-    return toGetClaimsetDto(
-      await this.sbService.getClaimset(sbeId, claimsetId)
-    );
+    return toGetClaimsetDto(await this.sbService.getClaimset(sbeId, claimsetId));
   }
 
   @Put('claimsets/:claimsetId')
@@ -471,9 +452,7 @@ export class StartingBlocksController {
     @Param('claimsetId', new ParseIntPipe()) claimsetId: number,
     @Body() claimset: PutClaimsetDto
   ) {
-    return toGetClaimsetDto(
-      await this.sbService.putClaimset(sbeId, claimsetId, claimset)
-    );
+    return toGetClaimsetDto(await this.sbService.putClaimset(sbeId, claimsetId, claimset));
   }
 
   @Post('claimsets')
@@ -507,8 +486,6 @@ export class StartingBlocksController {
     @Param('tenantId', new ParseIntPipe()) tenantId: number,
     @Param('claimsetId', new ParseIntPipe()) claimsetId: number
   ) {
-    return this.sbService
-      .deleteClaimset(sbeId, claimsetId)
-      .catch(throwNotFound);
+    return this.sbService.deleteClaimset(sbeId, claimsetId).catch(throwNotFound);
   }
 }

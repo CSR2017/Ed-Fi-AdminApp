@@ -39,15 +39,12 @@ export const Nav = () => {
     queryClient,
     config: tenantAuthConfig,
   });
-  const selectedTenant =
-    tenantId === undefined ? undefined : tenants.data?.[tenantId];
+  const selectedTenant = tenantId === undefined ? undefined : tenants.data?.[tenantId];
 
   useEffect(() => {
     Cookies.set('defaultTenant', String(tenantId));
   }, [tenantId]);
-  const isInTenantContext = currentMatches.some((m) =>
-    m.pathname.startsWith('/as/')
-  );
+  const isInTenantContext = currentMatches.some((m) => m.pathname.startsWith('/as/'));
   useEffect(() => {
     if (String(tenantId) !== params.asId && isInTenantContext) {
       setTenantId(Number(params.asId));
@@ -106,8 +103,7 @@ export const Nav = () => {
             }
             onChange={(option) => {
               const value = option?.value ?? undefined;
-              const newTenantId =
-                value === undefined ? undefined : Number(value);
+              const newTenantId = value === undefined ? undefined : Number(value);
               if (newTenantId !== undefined && isInTenantContext) {
                 navigate(`/as/${newTenantId}`);
               } else {
@@ -129,9 +125,7 @@ export const Nav = () => {
                   fontSize: 'large',
                 },
               },
-              ...Object.values(
-                tenants.data ?? ({} as Record<string, GetTenantDto>)
-              )
+              ...Object.values(tenants.data ?? ({} as Record<string, GetTenantDto>))
                 .sort((a, b) => Number(a.displayName > b.displayName) - 0.5)
                 .map((t) => ({
                   label: t.displayName,
@@ -173,9 +167,7 @@ export const Nav = () => {
           icon: BsPerson,
           activeIcon: BsPersonFill,
           text: 'Account',
-          isActive: currentMatches.some((m) =>
-            m.pathname.startsWith('/account')
-          ),
+          isActive: currentMatches.some((m) => m.pathname.startsWith('/account')),
         }}
       />
       {tenantId === undefined ? (

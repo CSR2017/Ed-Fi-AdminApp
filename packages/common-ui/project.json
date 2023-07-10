@@ -16,18 +16,14 @@
       "executor": "nx:run-commands",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "commands": [
-          "chakra-cli tokens packages/common-ui/src/lib/theme/index.ts"
-        ]
+        "commands": ["chakra-cli tokens packages/common-ui/src/lib/theme/index.ts"]
       }
     },
     "chakra-cli:watch": {
       "executor": "nx:run-commands",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "commands": [
-          "chakra-cli tokens packages/common-ui/src/lib/theme/index.ts --watch"
-        ]
+        "commands": ["chakra-cli tokens packages/common-ui/src/lib/theme/index.ts --watch"]
       }
     },
     "storybook": {

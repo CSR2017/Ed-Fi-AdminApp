@@ -3,11 +3,7 @@ import { DataTable } from '@edanalytics/common-ui';
 import { GetUserTenantMembershipDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
 import { useParams } from 'react-router-dom';
-import {
-  roleQueries,
-  userQueries,
-  userTenantMembershipQueries,
-} from '../../api';
+import { roleQueries, userQueries, userTenantMembershipQueries } from '../../api';
 import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { useReadTenantEntity } from '../../helpers/useStandardRowActionsNew';
@@ -64,9 +60,7 @@ export const UsersPage = () => {
           {
             id: 'role',
             accessorFn: (info) => getRelationDisplayName(info.roleId, roles),
-            cell: (info) => (
-              <RoleLink id={info.row.original.roleId} query={roles} />
-            ),
+            cell: (info) => <RoleLink id={info.row.original.roleId} query={roles} />,
             header: () => 'Tenant role',
           },
           {

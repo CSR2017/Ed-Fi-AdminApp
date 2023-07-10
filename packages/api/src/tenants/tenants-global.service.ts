@@ -13,9 +13,7 @@ export class TenantsGlobalService {
     private readonly entityManager: EntityManager
   ) {}
   create(createTenantDto: PostTenantDto) {
-    return this.tenantsRepository.save(
-      this.tenantsRepository.create(createTenantDto)
-    );
+    return this.tenantsRepository.save(this.tenantsRepository.create(createTenantDto));
   }
 
   async findOne(id: number) {

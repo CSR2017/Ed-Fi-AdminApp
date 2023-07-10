@@ -1,11 +1,4 @@
-import {
-  IEdorg,
-  IOds,
-  IOwnership,
-  IRole,
-  ISbe,
-  ITenant,
-} from '@edanalytics/models';
+import { IEdorg, IOds, IOwnership, IRole, ISbe, ITenant } from '@edanalytics/models';
 import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 

@@ -19,10 +19,10 @@ export type GettersOmit =
   | 'displayName';
 
 export type DtoGetOmit = 'createdBy' | 'modifiedBy' | 'deletedBy';
-export type GetDto<
-  EntityInterface extends object,
-  ExcludeProperties extends string = never
-> = Omit<EntityInterface, DtoGetOmit | ExcludeProperties>;
+export type GetDto<EntityInterface extends object, ExcludeProperties extends string = never> = Omit<
+  EntityInterface,
+  DtoGetOmit | ExcludeProperties
+>;
 
 /**
  * The user record's `createdById` field has to be nullable, which necessesitates a separate DTO base for User vs other entities. Everything else should use the other one which adds that field as required.

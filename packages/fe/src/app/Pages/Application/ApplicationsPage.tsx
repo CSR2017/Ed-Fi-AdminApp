@@ -1,26 +1,12 @@
 import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
-import {
-  GetClaimsetDto,
-  GetEdorgDto,
-  createEdorgCompositeNaturalKey,
-} from '@edanalytics/models';
+import { GetClaimsetDto, GetEdorgDto, createEdorgCompositeNaturalKey } from '@edanalytics/models';
 import { useParams } from 'react-router-dom';
 import _ from 'lodash';
-import {
-  applicationQueries,
-  claimsetQueries,
-  edorgQueries,
-  userQueries,
-} from '../../api';
+import { applicationQueries, claimsetQueries, edorgQueries, userQueries } from '../../api';
 import { ActionBarActions } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import {
-  ApplicationLink,
-  ClaimsetLink,
-  EdorgLink,
-  applicationsRoute,
-} from '../../routes';
+import { ApplicationLink, ClaimsetLink, EdorgLink, applicationsRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 import { useApplicationsActions } from './useApplicationActions';
 
@@ -41,18 +27,15 @@ export const ApplicationsPage = () => {
   });
   const edorgsByEdorgId = {
     ...edorgs,
-    data: Object.values(edorgs.data ?? {}).reduce<Record<string, GetEdorgDto>>(
-      (map, edorg) => {
-        map[
-          createEdorgCompositeNaturalKey({
-            educationOrganizationId: edorg.educationOrganizationId,
-            odsDbName: edorg.odsDbName,
-          })
-        ] = edorg;
-        return map;
-      },
-      {}
-    ),
+    data: Object.values(edorgs.data ?? {}).reduce<Record<string, GetEdorgDto>>((map, edorg) => {
+      map[
+        createEdorgCompositeNaturalKey({
+          educationOrganizationId: edorg.educationOrganizationId,
+          odsDbName: edorg.odsDbName,
+        })
+      ] = edorg;
+      return map;
+    }, {}),
   };
   const claimsets = claimsetQueries.useAll({
     sbeId: params.sbeId,
@@ -60,12 +43,13 @@ export const ApplicationsPage = () => {
   });
   const claimsetsByName = {
     ...claimsets,
-    data: Object.values(claimsets.data ?? {}).reduce<
-      Record<string, GetClaimsetDto>
-    >((map, claimset) => {
-      map[claimset.name] = claimset;
-      return map;
-    }, {}),
+    data: Object.values(claimsets.data ?? {}).reduce<Record<string, GetClaimsetDto>>(
+      (map, claimset) => {
+        map[claimset.name] = claimset;
+        return map;
+      },
+      {}
+    ),
   };
 
   const actions = useApplicationsActions({
@@ -84,10 +68,7 @@ export const ApplicationsPage = () => {
             accessorKey: 'displayName',
             cell: (info) => (
               <HStack justify="space-between">
-                <ApplicationLink
-                  id={info.row.original.id}
-                  query={applications}
-                />
+                <ApplicationLink id={info.row.original.id} query={applications} />
               </HStack>
             ),
             header: () => 'Name',
@@ -109,10 +90,8 @@ export const ApplicationsPage = () => {
                 id={
                   edorgsByEdorgId.data[
                     createEdorgCompositeNaturalKey({
-                      educationOrganizationId:
-                        info.row.original.educationOrganizationId,
-                      odsDbName:
-                        'EdFi_Ods_' + info.row.original.odsInstanceName,
+                      educationOrganizationId: info.row.original.educationOrganizationId,
+                      odsDbName: 'EdFi_Ods_' + info.row.original.odsInstanceName,
                     })
                   ]?.id
                 }
@@ -121,8 +100,7 @@ export const ApplicationsPage = () => {
           },
           {
             id: 'claimest',
-            accessorFn: (info) =>
-              getRelationDisplayName(info.claimSetName, claimsetsByName),
+            accessorFn: (info) => getRelationDisplayName(info.claimSetName, claimsetsByName),
             header: () => 'Claimset',
             cell: (info) => (
               <ClaimsetLink

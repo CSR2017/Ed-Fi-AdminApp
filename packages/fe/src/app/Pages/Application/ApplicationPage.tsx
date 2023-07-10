@@ -4,11 +4,7 @@ import { createEdorgCompositeNaturalKey } from '@edanalytics/models';
 import { BiEdit, BiTrash } from 'react-icons/bi';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { applicationQueries } from '../../api';
-import {
-  AuthorizeComponent,
-  applicationAuthConfig,
-  useNavToParent,
-} from '../../helpers';
+import { AuthorizeComponent, applicationAuthConfig, useNavToParent } from '../../helpers';
 import { useSearchParamsObject } from '../../helpers/useSearch';
 import { PageTemplate } from '../PageTemplate';
 import { EditApplication } from './EditApplication';
@@ -117,11 +113,7 @@ export const ApplicationPage = () => {
       {application ? (
         <>
           <ResetAlert />
-          {edit ? (
-            <EditApplication application={application} />
-          ) : (
-            <ViewApplication />
-          )}
+          {edit ? <EditApplication application={application} /> : <ViewApplication />}
         </>
       ) : null}
     </PageTemplate>

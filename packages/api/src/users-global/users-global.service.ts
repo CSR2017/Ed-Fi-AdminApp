@@ -13,9 +13,7 @@ export class UsersGlobalService {
     private readonly entityManager: EntityManager
   ) {}
   create(createUserDto: PostUserDto) {
-    return this.usersRepository.save(
-      this.usersRepository.create(createUserDto)
-    );
+    return this.usersRepository.save(this.usersRepository.create(createUserDto));
   }
 
   async findOne(id: number) {

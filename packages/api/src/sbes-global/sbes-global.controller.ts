@@ -9,21 +9,8 @@ import {
   toSbeCCDto,
   toSbeRRDto,
 } from '@edanalytics/models';
-import {
-  Sbe,
-  addUserCreating,
-  addUserModifying,
-} from '@edanalytics/models-server';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Sbe, addUserCreating, addUserModifying } from '@edanalytics/models-server';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -50,13 +37,8 @@ export class SbesGlobalController {
       id: '__filtered__',
     },
   })
-  async create(
-    @Body() createSbeDto: PostSbeDto,
-    @ReqUser() user: GetSessionDataDto
-  ) {
-    return toGetSbeDto(
-      await this.sbeService.create(addUserCreating(createSbeDto, user))
-    );
+  async create(@Body() createSbeDto: PostSbeDto, @ReqUser() user: GetSessionDataDto) {
+    return toGetSbeDto(await this.sbeService.create(addUserCreating(createSbeDto, user)));
   }
 
   @Get()
@@ -78,9 +60,7 @@ export class SbesGlobalController {
     },
   })
   async findOne(@Param('sbeId', new ParseIntPipe()) sbeId: number) {
-    return toGetSbeDto(
-      await this.sbeService.findOne(sbeId).catch(throwNotFound)
-    );
+    return toGetSbeDto(await this.sbeService.findOne(sbeId).catch(throwNotFound));
   }
 
   @Put(':sbeId/refresh-resources')
@@ -94,9 +74,7 @@ export class SbesGlobalController {
     @Param('sbeId', new ParseIntPipe()) sbeId: number,
     @ReqUser() user: GetSessionDataDto
   ) {
-    return toOperationResultDto(
-      await this.sbeService.refreshResources(sbeId, user)
-    );
+    return toOperationResultDto(await this.sbeService.refreshResources(sbeId, user));
   }
 
   @Put(':sbeId/check-connection')
@@ -126,10 +104,7 @@ export class SbesGlobalController {
     @ReqUser() user: GetSessionDataDto
   ) {
     return toGetSbeDto(
-      await this.sbeService.updateAdminApi(
-        sbeId,
-        addUserModifying(updateDto, user)
-      )
+      await this.sbeService.updateAdminApi(sbeId, addUserModifying(updateDto, user))
     );
   }
   @Put(':sbeId/sbe-meta')
@@ -145,10 +120,7 @@ export class SbesGlobalController {
     @ReqUser() user: GetSessionDataDto
   ) {
     return toGetSbeDto(
-      await this.sbeService.updateSbMeta(
-        sbeId,
-        addUserModifying(updateDto, user)
-      )
+      await this.sbeService.updateSbMeta(sbeId, addUserModifying(updateDto, user))
     );
   }
 
@@ -165,10 +137,7 @@ export class SbesGlobalController {
     @ReqUser() user: GetSessionDataDto
   ) {
     return toGetSbeDto(
-      await this.sbeService.selfRegisterAdminApi(
-        sbeId,
-        addUserModifying(updateDto, user)
-      )
+      await this.sbeService.selfRegisterAdminApi(sbeId, addUserModifying(updateDto, user))
     );
   }
 
@@ -179,10 +148,7 @@ export class SbesGlobalController {
       id: '__filtered__',
     },
   })
-  remove(
-    @Param('sbeId', new ParseIntPipe()) sbeId: number,
-    @ReqUser() user: GetSessionDataDto
-  ) {
+  remove(@Param('sbeId', new ParseIntPipe()) sbeId: number, @ReqUser() user: GetSessionDataDto) {
     return this.sbeService.remove(sbeId, user);
   }
 }

@@ -116,35 +116,33 @@ import { ITenant, IUser, IRole } from '../interfaces';
 
 export class GetUserTenantMembershipDto
   extends DtoGetBase
-  implements GetDto<IUserTenantMembership, "tenant" | "user" | "role">
+  implements GetDto<IUserTenantMembership, 'tenant' | 'user' | 'role'>
 {
   @Expose()
-  tenantId: ITenant['id']
+  tenantId: ITenant['id'];
   @Expose()
-  userId: IUser['id']
+  userId: IUser['id'];
   @Expose()
-  roleId?: IRole['id']
+  roleId?: IRole['id'];
 }
-export const toGetUserTenantMembershipDto = makeSerializer(
-  GetUserTenantMembershipDto
-);
+export const toGetUserTenantMembershipDto = makeSerializer(GetUserTenantMembershipDto);
 
 export class PutUserTenantMembershipDto
   extends DtoPutBase
-  implements PutDto<IUserTenantMembership, "tenant" | "user" | "role" | "tenantId" | "userId">
+  implements PutDto<IUserTenantMembership, 'tenant' | 'user' | 'role' | 'tenantId' | 'userId'>
 {
   @Expose()
-  roleId: IRole['id']
+  roleId: IRole['id'];
 }
 
 export class PostUserTenantMembershipDto
   extends DtoPostBase
-  implements PostDto<IUserTenantMembership, "tenant" | "user" | "role">
+  implements PostDto<IUserTenantMembership, 'tenant' | 'user' | 'role'>
 {
   @Expose()
-  tenantId: ITenant['id']
+  tenantId: ITenant['id'];
   @Expose()
-  userId: IUser['id']
+  userId: IUser['id'];
   @Expose()
-  roleId: IRole['id']
+  roleId: IRole['id'];
 }

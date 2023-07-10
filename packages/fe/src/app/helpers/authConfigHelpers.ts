@@ -28,9 +28,7 @@ export const globalOwnershipAuthConfig = (
     id: '__filtered__',
   },
 });
-export const globalTenantAuthConfig = (
-  privilege: BasePrivilege
-): AuthorizeConfig | undefined => ({
+export const globalTenantAuthConfig = (privilege: BasePrivilege): AuthorizeConfig | undefined => ({
   privilege,
   subject: {
     id: '__filtered__',

@@ -51,12 +51,9 @@ export const SbesPage = () => {
           },
           {
             id: 'modifiedBy',
-            accessorFn: (info) =>
-              getRelationDisplayName(info.modifiedById, users),
+            accessorFn: (info) => getRelationDisplayName(info.modifiedById, users),
             header: () => 'Modified by',
-            cell: (info) => (
-              <UserLink query={users} id={info.row.original.modifiedById} />
-            ),
+            cell: (info) => <UserLink query={users} id={info.row.original.modifiedById} />,
           },
           {
             accessorKey: 'createdDetailed',
@@ -64,12 +61,9 @@ export const SbesPage = () => {
           },
           {
             id: 'createdBy',
-            accessorFn: (info) =>
-              getRelationDisplayName(info.createdById, users),
+            accessorFn: (info) => getRelationDisplayName(info.createdById, users),
             header: () => 'Created by',
-            cell: (info) => (
-              <UserLink query={users} id={info.row.original.createdById} />
-            ),
+            cell: (info) => <UserLink query={users} id={info.row.original.createdById} />,
           },
         ]}
       />

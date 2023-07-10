@@ -1,8 +1,4 @@
-import {
-  TenantBasePrivilege,
-  TenantSbePrivilege,
-  isSbePrivilege,
-} from '@edanalytics/models';
+import { TenantBasePrivilege, TenantSbePrivilege, isSbePrivilege } from '@edanalytics/models';
 import { MutateOptions } from '@tanstack/react-query';
 import { AnyRoute, useNavigate } from 'react-router-dom';
 import { AxiosResponse } from 'axios';
@@ -32,9 +28,7 @@ export const useDeleteTenantEntity = (props: {
               privilege: privilege,
               subject: {
                 tenantId: Number(params.asId),
-                sbeId: isSbePrivilege(privilege)
-                  ? Number(params.sbeId)
-                  : undefined,
+                sbeId: isSbePrivilege(privilege) ? Number(params.sbeId) : undefined,
                 id: entity.id,
               },
             }}
@@ -86,9 +80,7 @@ export const useEditTenantEntity = (props: {
               privilege: privilege,
               subject: {
                 tenantId: Number(params.asId),
-                sbeId: isSbePrivilege(privilege)
-                  ? Number(params.sbeId)
-                  : undefined,
+                sbeId: isSbePrivilege(privilege) ? Number(params.sbeId) : undefined,
                 id: entity.id,
               },
             }}
@@ -131,9 +123,7 @@ export const useReadTenantEntity = (props: {
               privilege: privilege,
               subject: {
                 tenantId: Number(params.asId),
-                sbeId: isSbePrivilege(privilege)
-                  ? Number(params.sbeId)
-                  : undefined,
+                sbeId: isSbePrivilege(privilege) ? Number(params.sbeId) : undefined,
                 id: entity.id,
               },
             }}

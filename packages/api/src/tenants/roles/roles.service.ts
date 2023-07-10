@@ -1,11 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  GetUserDto,
-  PostRoleDto,
-  PutRoleDto,
-  RoleType,
-} from '@edanalytics/models';
+import { GetUserDto, PostRoleDto, PutRoleDto, RoleType } from '@edanalytics/models';
 import { IsNull, Not, Repository } from 'typeorm';
 import { throwNotFound } from '../../utils';
 import { Role } from '@edanalytics/models-server';
@@ -18,9 +13,7 @@ export class RolesService {
   ) {}
 
   create(createRoleDto: PostRoleDto) {
-    return this.rolesRepository.save(
-      this.rolesRepository.create(createRoleDto)
-    );
+    return this.rolesRepository.save(this.rolesRepository.create(createRoleDto));
   }
 
   findAll(tenantId: number) {

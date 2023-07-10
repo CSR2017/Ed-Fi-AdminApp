@@ -149,10 +149,7 @@ export class PutRoleDto
   privileges: IPrivilege[];
 }
 
-export class PostRoleDto
-  extends DtoPostBase
-  implements PostDto<IRole, 'tenant'>
-{
+export class PostRoleDto extends DtoPostBase implements PostDto<IRole, 'tenant'> {
   @Expose()
   name: string;
   @Expose()

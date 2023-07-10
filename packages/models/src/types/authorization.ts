@@ -5,15 +5,13 @@ import {
   TenantSbePrivilege,
 } from './privilege.type';
 
-export type AuthorizationCache = Partial<Record<BasePrivilege, TrueValue>> &
-  ITenantCache;
+export type AuthorizationCache = Partial<Record<BasePrivilege, TrueValue>> & ITenantCache;
 
 export type TrueValue = true;
 export type SpecificIds = Set<number | string>;
 export type Ids = SpecificIds | TrueValue;
 
-export const isAll = (ids: Ids): ids is TrueValue =>
-  typeof ids === 'boolean' && ids;
+export const isAll = (ids: Ids): ids is TrueValue => typeof ids === 'boolean' && ids;
 
 /*
 
@@ -87,14 +85,10 @@ export const globalPrivilegesMap: Record<BasePrivilege, true> = {
   'user-tenant-membership:create': true,
 };
 
-export const isGlobalPrivilege = (
-  privilege: PrivilegeCode
-): privilege is BasePrivilege => privilege in globalPrivilegesMap;
+export const isGlobalPrivilege = (privilege: PrivilegeCode): privilege is BasePrivilege =>
+  privilege in globalPrivilegesMap;
 
-export const sbeTenantPrivilegesMap: Record<
-  TenantSbePrivilege,
-  SbeSubEntityPrivilege
-> = {
+export const sbeTenantPrivilegesMap: Record<TenantSbePrivilege, SbeSubEntityPrivilege> = {
   'tenant.sbe.vendor:read': 'vendor:read',
   'tenant.sbe.vendor:update': 'vendor:update',
   'tenant.sbe.vendor:delete': 'vendor:delete',
@@ -109,8 +103,7 @@ export const sbeTenantPrivilegesMap: Record<
   'tenant.sbe.edorg.application:update': 'edorg.application:update',
   'tenant.sbe.edorg.application:delete': 'edorg.application:delete',
   'tenant.sbe.edorg.application:create': 'edorg.application:create',
-  'tenant.sbe.edorg.application:reset-credentials':
-    'edorg.application:reset-credentials',
+  'tenant.sbe.edorg.application:reset-credentials': 'edorg.application:reset-credentials',
 };
 
 /**
@@ -127,8 +120,7 @@ export const sbeTenantPrivilegesMap: Record<
  */
 export interface ITenantCache
   extends Partial<
-    Record<TenantBasePrivilege, Ids> &
-      Record<TenantSbePrivilege, Record<number, Ids>>
+    Record<TenantBasePrivilege, Ids> & Record<TenantSbePrivilege, Record<number, Ids>>
   > {
   'tenant.ownership:read'?: Ids;
   'tenant.role:read'?: Ids;
@@ -158,18 +150,14 @@ export interface ITenantCache
   'tenant.sbe.edorg.application:reset-credentials'?: Record<number, Ids>;
 }
 
-export const trueOnlyPrivileges = new Set<
-  TenantBasePrivilege | TenantSbePrivilege
->([
+export const trueOnlyPrivileges = new Set<TenantBasePrivilege | TenantSbePrivilege>([
   'tenant.role:create',
   'tenant.sbe.claimset:create',
   'tenant.sbe.edorg.application:create',
   'tenant.sbe.vendor:create',
 ]);
 
-export const baseResourcePrivilegesMap: Partial<
-  Record<string, TenantBasePrivilege[]>
-> = {
+export const baseResourcePrivilegesMap: Partial<Record<string, TenantBasePrivilege[]>> = {
   'tenant.user': ['tenant.user:read'],
   'tenant.user-tenant-membership': [
     'tenant.user-tenant-membership:read',
@@ -187,9 +175,7 @@ export const baseResourcePrivilegesMap: Partial<
   'tenant.sbe': ['tenant.sbe:read', 'tenant.sbe:refresh-resources'],
 };
 
-export const sbeResourcePrivilegesMap: Partial<
-  Record<string, TenantSbePrivilege[]>
-> = {
+export const sbeResourcePrivilegesMap: Partial<Record<string, TenantSbePrivilege[]>> = {
   'tenant.sbe.vendor': [
     'tenant.sbe.vendor:read',
     'tenant.sbe.vendor:update',
@@ -215,9 +201,7 @@ export const sbeResourcePrivilegesMap: Partial<
 
 export type BasePrivilegeResourceType = keyof typeof baseResourcePrivilegesMap;
 export type SbePrivilegeResourceType = keyof typeof sbeResourcePrivilegesMap;
-export type PrivilegeResource =
-  | BasePrivilegeResourceType
-  | SbePrivilegeResourceType;
+export type PrivilegeResource = BasePrivilegeResourceType | SbePrivilegeResourceType;
 
 export const isSbePrivilege = (str: string): str is TenantSbePrivilege =>
   str in sbeTenantPrivilegesMap;

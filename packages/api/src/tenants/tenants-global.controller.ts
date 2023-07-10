@@ -4,21 +4,8 @@ import {
   PutTenantDto,
   toGetTenantDto,
 } from '@edanalytics/models';
-import {
-  Tenant,
-  addUserCreating,
-  addUserModifying,
-} from '@edanalytics/models-server';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Tenant, addUserCreating, addUserModifying } from '@edanalytics/models-server';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -43,13 +30,8 @@ export class TenantsGlobalController {
       id: '__filtered__',
     },
   })
-  async create(
-    @Body() createTenantDto: PostTenantDto,
-    @ReqUser() user: GetSessionDataDto
-  ) {
-    return toGetTenantDto(
-      await this.tenantService.create(addUserCreating(createTenantDto, user))
-    );
+  async create(@Body() createTenantDto: PostTenantDto, @ReqUser() user: GetSessionDataDto) {
+    return toGetTenantDto(await this.tenantService.create(addUserCreating(createTenantDto, user)));
   }
 
   @Get()
@@ -71,9 +53,7 @@ export class TenantsGlobalController {
     },
   })
   async findOne(@Param('tenantId', new ParseIntPipe()) tenantId: number) {
-    return toGetTenantDto(
-      await this.tenantService.findOne(tenantId).catch(throwNotFound)
-    );
+    return toGetTenantDto(await this.tenantService.findOne(tenantId).catch(throwNotFound));
   }
 
   @Put(':tenantId')
@@ -89,10 +69,7 @@ export class TenantsGlobalController {
     @ReqUser() user: GetSessionDataDto
   ) {
     return toGetTenantDto(
-      await this.tenantService.update(
-        tenantId,
-        addUserModifying(updateTenantDto, user)
-      )
+      await this.tenantService.update(tenantId, addUserModifying(updateTenantDto, user))
     );
   }
 

@@ -10,42 +10,28 @@ import { ReactElement } from 'react';
 import { usePrivilegeCache } from '../api';
 
 export type AuthorizeConfig<
-  PrivilegeType extends
-    | BasePrivilege
-    | TenantBasePrivilege
-    | TenantSbePrivilege = PrivilegeCode
+  PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege = PrivilegeCode
 > = {
   privilege: PrivilegeType;
-  subject: (PrivilegeType extends BasePrivilege
-    ? object
-    : { tenantId: number }) &
+  subject: (PrivilegeType extends BasePrivilege ? object : { tenantId: number }) &
     (PrivilegeType extends TenantSbePrivilege ? { sbeId: number } : object) & {
       id: string | number | '__filtered__';
     };
 };
 
 export type AuthorizeParameters<
-  PrivilegeType extends
-    | BasePrivilege
-    | TenantBasePrivilege
-    | TenantSbePrivilege,
+  PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege,
   ValueType
 > = {
   value: ValueType;
-  config:
-    | undefined
-    | AuthorizeConfig<PrivilegeType>
-    | AuthorizeConfig<PrivilegeType>[];
+  config: undefined | AuthorizeConfig<PrivilegeType> | AuthorizeConfig<PrivilegeType>[];
 };
 
 export const authorize = <
   PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege
 >(props: {
   queryClient: QueryClient;
-  config:
-    | undefined
-    | AuthorizeConfig<PrivilegeType>
-    | AuthorizeConfig<PrivilegeType>[];
+  config: undefined | AuthorizeConfig<PrivilegeType> | AuthorizeConfig<PrivilegeType>[];
 }) => {
   const configArray = Array.isArray(props.config)
     ? props.config
@@ -54,13 +40,10 @@ export const authorize = <
     : [props.config];
 
   let isAuthorized =
-    props.config !== undefined &&
-    (!Array.isArray(props.config) || props.config.length > 0);
+    props.config !== undefined && (!Array.isArray(props.config) || props.config.length > 0);
 
   configArray.forEach((config, i) => {
-    const thisPrivilegeCache = props.queryClient.getQueryData<
-      boolean | SpecificIds
-    >([
+    const thisPrivilegeCache = props.queryClient.getQueryData<boolean | SpecificIds>([
       'authorizations',
       'tenantId' in config.subject ? config.subject.tenantId : undefined,
       'sbeId' in config.subject ? config.subject.sbeId : undefined,
@@ -90,30 +73,19 @@ export type AuthorizeComponentProps<
   PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege
 > = {
   children?: ReactElement;
-  config:
-    | undefined
-    | AuthorizeConfig<PrivilegeType>
-    | AuthorizeConfig<PrivilegeType>[];
+  config: undefined | AuthorizeConfig<PrivilegeType> | AuthorizeConfig<PrivilegeType>[];
 };
 
 export const usePrivilegeCacheForConfig = <
   PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege
 >(
-  config:
-    | undefined
-    | AuthorizeConfig<PrivilegeType>
-    | AuthorizeConfig<PrivilegeType>[]
+  config: undefined | AuthorizeConfig<PrivilegeType> | AuthorizeConfig<PrivilegeType>[]
 ) => {
-  const configArray = Array.isArray(config)
-    ? config
-    : config === undefined
-    ? []
-    : [config];
+  const configArray = Array.isArray(config) ? config : config === undefined ? [] : [config];
   return usePrivilegeCache(
     configArray.map((config) => ({
       privilege: config.privilege,
-      tenantId:
-        'tenantId' in config.subject ? config.subject.tenantId : undefined,
+      tenantId: 'tenantId' in config.subject ? config.subject.tenantId : undefined,
       sbeId: 'sbeId' in config.subject ? config.subject.sbeId : undefined,
     }))
   );

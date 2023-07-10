@@ -8,6 +8,7 @@ Duplicate the `.copyme` files at the following locations, removing that part of 
 
 - [packages/fe/.copyme.env.local](./packages/fe/.copyme.env.local)
 - [packages/api/config/local-development.js.copyme](./packages/api/config/local-development.js.copyme)
+
   - Generate for yourself a new encryption key and initialization vector, to be used in the config file above. These are used to encrypt (at rest) the Ed-Fi Admin API credentials, which are particularly sensitive.
 
     ```shell

@@ -116,8 +116,7 @@ import { EdorgType } from '../enums';
 
 export class GetEdorgDto
   extends DtoGetBase
-  implements
-    GetDto<IEdorg, 'ownerships' | 'ods' | 'parent' | 'children' | 'sbe'>
+  implements GetDto<IEdorg, 'ownerships' | 'ods' | 'parent' | 'children' | 'sbe'>
 {
   @Expose()
   sbeId: number;
@@ -145,10 +144,7 @@ export const toGetEdorgDto = makeSerializer(GetEdorgDto);
 export class PutEdorgDto
   extends DtoPutBase
   implements
-    PutDto<
-      IEdorg,
-      'ownerships' | 'ods' | 'odsId' | 'odsDbName' | 'sbe' | 'sbeId' | 'parent'
-    >
+    PutDto<IEdorg, 'ownerships' | 'ods' | 'odsId' | 'odsDbName' | 'sbe' | 'sbeId' | 'parent'>
 {
   @Expose()
   children: IEdorg[];
@@ -171,8 +167,7 @@ export class PutEdorgDto
 
 export class PostEdorgDto
   extends DtoPostBase
-  implements
-    PostDto<IEdorg, 'ownerships' | 'ods' | 'odsDbName' | 'parent' | 'sbe'>
+  implements PostDto<IEdorg, 'ownerships' | 'ods' | 'odsDbName' | 'parent' | 'sbe'>
 {
   @Expose()
   @IsNumber()

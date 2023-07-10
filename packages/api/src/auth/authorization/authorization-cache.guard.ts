@@ -1,14 +1,5 @@
-import {
-  AuthorizationCache,
-  ITenantCache,
-  isGlobalPrivilege,
-} from '@edanalytics/models';
-import {
-  CanActivate,
-  ExecutionContext,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { AuthorizationCache, ITenantCache, isGlobalPrivilege } from '@edanalytics/models';
+import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthService } from '../auth.service';
 import { IS_PUBLIC_KEY } from './public.decorator';
@@ -46,9 +37,7 @@ export class AuthCacheGuard implements CanActivate {
     let userTenantCache: ITenantCache = {};
     if (typeof tenantIdStr === 'string') {
       const tenantId = Number(tenantIdStr);
-      userTenantCache = await this.authService.buildTenantOwnershipCache(
-        tenantId
-      );
+      userTenantCache = await this.authService.buildTenantOwnershipCache(tenantId);
       Object.keys(userTenantCache).forEach((k: keyof ITenantCache) => {
         if (userPrivileges.has(k)) {
           authorizationCache[k] = userTenantCache[k] as any;

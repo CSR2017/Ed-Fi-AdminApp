@@ -21,8 +21,7 @@ import { SuccessFailureBadge } from '../SuccessFailureBadge';
  * */
 export const useOperationResultDisclosure = () => {
   const toast = useToast();
-  const [modalResultState, setModalResultState] =
-    useState<OperationResultDto | null>(null);
+  const [modalResultState, setModalResultState] = useState<OperationResultDto | null>(null);
   const popModal = (result: OperationResultDto) => setModalResultState(result);
   const closeModal = () => setModalResultState(null);
   const modalIsOpen = modalResultState !== null;
@@ -75,9 +74,7 @@ export const useOperationResultDisclosure = () => {
           ) : null}
           {messages.length ? (
             <>
-              {succeeded.length || failed.length ? (
-                <Text>Messages:</Text>
-              ) : null}
+              {succeeded.length || failed.length ? <Text>Messages:</Text> : null}
               <UnorderedList styleType="circle">
                 {messages.map((msg) => (
                   <ListItem my={1} display="list-item" key={msg}>
@@ -116,9 +113,7 @@ export const useOperationResultDisclosure = () => {
     popToast,
     /** Add this empty component somewhere. It's where the Modal gets instantiated, and if it doesn't exist then the modal won't show. */
     ModalRoot: () => {
-      const baseConfig = modalResultState
-        ? buildResult(modalResultState)
-        : null;
+      const baseConfig = modalResultState ? buildResult(modalResultState) : null;
       return (
         <Modal isOpen={modalIsOpen} onClose={closeModal}>
           <ModalOverlay />

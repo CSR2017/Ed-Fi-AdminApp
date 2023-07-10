@@ -6,10 +6,10 @@ import { HttpException, HttpStatus } from '@nestjs/common';
  * throws of nest HTTP errors pass through unchanged. Other arbitrary
  * errors are replaced with the default configured here before they
  * would otherwise be replaced with nest's own default of a 500.
- * 
+ *
  * ___Note:___ This must be applied _underneath_ the nest HTTP method
  * decorator.
- * 
+ *
  * ```
  * // Return a 418
  * ＠Get('<path>')
@@ -17,7 +17,9 @@ import { HttpException, HttpStatus } from '@nestjs/common';
  * handler(){ }
  * ```
  */
-export function ErrorResponse<ExceptionType extends HttpException>(fallbackException: ExceptionType) {
+export function ErrorResponse<ExceptionType extends HttpException>(
+  fallbackException: ExceptionType
+) {
   return function (target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
     const value = descriptor.value;
     descriptor.value = function (...args: any[]) {
@@ -31,6 +33,5 @@ export function ErrorResponse<ExceptionType extends HttpException>(fallbackExcep
         }
       }
     };
-
   };
 }

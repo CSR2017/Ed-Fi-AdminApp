@@ -15,21 +15,14 @@ import {
   Text,
   useClipboard,
 } from '@chakra-ui/react';
-import {
-  ApplicationYopassResponseDto,
-  PostApplicationForm,
-} from '@edanalytics/models';
+import { ApplicationYopassResponseDto, PostApplicationForm } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApplicationPost } from '../../api';
 import { useNavToParent } from '../../helpers';
-import {
-  SelectClaimset,
-  SelectEdorg,
-  SelectVendor,
-} from '../../helpers/FormPickers';
+import { SelectClaimset, SelectEdorg, SelectVendor } from '../../helpers/FormPickers';
 import { PageTemplate } from '../PageTemplate';
 const resolver = classValidatorResolver(PostApplicationForm);
 
@@ -38,9 +31,7 @@ export const CreateApplicationPage = () => {
   const params = useParams() as { asId: string; sbeId: string };
   const navToParentOptions = useNavToParent();
 
-  const [result, setResult] = useState<ApplicationYopassResponseDto | null>(
-    null
-  );
+  const [result, setResult] = useState<ApplicationYopassResponseDto | null>(null);
   const clipboard = useClipboard('');
 
   const postApplication = useApplicationPost({
@@ -109,9 +100,7 @@ export const CreateApplicationPage = () => {
             sbeId={params.sbeId}
             control={control}
           />
-          <FormErrorMessage>
-            {errors.educationOrganizationId?.message}
-          </FormErrorMessage>
+          <FormErrorMessage>{errors.educationOrganizationId?.message}</FormErrorMessage>
         </FormControl>
         <FormControl isInvalid={!!errors.vendorId}>
           <FormLabel>Vendor</FormLabel>

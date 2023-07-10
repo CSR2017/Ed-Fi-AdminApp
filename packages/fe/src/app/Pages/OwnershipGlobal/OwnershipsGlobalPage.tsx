@@ -33,9 +33,7 @@ export const OwnershipsGlobalPage = () => {
     <PageTemplate
       title="Resource ownerships"
       actions={
-        <AuthorizeComponent
-          config={globalOwnershipAuthConfig('ownership:create')}
-        >
+        <AuthorizeComponent config={globalOwnershipAuthConfig('ownership:create')}>
           <RouterLink
             style={{ display: 'flex' }}
             title="Grant new tenant resource ownership"
@@ -58,18 +56,15 @@ export const OwnershipsGlobalPage = () => {
           },
           {
             id: 'tenant',
-            accessorFn: (info) =>
-              getRelationDisplayName(info.tenantId, tenants),
+            accessorFn: (info) => getRelationDisplayName(info.tenantId, tenants),
             header: () => 'Tenant',
-            cell: (info) =>
-              getRelationDisplayName(info.row.original.tenantId, tenants),
+            cell: (info) => getRelationDisplayName(info.row.original.tenantId, tenants),
           },
           {
             id: 'role',
             accessorFn: (info) => getRelationDisplayName(info.roleId, roles),
             header: () => 'Role',
-            cell: (info) =>
-              getRelationDisplayName(info.row.original.roleId, roles),
+            cell: (info) => getRelationDisplayName(info.row.original.roleId, roles),
           },
           {
             id: 'resource',

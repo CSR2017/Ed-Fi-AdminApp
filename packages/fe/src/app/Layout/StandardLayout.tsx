@@ -25,23 +25,9 @@ export const StandardLayout = () => {
   return (
     <VStack spacing={0} h="100vh" overflow="hidden">
       <AppBar />
-      <HStack
-        as="main"
-        w="100%"
-        flex="auto 1 1"
-        align="start"
-        overflow="hidden"
-        spacing={0}
-      >
+      <HStack as="main" w="100%" flex="auto 1 1" align="start" overflow="hidden" spacing={0}>
         <Nav />
-        <Box
-          p={3}
-          px="calc(4vw + 0.5em)"
-          maxH="100%"
-          h="100%"
-          overflow="auto"
-          flexGrow="1"
-        >
+        <Box p={3} px="calc(4vw + 0.5em)" maxH="100%" h="100%" overflow="auto" flexGrow="1">
           <Flex flexDir="column" minW="35em" h="100%">
             <Breadcrumbs mb={5} />
             <Box flexGrow={1}>

@@ -5,9 +5,9 @@ import { IUser } from './user.interface';
 
 export interface IUserTenantMembership extends IEntityBase {
   tenant: ITenant;
-  tenantId: ITenant['id']
-  user: IUser
-  userId: IUser['id']
-  role?: IRole
-  roleId?: IRole['id']
+  tenantId: ITenant['id'];
+  user: IUser;
+  userId: IUser['id'];
+  role?: IRole;
+  roleId?: IRole['id'];
 }

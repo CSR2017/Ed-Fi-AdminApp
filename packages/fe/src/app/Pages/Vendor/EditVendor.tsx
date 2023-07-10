@@ -22,9 +22,7 @@ export const EditVendor = () => {
     vendorId: string;
   };
   const goToView = () =>
-    navigate(
-      `/as/${params.asId}/sbes/${params.sbeId}/vendors/${params.vendorId}`
-    );
+    navigate(`/as/${params.asId}/sbes/${params.sbeId}/vendors/${params.vendorId}`);
   const putVendor = vendorQueries.usePut({
     callback: goToView,
     sbeId: params.sbeId,

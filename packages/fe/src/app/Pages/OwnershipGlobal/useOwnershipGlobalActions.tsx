@@ -5,15 +5,9 @@ import { HiOutlineEye } from 'react-icons/hi';
 import { ownershipQueries } from '../../api';
 import { AuthorizeComponent } from '../../helpers';
 import { ownershipGlobalIndexRoute, ownershipsGlobalRoute } from '../../routes';
-import {
-  ActionPropsConfirm,
-  ActionsType,
-  LinkActionProps,
-} from '../../helpers/ActionsType';
+import { ActionPropsConfirm, ActionsType, LinkActionProps } from '../../helpers/ActionsType';
 
-export const useOwnershipGlobalActions = (
-  ownership: GetOwnershipDto | undefined
-): ActionsType => {
+export const useOwnershipGlobalActions = (ownership: GetOwnershipDto | undefined): ActionsType => {
   const params = useParams() as {
     ownershipId: string;
   };
@@ -23,9 +17,7 @@ export const useOwnershipGlobalActions = (
   return ownership === undefined
     ? {}
     : {
-        View: (props: {
-          children: (props: LinkActionProps) => JSX.Element;
-        }) => {
+        View: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
           const path = to(ownership.id);
           return (
             <AuthorizeComponent
@@ -46,9 +38,7 @@ export const useOwnershipGlobalActions = (
             </AuthorizeComponent>
           );
         },
-        Edit: (props: {
-          children: (props: LinkActionProps) => JSX.Element;
-        }) => {
+        Edit: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
           const path = to(ownership.id);
           return (
             <AuthorizeComponent
@@ -69,9 +59,7 @@ export const useOwnershipGlobalActions = (
             </AuthorizeComponent>
           );
         },
-        Delete: (props: {
-          children: (props: ActionPropsConfirm) => JSX.Element;
-        }) => {
+        Delete: (props: { children: (props: ActionPropsConfirm) => JSX.Element }) => {
           return (
             <AuthorizeComponent
               config={{

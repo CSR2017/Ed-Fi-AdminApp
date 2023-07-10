@@ -1,15 +1,9 @@
 import { ConfirmAction } from '@edanalytics/common-ui';
 import { Button, Icon, IconButton, MenuItem } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
-import {
-  ActionProps,
-  ActionPropsConfirm,
-  LinkActionProps,
-} from './ActionsType';
+import { ActionProps, ActionPropsConfirm, LinkActionProps } from './ActionsType';
 
-export const ActionBarButton = (
-  props: ActionProps | ActionPropsConfirm | LinkActionProps
-) =>
+export const ActionBarButton = (props: ActionProps | ActionPropsConfirm | LinkActionProps) =>
   'to' in props ? (
     <ActionBarButtons.link {...props} />
   ) : 'confirm' in props ? (
@@ -30,11 +24,7 @@ export const ActionBarButtons = {
     </Button>
   ),
   confirm: (props: ActionPropsConfirm) => (
-    <ConfirmAction
-      headerText={props.text}
-      bodyText={props.confirmBody}
-      action={props.onClick}
-    >
+    <ConfirmAction headerText={props.text} bodyText={props.confirmBody} action={props.onClick}>
       {(confirmProps) => (
         <Button
           isDisabled={props.isDisabled}
@@ -62,9 +52,7 @@ export const ActionBarButtons = {
     </Button>
   ),
 };
-export const ActionMenuButton = (
-  props: ActionProps | ActionPropsConfirm | LinkActionProps
-) =>
+export const ActionMenuButton = (props: ActionProps | ActionPropsConfirm | LinkActionProps) =>
   'to' in props ? (
     <ActionMenuButtons.link {...props} />
   ) : 'confirm' in props ? (
@@ -75,22 +63,13 @@ export const ActionMenuButton = (
 
 export const ActionMenuButtons = {
   standard: (props: ActionProps) => (
-    <MenuItem
-      gap={2}
-      isDisabled={props.isDisabled}
-      onClick={props.onClick}
-      title={props.title}
-    >
+    <MenuItem gap={2} isDisabled={props.isDisabled} onClick={props.onClick} title={props.title}>
       <Icon as={props.icon} />
       {props.text}
     </MenuItem>
   ),
   confirm: (props: ActionPropsConfirm) => (
-    <ConfirmAction
-      headerText={props.text}
-      bodyText={props.confirmBody}
-      action={props.onClick}
-    >
+    <ConfirmAction headerText={props.text} bodyText={props.confirmBody} action={props.onClick}>
       {(confirmProps) => (
         <MenuItem
           gap={2}
@@ -108,22 +87,14 @@ export const ActionMenuButtons = {
     </ConfirmAction>
   ),
   link: (props: LinkActionProps) => (
-    <MenuItem
-      gap={2}
-      as={Link}
-      to={props.to}
-      isDisabled={props.isDisabled}
-      title={props.title}
-    >
+    <MenuItem gap={2} as={Link} to={props.to} isDisabled={props.isDisabled} title={props.title}>
       <Icon as={props.icon} />
       {props.text}
     </MenuItem>
   ),
 };
 
-export const TdIconButton = (
-  props: ActionProps | ActionPropsConfirm | LinkActionProps
-) =>
+export const TdIconButton = (props: ActionProps | ActionPropsConfirm | LinkActionProps) =>
   'to' in props ? (
     <TdIconButtons.link {...props} />
   ) : 'confirm' in props ? (
@@ -155,11 +126,7 @@ export const TdIconButtons = {
     />
   ),
   confirm: (props: ActionPropsConfirm) => (
-    <ConfirmAction
-      headerText={props.text}
-      bodyText={props.confirmBody}
-      action={props.onClick}
-    >
+    <ConfirmAction headerText={props.text} bodyText={props.confirmBody} action={props.onClick}>
       {(confirmProps) => (
         <IconButton
           px="0.3rem"

@@ -42,9 +42,7 @@
       "outputs": ["{options.outputPath}"],
       "options": {
         "cwd": "packages/api",
-        "commands": [
-          "typeorm -d ../../dist/packages/migration/main.js migration:run"
-        ]
+        "commands": ["typeorm -d ../../dist/packages/migration/main.js migration:run"]
       },
       "dependsOn": ["build-migration-config"]
     },

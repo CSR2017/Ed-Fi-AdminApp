@@ -114,10 +114,7 @@ import { IOds } from '../interfaces/ods.interface';
 import { PostDto, DtoPostBase } from '../utils/post-base.dto';
 import { IEdorg } from '../interfaces';
 
-export class GetOdsDto
-  extends DtoGetBase
-  implements GetDto<IOds, 'ownerships' | 'sbe' | 'edorgs'>
-{
+export class GetOdsDto extends DtoGetBase implements GetDto<IOds, 'ownerships' | 'sbe' | 'edorgs'> {
   @Expose()
   sbeId: number;
 
@@ -130,10 +127,7 @@ export class GetOdsDto
 }
 export const toGetOdsDto = makeSerializer(GetOdsDto);
 
-export class PutOdsDto
-  extends DtoPutBase
-  implements PutDto<IOds, 'ownerships' | 'sbe' | 'edorgs'>
-{
+export class PutOdsDto extends DtoPutBase implements PutDto<IOds, 'ownerships' | 'sbe' | 'edorgs'> {
   @Expose()
   sbeId: number;
   @Expose()

@@ -24,12 +24,7 @@ import {
 } from 'react-icons/bs';
 import { useMatches } from 'react-router-dom';
 import { sbeQueries } from '../api/queries/queries';
-import {
-  AuthorizeConfig,
-  arrayElemIf,
-  authorize,
-  usePrivilegeCacheForConfig,
-} from '../helpers';
+import { AuthorizeConfig, arrayElemIf, authorize, usePrivilegeCacheForConfig } from '../helpers';
 import { isMatch, tagMatch } from './GlobalNav';
 import { INavButtonProps, NavButton } from './NavButton';
 

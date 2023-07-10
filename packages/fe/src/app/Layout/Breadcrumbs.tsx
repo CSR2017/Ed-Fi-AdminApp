@@ -14,24 +14,14 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
   const matches = useMatches();
   const lastMatch = matches[matches.length - 1];
   const breadcrumbs = flatRoutes
-    .filter(
-      (m) =>
-        m.path && lastMatch?.handle?.path?.startsWith(m.path) && m.handle?.crumb
-    )
+    .filter((m) => m.path && lastMatch?.handle?.path?.startsWith(m.path) && m.handle?.crumb)
     .sort((a, b) => {
       const aPath = a.path;
       const bPath = b.path;
-      return aPath && bPath
-        ? aPath.startsWith(bPath)
-          ? 1
-          : bPath.startsWith(aPath)
-          ? -1
-          : 0
-        : 0;
+      return aPath && bPath ? (aPath.startsWith(bPath) ? 1 : bPath.startsWith(aPath) ? -1 : 0) : 0;
     });
 
-  const [terminalItemRef, setTerminalItemRef] =
-    useState<HTMLAnchorElement | null>(null);
+  const [terminalItemRef, setTerminalItemRef] = useState<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
     // This non-reactive approach is ugly, but it's harmless and a way to avoid making the structure of the breadcrumb functions into a big deal.
@@ -54,13 +44,7 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
       spacing={1}
       color="gray.500"
       separator={
-        <Text
-          color="gray.200"
-          pb="0.175em"
-          fontSize="2xl"
-          mx="0.3em"
-          lineHeight={0}
-        >
+        <Text color="gray.200" pb="0.175em" fontSize="2xl" mx="0.3em" lineHeight={0}>
           /
         </Text>
       }

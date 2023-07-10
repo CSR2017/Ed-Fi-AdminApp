@@ -8,12 +8,6 @@ export const SuccessFailureBadge = ({
   pastTense?: boolean;
 }) => (
   <Badge colorScheme={bool ? 'green' : 'red'}>
-    {bool
-      ? pastTense
-        ? 'Succeeded'
-        : 'Success'
-      : pastTense
-      ? 'Failed'
-      : 'Failure'}
+    {bool ? (pastTense ? 'Succeeded' : 'Success') : pastTense ? 'Failed' : 'Failure'}
   </Badge>
 );

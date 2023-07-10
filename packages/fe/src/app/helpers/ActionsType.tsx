@@ -3,9 +3,7 @@ import { IconType } from 'react-icons/lib';
 export type ActionsType = Record<
   string,
   (props: {
-    children: (
-      props: ActionPropsConfirm | ActionProps | LinkActionProps
-    ) => JSX.Element;
+    children: (props: ActionPropsConfirm | ActionProps | LinkActionProps) => JSX.Element;
   }) => JSX.Element
 >;
 

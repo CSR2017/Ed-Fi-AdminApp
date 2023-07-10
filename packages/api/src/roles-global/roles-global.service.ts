@@ -13,9 +13,7 @@ export class RolesGlobalService {
     private readonly entityManager: EntityManager
   ) {}
   create(createRoleDto: PostRoleDto) {
-    return this.rolesRepository.save(
-      this.rolesRepository.create(createRoleDto)
-    );
+    return this.rolesRepository.save(this.rolesRepository.create(createRoleDto));
   }
 
   async findOne(id: number) {

@@ -1,4 +1,4 @@
-import { GetUserDto } from '@edanalytics/models'
+import { GetUserDto } from '@edanalytics/models';
 
 /**
  * Puts the identity of the transacting user into the `modifiedById` field of an entity to be saved. Mutates the entity argument and returns it.

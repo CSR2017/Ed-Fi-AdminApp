@@ -28,14 +28,10 @@ export interface INavButtonProps {
  * expandable nested list of indented sub-items.
  */
 export const NavButton = (props: INavButtonProps) => {
-  const { isOpen: isExpandedState, onToggle: toggleIsExpanded } =
-    useDisclosure();
+  const { isOpen: isExpandedState, onToggle: toggleIsExpanded } = useDisclosure();
   const hasChildren = props?.childItems?.length;
   const checkIsExpandedNecessarily = (items: INavButtonProps[]): boolean =>
-    items.some(
-      (item) =>
-        item.isActive || checkIsExpandedNecessarily(item.childItems || [])
-    );
+    items.some((item) => item.isActive || checkIsExpandedNecessarily(item.childItems || []));
   const isExpandedNecessarily = false; // checkIsExpandedNecessarily(props.childItems || []);
   const isExpanded = isExpandedNecessarily || isExpandedState;
 
@@ -69,9 +65,7 @@ export const NavButton = (props: INavButtonProps) => {
       gap={1}
       title={props.text}
     >
-      <Icon
-        as={props.isActive && props.activeIcon ? props.activeIcon : props.icon}
-      />
+      <Icon as={props.isActive && props.activeIcon ? props.activeIcon : props.icon} />
       <Text
         flexGrow={1}
         textAlign="left"
@@ -128,11 +122,7 @@ export const NavButton = (props: INavButtonProps) => {
         <Collapse in={isExpanded} animateOpacity>
           <Box fontSize="1em">
             {props.childItems?.map((child) => (
-              <NavButton
-                key={child.text + child.route}
-                {...child}
-                depth={(props.depth || 0) + 1}
-              />
+              <NavButton key={child.text + child.route} {...child} depth={(props.depth || 0) + 1} />
             ))}
           </Box>
         </Collapse>

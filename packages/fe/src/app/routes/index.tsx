@@ -1,10 +1,6 @@
 import { Heading } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
-import {
-  RouteObject,
-  RouterProvider,
-  createBrowserRouter,
-} from 'react-router-dom';
+import { RouteObject, RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { ErrorFallback } from '../Layout/Fallback404';
 import { StandardLayout } from '../Layout/StandardLayout';
 import { useSearchParamsObject } from '../helpers/useSearch';
@@ -22,60 +18,25 @@ import {
   ownershipsIndexRoute,
   ownershipsRoute,
 } from './ownership.routes';
-import {
-  roleIndexRoute,
-  roleRoute,
-  rolesIndexRoute,
-  rolesRoute,
-} from './role.routes';
+import { roleIndexRoute, roleRoute, rolesIndexRoute, rolesRoute } from './role.routes';
 import {
   sbeGlobalIndexRoute,
   sbeGlobalRoute,
   sbesGlobalIndexRoute,
   sbesGlobalRoute,
 } from './sbe-global.routes';
-import {
-  sbeIndexRoute,
-  sbeRoute,
-  sbesIndexRoute,
-  sbesRoute,
-} from './sbe.routes';
-import {
-  tenantIndexRoute,
-  tenantRoute,
-  tenantsIndexRoute,
-  tenantsRoute,
-} from './tenant.routes';
-import {
-  userIndexRoute,
-  userRoute,
-  usersIndexRoute,
-  usersRoute,
-} from './user.routes';
+import { sbeIndexRoute, sbeRoute, sbesIndexRoute, sbesRoute } from './sbe.routes';
+import { tenantIndexRoute, tenantRoute, tenantsIndexRoute, tenantsRoute } from './tenant.routes';
+import { userIndexRoute, userRoute, usersIndexRoute, usersRoute } from './user.routes';
 import {
   claimsetsRoute,
   claimsetsIndexRoute,
   claimsetRoute,
   claimsetIndexRoute,
 } from './claimset.routes';
-import {
-  edorgsRoute,
-  edorgsIndexRoute,
-  edorgRoute,
-  edorgIndexRoute,
-} from './edorg.routes';
-import {
-  odssRoute,
-  odssIndexRoute,
-  odsRoute,
-  odsIndexRoute,
-} from './ods.routes';
-import {
-  vendorsRoute,
-  vendorsIndexRoute,
-  vendorRoute,
-  vendorIndexRoute,
-} from './vendor.routes';
+import { edorgsRoute, edorgsIndexRoute, edorgRoute, edorgIndexRoute } from './edorg.routes';
+import { odssRoute, odssIndexRoute, odsRoute, odsIndexRoute } from './ods.routes';
+import { vendorsRoute, vendorsIndexRoute, vendorRoute, vendorIndexRoute } from './vendor.routes';
 import {
   applicationCreateRoute,
   applicationIndexRoute,
@@ -118,9 +79,9 @@ export const noRoleRoute: RouteObject = {
 const Login = memo(() => {
   const { redirect } = useSearchParamsObject();
   useEffect(() => {
-    window.location.href = `${
-      import.meta.env.VITE_API_URL
-    }/api/auth/oidc/1/login${redirect ? `?redirect=${redirect}` : ''}`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/oidc/1/login${
+      redirect ? `?redirect=${redirect}` : ''
+    }`;
   }, []);
   return null;
 });
@@ -215,12 +176,7 @@ export const mainLayoutRoute: RouteObject = {
     accountRouteGlobal,
   ],
 };
-export const routes = [
-  mainLayoutRoute,
-  publicLayoutRoute,
-  loginRoute,
-  fallback404Route,
-];
+export const routes = [mainLayoutRoute, publicLayoutRoute, loginRoute, fallback404Route];
 const addPathToHandle = (r: RouteObject) => {
   r.handle = {
     ...r.handle,

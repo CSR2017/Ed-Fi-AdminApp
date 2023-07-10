@@ -3,13 +3,7 @@ import { DataTable } from '@edanalytics/common-ui';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import { ownershipQueries, roleQueries, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import {
-  RoleLink,
-  UserLink,
-  edorgRoute,
-  odsRoute,
-  sbeRoute,
-} from '../../routes';
+import { RoleLink, UserLink, edorgRoute, odsRoute, sbeRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 
 export const OwnershipsPage = () => {
@@ -29,9 +23,7 @@ export const OwnershipsPage = () => {
             id: 'role',
             accessorFn: (info) => getRelationDisplayName(info.roleId, roles),
             header: () => 'Role',
-            cell: (info) => (
-              <RoleLink query={roles} id={info.row.original.roleId} />
-            ),
+            cell: (info) => <RoleLink query={roles} id={info.row.original.roleId} />,
           },
           {
             id: 'resource',
@@ -63,31 +55,21 @@ export const OwnershipsPage = () => {
                 </Link>
               ) : original.sbe ? (
                 <Link as="span">
-                  <RouterLink
-                    title="Go to sbe"
-                    to={`/as/${params.asId}/sbes/${original.sbe.id}`}
-                  >
+                  <RouterLink title="Go to sbe" to={`/as/${params.asId}/sbes/${original.sbe.id}`}>
                     {`Environment - ${original.sbe.displayName}`}
                   </RouterLink>
                 </Link>
               ) : (
-                <Text
-                  title="Edorg may have been deleted."
-                  as="i"
-                  color="gray.500"
-                >
+                <Text title="Edorg may have been deleted." as="i" color="gray.500">
                   not found
                 </Text>
               ),
           },
           {
             id: 'modifiedBy',
-            accessorFn: (info) =>
-              getRelationDisplayName(info.modifiedById, users),
+            accessorFn: (info) => getRelationDisplayName(info.modifiedById, users),
             header: () => 'Modified by',
-            cell: (info) => (
-              <UserLink query={users} id={info.row.original.modifiedById} />
-            ),
+            cell: (info) => <UserLink query={users} id={info.row.original.modifiedById} />,
           },
           {
             accessorKey: 'createdDetailed',
@@ -95,12 +77,9 @@ export const OwnershipsPage = () => {
           },
           {
             id: 'createdBy',
-            accessorFn: (info) =>
-              getRelationDisplayName(info.createdById, users),
+            accessorFn: (info) => getRelationDisplayName(info.createdById, users),
             header: () => 'Created by',
-            cell: (info) => (
-              <UserLink query={users} id={info.row.original.createdById} />
-            ),
+            cell: (info) => <UserLink query={users} id={info.row.original.createdById} />,
           },
         ]}
       />

@@ -1,10 +1,4 @@
-import {
-  GlobalRole,
-  IRole,
-  IUser,
-  IUserConfig,
-  IUserTenantMembership,
-} from '@edanalytics/models';
+import { GlobalRole, IRole, IUser, IUserConfig, IUserTenantMembership } from '@edanalytics/models';
 import { enumValues, FakeMeUsing } from '@edanalytics/utils';
 import { faker } from '@faker-js/faker';
 import { Type } from 'class-transformer';

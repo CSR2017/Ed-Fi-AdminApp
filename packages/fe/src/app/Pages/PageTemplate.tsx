@@ -10,11 +10,7 @@ export const PageTemplate = (props: {
   actions?: ReactNode;
 }) => {
   return (
-    <Box
-      maxW={props.constrainWidth ? undefined : undefined}
-      mx="-0.5rem"
-      px="0.5rem"
-    >
+    <Box maxW={props.constrainWidth ? undefined : undefined} mx="-0.5rem" px="0.5rem">
       <HStack
         borderTop="1px solid"
         borderBottom="1px solid"
@@ -28,10 +24,7 @@ export const PageTemplate = (props: {
         <Heading color="gray.700" size="page-heading">
           {props.title}
         </Heading>
-        <ActionGroup
-          m={0}
-          justifyContent={props.constrainWidth ? 'flex-end' : 'flex-start'}
-        >
+        <ActionGroup m={0} justifyContent={props.constrainWidth ? 'flex-end' : 'flex-start'}>
           {props.actions}
         </ActionGroup>
       </HStack>

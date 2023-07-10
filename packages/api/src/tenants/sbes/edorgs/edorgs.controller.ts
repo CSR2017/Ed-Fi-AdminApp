@@ -32,9 +32,7 @@ export class EdorgsController {
     @Param('sbeId', new ParseIntPipe()) sbeId: number,
     @InjectFilter('tenant.sbe.edorg:read') validIds: Ids
   ) {
-    return toGetEdorgDto(
-      await this.edorgsRepository.findBy({ ...whereIds(validIds), sbeId })
-    );
+    return toGetEdorgDto(await this.edorgsRepository.findBy({ ...whereIds(validIds), sbeId }));
   }
 
   @Get(':edorgId')

@@ -1,8 +1,4 @@
-import {
-  GetUserDto,
-  PostOwnershipDto,
-  PutOwnershipDto,
-} from '@edanalytics/models';
+import { GetUserDto, PostOwnershipDto, PutOwnershipDto } from '@edanalytics/models';
 import { Ownership } from '@edanalytics/models-server';
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
@@ -17,9 +13,7 @@ export class OwnershipsGlobalService {
     private readonly entityManager: EntityManager
   ) {}
   create(createOwnershipDto: PostOwnershipDto) {
-    return this.ownershipsRepository.save(
-      this.ownershipsRepository.create(createOwnershipDto)
-    );
+    return this.ownershipsRepository.save(this.ownershipsRepository.create(createOwnershipDto));
   }
 
   async findOne(id: number) {

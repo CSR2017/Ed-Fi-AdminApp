@@ -24,10 +24,7 @@ function App() {
   return (
     <ChakraProvider theme={theme}>
       <QueryClientProvider client={queryClient}>
-        <ErrorBoundary
-          onReset={reset}
-          fallbackRender={({ resetErrorBoundary, error }) => error}
-        >
+        <ErrorBoundary onReset={reset} fallbackRender={({ resetErrorBoundary, error }) => error}>
           <Routes />
           <ReactQueryDevtools initialIsOpen={false} position="bottom-left" />
         </ErrorBoundary>

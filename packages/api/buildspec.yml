@@ -20,9 +20,9 @@ phases:
       - docker push $DOCKER_CACHE
   post_build:
     commands:
-       - envsubst < Dockerrun.aws.template.json > Dockerrun.aws.json
+      - envsubst < Dockerrun.aws.template.json > Dockerrun.aws.json
 artifacts:
   files:
-     - Dockerrun.aws.json
-     - .platform/**/*
-     - .ebextensions/**/*
+    - Dockerrun.aws.json
+    - .platform/**/*
+    - .ebextensions/**/*

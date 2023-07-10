@@ -34,9 +34,7 @@ export class PostVendorDto {
     company: companyName,
     namespacePrefixes: `@${safeName}`,
     contactName: contactName,
-    contactEmailAddress: `${contactName
-      .replace(/\s+/g, '.')
-      .toLowerCase()}@${safeName}.com`,
+    contactEmailAddress: `${contactName.replace(/\s+/g, '.').toLowerCase()}@${safeName}.com`,
   };
 })
 export class GetVendorDto extends PostVendorDto {
@@ -103,9 +101,7 @@ export class PostClaimsetDto {
   )
   name: string;
   @Expose()
-  @FakeMeUsing(() =>
-    generateFake(ResourceClaimDto, undefined, faker.datatype.number(5))
-  )
+  @FakeMeUsing(() => generateFake(ResourceClaimDto, undefined, faker.datatype.number(5)))
   resourceClaims: ResourceClaimDto[];
 }
 
@@ -169,9 +165,7 @@ export class PostApplicationResponseDto {
   @Expose()
   secret: string;
 }
-export const toPostApplicationResponseDto = makeSerializer(
-  PostApplicationResponseDto
-);
+export const toPostApplicationResponseDto = makeSerializer(PostApplicationResponseDto);
 
 export class ApplicationYopassResponseDto {
   @Expose()
@@ -181,9 +175,7 @@ export class ApplicationYopassResponseDto {
   link: string;
 }
 
-export const toApplicationYopassResponseDto = makeSerializer(
-  ApplicationYopassResponseDto
-);
+export const toApplicationYopassResponseDto = makeSerializer(ApplicationYopassResponseDto);
 
 export class PutApplicationDto extends PostApplicationDto {
   @Expose()
@@ -217,9 +209,7 @@ export class GetApplicationDto {
   @FakeMeUsing(() => faker.datatype.number(999999))
   applicationId: number;
   @Expose()
-  @FakeMeUsing(
-    () => faker.commerce.department() + ' ' + faker.company.catchPhraseNoun()
-  )
+  @FakeMeUsing(() => faker.commerce.department() + ' ' + faker.company.catchPhraseNoun())
   @Expose()
   applicationName: string;
   @Expose()

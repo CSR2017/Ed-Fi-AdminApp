@@ -52,9 +52,7 @@ export const RegisterSbeAdminApiAuto = (props: { sbe: GetSbeDto }) => {
         <FormControl isInvalid={!!errors.adminRegisterUrl}>
           <FormLabel>Admin API URL</FormLabel>
           <Input {...register('adminRegisterUrl')} placeholder="URL" />
-          <FormErrorMessage>
-            {errors.adminRegisterUrl?.message}
-          </FormErrorMessage>
+          <FormErrorMessage>{errors.adminRegisterUrl?.message}</FormErrorMessage>
         </FormControl>
         <ButtonGroup>
           <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">

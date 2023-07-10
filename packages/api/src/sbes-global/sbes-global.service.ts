@@ -10,13 +10,7 @@ import {
   SbMetaOds,
   toOperationResultDto,
 } from '@edanalytics/models';
-import {
-  Edorg,
-  Ods,
-  Ownership,
-  Sbe,
-  addUserCreating,
-} from '@edanalytics/models-server';
+import { Edorg, Ods, Ownership, Sbe, addUserCreating } from '@edanalytics/models-server';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import _ from 'lodash';
@@ -78,9 +72,7 @@ export class SbesGlobalService {
 
   async selfRegisterAdminApi(id: number, updateDto: PutSbeAdminApiRegister) {
     const old = await this.findOne(id);
-    const creds = await this.sbService.selfRegisterAdminApi(
-      updateDto.adminRegisterUrl
-    );
+    const creds = await this.sbService.selfRegisterAdminApi(updateDto.adminRegisterUrl);
 
     return this.sbesRepository.save({
       ...old,
@@ -170,10 +162,7 @@ export class SbesGlobalService {
     });
   }
 
-  async refreshResources(
-    sbeId: number,
-    user: GetUserDto
-  ): Promise<OperationResultDto> {
+  async refreshResources(sbeId: number, user: GetUserDto): Promise<OperationResultDto> {
     let messages = [];
     let retrieved = false;
     let synced = false;
@@ -225,9 +214,7 @@ export class SbesGlobalService {
             /**
              * get ods ID given ods dbname
              */
-            const odsMap = Object.fromEntries(
-              existingOdss.map((o) => [o.dbName, o])
-            );
+            const odsMap = Object.fromEntries(existingOdss.map((o) => [o.dbName, o]));
             const newOdsResources = sbOdss.flatMap((sbOds) => {
               if (sbOds.dbname in odsMap) {
                 resourceIdsToDelete.delete(odsMap[sbOds.dbname].id);
@@ -267,17 +254,11 @@ export class SbesGlobalService {
              * get edorg ID given ods ID and edorg educationorganizationid
              */
             const odsEdorgMap = Object.fromEntries(
-              Object.values(odsMap).map((ods) => [
-                ods.id,
-                new Map<number, Edorg>(),
-              ])
+              Object.values(odsMap).map((ods) => [ods.id, new Map<number, Edorg>()])
             );
 
             existingEdorgs.forEach((edorg) => {
-              odsEdorgMap[edorg.odsId].set(
-                edorg.educationOrganizationId,
-                edorg
-              );
+              odsEdorgMap[edorg.odsId].set(edorg.educationOrganizationId, edorg);
             });
             const edorgsToSave: DeepPartial<Edorg>[] = [];
 
@@ -304,24 +285,19 @@ export class SbesGlobalService {
             );
 
             newEdorgs.forEach((edorg) => {
-              odsEdorgMap[edorg.odsId].set(
-                edorg.educationOrganizationId,
-                edorg
-              );
+              odsEdorgMap[edorg.odsId].set(edorg.educationOrganizationId, edorg);
             });
 
-            const edorgResourceIdsToDelete: Set<number> = new Set(
-              existingEdorgs.map((e) => e.id)
-            );
+            const edorgResourceIdsToDelete: Set<number> = new Set(existingEdorgs.map((e) => e.id));
             const edorgsToUpdate: Edorg[] = [];
 
             sbEdorgs.forEach((sbEdorg) => {
               const existing = odsEdorgMap[odsMap[sbEdorg.dbname].id].get(
                 sbEdorg.educationorganizationid
               );
-              const parent: Edorg | undefined = odsEdorgMap[
-                odsMap[sbEdorg.dbname].id
-              ].get(sbEdorg.parent);
+              const parent: Edorg | undefined = odsEdorgMap[odsMap[sbEdorg.dbname].id].get(
+                sbEdorg.parent
+              );
               const correctValues: DeepPartial<Edorg> = {
                 ...(parent ? { parent } : {}),
                 discriminator: sbEdorg.discriminator,

@@ -47,9 +47,7 @@ export const useApplicationActions = ({
   return application === undefined
     ? {}
     : {
-        Reset: (props: {
-          children: (props: ActionPropsConfirm) => JSX.Element;
-        }) => {
+        Reset: (props: { children: (props: ActionPropsConfirm) => JSX.Element }) => {
           return (
             <>
               <Modal isOpen={clipboard.value !== ''} onClose={onClose}>
@@ -58,15 +56,12 @@ export const useApplicationActions = ({
                   <ModalHeader>Success!</ModalHeader>
                   <ModalCloseButton />
                   <ModalBody>
-                    <Text as="p">
-                      Use this one-time link to see your Key and Secret:
-                    </Text>
+                    <Text as="p">Use this one-time link to see your Key and Secret:</Text>
                     <Link to={clipboard.value} color="blue.600">
                       {clipboard.value}
                     </Link>
                     <Text my={5} as="p" fontStyle="italic">
-                      Note: this link will work only once, and will expire after
-                      7 days.
+                      Note: this link will work only once, and will expire after 7 days.
                     </Text>
                   </ModalBody>
                 </ModalContent>
@@ -82,9 +77,7 @@ export const useApplicationActions = ({
                 }}
               >
                 <props.children
-                  icon={() =>
-                    resetCreds.isLoading ? <Spinner size="sm" /> : <BiShieldX />
-                  }
+                  icon={() => (resetCreds.isLoading ? <Spinner size="sm" /> : <BiShieldX />)}
                   text="New"
                   title="New application"
                   onClick={() => {

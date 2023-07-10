@@ -19,9 +19,7 @@ export const ViewVendor = () => {
       <FormLabel as="p">Company</FormLabel>
       <Text>{vendor.company}</Text>
       <FormLabel as="p">Namespace</FormLabel>
-      <Text>
-        {vendor.namespacePrefixes === '' ? '-' : vendor.namespacePrefixes}
-      </Text>
+      <Text>{vendor.namespacePrefixes === '' ? '-' : vendor.namespacePrefixes}</Text>
       <FormLabel as="p">Contact</FormLabel>
       <Text>{vendor.contactName}</Text>
       {vendor.contactEmailAddress ? (

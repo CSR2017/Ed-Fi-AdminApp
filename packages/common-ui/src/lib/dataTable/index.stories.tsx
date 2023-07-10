@@ -74,11 +74,7 @@ const newPerson = (): Person => {
     visits: faker.datatype.number(1000),
     progress: faker.datatype.number(100),
     createdAt: faker.datatype.datetime({ max: new Date().getTime() }),
-    status: faker.helpers.shuffle<Person['status']>([
-      'relationship',
-      'complicated',
-      'single',
-    ])[0]!,
+    status: faker.helpers.shuffle<Person['status']>(['relationship', 'complicated', 'single'])[0]!,
   };
 };
 

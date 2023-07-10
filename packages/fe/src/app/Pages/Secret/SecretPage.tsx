@@ -118,8 +118,8 @@ export const SecretPage = () => {
                     Credentials not found
                   </AlertTitle>
                   <AlertDescription maxWidth="sm">
-                    Each link can only be used once. You can reset the
-                    credentials to get a new link.
+                    Each link can only be used once. You can reset the credentials to get a new
+                    link.
                     <Tooltip label="We delete the credentials after you retrieve them. This way, even if your link gets stolen it will be of no use. Please note that if you or your contact resets the credentials to get a new link, the current ones will no longer work.">
                       <chakra.span>
                         <Icon as={BsInfoCircle} />
