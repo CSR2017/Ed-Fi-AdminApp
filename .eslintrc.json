@@ -1,6 +1,5 @@
 {
   "root": true,
-  "ignorePatterns": ["**/*"],
   "plugins": ["@nx"],
   "overrides": [
     {
@@ -37,5 +36,10 @@
       "rules": {}
     }
   ],
-  "extends": [null, "plugin:storybook/recommended"]
+  "extends": [
+    "plugin:jest/recommended",
+    "plugin:jest/style",
+    "eslint:recommended",
+    "plugin:storybook/recommended"
+  ]
 }
