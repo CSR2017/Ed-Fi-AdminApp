@@ -7,6 +7,7 @@ import { SbesGlobalPage } from '../Pages/SbeGlobal/SbesGlobalPage';
 import { sbeQueries } from '../api';
 import { getRelationDisplayName } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
+import { CreateSbeGlobalPage } from '../Pages/SbeGlobal/CreateSbeGlobalPage';
 
 const SbeGlobalBreadcrumb = () => {
   const params = useParams() as { sbeId: string };
@@ -14,6 +15,10 @@ const SbeGlobalBreadcrumb = () => {
   return sbe.data?.displayName ?? params.sbeId;
 };
 
+export const sbeGlobalCreateRoute: RouteObject = {
+  path: 'sbes/create',
+  element: <CreateSbeGlobalPage />,
+};
 export const sbeGlobalIndexRoute: RouteObject = {
   path: 'sbes/:sbeId/',
   element: <SbeGlobalPage />,

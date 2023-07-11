@@ -20,6 +20,7 @@ import {
 } from './ownership.routes';
 import { roleIndexRoute, roleRoute, rolesIndexRoute, rolesRoute } from './role.routes';
 import {
+  sbeGlobalCreateRoute,
   sbeGlobalIndexRoute,
   sbeGlobalRoute,
   sbesGlobalIndexRoute,
@@ -113,6 +114,7 @@ export const mainLayoutRoute: RouteObject = {
 
     sbesGlobalRoute,
     sbesGlobalIndexRoute,
+    sbeGlobalCreateRoute,
     sbeGlobalRoute,
     sbeGlobalIndexRoute,
 

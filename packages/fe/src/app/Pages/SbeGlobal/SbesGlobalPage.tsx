@@ -2,15 +2,17 @@ import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetSbeDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
+import _ from 'lodash';
 import { sbeQueries } from '../../api';
+import { ActionBarActions } from '../../helpers';
 import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { SbeGlobalLink, UserLink } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 import { useSbeGlobalActions } from './useSbeGlobalActions';
+import { useSbesGlobalActions } from './useSbesGlobalActions';
 
 const SbesNameCell = (info: CellContext<GetSbeDto, unknown>) => {
-  const deleteSbe = sbeQueries.useDelete({});
   const sbes = sbeQueries.useAll({});
   const actions = useSbeGlobalActions(info.row.original);
   return (
@@ -24,9 +26,12 @@ const SbesNameCell = (info: CellContext<GetSbeDto, unknown>) => {
 export const SbesGlobalPage = () => {
   const sbes = sbeQueries.useAll({});
   const users = { data: undefined } as any; // userQueries.useAll({  }); //TODO add users into global scope as well
-
+  const actions = useSbesGlobalActions();
   return (
-    <PageTemplate title="Starting Blocks environments">
+    <PageTemplate
+      actions={<ActionBarActions actions={_.omit(actions, 'View')} />}
+      title="Starting Blocks environments"
+    >
       <DataTable
         data={Object.values(sbes?.data || {})}
         columns={[

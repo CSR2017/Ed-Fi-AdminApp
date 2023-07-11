@@ -1,6 +1,6 @@
 import { stdDetailed } from '@edanalytics/utils';
 import { Expose, Type } from 'class-transformer';
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, MinLength } from 'class-validator';
 import { ISbe, ISbeConfigPrivate, ISbeConfigPublic } from '../interfaces/sbe.interface';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
 import { IsEdanalyticsUrl } from '../utils/is-edanalytics-url';
@@ -128,10 +128,8 @@ export class PostSbeDto
   implements PostDto<ISbe, 'ownerships' | 'odss' | 'edorgs' | 'configPrivate' | 'configPublic'>
 {
   @Expose()
+  @MinLength(3)
   envLabel: string;
-  @Expose()
-  @Type(() => SbeConfigPrivate)
-  configPrivate?: SbeConfigPrivate;
 }
 
 export class SbeCheckConnectionDto {

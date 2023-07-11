@@ -1,4 +1,4 @@
-import { Spinner, useBoolean, useToast } from '@chakra-ui/react';
+import { Spinner, useBoolean } from '@chakra-ui/react';
 import { useOperationResultDisclosure } from '@edanalytics/common-ui';
 import { GetSbeDto } from '@edanalytics/models';
 import { BiCog, BiData, BiDownload, BiKey, BiPlug, BiTrash } from 'react-icons/bi';
@@ -15,8 +15,6 @@ import {
 import { useSearchParamsObject } from '../../helpers/useSearch';
 
 export const useSbeGlobalActions = (sbe: GetSbeDto | undefined): ActionsType => {
-  const toast = useToast();
-
   const checkConnection = useSbeCheckConnection();
   const [checkLoading, setCheckLoading] = useBoolean(false);
 
@@ -120,12 +118,9 @@ export const useSbeGlobalActions = (sbe: GetSbeDto | undefined): ActionsType => 
                   title="Sync ODSs and Ed-Orgs from Starting Blocks to SBAA."
                   onClick={async () => {
                     setRefreshLoading.on();
-                    try {
-                      const result = await refreshResources.mutateAsync(sbe);
-                      syncDisclosure.disclose(result);
-                    } catch (refreshFailed) {
-                      throw refreshFailed;
-                    }
+                    const result = await refreshResources.mutateAsync(sbe);
+                    syncDisclosure.disclose(result);
+                    // TODO eventually improve things so it doesn't always return 200 even when refresh fails. Maybe. TBD.
                     setRefreshLoading.off();
                   }}
                 />
