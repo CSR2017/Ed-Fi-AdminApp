@@ -245,6 +245,12 @@ function makeQueries<
               args.tenantId
             ),
           });
+          queryClient.invalidateQueries({
+            queryKey: tenantKey(
+              [...(includeSbe ? ['sbes', args.sbeId] : []), `${kebabCaseName}s`, 'list'],
+              args.tenantId
+            ),
+          });
           args.callback && args.callback(newEntity);
         },
       });

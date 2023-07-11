@@ -1,20 +1,14 @@
 import { Box, Text, useBoolean } from '@chakra-ui/react';
 import { GetTenantDto } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMatch, useMatches, useNavigate, useParams } from 'react-router-dom';
 import { Select } from 'chakra-react-select';
 import Cookies from 'js-cookie';
 import { Resizable } from 're-resizable';
 import { useEffect, useState } from 'react';
 import { BsPerson, BsPersonFill } from 'react-icons/bs';
-import { useMe, useMyTenants } from '../api';
-import {
-  AuthorizeComponent,
-  authorize,
-  globalTenantAuthConfig,
-  usePrivilegeCacheForConfig,
-} from '../helpers';
-import { accountRouteGlobal, asRoute } from '../routes';
+import { useMatches, useNavigate, useParams } from 'react-router-dom';
+import { useMyTenants } from '../api';
+import { AuthorizeComponent, authorize, globalTenantAuthConfig } from '../helpers';
 import { GlobalNav } from './GlobalNav';
 import { NavButton } from './NavButton';
 import { TenantNav } from './TenantNav';
@@ -23,17 +17,15 @@ export const Nav = () => {
   const params = useParams();
   const defaultTenant: any = params?.asId ?? Cookies.get('defaultTenant');
   const [tenantId, setTenantId] = useState(
-    typeof defaultTenant === 'string' && defaultTenant !== 'undefined'
+    typeof defaultTenant === 'string' && defaultTenant !== 'undefined' && defaultTenant !== 'NaN'
       ? Number(defaultTenant)
       : undefined
   );
-  const me = useMe();
   const tenants = useMyTenants();
   const currentMatches = useMatches();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const tenantAuthConfig = globalTenantAuthConfig('tenant:read');
-  const tenantAuth = usePrivilegeCacheForConfig(tenantAuthConfig);
 
   const hasGlobalTenantsRead = authorize({
     queryClient,
@@ -44,22 +36,21 @@ export const Nav = () => {
   useEffect(() => {
     Cookies.set('defaultTenant', String(tenantId));
   }, [tenantId]);
+
   const isInTenantContext = currentMatches.some((m) => m.pathname.startsWith('/as/'));
   useEffect(() => {
     if (String(tenantId) !== params.asId && isInTenantContext) {
       setTenantId(Number(params.asId));
     }
-  }, [tenantId, currentMatches, navigate, params.asId]);
+  }, [tenantId, currentMatches, navigate, params.asId, isInTenantContext]);
 
+  const tenantsCount = Object.keys(tenants.data || {}).length;
+  const firstTenantId: string | undefined = Object.keys(tenants.data || {})?.[0];
   useEffect(() => {
-    if (
-      Object.keys(tenants.data || {}).length === 1 &&
-      !hasGlobalTenantsRead &&
-      params.asId === undefined
-    ) {
-      setTenantId(Number(Object.keys(tenants.data || {})[0]));
+    if (tenantsCount === 1 && !hasGlobalTenantsRead && params.asId === undefined) {
+      setTenantId(Number(firstTenantId));
     }
-  }, [Object.keys(tenants.data || {}), hasGlobalTenantsRead]);
+  }, [tenantsCount, firstTenantId, hasGlobalTenantsRead, params.asId]);
 
   const [isResizing, setIsResizing] = useBoolean(false);
 

@@ -4,23 +4,37 @@ import { tenantQueries, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { TenantLink, UserLink } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
+import { useTenantsActions } from './useTenantsActions';
+import _ from 'lodash';
+import { ActionBarActions, TableRowActions } from '../../helpers';
+import { CellContext } from '@tanstack/react-table';
+import { GetTenantDto } from '@edanalytics/models';
+import { useTenantActions } from './useTenantActions';
+
+const TenantNameCell = (info: CellContext<GetTenantDto, unknown>) => {
+  const tenants = tenantQueries.useAll({});
+  const actions = useTenantActions(info.row.original);
+  return (
+    <HStack justify="space-between">
+      <TenantLink id={info.row.original.id} query={tenants} />
+      <TableRowActions actions={actions} />
+    </HStack>
+  );
+};
 
 export const TenantsPage = () => {
   const tenants = tenantQueries.useAll({});
   const users = userQueries.useAll({});
+  const actions = useTenantsActions();
 
   return (
-    <PageTemplate title="Tenants">
+    <PageTemplate title="Tenants" actions={<ActionBarActions actions={_.omit(actions, 'View')} />}>
       <DataTable
         data={Object.values(tenants?.data || {})}
         columns={[
           {
             accessorKey: 'displayName',
-            cell: (info) => (
-              <HStack justify="space-between">
-                <TenantLink id={info.row.original.id} query={tenants} />
-              </HStack>
-            ),
+            cell: TenantNameCell,
             header: () => 'Name',
           },
           {

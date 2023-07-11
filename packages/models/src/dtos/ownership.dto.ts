@@ -1,4 +1,5 @@
 import { Expose, Transform, Type } from 'class-transformer';
+import { IsIn, IsNumber, IsOptional } from 'class-validator';
 import { IRole, ITenant } from '../interfaces';
 import { IOwnership } from '../interfaces/ownership.interface';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
@@ -8,7 +9,6 @@ import { DtoPutBase, PutDto } from '../utils/put-base.dto';
 import { GetEdorgDto } from './edorg.dto';
 import { GetOdsDto } from './ods.dto';
 import { GetSbeDto } from './sbe.dto';
-import { IsIn, IsNumber, IsOptional, Validate } from 'class-validator';
 
 export class GetOwnershipDto
   extends DtoGetBase
@@ -18,7 +18,7 @@ export class GetOwnershipDto
   @Expose()
   tenantId: ITenant['id'];
   @Expose()
-  roleId: IRole['id'];
+  roleId: IRole['id'] | null;
 
   @Expose()
   @Type(() => GetSbeDto)

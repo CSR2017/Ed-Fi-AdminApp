@@ -7,6 +7,7 @@ import { TenantsPage } from '../Pages/Tenant/TenantsPage';
 import { tenantQueries } from '../api';
 import { getRelationDisplayName } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
+import { CreateTenant } from '../Pages/Tenant/CreateTenant';
 
 const TenantBreadcrumb = () => {
   const params = useParams() as { tenantId: string };
@@ -16,7 +17,7 @@ const TenantBreadcrumb = () => {
 export const tenantCreateRoute: RouteObject = {
   path: 'tenants/create',
   handle: { crumb: () => 'Create' },
-  element: <></>,
+  element: <CreateTenant />,
 };
 
 export const tenantIndexRoute: RouteObject = {

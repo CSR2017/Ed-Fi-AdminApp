@@ -2,6 +2,7 @@ import { FormLabel, Text } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 import { ownershipQueries, roleQueries, tenantQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers';
+import { TenantLink } from '../../routes';
 
 export const ViewOwnershipGlobal = () => {
   const params = useParams() as {
@@ -16,7 +17,7 @@ export const ViewOwnershipGlobal = () => {
   return ownership ? (
     <>
       <FormLabel as="p">Tenant</FormLabel>
-      <Text>{getRelationDisplayName(ownership.tenantId, tenants)}</Text>
+      <TenantLink id={ownership.tenantId} query={tenants} />
       <FormLabel as="p">Resource</FormLabel>
       <Text>
         {ownership.edorg

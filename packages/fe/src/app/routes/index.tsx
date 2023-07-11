@@ -26,7 +26,13 @@ import {
   sbesGlobalRoute,
 } from './sbe-global.routes';
 import { sbeIndexRoute, sbeRoute, sbesIndexRoute, sbesRoute } from './sbe.routes';
-import { tenantIndexRoute, tenantRoute, tenantsIndexRoute, tenantsRoute } from './tenant.routes';
+import {
+  tenantCreateRoute,
+  tenantIndexRoute,
+  tenantRoute,
+  tenantsIndexRoute,
+  tenantsRoute,
+} from './tenant.routes';
 import { userIndexRoute, userRoute, usersIndexRoute, usersRoute } from './user.routes';
 import {
   claimsetsRoute,
@@ -140,6 +146,7 @@ export const mainLayoutRoute: RouteObject = {
     tenantsIndexRoute,
     tenantRoute,
     tenantIndexRoute,
+    tenantCreateRoute,
 
     usersRoute,
     usersIndexRoute,

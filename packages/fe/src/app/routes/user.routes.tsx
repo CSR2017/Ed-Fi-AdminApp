@@ -40,10 +40,13 @@ export const UserLink = (props: {
   query: UseQueryResult<Record<string | number, GetUserDto>, unknown>;
 }) => {
   const user = getEntityFromQuery(props.id, props.query);
-  const params = useParams() as { asId: string };
+  const params = useParams() as { asId?: string };
   return user ? (
     <Link as="span">
-      <RouterLink title="Go to user" to={`/as/${params.asId}/users/${user.id}`}>
+      <RouterLink
+        title="Go to user"
+        to={(params.asId ? `/as/${params.asId}` : '') + `/users/${user.id}`}
+      >
         {getRelationDisplayName(user.id, props.query)}
       </RouterLink>
     </Link>

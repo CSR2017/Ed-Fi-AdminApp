@@ -10,9 +10,8 @@ export const ViewTenant = () => {
 
   return tenant ? (
     <>
-      {/* TODO: replace this with real content */}
-      <FormLabel as="p">Id</FormLabel>
-      <Text>{tenant.id}</Text>
+      <FormLabel as="p">Name</FormLabel>
+      <Text>{tenant.name}</Text>
     </>
   ) : null;
 };

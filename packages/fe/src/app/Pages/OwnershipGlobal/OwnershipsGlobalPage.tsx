@@ -3,12 +3,12 @@ import { DataTable } from '@edanalytics/common-ui';
 import { GetOwnershipDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
 import { BiPlus } from 'react-icons/bi';
-import { Link as RouterLink, useParams } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { ownershipQueries, roleQueries, tenantQueries } from '../../api';
 import { AuthorizeComponent, globalOwnershipAuthConfig } from '../../helpers';
 import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { OwnershipGlobalLink, ownershipGlobalCreateRoute } from '../../routes';
+import { OwnershipGlobalLink, TenantLink } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 import { useOwnershipGlobalActions } from './useOwnershipGlobalActions';
 
@@ -24,7 +24,6 @@ const OwnershipsNameCell = (info: CellContext<GetOwnershipDto, unknown>) => {
 };
 
 export const OwnershipsGlobalPage = () => {
-  const params = useParams();
   const ownerships = ownershipQueries.useAll({});
   const roles = roleQueries.useAll({});
   const tenants = tenantQueries.useAll({});
@@ -58,7 +57,7 @@ export const OwnershipsGlobalPage = () => {
             id: 'tenant',
             accessorFn: (info) => getRelationDisplayName(info.tenantId, tenants),
             header: () => 'Tenant',
-            cell: (info) => getRelationDisplayName(info.row.original.tenantId, tenants),
+            cell: (info) => <TenantLink id={info.row.original.tenantId} query={tenants} />,
           },
           {
             id: 'role',

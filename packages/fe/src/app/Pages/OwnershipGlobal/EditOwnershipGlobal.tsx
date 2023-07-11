@@ -8,11 +8,10 @@ import {
 } from '@chakra-ui/react';
 import { GetOwnershipDto, PutOwnershipDto, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ownershipQueries, tenantQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers';
-import { ownershipGlobalIndexRoute, ownershipGlobalRoute } from '../../routes';
 import { SelectRole } from '../../helpers/FormPickers';
 
 const resolver = classValidatorResolver(PutOwnershipDto);
@@ -29,11 +28,10 @@ export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
   const putOwnership = ownershipQueries.usePut({
     callback: goToView,
   });
-  const ownershipFormDefaults = new PutOwnershipDto();
+  const ownershipFormDefaults: Partial<PutOwnershipDto> = new PutOwnershipDto();
   ownershipFormDefaults.id = ownership?.id;
-  ownershipFormDefaults.roleId = ownership?.roleId;
+  ownershipFormDefaults.roleId = ownership?.roleId ?? undefined;
   const {
-    register,
     control,
     handleSubmit,
     formState: { errors, isLoading },
@@ -44,12 +42,13 @@ export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
 
   return (
     <form
-      onSubmit={handleSubmit((data) =>
+      onSubmit={handleSubmit((data) => {
+        const validatedData = data as PutOwnershipDto;
         putOwnership.mutate({
-          id: data.id,
-          roleId: data.roleId,
-        })
-      )}
+          id: validatedData.id,
+          roleId: validatedData.roleId,
+        });
+      })}
     >
       <FormLabel as="p">Tenant</FormLabel>
       <Text>{getRelationDisplayName(ownership.tenantId, tenants)}</Text>
