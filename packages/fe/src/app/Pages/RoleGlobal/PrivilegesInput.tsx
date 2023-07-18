@@ -1,6 +1,22 @@
-import { Box, Checkbox, Tag } from '@chakra-ui/react';
-import { GetPrivilegeDto, PrivilegeCode, privilegeCodes } from '@edanalytics/models';
+import {
+  Box,
+  Checkbox,
+  FormControl,
+  FormErrorMessage,
+  HStack,
+  Icon,
+  Tag,
+  Text,
+} from '@chakra-ui/react';
+import {
+  DependencyErrors,
+  GetPrivilegeDto,
+  PrivilegeCode,
+  privilegeCodes,
+  privilegeDependencies,
+} from '@edanalytics/models';
 import _ from 'lodash';
+import { BsCheckAll, BsXLg } from 'react-icons/bs';
 
 type PrivilegeNest = Partial<{ [code: string]: PrivilegeNest }>;
 const privilegeCodesSet = new Set(privilegeCodes);
@@ -50,6 +66,7 @@ const getPrivileges = (value: PrivilegeNest): PrivilegeCode[] => {
     .flat() as PrivilegeCode[];
 };
 const PrivilegeGroup = (props: {
+  error: DependencyErrors | undefined;
   set: (p: PrivilegeCode[], v: boolean) => void;
   value: Set<PrivilegeCode>;
   header: string;
@@ -78,12 +95,7 @@ const PrivilegeGroup = (props: {
             if (privilegeCodesSet.has(str)) {
               const p = str as PrivilegeCode;
               return (
-                <SinglePrivilege
-                  key={p}
-                  code={p}
-                  set={(val: boolean) => set([p], val)}
-                  value={value.has(p)}
-                />
+                <SinglePrivilege error={props.error} key={p} code={p} set={set} value={value} />
               );
             } else {
               throw new Error('somethin wrong');
@@ -93,7 +105,14 @@ const PrivilegeGroup = (props: {
               throw new Error('something else wrong');
             } else {
               return (
-                <PrivilegeGroup children={childs} header={str} set={set} value={value} key={str} />
+                <PrivilegeGroup
+                  error={props.error}
+                  children={childs}
+                  header={str}
+                  set={set}
+                  value={value}
+                  key={str}
+                />
               );
             }
           }
@@ -103,24 +122,74 @@ const PrivilegeGroup = (props: {
   );
 };
 const SinglePrivilege = (props: {
+  error: DependencyErrors | undefined;
   code: PrivilegeCode;
-  value: boolean;
-  set: (v: boolean) => void;
+  value: Set<PrivilegeCode>;
+  set: (p: PrivilegeCode[], v: boolean) => void;
 }) => {
+  const dependencies = privilegeDependencies[props.code]?.dependencies;
+  let allDepsIncluded = true;
+  const errMsg = props.error?.[props.code];
+  const isChecked = props.value.has(props.code);
   return (
-    <Checkbox
-      display="flex"
-      my={1}
-      isChecked={props.value}
-      onChange={(e) => props.set(e.target.checked)}
-    >
-      <Tag key={props.code} colorScheme="orange" display="flex" w="max-content">
-        {props.code}
-      </Tag>
-    </Checkbox>
+    <FormControl isInvalid={!!errMsg}>
+      <HStack spacing={1} my={1}>
+        <Checkbox
+          display="flex"
+          isChecked={isChecked}
+          onChange={(e) => props.set([props.code], e.target.checked)}
+        >
+          <Tag key={props.code} colorScheme="orange" display="flex" w="max-content">
+            {props.code}
+          </Tag>
+        </Checkbox>
+        {dependencies?.length && isChecked ? (
+          <>
+            <HStack align="baseline">
+              <Text lineHeight={1} opacity="0.7" fontSize="sm" fontWeight="medium" ml={8}>
+                requires:
+              </Text>
+              {dependencies.map((p) => {
+                const depIncluded = props.value.has(p);
+                if (!depIncluded) allDepsIncluded = false;
+                return (
+                  <Tag
+                    flexShrink={0}
+                    opacity="0.7"
+                    size="sm"
+                    key={p}
+                    display="flex"
+                    w="max-content"
+                    {...(depIncluded
+                      ? { colorScheme: 'gray' }
+                      : {
+                          colorScheme: 'red',
+                          as: 'button',
+                          _hover: { opacity: '1' },
+                          title: 'Add missing dependency',
+                          onClick: () => {
+                            props.set([p], true);
+                          },
+                        })}
+                  >
+                    {p}
+                  </Tag>
+                );
+              })}
+            </HStack>
+            <Icon
+              as={allDepsIncluded ? BsCheckAll : BsXLg}
+              color={allDepsIncluded ? 'green' : 'red'}
+            />
+          </>
+        ) : null}
+      </HStack>
+      <FormErrorMessage mb={4}>{errMsg}</FormErrorMessage>
+    </FormControl>
   );
 };
 export const PrivilegesInput = (props: {
+  error: DependencyErrors | undefined;
   value: PrivilegeCode[];
   onChange: (newValue: PrivilegeCode[]) => void;
   privileges: GetPrivilegeDto[];
@@ -143,5 +212,7 @@ export const PrivilegesInput = (props: {
     }
     props.onChange([...newValue.values()]);
   };
-  return <PrivilegeGroup header="All" children={nested} set={set} value={valueSet} />;
+  return (
+    <PrivilegeGroup error={props.error} header="All" children={nested} set={set} value={valueSet} />
+  );
 };

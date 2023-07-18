@@ -11,7 +11,7 @@ import {
   RadioGroup,
   Stack,
 } from '@chakra-ui/react';
-import { PrivilegeCode, PostRoleDto, RoleType } from '@edanalytics/models';
+import { PrivilegeCode, PostRoleDto, RoleType, DependencyErrors } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -34,12 +34,14 @@ export const CreateRoleGlobalPage = () => {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isLoading },
     control,
   } = useForm<PostRoleDto>({
     resolver,
-    defaultValues: {},
   });
+  console.log(watch('type'), RoleType);
+
   const [type, setType] = useState<RoleType | null>(null);
   const filteredPrivileges =
     privileges.data && type
@@ -50,11 +52,22 @@ export const CreateRoleGlobalPage = () => {
             (type === RoleType.UserTenant && p.code.startsWith('tenant.'))
         )
       : undefined;
+  let privilegesError: undefined | string | DependencyErrors = undefined;
+  try {
+    // might be fancy error object for privilege dependencies
+    privilegesError = JSON.parse(errors.privileges?.message as string);
+  } catch (error) {
+    // either undefined or plain string from class-validator
+  }
 
   return (
     <PageTemplate constrainWidth title={'Grant new resource ownership'} actions={undefined}>
-      <Box w="20em">
-        <form onSubmit={handleSubmit((data) => postRole.mutate(data))}>
+      <Box>
+        <form
+          onSubmit={handleSubmit((data) => {
+            postRole.mutate(data);
+          })}
+        >
           <FormControl isInvalid={!!errors.name}>
             <FormLabel>Name</FormLabel>
             <Input {...register('name')} placeholder="name" />
@@ -67,23 +80,28 @@ export const CreateRoleGlobalPage = () => {
           </FormControl>
           <FormControl isInvalid={!!errors.type}>
             <FormLabel>Type</FormLabel>
-            <RadioGroup
-              {...register('type')}
-              onChange={(value) => {
-                setType(value as any);
-                setValue('type', value as any);
-              }}
-            >
-              <Stack direction="column" pl="1em" spacing={1}>
-                <Radio value={RoleType.UserTenant}>User tenant</Radio>
-                <Radio value={RoleType.UserGlobal}>User global</Radio>
-                <Radio value={RoleType.ResourceOwnership}>Resource ownership</Radio>
-              </Stack>
-            </RadioGroup>
-
+            <Controller
+              control={control}
+              name="type"
+              render={(field) => (
+                <RadioGroup
+                  {...field.field}
+                  onChange={(value: RoleType) => {
+                    field.field.onChange({ target: { value } });
+                    setType(value);
+                  }}
+                >
+                  <Stack direction="column" pl="1em" spacing={1}>
+                    <Radio value={RoleType.UserTenant}>User tenant</Radio>
+                    <Radio value={RoleType.UserGlobal}>User global</Radio>
+                    <Radio value={RoleType.ResourceOwnership}>Resource ownership</Radio>
+                  </Stack>
+                </RadioGroup>
+              )}
+            />
             <FormErrorMessage>{errors.type?.message}</FormErrorMessage>
           </FormControl>
-          <FormControl isInvalid={!!errors.privileges}>
+          <FormControl isInvalid={typeof privilegesError === 'string'}>
             <FormLabel>Privileges</FormLabel>
             <Controller
               control={control}
@@ -93,6 +111,7 @@ export const CreateRoleGlobalPage = () => {
                   <></>
                 ) : (
                   <PrivilegesInput
+                    error={typeof privilegesError === 'string' ? undefined : privilegesError}
                     onChange={field.field.onChange}
                     value={field.field.value as PrivilegeCode[]}
                     privileges={filteredPrivileges}
@@ -100,7 +119,9 @@ export const CreateRoleGlobalPage = () => {
                 )
               }
             />
-            <FormErrorMessage>{errors.privileges?.message}</FormErrorMessage>
+            <FormErrorMessage>
+              {typeof privilegesError === 'string' ? privilegesError : undefined}
+            </FormErrorMessage>
           </FormControl>
           <ButtonGroup>
             <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">

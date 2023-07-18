@@ -104,7 +104,7 @@ export class SbesGlobalService {
     let sbMeta = true;
 
     const sbe = await this.findOne(sbeId);
-    let messages = [];
+    const messages = [];
     try {
       await this.sbService.logIntoAdminApi(sbe);
     } catch (err) {
@@ -163,7 +163,7 @@ export class SbesGlobalService {
   }
 
   async refreshResources(sbeId: number, user: GetUserDto): Promise<OperationResultDto> {
-    let messages = [];
+    const messages = [];
     let retrieved = false;
     let synced = false;
 
@@ -271,6 +271,7 @@ export class SbesGlobalService {
                 educationOrganizationId: sbeEdorg.educationorganizationid,
                 discriminator: sbeEdorg.discriminator,
                 nameOfInstitution: sbeEdorg.nameofinstitution,
+                shortNameOfInstitution: sbeEdorg.shortnameofinstitution,
               };
               if (
                 !odsEdorgMap[partialEdorgEntity.odsId]?.has(
@@ -302,10 +303,12 @@ export class SbesGlobalService {
                 ...(parent ? { parent } : {}),
                 discriminator: sbEdorg.discriminator,
                 nameOfInstitution: sbEdorg.nameofinstitution,
+                shortNameOfInstitution: sbEdorg.shortnameofinstitution,
               };
               if (!_.isMatch(existing, correctValues)) {
                 existing.discriminator = correctValues.discriminator;
                 existing.nameOfInstitution = correctValues.nameOfInstitution;
+                existing.shortNameOfInstitution = correctValues.shortNameOfInstitution;
                 if (correctValues.parent) {
                   existing.parent = parent;
                 }
@@ -324,9 +327,11 @@ export class SbesGlobalService {
             );
             await this.sbesRepository.save({
               ...sbe,
+              envLabel: sbMeta.envlabel,
               configPublic: {
                 ...sbe.configPublic,
                 lastSuccessfulPull: new Date(),
+                edfiHostname: sbMeta.domainName,
               },
             });
             messages.push(`Edorgs: ${sbEdorgs.length}`);

@@ -5,6 +5,7 @@ import logoUrl from '../../assets/starting-blocks.svg';
 export const AppBarPublic = () => {
   return (
     <HStack
+      zIndex={2}
       as="header"
       justify="space-between"
       w="100%"

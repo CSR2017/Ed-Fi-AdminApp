@@ -38,15 +38,16 @@ export class AuthorizedGuard implements CanActivate {
 
         request['abilities'] = ability;
 
-        const authorizeRule = this.reflector.getAllAndOverride<AuthorizeMetadata | undefined>(
-          AUTHORIZE_KEY,
-          [context.getHandler(), context.getClass()]
-        );
+        const authorizeRule = this.reflector.getAllAndOverride<
+          AuthorizeMetadata | undefined | null
+        >(AUTHORIZE_KEY, [context.getHandler(), context.getClass()]);
 
         if (authorizeRule === undefined) {
           // Each route _must_ define its authorization rule.
           Logger.warn('Authorization rule not defined for route' + request.url);
           return false;
+        } else if (authorizeRule === null) {
+          Logger.warn('Authorization explicitly skipped for route' + request.url);
         } else {
           const privilege = authorizeRule.privilege;
           const subjectTemplate = authorizeRule.subject;

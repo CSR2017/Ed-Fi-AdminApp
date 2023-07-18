@@ -4,10 +4,11 @@ import { GetUserTenantMembershipDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
 import { useParams } from 'react-router-dom';
 import { roleQueries, userQueries, userTenantMembershipQueries } from '../../api';
+import { getEntityFromQuery } from '../../helpers';
 import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { useReadTenantEntity } from '../../helpers/useStandardRowActionsNew';
-import { RoleLink, UserLink, userRoute } from '../../routes';
+import { UserLink, userRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 
 const NameCell = (info: CellContext<GetUserTenantMembershipDto, unknown>) => {
@@ -18,7 +19,7 @@ const NameCell = (info: CellContext<GetUserTenantMembershipDto, unknown>) => {
 
   const View = useReadTenantEntity({
     entity: info.row.original,
-    params: { ...params },
+    params: { ...params, userId: info.row.original.id },
     privilege: 'tenant.user:read',
     route: userRoute,
   });
@@ -38,9 +39,7 @@ export const UsersPage = () => {
     tenantId: params.asId,
   });
 
-  const roles = roleQueries.useAll({
-    tenantId: params.asId,
-  });
+  const roles = roleQueries.useAll({ tenantId: params.asId });
 
   const userTenantMemberships = userTenantMembershipQueries.useAll({
     tenantId: params.asId,
@@ -58,9 +57,15 @@ export const UsersPage = () => {
             header: () => 'Name',
           },
           {
+            id: 'username',
+            accessorFn: (info) => getEntityFromQuery(info.userId, users)?.username,
+            cell: (info) => getEntityFromQuery(info.row.original.userId, users)?.username,
+            header: () => 'Username',
+          },
+          {
             id: 'role',
             accessorFn: (info) => getRelationDisplayName(info.roleId, roles),
-            cell: (info) => <RoleLink id={info.row.original.roleId} query={roles} />,
+            cell: (info) => getRelationDisplayName(info.row.original.roleId, roles),
             header: () => 'Tenant role',
           },
           {

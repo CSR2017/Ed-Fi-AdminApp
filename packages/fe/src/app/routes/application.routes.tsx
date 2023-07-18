@@ -48,6 +48,7 @@ export const applicationsRoute: RouteObject = {
 export const ApplicationLink = (props: {
   id: number | undefined;
   query: UseQueryResult<Record<string | number, GetApplicationDto>, unknown>;
+  sbeId?: string | number;
 }) => {
   const application = getEntityFromQuery(props.id, props.query);
   const params = useParams() as {
@@ -58,7 +59,7 @@ export const ApplicationLink = (props: {
     <Link as="span">
       <RouterLink
         title="Go to application"
-        to={`/as/${params.asId}/sbes/${params.sbeId}/applications/${application.id}`}
+        to={`/as/${params.asId}/sbes/${params.sbeId ?? props.sbeId}/applications/${application.id}`}
       >
         {getRelationDisplayName(application.id, props.query)}
       </RouterLink>

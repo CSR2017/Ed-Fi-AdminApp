@@ -17,6 +17,7 @@ import { AdOdsNaturalKeyToEdorg1687466013005 } from './migrations/1687466013005-
 import { EducationOrganizationIdToNumber1687881668666 } from './migrations/1687881668666-educationOrganizationIdToNumber';
 import { UniqueOwnershipConstraints1687900131470 } from './migrations/1687900131470-uniqueOwnershipConstraints';
 import { Initial1688158300508 } from './migrations/1687190483471-initial';
+import { EdorgShortname1689282856860 } from './migrations/1689282856860-edorg-shortname';
 
 const config: Pick<
   PostgresConnectionOptions,
@@ -44,6 +45,7 @@ const config: Pick<
     AdOdsNaturalKeyToEdorg1687466013005,
     EducationOrganizationIdToNumber1687881668666,
     UniqueOwnershipConstraints1687900131470,
+    EdorgShortname1689282856860,
   ],
   // logging: ['query'],
 };

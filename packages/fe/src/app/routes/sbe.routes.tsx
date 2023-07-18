@@ -32,7 +32,7 @@ export const sbesIndexRoute: RouteObject = {
 };
 export const sbesRoute: RouteObject = {
   path: '/as/:asId/sbes',
-  handle: { crumb: () => 'Sbes' },
+  handle: { crumb: () => 'Environments' },
 };
 
 export const SbeLink = (props: {

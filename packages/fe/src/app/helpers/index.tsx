@@ -9,3 +9,4 @@ export * from './arrayElemIf';
 export * from './ActionBarActions';
 export * from './TableRowActions';
 export * from './ActionsType';
+export * from './useQueryIfAuth';

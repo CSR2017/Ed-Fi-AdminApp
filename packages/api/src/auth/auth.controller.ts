@@ -30,7 +30,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import config from 'config';
 import passport from 'passport';
 import { Repository } from 'typeorm';
-import { Authorize } from './authorization';
+import { Authorize, NoAuthorization } from './authorization';
 import { Public } from './authorization/public.decorator';
 import { AuthCache } from './helpers/inject-auth-cache';
 import { UserPrivileges } from './helpers/inject-user-privileges';
@@ -108,13 +108,23 @@ export class AuthController {
   }
 
   @Get('me')
-  @Public()
+  @NoAuthorization()
   @Header('Cache-Control', 'none')
   async me(@ReqUser() session: GetSessionDataDto, @Req() req) {
-    if (req?.isAuthenticated()) {
-      return toGetSessionDataDto(session);
+    return toGetSessionDataDto(session);
+  }
+  @Get('my-tenants')
+  @NoAuthorization()
+  @Header('Cache-Control', 'none')
+  async myTenants(
+    @ReqUser() session: GetSessionDataDto,
+    @UserPrivileges() privileges: Set<PrivilegeCode>,
+    @Req() req
+  ) {
+    if (privileges?.has('tenant:read')) {
+      return toGetTenantDto(await this.tenantsRepository.find());
     } else {
-      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+      return toGetTenantDto(session?.userTenantMemberships?.map((utm) => utm.tenant) ?? []);
     }
   }
   @Get('authorizations/:privilege/:tenantId?')
@@ -141,24 +151,6 @@ export class AuthController {
       }
     }
     return result === true ? true : result === false || result === undefined ? false : [...result];
-  }
-
-  @Get('my-tenants')
-  @Authorize({
-    privilege: 'me:read',
-    subject: {
-      id: '__filtered__',
-    },
-  })
-  async myTenants(
-    @ReqUser() session: GetSessionDataDto,
-    @UserPrivileges() privileges: Set<PrivilegeCode>
-  ) {
-    if (privileges.has('tenant:read')) {
-      return toGetTenantDto(await this.tenantsRepository.find());
-    } else {
-      return toGetTenantDto(session?.userTenantMemberships?.map((utm) => utm.tenant) ?? []);
-    }
   }
 
   @Post('/logout')

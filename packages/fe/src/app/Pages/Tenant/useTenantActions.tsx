@@ -1,5 +1,5 @@
 import { GetTenantDto } from '@edanalytics/models';
-import { BiEdit, BiTrash } from 'react-icons/bi';
+import { BiArch, BiEdit, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { tenantQueries } from '../../api';
@@ -13,6 +13,27 @@ export const useTenantActions = (tenant: GetTenantDto | undefined): ActionsType 
   return tenant === undefined
     ? {}
     : {
+        Assume: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
+          const path = `/as/${tenant.id}`;
+          return (
+            <AuthorizeComponent
+              config={{
+                privilege: 'tenant:read',
+                subject: {
+                  id: tenant.id,
+                },
+              }}
+            >
+              <props.children
+                icon={BiArch}
+                text="Assume"
+                title={'Assume ' + tenant.displayName + ' tenant scope'}
+                to={path}
+                onClick={() => navigate(path)}
+              />
+            </AuthorizeComponent>
+          );
+        },
         View: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
           const path = to(tenant.id);
           return (

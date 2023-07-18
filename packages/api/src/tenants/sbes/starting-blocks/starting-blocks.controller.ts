@@ -1,4 +1,5 @@
 import {
+  GetApplicationDto,
   Ids,
   PostApplicationDto,
   PostApplicationForm,
@@ -22,6 +23,7 @@ import {
   Delete,
   Get,
   HttpException,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -39,7 +41,7 @@ import { StartingBlocksService } from './starting-blocks.service';
 import { ValidationError } from 'class-validator';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Edorg } from '@edanalytics/models-server';
+import { Edorg, Sbe } from '@edanalytics/models-server';
 import { Repository } from 'typeorm';
 
 @ApiTags('Ed-Fi Resources')
@@ -47,7 +49,8 @@ import { Repository } from 'typeorm';
 export class StartingBlocksController {
   constructor(
     private readonly sbService: StartingBlocksService,
-    @InjectRepository(Edorg) private readonly edorgRepository: Repository<Edorg>
+    @InjectRepository(Edorg) private readonly edorgRepository: Repository<Edorg>,
+    @InjectRepository(Sbe) private readonly sbeRepository: Repository<Sbe>
   ) {}
 
   @Get('vendors')
@@ -301,7 +304,11 @@ export class StartingBlocksController {
     });
     const edorg = await this.edorgRepository.findOneByOrFail({
       educationOrganizationId: application.educationOrganizationId,
+      sbeId,
     });
+    const sbe = await this.sbeRepository.findOneByOrFail({ id: sbeId });
+    if (!sbe.configPublic?.edfiHostname)
+      throw new InternalServerErrorException('Environment config lacks an Ed-Fi hostname.');
     if (
       checkId(
         createEdorgCompositeNaturalKey({
@@ -315,7 +322,14 @@ export class StartingBlocksController {
       if (returnRaw) {
         return toPostApplicationResponseDto(adminApiResponse);
       } else {
-        const yopass = await postYopassSecret(adminApiResponse);
+        const yopass = await postYopassSecret({
+          ...adminApiResponse,
+          url: GetApplicationDto.apiUrl(
+            edorg,
+            sbe.configPublic?.edfiHostname,
+            application.applicationName
+          ),
+        });
         return toApplicationYopassResponseDto({
           link: yopass.link,
           applicationId: adminApiResponse.applicationId,
@@ -378,6 +392,13 @@ export class StartingBlocksController {
     validIds: Ids
   ) {
     const application = await this.sbService.getApplication(sbeId, applicationId);
+    const edorg = await this.edorgRepository.findOneByOrFail({
+      educationOrganizationId: application.educationOrganizationId,
+      sbeId,
+    });
+    const sbe = await this.sbeRepository.findOneByOrFail({ id: sbeId });
+    if (!sbe.configPublic?.edfiHostname)
+      throw new InternalServerErrorException('Environment config lacks an Ed-Fi hostname.');
     if (
       checkId(
         createEdorgCompositeNaturalKey({
@@ -391,7 +412,14 @@ export class StartingBlocksController {
         sbeId,
         applicationId
       );
-      const yopass = await postYopassSecret(adminApiResponse);
+      const yopass = await postYopassSecret({
+        ...adminApiResponse,
+        url: GetApplicationDto.apiUrl(
+          edorg,
+          sbe.configPublic?.edfiHostname,
+          application.applicationName
+        ),
+      });
       return toApplicationYopassResponseDto({
         link: yopass.link,
         applicationId: adminApiResponse.applicationId,

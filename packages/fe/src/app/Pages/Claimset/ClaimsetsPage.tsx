@@ -1,9 +1,8 @@
-import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { useParams } from 'react-router-dom';
 import { claimsetQueries } from '../../api';
-import { ClaimsetLink } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
+import { NameCell } from './NameCell';
 
 export const ClaimsetsPage = () => {
   const params = useParams() as { asId: string; sbeId: string };
@@ -19,11 +18,7 @@ export const ClaimsetsPage = () => {
         columns={[
           {
             accessorKey: 'displayName',
-            cell: (info) => (
-              <HStack justify="space-between">
-                <ClaimsetLink id={info.row.original.id} query={claimsets} />
-              </HStack>
-            ),
+            cell: NameCell(params),
             header: () => 'Name',
           },
           {

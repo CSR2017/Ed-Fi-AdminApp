@@ -40,13 +40,16 @@ export class RegisterOidcIdpsService {
           },
           async (tokenset: TokenSet, userinfo, done) => {
             try {
+              let username: string | undefined = undefined;
               if (typeof userinfo.email !== 'string' || userinfo.email === '') {
                 throw new Error('Invalid email from IdP');
+              } else {
+                username = userinfo.email;
               }
               const user = await this.authService.findOrCreateUser({
-                username: userinfo.email,
-                givenName: userinfo.given_name,
-                familyName: userinfo.family_name,
+                username: username,
+                givenName: userinfo.given_name === '' ? null : userinfo.given_name,
+                familyName: userinfo.family_name === '' ? null : userinfo.family_name,
               });
               return done(null, user);
             } catch (err) {

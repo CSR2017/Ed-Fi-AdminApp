@@ -1,10 +1,27 @@
-import { Heading } from '@chakra-ui/react';
+import { Box, ListItem, Text, UnorderedList } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { RouteObject, RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { ErrorFallback } from '../Layout/Fallback404';
+import { PublicAppLayout } from '../Layout/PublicAppLayout';
 import { StandardLayout } from '../Layout/StandardLayout';
+import { TenantHome } from '../Pages/Home/TenantHome';
 import { useSearchParamsObject } from '../helpers/useSearch';
 import { accountRouteGlobal } from './account.routes';
+import {
+  applicationCreateRoute,
+  applicationIndexRoute,
+  applicationRoute,
+  applicationsIndexRoute,
+  applicationsRoute,
+} from './application.routes';
+import {
+  claimsetIndexRoute,
+  claimsetRoute,
+  claimsetsIndexRoute,
+  claimsetsRoute,
+} from './claimset.routes';
+import { edorgIndexRoute, edorgRoute, edorgsIndexRoute, edorgsRoute } from './edorg.routes';
+import { odsIndexRoute, odsRoute, odssIndexRoute, odssRoute } from './ods.routes';
 import {
   ownershipGlobalCreateRoute,
   ownershipGlobalIndexRoute,
@@ -18,6 +35,13 @@ import {
   ownershipsIndexRoute,
   ownershipsRoute,
 } from './ownership.routes';
+import {
+  roleGlobalCreateRoute,
+  roleGlobalIndexRoute,
+  roleGlobalRoute,
+  rolesGlobalIndexRoute,
+  rolesGlobalRoute,
+} from './role-global.routes';
 import { roleIndexRoute, roleRoute, rolesIndexRoute, rolesRoute } from './role.routes';
 import {
   sbeGlobalCreateRoute,
@@ -27,6 +51,7 @@ import {
   sbesGlobalRoute,
 } from './sbe-global.routes';
 import { sbeIndexRoute, sbeRoute, sbesIndexRoute, sbesRoute } from './sbe.routes';
+import { secretRoute } from './secret.routes';
 import {
   tenantCreateRoute,
   tenantIndexRoute,
@@ -35,31 +60,14 @@ import {
   tenantsRoute,
 } from './tenant.routes';
 import { userIndexRoute, userRoute, usersIndexRoute, usersRoute } from './user.routes';
+import { vendorIndexRoute, vendorRoute, vendorsIndexRoute, vendorsRoute } from './vendor.routes';
 import {
-  claimsetsRoute,
-  claimsetsIndexRoute,
-  claimsetRoute,
-  claimsetIndexRoute,
-} from './claimset.routes';
-import { edorgsRoute, edorgsIndexRoute, edorgRoute, edorgIndexRoute } from './edorg.routes';
-import { odssRoute, odssIndexRoute, odsRoute, odsIndexRoute } from './ods.routes';
-import { vendorsRoute, vendorsIndexRoute, vendorRoute, vendorIndexRoute } from './vendor.routes';
-import {
-  applicationCreateRoute,
-  applicationIndexRoute,
-  applicationRoute,
-  applicationsIndexRoute,
-  applicationsRoute,
-} from './application.routes';
-import { secretRoute } from './secret.routes';
-import { PublicAppLayout } from '../Layout/PublicAppLayout';
-import {
-  rolesGlobalRoute,
-  rolesGlobalIndexRoute,
-  roleGlobalRoute,
-  roleGlobalIndexRoute,
-  roleGlobalCreateRoute,
-} from './role-global.routes';
+  usersGlobalRoute,
+  usersGlobalIndexRoute,
+  userGlobalRoute,
+  userGlobalIndexRoute,
+  userGlobalCreateRoute,
+} from './user-global.routes';
 export * from './account.routes';
 export * from './application.routes';
 export * from './claimset.routes';
@@ -72,23 +80,40 @@ export * from './sbe-global.routes';
 export * from './sbe.routes';
 export * from './tenant.routes';
 export * from './user.routes';
+export * from './user-global.routes';
 export * from './vendor.routes';
 
 export const fallback404Route: RouteObject = {
   path: '*',
   element: <ErrorFallback />,
 };
+
 export const indexRoute: RouteObject = {
   path: '/',
-  element: <Heading size="page-heading">Home</Heading>,
 };
 export const publicRoute: RouteObject = {
   path: '/public',
-  element: <a href="/login">Login</a>,
-};
-export const noRoleRoute: RouteObject = {
-  path: '/no-role',
-  element: <>You have not been assigned a role.</>,
+  element: (
+    <Box p="5em">
+      <Text
+        background="linear-gradient(45deg, var(--chakra-colors-blue-700), var(--chakra-colors-teal-600))"
+        backgroundClip="text"
+        textColor="transparent"
+        fontWeight="black"
+        fontSize="6xl"
+      >
+        Starting Blocks drives synergies to increase profits and deliver value for your private
+        equity overlords.
+      </Text>
+      <UnorderedList color="teal.600" mt="2em" fontSize="3xl" fontWeight="bold">
+        <ListItem>Productivity feature.</ListItem>
+        <ListItem>More insights. More actionable.</ListItem>
+        <ListItem>Strategic.</ListItem>
+        <ListItem>Efficiency feature.</ListItem>
+        <ListItem>Complete business solution.</ListItem>
+      </UnorderedList>
+    </Box>
+  ),
 };
 const Login = memo(() => {
   const { redirect } = useSearchParamsObject();
@@ -106,11 +131,12 @@ export const loginRoute: RouteObject = {
 };
 export const asRoute: RouteObject = {
   path: '/as/:asId',
+  element: <TenantHome />,
 };
 export const publicLayoutRoute: RouteObject = {
   element: <PublicAppLayout />,
   errorElement: <ErrorFallback />,
-  children: [publicRoute, secretRoute, noRoleRoute],
+  children: [publicRoute, secretRoute],
 };
 export const mainLayoutRoute: RouteObject = {
   element: <StandardLayout />,
@@ -131,6 +157,12 @@ export const mainLayoutRoute: RouteObject = {
     roleGlobalRoute,
     roleGlobalIndexRoute,
 
+    usersGlobalRoute,
+    usersGlobalIndexRoute,
+    userGlobalCreateRoute,
+    userGlobalRoute,
+    userGlobalIndexRoute,
+
     ownershipsGlobalRoute,
     ownershipsGlobalIndexRoute,
     ownershipGlobalRoute,
@@ -141,11 +173,6 @@ export const mainLayoutRoute: RouteObject = {
     sbesIndexRoute,
     sbeRoute,
     sbeIndexRoute,
-
-    odssRoute,
-    odssIndexRoute,
-    odsRoute,
-    odsIndexRoute,
 
     odssRoute,
     odssIndexRoute,

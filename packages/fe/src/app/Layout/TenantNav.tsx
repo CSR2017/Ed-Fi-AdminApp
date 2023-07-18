@@ -1,8 +1,6 @@
 import { Text } from '@chakra-ui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  BsBook,
-  BsBookFill,
   BsBuilding,
   BsBuildingFill,
   BsClipboard,
@@ -23,16 +21,31 @@ import {
   BsShieldLockFill,
 } from 'react-icons/bs';
 import { useMatches } from 'react-router-dom';
-import { sbeQueries } from '../api/queries/queries';
-import { AuthorizeConfig, arrayElemIf, authorize, usePrivilegeCacheForConfig } from '../helpers';
+import { sbeQueries } from '../api';
+import {
+  AuthorizeConfig,
+  arrayElemIf,
+  authorize,
+  useAuthorize,
+  usePrivilegeCacheForConfig,
+} from '../helpers';
 import { isMatch, tagMatch } from './GlobalNav';
 import { INavButtonProps, NavButton } from './NavButton';
 
 export const TenantNav = (props: { tenantId: string }) => {
   const tenantId = Number(props.tenantId);
-  const sbes = sbeQueries.useAll({ tenantId: props.tenantId });
+  const queryClient = useQueryClient();
+  const sbeAuth: AuthorizeConfig = {
+    privilege: 'tenant.sbe:read',
+    subject: {
+      id: '__filtered__',
+      tenantId,
+    },
+  };
+  const sbes = sbeQueries.useAll({ optional: true, tenantId: tenantId });
 
   usePrivilegeCacheForConfig([
+    sbeAuth,
     {
       privilege: 'tenant.role:read',
       subject: {
@@ -97,9 +110,112 @@ export const TenantNav = (props: { tenantId: string }) => {
       },
     ]),
   ]);
-  const queryClient = useQueryClient();
 
-  const items: INavButtonProps[] = [
+  const sbeItems = Object.values(sbes.data || {}).map((sbe) => ({
+    route: `/as/${props.tenantId}/sbes/${sbe.id}`,
+    icon: BsFolder,
+    activeIcon: BsFolderFill,
+    text: sbe.displayName,
+    childItems: [
+      ...arrayElemIf(
+        authorize({
+          queryClient,
+          config: {
+            privilege: 'tenant.sbe.ods:read',
+            subject: {
+              tenantId: tenantId,
+              sbeId: sbe.id,
+              id: '__filtered__',
+            },
+          },
+        }),
+        {
+          route: `/as/${props.tenantId}/sbes/${sbe.id}/odss`,
+          icon: BsDatabase,
+          activeIcon: BsDatabaseFill,
+          text: 'ODSs',
+        }
+      ),
+      ...arrayElemIf(
+        authorize({
+          queryClient,
+          config: {
+            privilege: 'tenant.sbe.edorg:read',
+            subject: {
+              tenantId: tenantId,
+              sbeId: sbe.id,
+              id: '__filtered__',
+            },
+          },
+        }),
+        {
+          route: `/as/${props.tenantId}/sbes/${sbe.id}/edorgs`,
+          icon: BsMortarboard,
+          activeIcon: BsFillMortarboardFill,
+          text: 'Ed-Orgs',
+        }
+      ),
+      ...arrayElemIf(
+        authorize({
+          queryClient,
+          config: {
+            privilege: 'tenant.sbe.vendor:read',
+            subject: {
+              tenantId: tenantId,
+              sbeId: sbe.id,
+              id: '__filtered__',
+            },
+          },
+        }),
+        {
+          route: `/as/${props.tenantId}/sbes/${sbe.id}/vendors`,
+          icon: BsBuilding,
+          activeIcon: BsBuildingFill,
+          text: 'Vendors',
+        }
+      ),
+      ...arrayElemIf(
+        authorize({
+          queryClient,
+          config: {
+            privilege: 'tenant.sbe.edorg.application:read',
+            subject: {
+              tenantId: tenantId,
+              sbeId: sbe.id,
+              id: '__filtered__',
+            },
+          },
+        }),
+        {
+          route: `/as/${props.tenantId}/sbes/${sbe.id}/applications`,
+          icon: BsKey,
+          activeIcon: BsKeyFill,
+          text: 'Applications',
+        }
+      ),
+      ...arrayElemIf(
+        authorize({
+          queryClient,
+          config: {
+            privilege: 'tenant.sbe.claimset:read',
+            subject: {
+              tenantId: tenantId,
+              sbeId: sbe.id,
+              id: '__filtered__',
+            },
+          },
+        }),
+        {
+          route: `/as/${props.tenantId}/sbes/${sbe.id}/claimsets`,
+          icon: BsShieldLock,
+          activeIcon: BsShieldLockFill,
+          text: 'Claimsets',
+        }
+      ),
+    ],
+  }));
+
+  const mainItems: INavButtonProps[] = [
     ...arrayElemIf(
       authorize({
         queryClient,
@@ -115,170 +231,72 @@ export const TenantNav = (props: { tenantId: string }) => {
         text: 'Users',
       }
     ),
-    ...arrayElemIf(
-      authorize({
-        queryClient,
-        config: {
-          privilege: 'tenant.role:read',
-          subject: { tenantId, id: '__filtered__' },
-        },
-      }),
-      {
-        route: `/as/${props.tenantId}/roles`,
-        icon: BsPersonVcard,
-        activeIcon: BsPersonVcardFill,
-        text: 'Roles',
-      }
-    ),
-    ...arrayElemIf(
-      authorize({
-        queryClient,
-        config: {
-          privilege: 'tenant.ownership:read',
-          subject: { tenantId, id: '__filtered__' },
-        },
-      }),
-      {
-        route: `/as/${props.tenantId}/ownerships`,
-        icon: BsClipboard,
-        activeIcon: BsClipboardFill,
-        text: 'Ownerships',
-      }
-    ),
-    {
-      route: `/as/${props.tenantId}/sbes`,
-      icon: BsFolder,
-      activeIcon: BsFolderFill,
-      text: 'Environments',
-      childItems: Object.values(sbes.data || {}).map((sbe) => ({
-        route: `/as/${props.tenantId}/sbes/${sbe.id}`,
-        icon: BsFolder,
-        activeIcon: BsFolderFill,
-        text: sbe.displayName,
-        childItems: [
-          ...arrayElemIf(
-            authorize({
-              queryClient,
-              config: {
-                privilege: 'tenant.sbe.ods:read',
-                subject: {
-                  tenantId: tenantId,
-                  sbeId: sbe.id,
-                  id: '__filtered__',
-                },
-              },
-            }),
-            {
-              route: `/as/${props.tenantId}/sbes/${sbe.id}/odss`,
-              icon: BsDatabase,
-              activeIcon: BsDatabaseFill,
-              text: 'ODSs',
-            }
-          ),
-          ...arrayElemIf(
-            authorize({
-              queryClient,
-              config: {
-                privilege: 'tenant.sbe.edorg:read',
-                subject: {
-                  tenantId: tenantId,
-                  sbeId: sbe.id,
-                  id: '__filtered__',
-                },
-              },
-            }),
-            {
-              route: `/as/${props.tenantId}/sbes/${sbe.id}/edorgs`,
-              icon: BsMortarboard,
-              activeIcon: BsFillMortarboardFill,
-              text: 'Ed-Orgs',
-            }
-          ),
-          ...arrayElemIf(
-            authorize({
-              queryClient,
-              config: {
-                privilege: 'tenant.sbe.vendor:read',
-                subject: {
-                  tenantId: tenantId,
-                  sbeId: sbe.id,
-                  id: '__filtered__',
-                },
-              },
-            }),
-            {
-              route: `/as/${props.tenantId}/sbes/${sbe.id}/vendors`,
-              icon: BsBuilding,
-              activeIcon: BsBuildingFill,
-              text: 'Vendors',
-            }
-          ),
-          ...arrayElemIf(
-            authorize({
-              queryClient,
-              config: {
-                privilege: 'tenant.sbe.edorg.application:read',
-                subject: {
-                  tenantId: tenantId,
-                  sbeId: sbe.id,
-                  id: '__filtered__',
-                },
-              },
-            }),
-            {
-              route: `/as/${props.tenantId}/sbes/${sbe.id}/applications`,
-              icon: BsKey,
-              activeIcon: BsKeyFill,
-              text: 'Applications',
-            }
-          ),
-          ...arrayElemIf(
-            authorize({
-              queryClient,
-              config: {
-                privilege: 'tenant.sbe.claimset:read',
-                subject: {
-                  tenantId: tenantId,
-                  sbeId: sbe.id,
-                  id: '__filtered__',
-                },
-              },
-            }),
-            {
-              route: `/as/${props.tenantId}/sbes/${sbe.id}/claimsets`,
-              icon: BsShieldLock,
-              activeIcon: BsShieldLockFill,
-              text: 'Claimsets',
-            }
-          ),
-        ],
-      })),
-    },
+    // TODO these are ATM not considered MVP, but that's still a little TBD and we might disable them by some means other than deleting the code. The code _is_ "correct" as of 7/17/23.
+    // ...arrayElemIf(
+    //   authorize({
+    //     queryClient,
+    //     config: {
+    //       privilege: 'tenant.role:read',
+    //       subject: { tenantId, id: '__filtered__' },
+    //     },
+    //   }),
+    //   {
+    //     route: `/as/${props.tenantId}/roles`,
+    //     icon: BsPersonVcard,
+    //     activeIcon: BsPersonVcardFill,
+    //     text: 'Roles',
+    //   }
+    // ),
+    // ...arrayElemIf(
+    //   authorize({
+    //     queryClient,
+    //     config: {
+    //       privilege: 'tenant.ownership:read',
+    //       subject: { tenantId, id: '__filtered__' },
+    //     },
+    //   }),
+    //   {
+    //     route: `/as/${props.tenantId}/ownerships`,
+    //     icon: BsClipboard,
+    //     activeIcon: BsClipboardFill,
+    //     text: 'Ownerships',
+    //   }
+    // ),
   ];
 
   const flatten = (item: INavButtonProps): INavButtonProps[] => [
     item,
     ...(item.childItems ?? []).flatMap((ci) => flatten(ci)),
   ];
-  const flatItems = items.flatMap((item) => flatten(item));
+  const allItemsFlat = [...mainItems, ...sbeItems].flatMap((item) => flatten(item));
 
   let deepestMatch = null;
-  const currentMatches = useMatches();
+  const currentMatch = useMatches().slice(-1)[0];
 
-  currentMatches.forEach((m) => {
-    if (flatItems.some((item) => isMatch(m.pathname, item))) {
-      deepestMatch = m.pathname;
+  allItemsFlat.some((item) => {
+    if (isMatch(currentMatch.pathname, item)) {
+      deepestMatch = currentMatch.pathname;
+      return true;
+    } else {
+      return false;
     }
   });
 
   return (
     <>
-      <Text px={3} mt={4} as="h3" color="gray.500" mb={2} fontWeight="600">
-        Resources
-      </Text>
-      {tagMatch(items, deepestMatch).map((item) => (
+      {tagMatch(mainItems, deepestMatch).map((item) => (
         <NavButton key={item.text + item.route} {...item} />
       ))}
+      {sbeItems.length ? (
+        <>
+          <Text px={3} mt={4} as="h3" color="gray.500" mb={2} fontWeight="600">
+            Environments
+          </Text>
+          {tagMatch(sbeItems, deepestMatch).map((item) => (
+            <NavButton key={item.text + item.route} {...item} />
+          ))}
+        </>
+      ) : null}
     </>
   );
 };

@@ -13,6 +13,8 @@ import {
 } from 'class-validator';
 import { makeSerializer } from '../utils/make-serializer';
 import { IsEdanalyticsUrl } from '../utils/is-edanalytics-url';
+import { GetEdorgDto } from './edorg.dto';
+import { GetSbeConfigPublic, GetSbeDto } from './sbe.dto';
 
 export class PostVendorDto {
   @Expose()
@@ -233,6 +235,26 @@ export class GetApplicationDto {
 
   get id() {
     return this.applicationId;
+  }
+
+  static apiUrl(
+    edorg: Pick<GetEdorgDto, 'educationOrganizationId' | 'shortNameOfInstitution'>,
+    hostname: GetSbeConfigPublic['edfiHostname'],
+    applicationName: GetApplicationDto['applicationName']
+  ) {
+    const safe = (str: string) =>
+      str
+        .toLowerCase()
+        .replace(/\s/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+
+    const edorgName = safe(
+      edorg.shortNameOfInstitution ?? String(edorg.educationOrganizationId)
+    ).slice(0, 22);
+    const appName = safe(applicationName).slice(0, 40);
+    const slug = `${edorgName}-${appName}`;
+
+    return `https://${slug}.${hostname?.replace(/\/$/, '')}/`;
   }
 }
 

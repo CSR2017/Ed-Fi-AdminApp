@@ -18,6 +18,8 @@ export const ViewUser = () => {
       <Text color="gray.600">{user.givenName}</Text>
       <FormLabel as="p">Family Name</FormLabel>
       <Text color="gray.600">{user.familyName}</Text>
+      <FormLabel as="p">Username</FormLabel>
+      <Text color="gray.600">{user.username}</Text>
     </>
   ) : null;
 };

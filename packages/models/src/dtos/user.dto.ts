@@ -1,5 +1,5 @@
 import { Expose } from 'class-transformer';
-import { MinLength } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, MinLength } from 'class-validator';
 import type { IUser, IUserConfig } from '../interfaces/user.interface';
 import { DtoGetBase__User, GetDto } from '../utils/get-base.dto';
 import { makeSerializer } from '../utils/make-serializer';
@@ -22,7 +22,10 @@ export class GetUserDto
   familyName: string;
 
   get fullName() {
-    return typeof this.givenName === 'string' && typeof this.familyName === 'string'
+    return typeof this.givenName === 'string' &&
+      typeof this.familyName === 'string' &&
+      this.givenName !== '' &&
+      this.familyName !== ''
       ? this.givenName + ' ' + this.familyName
       : this.username;
   }
@@ -36,43 +39,56 @@ export const toGetUserDto = makeSerializer(GetUserDto);
 
 export class PutUserDto
   extends DtoPutBase
-  implements PutDto<IUser, 'fullName' | 'userTenantMemberships' | 'role'>
+  implements
+    PutDto<IUser, 'fullName' | 'userTenantMemberships' | 'role' | 'givenName' | 'familyName'>
 {
   @Expose()
+  @MinLength(2)
   username: string;
 
   @Expose()
+  @IsNumber()
   roleId?: number;
 
   @Expose()
+  @IsBoolean()
   isActive: boolean;
 
   @Expose()
+  @IsOptional()
   @MinLength(2)
-  givenName: string;
+  givenName?: string | null;
 
   @Expose()
+  @IsOptional()
   @MinLength(2)
-  familyName: string;
-
-  @Expose()
-  config?: IUserConfig;
+  familyName?: string | null;
 }
 
 export class PostUserDto
   extends DtoPostBase
-  implements PostDto<IUser, 'fullName' | 'userTenantMemberships' | 'role'>
+  implements
+    PostDto<IUser, 'fullName' | 'userTenantMemberships' | 'role' | 'givenName' | 'familyName'>
 {
   @Expose()
+  @MinLength(2)
   username: string;
+
   @Expose()
+  @IsNumber()
   roleId?: number;
+
   @Expose()
+  @IsBoolean()
   isActive: boolean;
+
   @Expose()
-  givenName: string;
+  @IsOptional()
+  @MinLength(2)
+  givenName?: string | null;
+
   @Expose()
-  familyName: string;
-  @Expose()
-  config?: IUserConfig;
+  @IsOptional()
+  @MinLength(2)
+  familyName?: string | null;
 }

@@ -24,17 +24,23 @@ export type AuthorizeParameters<
   ValueType
 > = {
   value: ValueType;
-  config: undefined | AuthorizeConfig<PrivilegeType> | AuthorizeConfig<PrivilegeType>[];
+  config:
+    | undefined
+    | AuthorizeConfig<PrivilegeType>
+    | (AuthorizeConfig<PrivilegeType> | undefined)[];
 };
 
 export const authorize = <
   PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege
 >(props: {
   queryClient: QueryClient;
-  config: undefined | AuthorizeConfig<PrivilegeType> | AuthorizeConfig<PrivilegeType>[];
+  config:
+    | undefined
+    | AuthorizeConfig<PrivilegeType>
+    | (AuthorizeConfig<PrivilegeType> | undefined)[];
 }) => {
   const configArray = Array.isArray(props.config)
-    ? props.config
+    ? (props.config.filter((c) => c !== undefined) as AuthorizeConfig<PrivilegeType>[])
     : props.config === undefined
     ? []
     : [props.config];
@@ -79,9 +85,16 @@ export type AuthorizeComponentProps<
 export const usePrivilegeCacheForConfig = <
   PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege
 >(
-  config: undefined | AuthorizeConfig<PrivilegeType> | AuthorizeConfig<PrivilegeType>[]
+  config:
+    | undefined
+    | AuthorizeConfig<PrivilegeType>
+    | (AuthorizeConfig<PrivilegeType> | undefined)[]
 ) => {
-  const configArray = Array.isArray(config) ? config : config === undefined ? [] : [config];
+  const configArray = Array.isArray(config)
+    ? (config.filter((c) => c !== undefined) as AuthorizeConfig<PrivilegeType>[])
+    : config === undefined
+    ? []
+    : [config];
   return usePrivilegeCache(
     configArray.map((config) => ({
       privilege: config.privilege,
@@ -89,6 +102,19 @@ export const usePrivilegeCacheForConfig = <
       sbeId: 'sbeId' in config.subject ? config.subject.sbeId : undefined,
     }))
   );
+};
+
+export const useAuthorize = <
+  PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege
+>(
+  config:
+    | undefined
+    | AuthorizeConfig<PrivilegeType>
+    | (AuthorizeConfig<PrivilegeType> | undefined)[]
+) => {
+  const queryClient = useQueryClient();
+  usePrivilegeCacheForConfig(config);
+  return authorize({ queryClient, config });
 };
 
 export const AuthorizeComponent = <PrivilegeType extends PrivilegeCode>(

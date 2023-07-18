@@ -1,4 +1,5 @@
 import {
+  Link,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -9,16 +10,19 @@ import {
   Text,
   useClipboard,
 } from '@chakra-ui/react';
-import { GetApplicationDto } from '@edanalytics/models';
-import { BiPlus, BiShieldX } from 'react-icons/bi';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useApplicationResetCredential } from '../../api';
+import { GetApplicationDto, createEdorgCompositeNaturalKey } from '@edanalytics/models';
+import { BiEdit, BiPlus, BiShieldX, BiTrash } from 'react-icons/bi';
+import { HiOutlineEye } from 'react-icons/hi';
+import { Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { applicationQueries, useApplicationResetCredential } from '../../api';
 import {
   ActionPropsConfirm,
   ActionsType,
   AuthorizeComponent,
   LinkActionProps,
+  useNavToParent,
 } from '../../helpers';
+import { useSearchParamsObject } from '../../helpers/useSearch';
 
 export const useApplicationActions = ({
   application,
@@ -30,8 +34,13 @@ export const useApplicationActions = ({
   tenantId: string;
 }): ActionsType => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const clipboard = useClipboard('');
+  const deleteApplication = applicationQueries.useDelete({
+    sbeId: sbeId,
+    tenantId: tenantId,
+  });
 
   const resetCreds = useApplicationResetCredential({
     sbeId: sbeId,
@@ -43,10 +52,43 @@ export const useApplicationActions = ({
   const onClose = () => {
     clipboard.setValue('');
   };
+  const search = useSearchParamsObject();
+  const onApplicationPage =
+    application && location.pathname.endsWith(`/applications/${application.id}`);
+  const inEdit = onApplicationPage && search?.edit === 'true';
+
+  const to = (id: number | string) => `/as/${tenantId}/sbes/${sbeId}/applications/${id}`;
+  const parentPath = useNavToParent();
 
   return application === undefined
     ? {}
     : {
+        View: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
+          const path = to(application.id);
+          return (
+            <AuthorizeComponent
+              config={{
+                privilege: 'tenant.sbe.edorg.application:read',
+                subject: {
+                  sbeId: Number(sbeId),
+                  tenantId: Number(tenantId),
+                  id: createEdorgCompositeNaturalKey({
+                    educationOrganizationId: application.educationOrganizationId,
+                    odsDbName: '',
+                  }),
+                },
+              }}
+            >
+              <props.children
+                icon={HiOutlineEye}
+                text="View"
+                title={'View ' + application.displayName}
+                to={path}
+                onClick={() => navigate(path)}
+              />
+            </AuthorizeComponent>
+          );
+        },
         Reset: (props: { children: (props: ActionPropsConfirm) => JSX.Element }) => {
           return (
             <>
@@ -57,7 +99,7 @@ export const useApplicationActions = ({
                   <ModalCloseButton />
                   <ModalBody>
                     <Text as="p">Use this one-time link to see your Key and Secret:</Text>
-                    <Link to={clipboard.value} color="blue.600">
+                    <Link as={RouterLink} color="blue.500" to={clipboard.value}>
                       {clipboard.value}
                     </Link>
                     <Text my={5} as="p" fontStyle="italic">
@@ -72,14 +114,17 @@ export const useApplicationActions = ({
                   subject: {
                     sbeId: Number(sbeId),
                     tenantId: Number(tenantId),
-                    id: '__filtered__',
+                    id: createEdorgCompositeNaturalKey({
+                      educationOrganizationId: application.educationOrganizationId,
+                      odsDbName: '',
+                    }),
                   },
                 }}
               >
                 <props.children
                   icon={() => (resetCreds.isLoading ? <Spinner size="sm" /> : <BiShieldX />)}
-                  text="New"
-                  title="New application"
+                  text="Reset creds"
+                  title="Reset application credentials."
                   onClick={() => {
                     resetCreds.mutate(application);
                   }}
@@ -88,6 +133,67 @@ export const useApplicationActions = ({
                 />
               </AuthorizeComponent>
             </>
+          );
+        },
+        Edit: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
+          const path = to(application.id);
+          return (
+            <AuthorizeComponent
+              config={{
+                privilege: 'tenant.sbe.edorg.application:update',
+                subject: {
+                  sbeId: Number(sbeId),
+                  tenantId: Number(tenantId),
+                  id: createEdorgCompositeNaturalKey({
+                    educationOrganizationId: application.educationOrganizationId,
+                    odsDbName: '',
+                  }),
+                },
+              }}
+            >
+              <props.children
+                isDisabled={inEdit}
+                icon={BiEdit}
+                text="Edit"
+                title={'Edit ' + application.displayName}
+                to={path + '?edit=true'}
+                onClick={() => navigate(path + '?edit=true')}
+              />
+            </AuthorizeComponent>
+          );
+        },
+        Delete: (props: { children: (props: ActionPropsConfirm) => JSX.Element }) => {
+          return (
+            <AuthorizeComponent
+              config={{
+                privilege: 'tenant.sbe.edorg.application:delete',
+                subject: {
+                  sbeId: Number(sbeId),
+                  tenantId: Number(tenantId),
+                  id: createEdorgCompositeNaturalKey({
+                    educationOrganizationId: application.educationOrganizationId,
+                    odsDbName: '',
+                  }),
+                },
+              }}
+            >
+              <props.children
+                icon={BiTrash}
+                text="Delete"
+                title="Delete application"
+                confirmBody="All systems using this application to access Ed-Fi will no longer be able to do so. This action cannot be undone, though you will be able to create a new application if you want."
+                onClick={() =>
+                  deleteApplication.mutateAsync(application.id, {
+                    onSuccess: () => {
+                      if (onApplicationPage) {
+                        navigate(parentPath);
+                      }
+                    },
+                  })
+                }
+                confirm={true}
+              />
+            </AuthorizeComponent>
           );
         },
       };

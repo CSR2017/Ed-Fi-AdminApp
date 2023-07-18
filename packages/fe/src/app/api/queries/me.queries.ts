@@ -17,9 +17,9 @@ export const useMe = () => {
         .get(`${baseUrl}/auth/me`, { withCredentials: true })
         .then((res) => {
           const me = plainToInstance(GetSessionDataDto, res.data);
-          if (me.roleId === null || me.roleId === undefined) {
-            navigate('/no-role');
-          }
+          // if (me.roleId === null || me.roleId === undefined) {
+          //   navigate('/no-role');
+          // }
           return me;
         })
         .catch((err) => {

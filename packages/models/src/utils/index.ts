@@ -5,3 +5,4 @@ export * from './post-base.dto';
 export * from './make-serializer';
 export * from './minimum-privileges';
 export * from './getApplicationCacheId';
+export * from './validate-privileges';

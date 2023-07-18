@@ -1,22 +1,20 @@
-import {
-  BasePrivilege,
-  GetRoleDto,
-  TenantBasePrivilege,
-  TenantSbePrivilege,
-} from '@edanalytics/models';
+import { BasePrivilege, TenantBasePrivilege, TenantSbePrivilege } from '@edanalytics/models';
 import { AuthorizeConfig } from '.';
 
 export const tenantRoleAuthConfig = (
   roleId: number | '__filtered__' | undefined,
-  tenantId: number | undefined,
-  privilege: TenantBasePrivilege
+  tenantId: number | string | undefined,
+  privilege: Extract<
+    TenantBasePrivilege,
+    'tenant.role:read' | 'tenant.role:create' | 'tenant.role:update' | 'tenant.role:delete'
+  >
 ): AuthorizeConfig | undefined =>
   roleId === undefined || tenantId === undefined
     ? undefined
     : {
         privilege,
         subject: {
-          tenantId: tenantId,
+          tenantId: Number(tenantId),
           id: roleId,
         },
       };
@@ -166,6 +164,27 @@ export const globalSbeAuthConfig = (
         privilege,
         subject: {
           id: sbeId,
+        },
+      };
+
+export const globalUserAuthConfig = (privilege: BasePrivilege): AuthorizeConfig | undefined => ({
+  privilege,
+  subject: {
+    id: '__filtered__',
+  },
+});
+export const tenantUserAuthConfig = (
+  userId: number | '__filtered__' | undefined,
+  tenantId: number | undefined,
+  privilege: TenantBasePrivilege
+): AuthorizeConfig | undefined =>
+  userId === undefined || tenantId === undefined
+    ? undefined
+    : {
+        privilege,
+        subject: {
+          tenantId: tenantId,
+          id: userId,
         },
       };
 

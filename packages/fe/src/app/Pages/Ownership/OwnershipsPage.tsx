@@ -3,7 +3,7 @@ import { DataTable } from '@edanalytics/common-ui';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import { ownershipQueries, roleQueries, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { RoleLink, UserLink, edorgRoute, odsRoute, sbeRoute } from '../../routes';
+import { RoleLink, UserLink } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 
 export const OwnershipsPage = () => {

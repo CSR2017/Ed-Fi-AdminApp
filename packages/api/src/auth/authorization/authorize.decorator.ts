@@ -23,3 +23,5 @@ export const Authorize = <
 >(
   config: AuthorizeMetadata<PrivilegeType>
 ) => SetMetadata(AUTHORIZE_KEY, config);
+
+export const NoAuthorization = () => SetMetadata(AUTHORIZE_KEY, null);

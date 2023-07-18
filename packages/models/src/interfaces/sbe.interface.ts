@@ -5,6 +5,7 @@ import { IOds } from './ods.interface';
 
 export interface ISbeConfigPublic {
   hasOdsRefresh?: false;
+  edfiHostname?: string;
   lastSuccessfulConnectionSbMeta?: Date;
   lastFailedConnectionSbMeta?: Date;
   lastSuccessfulConnectionAdminApi?: Date;

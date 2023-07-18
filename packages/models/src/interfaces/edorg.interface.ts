@@ -19,5 +19,6 @@ export interface IEdorg extends IEntityBase {
 
   educationOrganizationId: number;
   nameOfInstitution: string;
+  shortNameOfInstitution: string;
   discriminator: EdorgType;
 }

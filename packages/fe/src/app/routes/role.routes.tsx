@@ -35,7 +35,7 @@ export const rolesRoute: RouteObject = {
 };
 
 export const RoleLink = (props: {
-  id: number | undefined;
+  id: number | undefined | null;
   query: UseQueryResult<Record<string | number, GetRoleDto>, unknown>;
 }) => {
   const role = getEntityFromQuery(props.id, props.query);

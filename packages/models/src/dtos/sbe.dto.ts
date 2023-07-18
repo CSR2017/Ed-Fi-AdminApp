@@ -1,4 +1,4 @@
-import { stdDetailed } from '@edanalytics/utils';
+import { stdDetailed, stdShort } from '@edanalytics/utils';
 import { Expose, Type } from 'class-transformer';
 import { IsOptional, IsString, MinLength } from 'class-validator';
 import { ISbe, ISbeConfigPrivate, ISbeConfigPublic } from '../interfaces/sbe.interface';
@@ -7,6 +7,8 @@ import { IsEdanalyticsUrl } from '../utils/is-edanalytics-url';
 import { makeSerializer } from '../utils/make-serializer';
 import { DtoPostBase, PostDto } from '../utils/post-base.dto';
 export class GetSbeConfigPublic implements ISbeConfigPublic {
+  @Expose()
+  edfiHostname?: string;
   @Expose()
   adminApiUrl?: string;
   @Expose()
@@ -35,20 +37,38 @@ export class GetSbeConfigPublic implements ISbeConfigPublic {
   get lastSuccessfulConnectionSbMetaLong() {
     return stdDetailed(this.lastSuccessfulConnectionSbMeta);
   }
+  get lastSuccessfulConnectionSbMetaShort() {
+    return stdShort(this.lastSuccessfulConnectionSbMeta);
+  }
   get lastFailedConnectionSbMetaLong() {
     return stdDetailed(this.lastFailedConnectionSbMeta);
+  }
+  get lastFailedConnectionSbMetaShort() {
+    return stdShort(this.lastFailedConnectionSbMeta);
   }
   get lastSuccessfulConnectionAdminApiLong() {
     return stdDetailed(this.lastSuccessfulConnectionAdminApi);
   }
+  get lastSuccessfulConnectionAdminApiShort() {
+    return stdShort(this.lastSuccessfulConnectionAdminApi);
+  }
   get lastFailedConnectionAdminApiLong() {
     return stdDetailed(this.lastFailedConnectionAdminApi);
+  }
+  get lastFailedConnectionAdminApiShort() {
+    return stdShort(this.lastFailedConnectionAdminApi);
   }
   get lastSuccessfulPullLong() {
     return stdDetailed(this.lastSuccessfulPull);
   }
+  get lastSuccessfulPullShort() {
+    return stdShort(this.lastSuccessfulPull);
+  }
   get lastFailedPullLong() {
     return stdDetailed(this.lastFailedPull);
+  }
+  get lastFailedPullShort() {
+    return stdShort(this.lastFailedPull);
   }
 }
 

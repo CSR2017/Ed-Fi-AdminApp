@@ -9,6 +9,7 @@ import {
   Text,
   useDisclosure,
 } from '@chakra-ui/react';
+import { useEffect } from 'react';
 import { BsCaretRightFill } from 'react-icons/bs';
 import { Link as RouterLink } from 'react-router-dom';
 export interface INavButtonProps {
@@ -28,27 +29,31 @@ export interface INavButtonProps {
  * expandable nested list of indented sub-items.
  */
 export const NavButton = (props: INavButtonProps) => {
-  const { isOpen: isExpandedState, onToggle: toggleIsExpanded } = useDisclosure();
+  const isActive = props.isActive && !props.childItems?.some((child) => child.isActive);
+  const { isOpen: isExpandedState, onToggle: toggleIsExpanded, onOpen: expand } = useDisclosure();
   const hasChildren = props?.childItems?.length;
-  const checkIsExpandedNecessarily = (items: INavButtonProps[]): boolean =>
-    items.some((item) => item.isActive || checkIsExpandedNecessarily(item.childItems || []));
-  const isExpandedNecessarily = false; // checkIsExpandedNecessarily(props.childItems || []);
-  const isExpanded = isExpandedNecessarily || isExpandedState;
+  const checkisChildExpanded = (items: INavButtonProps[]): boolean =>
+    items.some((item) => item.isActive || checkisChildExpanded(item.childItems || []));
+  const isChildExpanded = checkisChildExpanded(props.childItems || []);
+
+  useEffect(() => {
+    isChildExpanded && expand();
+  }, [isChildExpanded, expand]);
 
   const depthOffset = `${props.depth || 0}em`;
   const button = (
     <Button
-      aria-current={props.isActive ? 'page' : 'false'}
+      aria-current={isActive ? 'page' : 'false'}
       fontWeight="normal"
       _activeLink={{
         fontWeight: 'bold',
       }}
       as={RouterLink}
       onClick={() => {
-        if (!isExpanded) {
+        if (!isExpandedState) {
           // expand sub-tree if it's not already open
           toggleIsExpanded();
-        } else if (props.isActive) {
+        } else if (isActive) {
           // close sub-tree only on redundant re-selection (not if navigating from a different item)
           toggleIsExpanded();
         }
@@ -65,7 +70,7 @@ export const NavButton = (props: INavButtonProps) => {
       gap={1}
       title={props.text}
     >
-      <Icon as={props.isActive && props.activeIcon ? props.activeIcon : props.icon} />
+      <Icon as={isActive && props.activeIcon ? props.activeIcon : props.icon} />
       <Text
         flexGrow={1}
         textAlign="left"
@@ -87,12 +92,7 @@ export const NavButton = (props: INavButtonProps) => {
           {hasChildren ? (
             <Box pos="relative" h="20px" zIndex={2}>
               <IconButton
-                isDisabled={isExpandedNecessarily}
-                onClick={() => {
-                  if (!isExpandedNecessarily) {
-                    toggleIsExpanded();
-                  }
-                }}
+                onClick={toggleIsExpanded}
                 ml={`calc(0.25em + ${depthOffset})`}
                 pos="absolute"
                 aria-label="open or close"
@@ -103,7 +103,7 @@ export const NavButton = (props: INavButtonProps) => {
                 minH="20px"
                 minW="20px"
                 size="xs"
-                className={isExpanded ? 'opened' : undefined}
+                className={isExpandedState ? 'opened' : undefined}
                 css={{
                   '&.opened': {
                     transition: '0.5s',
@@ -119,7 +119,7 @@ export const NavButton = (props: INavButtonProps) => {
           ) : undefined}
           {button}
         </HStack>
-        <Collapse in={isExpanded} animateOpacity>
+        <Collapse in={isExpandedState} animateOpacity>
           <Box fontSize="1em">
             {props.childItems?.map((child) => (
               <NavButton key={child.text + child.route} {...child} depth={(props.depth || 0) + 1} />

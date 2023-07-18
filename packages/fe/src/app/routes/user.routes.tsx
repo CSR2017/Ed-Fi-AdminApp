@@ -37,17 +37,20 @@ export const usersRoute: RouteObject = {
 
 export const UserLink = (props: {
   id: number | undefined;
-  query: UseQueryResult<Record<string | number, GetUserDto>, unknown>;
+  /**@deprecated unneeded and no longer used. */
+  query?: UseQueryResult<Record<string | number, GetUserDto>, unknown>;
 }) => {
-  const user = getEntityFromQuery(props.id, props.query);
-  const params = useParams() as { asId?: string };
+  const params = useParams() as { asId: string };
+
+  const users = userQueries.useAll({ tenantId: params.asId });
+  const user = getEntityFromQuery(props.id, users);
   return user ? (
     <Link as="span">
       <RouterLink
         title="Go to user"
         to={(params.asId ? `/as/${params.asId}` : '') + `/users/${user.id}`}
       >
-        {getRelationDisplayName(user.id, props.query)}
+        {getRelationDisplayName(user.id, users)}
       </RouterLink>
     </Link>
   ) : typeof props.id === 'number' ? (

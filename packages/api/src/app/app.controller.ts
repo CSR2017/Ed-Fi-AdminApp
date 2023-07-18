@@ -31,7 +31,8 @@ export class AppController {
         return res.data;
       })
       .catch((err) => {
-        Logger.log(err);
+        Logger.warn(err);
+        throw new NotFoundException('Secret not found.');
       });
   }
 }

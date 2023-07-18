@@ -7,7 +7,7 @@ import {
   Text,
   Input,
 } from '@chakra-ui/react';
-import { PrivilegeCode, PutRoleDto, RoleType } from '@edanalytics/models';
+import { DependencyErrors, PrivilegeCode, PutRoleDto, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -48,6 +48,14 @@ export const EditRoleGlobal = () => {
     defaultValues: { ...role, privileges: role?.privileges.map((p) => p.code) },
   });
 
+  let privilegesError: undefined | string | DependencyErrors = undefined;
+  try {
+    // might be fancy error object for privilege dependencies
+    privilegesError = JSON.parse(errors.privileges?.message as string);
+  } catch (error) {
+    // either undefined or plain string from class-validator
+  }
+
   return role ? (
     <form onSubmit={handleSubmit((data) => putRole.mutate(data))}>
       <FormControl isInvalid={!!errors.description}>
@@ -57,7 +65,7 @@ export const EditRoleGlobal = () => {
       </FormControl>
       <FormLabel as="p">Type</FormLabel>
       <Text>{role.type ?? '-'}</Text>
-      <FormControl isInvalid={!!errors.privileges}>
+      <FormControl isInvalid={typeof privilegesError === 'string'}>
         <FormLabel>Privileges</FormLabel>
         <Controller
           control={control}
@@ -67,6 +75,7 @@ export const EditRoleGlobal = () => {
               <></>
             ) : (
               <PrivilegesInput
+                error={typeof privilegesError === 'string' ? undefined : privilegesError}
                 onChange={field.field.onChange}
                 value={field.field.value as PrivilegeCode[]}
                 privileges={filteredPrivileges}
@@ -74,7 +83,9 @@ export const EditRoleGlobal = () => {
             )
           }
         />
-        <FormErrorMessage>{errors.privileges?.message}</FormErrorMessage>
+        <FormErrorMessage>
+          {typeof privilegesError === 'string' ? privilegesError : undefined}
+        </FormErrorMessage>
       </FormControl>
       <ButtonGroup>
         <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">

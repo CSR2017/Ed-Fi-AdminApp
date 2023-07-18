@@ -9,7 +9,21 @@ export const TableRowActions = (props: {
 }) => {
   const { show, actions } = props;
   const hidden = Object.entries(actions);
-  const visible = hidden.splice(0, show === true ? hidden.length : show === undefined ? 3 : show);
+  const visible = hidden.splice(
+    0,
+    // show all
+    show === true
+      ? hidden.length
+      : // show default, which is 4 buttons
+      show === undefined
+      ? hidden.length === 4
+        ? // ...all of them being actions if no overflow necessary
+          4
+        : // or only 3 actions if 1 button is overflow
+          3
+      : // show custom number
+        show
+  );
   return (
     <ButtonGroup
       className="row-hover"

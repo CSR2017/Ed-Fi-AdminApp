@@ -16,7 +16,7 @@ const validate = (value: any) => {
 };
 
 export function IsEdanalyticsUrl() {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'isEdanalyticsUrl',
       target: object.constructor,

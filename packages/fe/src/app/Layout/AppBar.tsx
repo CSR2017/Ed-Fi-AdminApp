@@ -8,21 +8,28 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
+  Text,
 } from '@chakra-ui/react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAtomValue } from 'jotai';
 import { RxCaretDown } from 'react-icons/rx';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import logoUrl from '../../assets/starting-blocks.svg';
-import { apiClient, useMe } from '../api';
-import { useQueryClient } from '@tanstack/react-query';
+import { apiClient, useMe, useMyTenants } from '../api';
+import { asTenantIdAtom } from './Nav';
 
 export const AppBar = () => {
   const me = useMe();
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const asId = useAtomValue(asTenantIdAtom);
+  const tenants = useMyTenants();
+  const tenant = asId === undefined ? undefined : tenants.data?.[asId];
 
   return (
     <HStack
+      zIndex={2}
       as="header"
       justify="space-between"
       w="100%"
@@ -34,13 +41,27 @@ export const AppBar = () => {
       py={1}
       px={3}
     >
-      <RouterLink to="/">
-        <Image h={7} src={logoUrl} />
-      </RouterLink>
+      <HStack>
+        <RouterLink to={asId ? `/as/${asId}` : '/'}>
+          <Image h={7} src={logoUrl} />
+        </RouterLink>
+        <Text
+          lineHeight="1.7"
+          borderLeft="2px solid"
+          borderColor="gray.300"
+          ml="0.9ch"
+          pl="1.5ch"
+          fontWeight="medium"
+          fontSize="lg"
+          color="gray.500"
+        >
+          {tenant?.displayName ?? 'Global scope'}
+        </Text>
+      </HStack>
       <Menu>
         <MenuButton as={Button} variant="unstyled">
           <HStack spacing={0}>
-            <Avatar name={me.data?.fullName || ''} size="sm" />
+            <Avatar name={me.data?.fullName} size="sm" />
             <Icon as={RxCaretDown} />
           </HStack>
         </MenuButton>
@@ -56,7 +77,7 @@ export const AppBar = () => {
             Sign out
           </MenuItem>
           {me.data?.role ? (
-            <MenuItem to="/me" as={RouterLink}>
+            <MenuItem to="/account" as={RouterLink}>
               My profile
             </MenuItem>
           ) : null}

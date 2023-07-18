@@ -1,4 +1,5 @@
 import { Text } from '@chakra-ui/react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   BsBuildings,
   BsBuildingsFill,
@@ -6,21 +7,18 @@ import {
   BsClipboardFill,
   BsFolder,
   BsFolderFill,
+  BsPeople,
+  BsPeopleFill,
   BsPersonVcard,
   BsPersonVcardFill,
 } from 'react-icons/bs';
 import { useMatches } from 'react-router-dom';
-import { sbeQueries } from '../api/queries/queries';
+import { sbeQueries } from '../api';
+import { arrayElemIf, authorize, usePrivilegeCacheForConfig } from '../helpers';
 import { INavButtonProps, NavButton } from './NavButton';
-import { queryClient } from '../app';
-import { usePrivilegeCacheForConfig, arrayElemIf, authorize } from '../helpers';
-import { useQueryClient } from '@tanstack/react-query';
 
 export const isMatch = (activeRoute: string, item: INavButtonProps) => {
-  const paramsEqual = activeRoute.startsWith(item.route);
-  const sameRoute = item.route === activeRoute;
-
-  return sameRoute && paramsEqual;
+  return activeRoute.startsWith(item.route);
 };
 
 export const tagMatch = (items: INavButtonProps[], match: string | null): INavButtonProps[] =>
@@ -33,8 +31,8 @@ export const tagMatch = (items: INavButtonProps[], match: string | null): INavBu
       }));
 
 export const GlobalNav = (props: object) => {
-  const sbes = sbeQueries.useAll({});
   const queryClient = useQueryClient();
+  const sbes = sbeQueries.useAll({ optional: true });
 
   usePrivilegeCacheForConfig([
     {
@@ -51,6 +49,12 @@ export const GlobalNav = (props: object) => {
     },
     {
       privilege: 'role:read',
+      subject: {
+        id: '__filtered__',
+      },
+    },
+    {
+      privilege: 'user:read',
       subject: {
         id: '__filtered__',
       },
@@ -76,6 +80,21 @@ export const GlobalNav = (props: object) => {
         icon: BsBuildings,
         activeIcon: BsBuildingsFill,
         text: 'Tenants',
+      }
+    ),
+    ...arrayElemIf(
+      authorize({
+        queryClient,
+        config: {
+          privilege: 'user:read',
+          subject: { id: '__filtered__' },
+        },
+      }),
+      {
+        route: `/users`,
+        icon: BsPeople,
+        activeIcon: BsPeopleFill,
+        text: 'Users',
       }
     ),
     ...arrayElemIf(
@@ -159,14 +178,11 @@ export const GlobalNav = (props: object) => {
     }
   });
 
-  return (
+  return items.length ? (
     <>
-      <Text px={3} mt={4} as="h3" color="gray.500" mb={2} fontWeight="600">
-        Resources
-      </Text>
       {tagMatch(items, deepestMatch).map((item) => (
         <NavButton key={item.text + item.route} {...item} />
       ))}
     </>
-  );
+  ) : null;
 };

@@ -7,7 +7,7 @@ import { GetUserDto } from './user.dto';
 export class GetSessionDataDtoUtm extends GetUserTenantMembershipDto {
   @Expose()
   @Type(() => GetRoleDto)
-  role: GetRoleDto;
+  role: GetRoleDto | null;
   @Expose()
   @Type(() => GetTenantDto)
   tenant: GetTenantDto;

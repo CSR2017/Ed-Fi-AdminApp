@@ -2,6 +2,7 @@ import { FormLabel, Text } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 import { edorgQueries, odsQueries, sbeQueries } from '../../api';
 import { EdorgLink, OdsLink, SbeLink } from '../../routes';
+import { AuthorizeConfig, useQueryIfAuth } from '../../helpers';
 
 export const ViewEdorg = () => {
   const params = useParams() as {
@@ -18,10 +19,7 @@ export const ViewEdorg = () => {
     sbeId: params.sbeId,
     tenantId: params.asId,
   });
-  const odss = odsQueries.useAll({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-  });
+  const odss = odsQueries.useAll({ tenantId: params.asId, sbeId: params.sbeId, optional: true });
   const sbes = sbeQueries.useAll({
     tenantId: params.asId,
   });

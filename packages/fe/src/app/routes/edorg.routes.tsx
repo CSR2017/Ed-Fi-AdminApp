@@ -36,7 +36,7 @@ export const edorgsIndexRoute: RouteObject = {
 };
 export const edorgsRoute: RouteObject = {
   path: '/as/:asId/sbes/:sbeId/edorgs',
-  handle: { crumb: () => 'Edorgs' },
+  handle: { crumb: () => 'Ed-Orgs' },
 };
 
 export const EdorgLink = (props: {
@@ -52,7 +52,7 @@ export const EdorgLink = (props: {
     <Link as="span">
       <RouterLink
         title="Go to edorg"
-        to={`/as/${params.asId}/sbes/${params.sbeId}/edorgs/${edorg.id}`}
+        to={`/as/${params.asId}/sbes/${edorg.sbeId}/edorgs/${edorg.id}`}
       >
         {getRelationDisplayName(edorg.id, props.query)}
       </RouterLink>

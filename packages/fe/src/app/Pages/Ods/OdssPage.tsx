@@ -1,41 +1,10 @@
-import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
-import { GetOdsDto } from '@edanalytics/models';
-import { CellContext } from '@tanstack/react-table';
 import { useParams } from 'react-router-dom';
 import { odsQueries, userQueries } from '../../api/queries/queries';
-import { TableRowActions } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { useReadTenantEntity } from '../../helpers/useStandardRowActionsNew';
-import { OdsLink, UserLink, odsRoute } from '../../routes';
+import { UserLink } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
-
-const NameCell = (info: CellContext<GetOdsDto, unknown>) => {
-  const params = useParams() as {
-    asId: string;
-    sbeId: string;
-  };
-  const entities = odsQueries.useAll({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-  });
-
-  const View = useReadTenantEntity({
-    entity: info.row.original,
-    params: { ...params },
-    privilege: 'tenant.sbe.ods:read',
-    route: odsRoute,
-  });
-  const actions = {
-    ...(View ? { View } : undefined),
-  };
-  return (
-    <HStack justify="space-between">
-      <OdsLink id={info.row.original.id} query={entities} />
-      <TableRowActions actions={actions} />
-    </HStack>
-  );
-};
+import { NameCell } from './NameCell';
 
 export const OdssPage = () => {
   const params = useParams() as {
@@ -55,7 +24,7 @@ export const OdssPage = () => {
         columns={[
           {
             accessorKey: 'displayName',
-            cell: NameCell,
+            cell: NameCell(params),
             header: () => 'Name',
           },
           {

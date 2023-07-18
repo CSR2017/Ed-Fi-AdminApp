@@ -57,7 +57,6 @@ export const EditApplication = (props: { application: GetApplicationDto }) => {
     resolver,
     defaultValues,
   });
-  console.log(watch('educationOrganizationId'), getValues());
   return edorgs.data && claimsets.data ? (
     <form
       onSubmit={handleSubmit((data) => {

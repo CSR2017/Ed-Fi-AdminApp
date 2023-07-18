@@ -36,19 +36,19 @@ import { FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight } from '
  * - Sorting is done automatically. The `accessorKey` or `accessorFn` column attributes therefore need to yield the value to be sorted. For example, you wouldn't want to display the `displayName` of a relation but sort on their `id`.
  *   - Use the `getRelationDisplayName()` helper function to conveniently build a `accessorFn` which returns the display value.
  * - The `data` and `columns` props are passed through to react-table unchanged, so feel free to use the full react-table API.
- * 
+ *
  * @example <caption>column config for basic text value</caption>
  * ({
  *   accessorKey: 'name',
  *   header: () => 'Name',
  * })
- * 
+ *
  * @example <caption>Column config for transformed value</caption>
  * ({
  *   accessorFn: (info) => shortDate(info.createdDate),
  *   header: () => 'Created Date',
  * })
- * 
+ *
  * @example <caption>Column config for custom cell</caption>
  * // Make sure to put the transformation in the accessor so that it gets used for sorting, even if you also have a custom renderer.
  * ({
@@ -58,7 +58,7 @@ import { FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight } from '
      ),
  *   header: () => 'Created Date',
  * })
- * 
+ *
  * @example <caption>Column config for basic text value</caption>
  * ({
  *     accessorKey: 'name',
@@ -69,9 +69,11 @@ export function DataTable<T extends object>(props: {
   data: T[] | IterableIterator<T>;
   columns: ColumnDef<T>[];
   enableRowSelection?: boolean;
+  pageSizes?: number[];
 }) {
   const data = useMemo(() => [...props.data], [props.data]);
   const columns = props.columns;
+  const pageSizes = props.pageSizes ?? [10, 25, 50, 100];
 
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -89,6 +91,11 @@ export function DataTable<T extends object>(props: {
     getPaginationRowModel: getPaginationRowModel(),
     enableMultiRowSelection: false,
     debugTable: false,
+    initialState: {
+      pagination: {
+        pageSize: pageSizes[0],
+      },
+    },
   });
 
   return (
@@ -143,7 +150,7 @@ export function DataTable<T extends object>(props: {
           })}
         </Tbody>
       </Table>
-      {table.getPrePaginationRowModel().rows.length > 10 ? (
+      {table.getPrePaginationRowModel().rows.length > Math.min(...pageSizes) ? (
         <HStack justify="center" p={4}>
           <ButtonGroup size="sm" variant="outline">
             <Button
@@ -194,7 +201,7 @@ export function DataTable<T extends object>(props: {
               table.setPageSize(Number(e.target.value));
             }}
           >
-            {[10, 25, 50, 100].map((pageSize) => (
+            {pageSizes.map((pageSize) => (
               <option key={pageSize} value={pageSize}>
                 Show {pageSize}
               </option>

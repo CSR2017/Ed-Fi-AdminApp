@@ -31,7 +31,7 @@ const randomInt = (min: number, max: number): number => {
 
 const backendDomain = config.YOPASS_URL;
 
-export const postYopassSecret = async (body: PostApplicationResponseDto) => {
+export const postYopassSecret = async (body: PostApplicationResponseDto & { url: string }) => {
   const pwd = randomString();
   const yopassBody = {
     expiration: 7 * 24 * 60 * 60,
@@ -40,7 +40,10 @@ export const postYopassSecret = async (body: PostApplicationResponseDto) => {
 ${body.key}
 
 SECRET:
-${body.secret}`,
+${body.secret}
+
+URL:
+${body.url}`,
       pwd
     ),
     one_time: true,

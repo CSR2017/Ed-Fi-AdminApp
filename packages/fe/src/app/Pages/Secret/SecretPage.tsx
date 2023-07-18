@@ -23,7 +23,11 @@ const placeholder = `KEY:
 123abc123abc
 
 SECRET:
-123abc123abc123abc123abc`;
+123abc123abc123abc123abc
+
+URL:
+https://gbes-infinite-campus.mth-dev-61a.eaedfi.edanalytics.org/
+`;
 
 export const SecretPage = () => {
   const params = useParams();
@@ -51,7 +55,7 @@ export const SecretPage = () => {
   }, [uuid, key, show]);
   return (
     <VStack p={10}>
-      <Box w="100%" maxW="40em">
+      <Box w="100%" maxW="60em">
         <Heading mb={4} fontSize="xl">
           Retrieve credentials
         </Heading>
@@ -134,6 +138,7 @@ export const SecretPage = () => {
                     show
                       ? {}
                       : {
+                          userSelect: 'none',
                           opacity: '0.7',
                           filter: 'blur(0.5rem)',
                         }

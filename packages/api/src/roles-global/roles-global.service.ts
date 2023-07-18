@@ -23,11 +23,6 @@ export class RolesGlobalService {
     if (validPrivileges.length !== uniqueReqPrivileges.length) {
       throw new BadRequestException('Invalid privileges');
     }
-    if (createRoleDto.type !== RoleType.UserTenant) {
-      throw new BadRequestException(
-        `Attempting to update invalid role type (${createRoleDto.type})`
-      );
-    }
     return this.rolesRepository.save({
       tenantId: createRoleDto.tenantId,
       type: createRoleDto.type,

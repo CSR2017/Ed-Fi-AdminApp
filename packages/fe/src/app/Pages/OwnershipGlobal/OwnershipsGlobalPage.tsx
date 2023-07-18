@@ -1,15 +1,15 @@
-import { Button, HStack } from '@chakra-ui/react';
+import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetOwnershipDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
-import { BiPlus } from 'react-icons/bi';
-import { Link as RouterLink } from 'react-router-dom';
 import { ownershipQueries, roleQueries, tenantQueries } from '../../api';
-import { AuthorizeComponent, globalOwnershipAuthConfig } from '../../helpers';
+import { ActionBarActions } from '../../helpers';
 import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { OwnershipGlobalLink, TenantLink } from '../../routes';
+import { RoleGlobalLink } from '../../routes/role-global.routes';
 import { PageTemplate } from '../PageTemplate';
+import { useMultipleOwnershipGlobalActions } from './useMultipleOwnershipGlobalActions';
 import { useOwnershipGlobalActions } from './useOwnershipGlobalActions';
 
 const OwnershipsNameCell = (info: CellContext<GetOwnershipDto, unknown>) => {
@@ -27,24 +27,9 @@ export const OwnershipsGlobalPage = () => {
   const ownerships = ownershipQueries.useAll({});
   const roles = roleQueries.useAll({});
   const tenants = tenantQueries.useAll({});
-
+  const actions = useMultipleOwnershipGlobalActions();
   return (
-    <PageTemplate
-      title="Resource ownerships"
-      actions={
-        <AuthorizeComponent config={globalOwnershipAuthConfig('ownership:create')}>
-          <RouterLink
-            style={{ display: 'flex' }}
-            title="Grant new tenant resource ownership"
-            to={`/ownerships/create`}
-          >
-            <Button as="div" leftIcon={<BiPlus />}>
-              Grant new
-            </Button>
-          </RouterLink>
-        </AuthorizeComponent>
-      }
-    >
+    <PageTemplate title="Resource ownerships" actions={<ActionBarActions actions={actions} />}>
       <DataTable
         data={Object.values(ownerships?.data || {})}
         columns={[
@@ -63,7 +48,7 @@ export const OwnershipsGlobalPage = () => {
             id: 'role',
             accessorFn: (info) => getRelationDisplayName(info.roleId, roles),
             header: () => 'Role',
-            cell: (info) => getRelationDisplayName(info.row.original.roleId, roles),
+            cell: (info) => <RoleGlobalLink id={info.row.original.roleId} query={roles} />,
           },
           {
             id: 'resource',

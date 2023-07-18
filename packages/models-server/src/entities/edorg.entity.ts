@@ -63,6 +63,9 @@ export class Edorg extends EntityBase implements IEdorg {
   @Column()
   nameOfInstitution: string;
 
+  @Column({ nullable: true })
+  shortNameOfInstitution: string | null;
+
   @Column({ type: 'varchar' })
   discriminator: EdorgType;
 }

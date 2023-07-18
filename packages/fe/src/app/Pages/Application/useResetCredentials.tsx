@@ -17,6 +17,7 @@ import {
   Spinner,
   Text,
   useClipboard,
+  useToast,
 } from '@chakra-ui/react';
 import { GetApplicationDto } from '@edanalytics/models';
 import { BiShieldX } from 'react-icons/bi';
@@ -28,6 +29,7 @@ export const useResetCredentials = (props: {
   tenantId: undefined | number | string;
 }) => {
   const { application, sbeId, tenantId } = props;
+  const toast = useToast();
 
   const clipboard = useClipboard('');
 
@@ -47,7 +49,14 @@ export const useResetCredentials = (props: {
         <Button
           leftIcon={resetCreds.isLoading ? <Spinner size="sm" /> : <BiShieldX />}
           onClick={() => {
-            resetCreds.mutate(application);
+            resetCreds.mutateAsync(application).catch((err) => {
+              toast({
+                description: err?.message,
+                title: 'Reset failed',
+                isClosable: true,
+                duration: 10000,
+              });
+            });
           }}
         >
           Reset credentials

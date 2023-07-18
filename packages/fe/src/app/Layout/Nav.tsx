@@ -2,55 +2,94 @@ import { Box, Text, useBoolean } from '@chakra-ui/react';
 import { GetTenantDto } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
 import { Select } from 'chakra-react-select';
+import { atom, useAtom } from 'jotai';
 import Cookies from 'js-cookie';
 import { Resizable } from 're-resizable';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { BsPerson, BsPersonFill } from 'react-icons/bs';
 import { useMatches, useNavigate, useParams } from 'react-router-dom';
 import { useMyTenants } from '../api';
-import { AuthorizeComponent, authorize, globalTenantAuthConfig } from '../helpers';
+import {
+  authorize,
+  globalOwnershipAuthConfig,
+  globalSbeAuthConfig,
+  globalTenantAuthConfig,
+  globalUserAuthConfig,
+  usePrivilegeCacheForConfig,
+} from '../helpers';
 import { GlobalNav } from './GlobalNav';
 import { NavButton } from './NavButton';
 import { TenantNav } from './TenantNav';
 
+export const asTenantIdAtom = atom<number | undefined>(undefined);
+
 export const Nav = () => {
   const params = useParams();
   const defaultTenant: any = params?.asId ?? Cookies.get('defaultTenant');
-  const [tenantId, setTenantId] = useState(
-    typeof defaultTenant === 'string' && defaultTenant !== 'undefined' && defaultTenant !== 'NaN'
-      ? Number(defaultTenant)
-      : undefined
-  );
+  const [tenantId, setTenantId] = useAtom(asTenantIdAtom);
+
   const tenants = useMyTenants();
   const currentMatches = useMatches();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const tenantAuthConfig = globalTenantAuthConfig('tenant:read');
+  const globalAuthConfigs = [
+    globalTenantAuthConfig('tenant:read'),
+    globalOwnershipAuthConfig('ownership:read'),
+    globalUserAuthConfig('user:read'),
+    globalSbeAuthConfig('__filtered__', 'sbe:read'),
+  ];
+  usePrivilegeCacheForConfig(globalAuthConfigs);
 
-  const hasGlobalTenantsRead = authorize({
-    queryClient,
-    config: tenantAuthConfig,
-  });
+  const hasGlobalPrivileges = globalAuthConfigs.some((config) =>
+    authorize({
+      queryClient,
+      config,
+    })
+  );
   const selectedTenant = tenantId === undefined ? undefined : tenants.data?.[tenantId];
+  const isInTenantContext = currentMatches.some((m) => m.pathname.startsWith('/as/'));
+  const tenantsCount = Object.keys(tenants.data || {}).length;
+  const firstTenantId: string | undefined = Object.keys(tenants.data || {})?.[0];
 
+  // Set initial tenantId
+  useEffect(() => {
+    setTenantId(
+      typeof defaultTenant === 'string' && defaultTenant !== 'undefined' && defaultTenant !== 'NaN'
+        ? Number(defaultTenant)
+        : undefined
+    );
+  }, []);
+
+  // Keep cookie in sync with JS state
   useEffect(() => {
     Cookies.set('defaultTenant', String(tenantId));
   }, [tenantId]);
 
-  const isInTenantContext = currentMatches.some((m) => m.pathname.startsWith('/as/'));
   useEffect(() => {
-    if (String(tenantId) !== params.asId && isInTenantContext) {
+    if (
+      // if we're on a tenant route
+      params.asId &&
+      // and tenant state isn't synced with it yet
+      String(tenantId) !== params.asId
+    ) {
+      // then sync it up
       setTenantId(Number(params.asId));
     }
-  }, [tenantId, currentMatches, navigate, params.asId, isInTenantContext]);
+  }, [tenantId, currentMatches, setTenantId, params.asId]);
 
-  const tenantsCount = Object.keys(tenants.data || {}).length;
-  const firstTenantId: string | undefined = Object.keys(tenants.data || {})?.[0];
   useEffect(() => {
-    if (tenantsCount === 1 && !hasGlobalTenantsRead && params.asId === undefined) {
+    if (
+      // if you only have one tenant
+      tenantsCount === 1 &&
+      // and you don't have any global privileges
+      !hasGlobalPrivileges &&
+      // and your tenant isn't already set
+      params.asId === undefined
+    ) {
+      // then set it
       setTenantId(Number(firstTenantId));
     }
-  }, [tenantsCount, firstTenantId, hasGlobalTenantsRead, params.asId]);
+  }, [tenantsCount, firstTenantId, hasGlobalPrivileges, params.asId, setTenantId]);
 
   const [isResizing, setIsResizing] = useBoolean(false);
 
@@ -73,7 +112,7 @@ export const Nav = () => {
       maxWidth="min(40em, 80%)"
       as={Resizable}
     >
-      {Object.keys(tenants.data ?? {}).length > 1 || hasGlobalTenantsRead ? (
+      {Object.keys(tenants.data ?? {}).length > 1 || hasGlobalPrivileges ? (
         <Box mb={3} px={3}>
           <Select
             value={
@@ -95,7 +134,7 @@ export const Nav = () => {
             onChange={(option) => {
               const value = option?.value ?? undefined;
               const newTenantId = value === undefined ? undefined : Number(value);
-              if (newTenantId !== undefined && isInTenantContext) {
+              if (newTenantId !== undefined) {
                 navigate(`/as/${newTenantId}`);
               } else {
                 if (isInTenantContext) {
@@ -140,6 +179,7 @@ export const Nav = () => {
               container: (styles) => ({
                 ...styles,
                 bg: 'white',
+                zIndex: 3,
               }),
               dropdownIndicator: (styles) => ({
                 ...styles,
@@ -161,30 +201,7 @@ export const Nav = () => {
           isActive: currentMatches.some((m) => m.pathname.startsWith('/account')),
         }}
       />
-      {tenantId === undefined ? (
-        <AuthorizeComponent
-          config={{
-            privilege: 'sbe:read',
-            subject: {
-              id: '__filtered__',
-            },
-          }}
-        >
-          <GlobalNav />
-        </AuthorizeComponent>
-      ) : (
-        <AuthorizeComponent
-          config={{
-            privilege: 'tenant.sbe:read',
-            subject: {
-              tenantId,
-              id: '__filtered__',
-            },
-          }}
-        >
-          <TenantNav tenantId={String(tenantId)} />
-        </AuthorizeComponent>
-      )}
+      {tenantId === undefined ? <GlobalNav /> : <TenantNav tenantId={String(tenantId)} />}
     </Box>
   );
 };

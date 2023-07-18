@@ -39,13 +39,13 @@ export const rolesGlobalRoute: RouteObject = {
 };
 
 export const RoleGlobalLink = (props: {
-  id: number | undefined;
+  id: number | undefined | null;
   query: UseQueryResult<Record<string | number, GetRoleDto>, unknown>;
 }) => {
   const role = getEntityFromQuery(props.id, props.query);
   return role ? (
     <Link as="span">
-      <RouterLink title="Go to roleglobal" to={`/roles/${role.id}`}>
+      <RouterLink title="Go to roleglkobal" to={`/roles/${role.id}`}>
         {getRelationDisplayName(role.id, props.query)}
       </RouterLink>
     </Link>

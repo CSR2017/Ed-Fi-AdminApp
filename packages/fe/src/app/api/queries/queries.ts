@@ -15,7 +15,6 @@ import {
   OperationResultDto,
   PostApplicationForm,
   PostClaimsetDto,
-  PostEdorgDto,
   PostOdsDto,
   PostOwnershipDto,
   PostRoleDto,
@@ -28,7 +27,6 @@ import {
   PutApplicationDto,
   PutApplicationForm,
   PutClaimsetDto,
-  PutEdorgDto,
   PutOdsDto,
   PutOwnershipDto,
   PutSbeAdminApi,
@@ -38,8 +36,6 @@ import {
   PutUserDto,
   PutUserTenantMembershipDto,
   PutVendorDto,
-  SbeCheckConnectionDto,
-  SbeRefreshResourcesDto,
   SpecificIds,
 } from '@edanalytics/models';
 import {
@@ -56,6 +52,7 @@ import { ClassConstructor } from 'class-transformer';
 import kebabCase from 'kebab-case';
 import path from 'path-browserify';
 import { apiClient, methods } from '../methods';
+import { useAuthorize, usePrivilegeCacheForConfig } from '../../helpers';
 
 const baseUrl = '';
 
@@ -120,6 +117,7 @@ function makeQueries<
   getDto: ClassConstructor<GetType>;
   putDto: ClassConstructor<PutType>;
   postDto: ClassConstructor<PostType>;
+  authorizeById: boolean;
   includeSbe?: IncludeSbe;
   includeTenant?: IncludeTenant;
   idPropertyKey?: GetType extends { id: number | string } ? undefined : IdType;
@@ -128,12 +126,14 @@ function makeQueries<
     args: {
       id: number | string;
       enabled?: boolean;
+      optional?: boolean | undefined;
     } & SbeParams &
       TenantParams
   ) => UseQueryResult<GetType, unknown>;
   useAll: (
     args: {
       enabled?: boolean;
+      optional?: boolean | undefined;
     } & SbeParams &
       TenantParams
   ) => UseQueryResult<Record<string | number, GetType>, unknown>;
@@ -167,10 +167,11 @@ function makeQueries<
   getDto: ClassConstructor<GetType>;
   putDto: ClassConstructor<PutType>;
   postDto: ClassConstructor<PostType>;
+  authorizeById: boolean;
   includeSbe?: boolean;
   idPropertyKey?: GetType extends { id: number | string } ? undefined : IdType;
 }) {
-  const { name, getDto, putDto, postDto, includeSbe, idPropertyKey } = args;
+  const { name, getDto, putDto, postDto, includeSbe, idPropertyKey, authorizeById } = args;
   const kebabCaseName = kebabCase(name).slice(1);
   return {
     useOne: (args: {
@@ -178,9 +179,22 @@ function makeQueries<
       tenantId?: number | string;
       sbeId?: number | string;
       enabled?: boolean;
-    }) =>
-      useQuery({
-        enabled: args.enabled === undefined || args.enabled,
+      optional?: boolean | undefined;
+    }) => {
+      const privilegeCode = `${args.tenantId === undefined ? '' : 'tenant.'}${
+        args.sbeId === undefined ? '' : 'sbe.'
+      }${kebabCaseName === 'application' ? '.edorg' : ''}${kebabCaseName}:read` as PrivilegeCode;
+      const isAuthd = useAuthorize({
+        privilege: privilegeCode,
+        subject: {
+          id: authorizeById ? args.id : '__filtered__',
+          sbeId: args.sbeId === undefined ? undefined : Number(args.sbeId),
+          tenantId: args.tenantId === undefined ? undefined : Number(args.tenantId),
+        },
+      });
+      return useQuery({
+        enabled:
+          (args.enabled === undefined || args.enabled) && (isAuthd || args.optional !== true),
         queryKey: tenantKey(
           [
             ...(includeSbe ? ['sbes', String(args.sbeId)] : []),
@@ -190,30 +204,65 @@ function makeQueries<
           ],
           args.tenantId
         ),
-        queryFn: () =>
-          methods.getOne(
-            tenantUrl(
-              `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${args.id}`,
-              args.tenantId
-            ),
-            getDto
-          ),
-      }),
-    useAll: (args: { tenantId?: number | string; sbeId?: number | string; enabled?: boolean }) =>
-      useQuery({
-        enabled: args.enabled === undefined || args.enabled,
+        queryFn: async () => {
+          const url = tenantUrl(
+            `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${args.id}`,
+            args.tenantId
+          );
+          try {
+            return await methods.getOne(url, getDto);
+          } catch (HttpException) {
+            if (!args.optional) throw HttpException;
+            console.log('Query failed: ' + url);
+            return null;
+          }
+        },
+      });
+    },
+    useAll: (args: {
+      tenantId?: number | string;
+      sbeId?: number | string;
+      enabled?: boolean;
+      optional?: boolean | undefined;
+    }) => {
+      const privilegeCode = `${args.tenantId === undefined ? '' : 'tenant.'}${
+        args.sbeId === undefined ? '' : 'sbe.'
+      }${kebabCaseName === 'application' ? 'edorg.' : ''}${kebabCaseName}:read` as PrivilegeCode;
+      const isAuthd = useAuthorize({
+        privilege: privilegeCode,
+        subject: {
+          id: '__filtered__',
+          sbeId: args.sbeId === undefined ? undefined : Number(args.sbeId),
+          tenantId: args.tenantId === undefined ? undefined : Number(args.tenantId),
+        },
+      });
+      return useQuery({
+        enabled:
+          (args.enabled === undefined || args.enabled) && (isAuthd || args.optional !== true),
         queryKey: tenantKey(
           [...(includeSbe ? ['sbes', String(args.sbeId)] : []), `${kebabCaseName}s`, 'list'],
           args.tenantId
         ),
-        queryFn: () =>
-          methods.getManyMap(
-            tenantUrl(`${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s`, args.tenantId),
-            getDto,
-            undefined,
-            idPropertyKey ?? ('id' as keyof GetType)
-          ),
-      }),
+        queryFn: async () => {
+          const url = tenantUrl(
+            `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s`,
+            args.tenantId
+          );
+          try {
+            return await methods.getManyMap(
+              url,
+              getDto,
+              undefined,
+              idPropertyKey ?? ('id' as keyof GetType)
+            );
+          } catch (HttpException) {
+            if (!args.optional) throw HttpException;
+            console.log('Query failed: ' + url);
+            return {};
+          }
+        },
+      });
+    },
     usePut: (args: {
       tenantId?: number | string;
       sbeId?: number | string;
@@ -309,15 +358,17 @@ function makeQueries<
 
 export const edorgQueries = makeQueries({
   name: 'Edorg',
+  authorizeById: true,
   getDto: GetEdorgDto,
-  putDto: PutEdorgDto,
-  postDto: PostEdorgDto,
+  putDto: class Nothing {},
+  postDto: class Nothing {},
   includeSbe: true,
   includeTenant: TenantOptions.Optional,
 });
 
 export const odsQueries = makeQueries({
   name: 'Ods',
+  authorizeById: true,
   getDto: GetOdsDto,
   putDto: PutOdsDto,
   postDto: PostOdsDto,
@@ -327,6 +378,7 @@ export const odsQueries = makeQueries({
 
 export const ownershipQueries = makeQueries({
   name: 'Ownership',
+  authorizeById: false,
   getDto: GetOwnershipDto,
   putDto: PutOwnershipDto,
   postDto: PostOwnershipDto,
@@ -337,6 +389,7 @@ export const ownershipQueries = makeQueries({
 // TODO make it possible to only create some of the verbs (this one is read-only)
 export const privilegeQueries = makeQueries({
   name: 'Privilege',
+  authorizeById: false,
   getDto: GetPrivilegeDto,
   putDto: GetPrivilegeDto,
   postDto: GetPrivilegeDto,
@@ -346,6 +399,7 @@ export const privilegeQueries = makeQueries({
 
 export const roleQueries = makeQueries({
   name: 'Role',
+  authorizeById: false,
   getDto: GetRoleDto,
   putDto: class Nothing {},
   postDto: PostRoleDto,
@@ -355,6 +409,7 @@ export const roleQueries = makeQueries({
 
 export const sbeQueries = makeQueries({
   name: 'Sbe',
+  authorizeById: true,
   getDto: GetSbeDto,
   putDto: class Nothing {},
   postDto: PostSbeDto,
@@ -364,6 +419,7 @@ export const sbeQueries = makeQueries({
 
 export const tenantQueries = makeQueries({
   name: 'Tenant',
+  authorizeById: false,
   getDto: GetTenantDto,
   putDto: PutTenantDto,
   postDto: PostTenantDto,
@@ -373,6 +429,7 @@ export const tenantQueries = makeQueries({
 
 export const userQueries = makeQueries({
   name: 'User',
+  authorizeById: false,
   getDto: GetUserDto,
   putDto: PutUserDto,
   postDto: PostUserDto,
@@ -382,6 +439,7 @@ export const userQueries = makeQueries({
 
 export const userTenantMembershipQueries = makeQueries({
   name: 'UserTenantMembership',
+  authorizeById: false,
   getDto: GetUserTenantMembershipDto,
   putDto: PutUserTenantMembershipDto,
   postDto: PostUserTenantMembershipDto,
@@ -391,6 +449,7 @@ export const userTenantMembershipQueries = makeQueries({
 
 export const vendorQueries = makeQueries({
   name: 'Vendor',
+  authorizeById: false,
   getDto: GetVendorDto,
   putDto: PutVendorDto,
   postDto: PostVendorDto,
@@ -400,6 +459,7 @@ export const vendorQueries = makeQueries({
 
 export const applicationQueries = makeQueries({
   name: 'Application',
+  authorizeById: true,
   getDto: GetApplicationDto,
   putDto: PutApplicationForm,
   postDto: PostApplicationForm,
@@ -409,6 +469,7 @@ export const applicationQueries = makeQueries({
 
 export const claimsetQueries = makeQueries({
   name: 'Claimset',
+  authorizeById: false,
   getDto: GetClaimsetDto,
   putDto: PutClaimsetDto,
   postDto: PostClaimsetDto,
@@ -580,19 +641,21 @@ export function usePrivilegeCache<
   }
 >(config: ConfigType[]) {
   return useQueries({
-    queries: config.map((c) => ({
-      staleTime: 15 * 1000,
-      queryKey: ['authorizations', c.tenantId, c.sbeId, c.privilege],
-      queryFn: () =>
-        apiClient
-          .get(
-            `/auth/authorizations/${c.privilege}/${c.tenantId === undefined ? '' : c.tenantId}${
-              c.sbeId === undefined ? '' : `?sbeId=${c.sbeId}`
-            }`
-          )
-          .then((res) => {
-            return (Array.isArray(res) ? new Set(res) : res) as SpecificIds | true | false;
-          }),
-    })),
+    queries: config.map((c) => {
+      return {
+        staleTime: 15 * 1000,
+        queryKey: ['authorizations', c.tenantId, c.sbeId, c.privilege],
+        queryFn: () =>
+          apiClient
+            .get(
+              `/auth/authorizations/${c.privilege}/${c.tenantId === undefined ? '' : c.tenantId}${
+                c.sbeId === undefined ? '' : `?sbeId=${c.sbeId}`
+              }`
+            )
+            .then((res) => {
+              return (Array.isArray(res) ? new Set(res) : res) as SpecificIds | true | false;
+            }),
+      };
+    }),
   });
 }

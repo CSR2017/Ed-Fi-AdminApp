@@ -63,7 +63,7 @@ export const useOwnershipGlobalActions = (ownership: GetOwnershipDto | undefined
           return (
             <AuthorizeComponent
               config={{
-                privilege: 'ownership:update',
+                privilege: 'ownership:delete',
                 subject: {
                   id: ownership.id,
                 },

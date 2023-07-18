@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { ownershipQueries, roleQueries, tenantQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers';
 import { TenantLink } from '../../routes';
+import { RoleGlobalLink } from '../../routes/role-global.routes';
 
 export const ViewOwnershipGlobal = () => {
   const params = useParams() as {
@@ -29,7 +30,7 @@ export const ViewOwnershipGlobal = () => {
           : '-'}
       </Text>
       <FormLabel as="p">Role</FormLabel>
-      <Text>{getRelationDisplayName(ownership.roleId, roles)}</Text>
+      <RoleGlobalLink id={ownership.roleId} query={roles} />
     </>
   ) : null;
 };

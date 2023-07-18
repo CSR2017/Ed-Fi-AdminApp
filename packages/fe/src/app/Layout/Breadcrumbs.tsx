@@ -7,11 +7,12 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { Link as RouterLink, generatePath, useMatches } from 'react-router-dom';
+import { Link as RouterLink, generatePath, useMatches, useParams } from 'react-router-dom';
 import { flatRoutes, routes } from '../routes';
 
 export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
   const matches = useMatches();
+  const params = useParams() as { asId?: string };
   const lastMatch = matches[matches.length - 1];
   const breadcrumbs = flatRoutes
     .filter((m) => m.path && lastMatch?.handle?.path?.startsWith(m.path) && m.handle?.crumb)
@@ -31,6 +32,8 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
           terminalItemRef?.innerText === 'Home'
             ? 'Starting Blocks'
             : terminalItemRef?.innerText + ' | Starting Blocks';
+      } else {
+        document.title = 'Starting Blocks';
       }
     }, 500);
     return () => {
@@ -51,7 +54,7 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
       {...props}
     >
       <BreadcrumbItem>
-        <BreadcrumbLink as={RouterLink} to={'/'}>
+        <BreadcrumbLink as={RouterLink} to={params.asId ? `/as/${params.asId}` : '/'}>
           Home
         </BreadcrumbLink>
       </BreadcrumbItem>
@@ -60,7 +63,7 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
         const path = route.path!;
         const to = generatePath(path, lastMatch.params);
         return (
-          <BreadcrumbItem key={to}>
+          <BreadcrumbItem key={to + i}>
             <BreadcrumbLink
               ref={(newRef) => {
                 i === breadcrumbs.length - 1 && setTerminalItemRef(newRef);

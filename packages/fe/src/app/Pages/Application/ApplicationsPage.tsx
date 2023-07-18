@@ -9,6 +9,7 @@ import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { ApplicationLink, ClaimsetLink, EdorgLink, applicationsRoute } from '../../routes';
 import { PageTemplate } from '../PageTemplate';
 import { useApplicationsActions } from './useApplicationActions';
+import { NameCell } from './NameCell';
 
 export const ApplicationsPage = () => {
   const params = useParams() as { sbeId: string; asId: string };
@@ -66,11 +67,7 @@ export const ApplicationsPage = () => {
         columns={[
           {
             accessorKey: 'displayName',
-            cell: (info) => (
-              <HStack justify="space-between">
-                <ApplicationLink id={info.row.original.id} query={applications} />
-              </HStack>
-            ),
+            cell: NameCell({ asId: params.asId, sbeId: params.sbeId }),
             header: () => 'Name',
           },
           {

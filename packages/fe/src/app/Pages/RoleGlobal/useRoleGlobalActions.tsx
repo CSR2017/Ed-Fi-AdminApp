@@ -5,9 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { roleQueries } from '../../api';
 import { AuthorizeComponent, globalRoleAuthConfig } from '../../helpers';
 import { ActionPropsConfirm, ActionsType, LinkActionProps } from '../../helpers/ActionsType';
+import { useSearchParamsObject } from '../../helpers/useSearch';
 
 export const useRoleGlobalActions = (role: GetRoleDto | undefined): ActionsType => {
   const navigate = useNavigate();
+  const search = useSearchParamsObject();
   const to = (id: number | string) => `/roles/${id}`;
   const deleteRole = roleQueries.useDelete({});
   return role === undefined
@@ -32,6 +34,7 @@ export const useRoleGlobalActions = (role: GetRoleDto | undefined): ActionsType 
           return (
             <AuthorizeComponent config={globalRoleAuthConfig(role.id, 'role:update')}>
               <props.children
+                isDisabled={search?.edit}
                 icon={BiEdit}
                 text="Edit"
                 title={'Edit ' + role.displayName}
