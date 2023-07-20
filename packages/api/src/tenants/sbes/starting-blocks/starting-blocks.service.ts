@@ -1,3 +1,5 @@
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
+import { validate, parse } from '@aws-sdk/util-arn-parser';
 import {
   GetApplicationDto,
   PostApplicationDto,
@@ -7,7 +9,6 @@ import {
   PutApplicationDto,
   PutClaimsetDto,
   PutVendorDto,
-  SbMetaEnv,
 } from '@edanalytics/models';
 import { Sbe } from '@edanalytics/models-server';
 import {
@@ -16,7 +17,6 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { aws4Interceptor } from 'aws4-axios';
 import axios, { AxiosError } from 'axios';
 import ClientOAuth2 from 'client-oauth2';
 import crypto from 'crypto';
@@ -116,29 +116,28 @@ export class StartingBlocksService implements IStartingBlocksService {
     return client;
   }
 
-  private getSbeLambdaClient(sbe: Sbe) {
+  private getSbeLambda(sbe: Sbe) {
     const { configPrivate, configPublic } = sbe;
-    const client = axios.create();
-    client.interceptors.request.use(
-      aws4Interceptor({
-        instance: client,
-        options: {
-          region: 'us-east-1',
-          service: 'lambda',
-        },
-        credentials:
-          configPublic.sbeMetaKey && configPrivate.sbeMetaSecret
-            ? {
-                accessKeyId: configPublic.sbeMetaKey,
-                secretAccessKey: configPrivate.sbeMetaSecret,
-              }
-            : undefined,
+    if (!validate(sbe.configPublic.sbeMetaArn ?? '')) {
+      throw new Error('Invalid ARN provided for Starting Blocks metadata function');
+    }
+    const arn = parse(sbe.configPublic.sbeMetaArn);
+    const client = new LambdaClient({
+      region: arn.region,
+      credentials:
+        configPublic.sbeMetaKey && configPrivate.sbeMetaSecret
+          ? {
+              accessKeyId: configPublic.sbeMetaKey,
+              secretAccessKey: configPrivate.sbeMetaSecret,
+            }
+          : undefined,
+    });
+    return client.send(
+      new InvokeCommand({
+        FunctionName: sbe.configPublic.sbeMetaArn,
+        InvocationType: 'RequestResponse',
       })
     );
-    client.interceptors.response.use((response) => {
-      return response.data;
-    });
-    return client;
   }
 
   async getVendors(sbeId: Sbe['id']) {
@@ -241,12 +240,14 @@ export class StartingBlocksService implements IStartingBlocksService {
   }
   async getSbMeta(sbeId: Sbe['id']) {
     const sbe = await this.sbesService.findOne(sbeId);
-    return this.getSbeLambdaClient(sbe)
-      .get<SbMetaEnv, SbMetaEnv>(sbe.configPublic.sbeMetaUrl)
+    return this.getSbeLambda(sbe)
+      .then((response) => {
+        return JSON.parse(Buffer.from(response.Payload).toString('utf8'));
+      })
       .catch((err) => {
         Logger.log(err);
-        if (err?.response?.data?.message) {
-          throw new Error(err.response.data.message);
+        if (err?.Message) {
+          throw new Error(err.Message);
         } else {
           throw err;
         }

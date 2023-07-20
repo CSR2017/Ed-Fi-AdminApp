@@ -15,7 +15,7 @@ export interface ISbeConfigPublic {
   adminApiUrl?: string;
   adminApiKey?: string;
   adminApiClientDisplayName?: string;
-  sbeMetaUrl?: string;
+  sbeMetaArn?: string;
   sbeMetaKey?: string;
 }
 

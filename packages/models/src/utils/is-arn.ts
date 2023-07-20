@@ -1,22 +1,14 @@
 import { registerDecorator } from 'class-validator';
+import { validate as validateArn } from '@aws-sdk/util-arn-parser';
 
 const validate = (value: any) => {
-  try {
-    const url = new URL(value);
-    if (url.hostname.replace(/\/$/, '').endsWith('.edanalytics.org')) {
-      return true;
-    } else {
-      return 'URL is not an edanalytics.org domain.';
-    }
-  } catch (UrlErr) {
-    return 'You need to supply a valid URL.';
-  }
+  return validateArn(value) || 'Invalid Amazon Resource Name';
 };
 
-export function IsEdanalyticsUrl() {
+export function IsArn() {
   return function (object: object, propertyName: string) {
     registerDecorator({
-      name: 'isEdanalyticsUrl',
+      name: 'isArn',
       target: object.constructor,
       propertyName: propertyName,
       options: {

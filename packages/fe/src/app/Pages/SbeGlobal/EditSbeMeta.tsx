@@ -22,7 +22,7 @@ export const EditSbeMeta = (props: { sbe: GetSbeDto }) => {
   const sbeFormDefaults: PutSbeMeta = {
     id: sbe.id,
     metaKey: sbe.configPublic?.sbeMetaKey,
-    metaUrl: sbe.configPublic?.sbeMetaUrl,
+    arn: sbe.configPublic?.sbeMetaArn,
   };
   const {
     register,
@@ -38,10 +38,10 @@ export const EditSbeMeta = (props: { sbe: GetSbeDto }) => {
         })
       )}
     >
-      <FormControl isInvalid={!!errors.metaUrl}>
-        <FormLabel>SB Meta URL</FormLabel>
-        <Input {...register('metaUrl')} placeholder="URL" />
-        <FormErrorMessage>{errors.metaUrl?.message}</FormErrorMessage>
+      <FormControl isInvalid={!!errors.arn}>
+        <FormLabel>SB Meta ARN</FormLabel>
+        <Input {...register('arn')} placeholder="arn:aws:lambda:us..." />
+        <FormErrorMessage>{errors.arn?.message}</FormErrorMessage>
       </FormControl>
       {import.meta.env.VITE_RUNNING_LOCALLY ? (
         <>

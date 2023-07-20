@@ -61,7 +61,7 @@ export class SbesGlobalService {
       configPublic: {
         ...old.configPublic,
         sbeMetaKey: updateDto.metaKey,
-        sbeMetaUrl: updateDto.metaUrl,
+        sbeMetaArn: updateDto.arn,
       },
       configPrivate: {
         ...old.configPrivate,

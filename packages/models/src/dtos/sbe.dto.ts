@@ -6,6 +6,7 @@ import { DtoGetBase, GetDto } from '../utils/get-base.dto';
 import { IsEdanalyticsUrl } from '../utils/is-edanalytics-url';
 import { makeSerializer } from '../utils/make-serializer';
 import { DtoPostBase, PostDto } from '../utils/post-base.dto';
+import { IsArn } from '../utils';
 export class GetSbeConfigPublic implements ISbeConfigPublic {
   @Expose()
   edfiHostname?: string;
@@ -16,7 +17,7 @@ export class GetSbeConfigPublic implements ISbeConfigPublic {
   @Expose()
   adminApiClientDisplayName?: string | undefined;
   @Expose()
-  sbeMetaUrl?: string;
+  sbeMetaArn?: string;
   @Expose()
   sbeMetaKey?: string;
   @Expose()
@@ -129,8 +130,9 @@ export class PutSbeMeta {
 
   @IsString()
   @IsOptional()
+  @IsArn()
   @Expose()
-  metaUrl?: string;
+  arn?: string;
 
   @IsString()
   @IsOptional()

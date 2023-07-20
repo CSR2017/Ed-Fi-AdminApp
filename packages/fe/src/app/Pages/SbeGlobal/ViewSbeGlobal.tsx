@@ -13,8 +13,8 @@ export const ViewSbeGlobal = (props: { sbe: GetSbeDto }) => {
       <Text>{sbe.configPublic?.adminApiKey}</Text>
       <FormLabel as="p">Admin API client name</FormLabel>
       <Text>{sbe.configPublic?.adminApiClientDisplayName}</Text>
-      <FormLabel as="p">SB metadata URL</FormLabel>
-      <Text>{sbe.configPublic?.sbeMetaUrl}</Text>
+      <FormLabel as="p">SB metadata ARN</FormLabel>
+      <Text>{sbe.configPublic?.sbeMetaArn}</Text>
       {sbe.configPublic?.sbeMetaKey ? (
         <>
           <FormLabel as="p">SB metadata key</FormLabel>
