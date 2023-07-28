@@ -450,7 +450,7 @@ Resources:
           Value: !Ref YopassUrl
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: DB_ENCRYPTION_SECRET
-          Value: !Sub '${EnvLabel}-DbEncryptionSecret'
+          Value: !Sub '${EnvLabel}-DBEncryptionSecret'
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: MY_URL
           Value: !Sub 'https://${DomainName}'
