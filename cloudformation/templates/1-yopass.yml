@@ -57,7 +57,7 @@ Resources:
   BackEndCodePipelineStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub 'https://${S3SourceBucket}.s3.amazonaws.com/cloudformation/templates/x-yopass-code-pipeline-be.yml'
+      TemplateURL: !Sub 'https://${S3SourceBucket}.s3.amazonaws.com/templates/x-yopass-code-pipeline-be.yml'
       Parameters:
         GitHubBranch: 'master'
         GitHubConnectionArn: !Ref GitHubConnectionArn
@@ -70,7 +70,7 @@ Resources:
   LambdaDdbStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub 'https://${S3SourceBucket}.s3.amazonaws.com/cloudformation/templates/x-yopass-lambda-dynamodb.yml'
+      TemplateURL: !Sub 'https://${S3SourceBucket}.s3.amazonaws.com/templates/x-yopass-lambda-dynamodb.yml'
       Parameters:
         EnvLabel: !Ref EnvLabel
         BuildNumber: !Ref BuildNumber

@@ -53,9 +53,6 @@ Parameters:
   UserPoolUrl:
     Description: Url For Validating User JWT values from an AWS Cognito Pool
     Type: String
-  SnowSecret:
-    Description: suffix portion of snowflake secret name in Secrets manager.  'EnvLabel-' will be prepended.
-    Type: String
   CodeEnv:
     Description: Environment string that dictates which local config file is in use
     Type: String
@@ -99,12 +96,15 @@ Resources:
                   - secretsmanager:UpdateSecret
                   - secretsmanager:DescribeSecret
                   - secretsmanager:GetSecretValue
-                  - secretsmanager:ListSecrets
                   - secretsmanager:TagResource
                   - secretsmanager:PutSecretValue
                 Effect: Allow
                 Resource:
                   - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${EnvLabel}-DBEncryptionSecret*'
+              - Action:
+                  - secretsmanager:listSecrets
+                Effect: Allow
+                Resource: '*'
             Version: '2012-10-17'
           PolicyName: !Sub ${EnvLabel}-DBEncryptionSecretPolicy
   DbEncryptionSecretLambda:
@@ -434,12 +434,6 @@ Resources:
           OptionName: STWK_REJECT_UNAUTHORIZED
           Value: 'true'
         - Namespace: aws:elasticbeanstalk:application:environment
-          OptionName: SNOW_SECRET
-          Value: !Sub '${EnvLabel}-${SnowSecret}'
-        - Namespace: aws:elasticbeanstalk:application:environment
-          OptionName: ACCESS_STUDENT_DATA_SECRET
-          Value: !Sub '${EnvLabel}-BulkExportApiKey'
-        - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: CODE_ENV
           Value: !Ref CodeEnv
         - Namespace: aws:elasticbeanstalk:application:environment
@@ -474,7 +468,7 @@ Resources:
           Value: !Ref x509Certificate
         - Namespace: aws:elbv2:listener:443
           OptionName: SSLPolicy
-          Value: ELBSecurityPolicy-FS-1-2-Res-2020-10
+          Value: ELBSecurityPolicy-TLS13-1-2-Res-2021-06
         - Namespace: aws:elasticbeanstalk:cloudwatch:logs
           OptionName: StreamLogs
           Value: true

@@ -40,7 +40,6 @@ Metadata:
           - UserPoolUrl
           - CodeEnv
           - AppLauncherUrl
-          - SnowSecret
           - YopassUrl
       - Label:
           default: Database (RDS Postgres) information
@@ -117,7 +116,7 @@ Parameters:
   DomainName:
     Type: String
     Description: Fully Qualified Domain Name for the environment
-    Default: dev.getpodium.org
+    Default: dev-admin.startingblocks.org
   WildcardDomain:
     Type: String
     Description: Accept requests from *.DomainName ?
@@ -138,7 +137,7 @@ Parameters:
   DBName:
     Description: 'Optional name of blank database to create when deploying the db instance.  Ignored if DBSnapshotIdentifier is set.'
     Type: String
-    Default: 'podium'
+    Default: 'sbaa'
   DBSnapshotIdentifier:
     Description: 'Optional name or Amazon Resource Name (ARN) of the DB snapshot from which you want to restore (leave blank to create an empty database).'
     Type: String
@@ -255,7 +254,7 @@ Parameters:
   HealthCheckPath:
     Description: Application path for the load balancer to determine application health
     Type: String
-    Default: /healthcheck
+    Default: /api/healthcheck
 
   UserPoolUrl:
     Description: Url For Validating User JWT values from an AWS Cognito Pool
@@ -266,18 +265,13 @@ Parameters:
   AppLauncherUrl:
     Description: Url for validating user JWT values against the app launcher API
     Type: String
-
-  SnowSecret:
-    Description: suffix portion of snowflake secret name in Secrets manager.  'EnvLabel-' will be prepended.
-    Type: String
-    Default: SC-State-Snowflake
   YopassUrl:
     Type: String
     Description: API Url for Yopass backend interactions.
   GitHubConnectionArn:
     Description: Can be found or created in CodePipeline console, settings, connections.
     Type: String
-    Default: arn:aws:codestar-connections:us-east-2:144785690742:connection/a914113f-864f-47ec-8b10-90b7324eb2c5
+    Default: arn:aws:codestar-connections:us-east-2:179685256884:connection/5b1234e6-559b-4118-a522-282a6d01970e
 
   BEGitHubRepo:
     Type: String
@@ -356,7 +350,6 @@ Resources:
         UserPoolUrl: !Ref UserPoolUrl
         CodeEnv: !Ref CodeEnv
         AppLauncherUrl: !Ref AppLauncherUrl
-        SnowSecret: !Ref SnowSecret
         YopassUrl: !Ref YopassUrl
         FrontEndUrl: !Sub 'https://${DomainName}'
         CRHelperLambdaArn: !GetAtt 'FrontEndS3CloudFrontStack.Outputs.CRHelperLayer'
