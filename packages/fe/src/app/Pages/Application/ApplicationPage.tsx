@@ -7,8 +7,41 @@ import { PageTemplate } from '../PageTemplate';
 import { EditApplication } from './EditApplication';
 import { ViewApplication } from './ViewApplication';
 import { useApplicationActions } from './useApplicationActions';
+import { ErrorBoundary } from 'react-error-boundary';
 
 export const ApplicationPage = () => {
+  return (
+    <PageTemplate
+      constrainWidth
+      title={
+        <ErrorBoundary fallbackRender={() => 'Application'}>
+          <ApplicationPageTitle />
+        </ErrorBoundary>
+      }
+      actions={<ApplicationPageActions />}
+    >
+      <ApplicationPageContent />
+    </PageTemplate>
+  );
+};
+
+export const ApplicationPageTitle = () => {
+  const params = useParams() as {
+    sbeId: string;
+    asId: string;
+    applicationId: string;
+  };
+
+  const application = applicationQueries.useOne({
+    id: params.applicationId,
+    sbeId: params.sbeId,
+    tenantId: params.asId,
+  }).data;
+
+  return <>{application?.displayName || 'Application'}</>;
+};
+
+export const ApplicationPageContent = () => {
   const params = useParams() as {
     sbeId: string;
     asId: string;
@@ -22,25 +55,33 @@ export const ApplicationPage = () => {
   }).data;
   const { edit } = useSearchParamsObject();
 
+  return application ? (
+    edit ? (
+      <EditApplication application={application} />
+    ) : (
+      <ViewApplication />
+    )
+  ) : null;
+};
+
+export const ApplicationPageActions = () => {
+  const params = useParams() as {
+    sbeId: string;
+    asId: string;
+    applicationId: string;
+  };
+
+  const application = applicationQueries.useOne({
+    id: params.applicationId,
+    sbeId: params.sbeId,
+    tenantId: params.asId,
+  }).data;
+
   const actions = useApplicationActions({
     application,
     sbeId: params.sbeId,
     tenantId: params.asId,
   });
 
-  return (
-    <PageTemplate
-      constrainWidth
-      title={application?.displayName || 'Application'}
-      actions={<ActionBarActions actions={_.omit(actions, 'View')} />}
-    >
-      {application ? (
-        edit ? (
-          <EditApplication application={application} />
-        ) : (
-          <ViewApplication />
-        )
-      ) : null}
-    </PageTemplate>
-  );
+  return <ActionBarActions actions={_.omit(actions, 'View')} />;
 };

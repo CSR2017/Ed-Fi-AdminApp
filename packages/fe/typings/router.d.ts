@@ -9,6 +9,7 @@ declare module 'react-router-dom' {
     data: unknown;
     handle: {
       crumb?: undefined | (() => React.ReactNode);
+      fallbackCrumb?: undefined | (() => React.ReactNode);
       path?: string;
     };
   }[];
@@ -17,6 +18,7 @@ declare module 'react-router-dom' {
       | undefined
       | {
           crumb?: undefined | (() => React.ReactNode);
+          fallbackCrumb?: undefined | (() => React.ReactNode);
         };
   }
   interface NonIndexRouteObject {
@@ -24,6 +26,7 @@ declare module 'react-router-dom' {
       | undefined
       | {
           crumb?: undefined | (() => React.ReactNode);
+          fallbackCrumb?: undefined | (() => React.ReactNode);
         };
   }
 }

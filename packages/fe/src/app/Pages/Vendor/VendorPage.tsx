@@ -1,32 +1,17 @@
-import { Button } from '@chakra-ui/react';
-import { BiEdit } from 'react-icons/bi';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { vendorQueries } from '../../api';
-import { AuthorizeComponent, useNavToParent } from '../../helpers';
+import { useSearchParamsObject } from '../../helpers/useSearch';
 import { PageTemplate } from '../PageTemplate';
 import { EditVendor } from './EditVendor';
 import { ViewVendor } from './ViewVendor';
-import { useSearchParamsObject } from '../../helpers/useSearch';
+import { ErrorBoundary } from 'react-error-boundary';
 
-export const VendorPage = () => {
-  const navigate = useNavigate();
-  const navToParentOptions = useNavToParent();
-
+export const VendorPageContent = () => {
   const params = useParams() as {
     asId: string;
     sbeId: string;
     vendorId: string;
   };
-  const tenantId = Number(params.asId);
-  const sbeId = Number(params.sbeId);
-  const id = Number(params.vendorId);
-  const deleteVendor = vendorQueries.useDelete({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-    callback: () => {
-      navigate(navToParentOptions);
-    },
-  });
   const vendor = vendorQueries.useOne({
     tenantId: params.asId,
     id: params.vendorId,
@@ -34,38 +19,34 @@ export const VendorPage = () => {
   }).data;
   const { edit } = useSearchParamsObject() as { edit?: boolean };
 
+  return vendor ? edit ? <EditVendor /> : <ViewVendor /> : null;
+};
+
+const VendorPageTitle = () => {
+  const params = useParams() as {
+    asId: string;
+    sbeId: string;
+    vendorId: string;
+  };
+  const vendor = vendorQueries.useOne({
+    tenantId: params.asId,
+    id: params.vendorId,
+    sbeId: params.sbeId,
+  }).data;
+  return <>{vendor?.company || 'Vendor'}</>;
+};
+
+export const VendorPage = () => {
   return (
     <PageTemplate
       constrainWidth
-      title={vendor?.company || 'Vendor'}
-      actions={
-        vendor ? (
-          <AuthorizeComponent
-            config={{
-              privilege: 'tenant.sbe.vendor:update',
-              subject: {
-                tenantId,
-                sbeId,
-                id,
-              },
-            }}
-          >
-            <Button
-              isDisabled={edit}
-              leftIcon={<BiEdit />}
-              onClick={() => {
-                navigate(
-                  `as/${params.asId}/sbes/${params.sbeId}/vendors/${params.vendorId}?edit=true`
-                );
-              }}
-            >
-              Edit
-            </Button>
-          </AuthorizeComponent>
-        ) : null
+      title={
+        <ErrorBoundary fallbackRender={() => 'Vendor'}>
+          <VendorPageTitle />
+        </ErrorBoundary>
       }
     >
-      {vendor ? edit ? <EditVendor /> : <ViewVendor /> : null}
+      <VendorPageContent />
     </PageTemplate>
   );
 };

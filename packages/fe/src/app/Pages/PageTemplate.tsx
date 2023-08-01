@@ -1,10 +1,11 @@
-import { Box, HStack, Heading } from '@chakra-ui/react';
+import { Alert, AlertIcon, Box, HStack, Heading, Text } from '@chakra-ui/react';
 import { ActionGroup } from '@edanalytics/common-ui';
 import { ReactNode } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 
 export const PageTemplate = (props: {
-  title: string;
-  children: ReactNode;
+  title: ReactNode;
+  children?: ReactNode;
   constrainWidth?: boolean;
   justifyActionsLeft?: boolean;
   actions?: ReactNode;
@@ -16,7 +17,7 @@ export const PageTemplate = (props: {
         borderBottom="1px solid"
         borderColor="gray.300"
         justify="space-between"
-        mb={10}
+        mb="2em"
         bg="gray.50"
         mx="-0.5rem"
         px="0.5rem"
@@ -24,11 +25,30 @@ export const PageTemplate = (props: {
         <Heading color="gray.700" size="page-heading">
           {props.title}
         </Heading>
-        <ActionGroup m={0} justifyContent={props.constrainWidth ? 'flex-end' : 'flex-start'}>
-          {props.actions}
-        </ActionGroup>
+        <ErrorBoundary
+          FallbackComponent={(arg: { error: { message: string } }) => (
+            <Text as="i" color="gray.500" fontSize="sm">
+              Unable to show actions
+            </Text>
+          )}
+        >
+          <ActionGroup m={0} justifyContent={props.constrainWidth ? 'flex-end' : 'flex-start'}>
+            {props.actions}
+          </ActionGroup>
+        </ErrorBoundary>
       </HStack>
-      {props.children}
+      <ErrorBoundary
+        FallbackComponent={(arg: { error: { message: string } }) => (
+          <Box mt="-1em" mx="-0.5rem">
+            <Alert status="error">
+              <AlertIcon />
+              {arg.error.message}
+            </Alert>
+          </Box>
+        )}
+      >
+        {props.children}
+      </ErrorBoundary>
     </Box>
   );
 };

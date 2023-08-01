@@ -34,7 +34,7 @@ export const applicationCreateRoute: RouteObject = {
 
 export const applicationRoute: RouteObject = {
   path: '/as/:asId/sbes/:sbeId/applications/:applicationId',
-  handle: { crumb: ApplicationBreadcrumb },
+  handle: { crumb: ApplicationBreadcrumb, fallbackCrumb: () => 'Application' },
 };
 export const applicationsIndexRoute: RouteObject = {
   path: '/as/:asId/sbes/:sbeId/applications/',

@@ -28,7 +28,7 @@ export const vendorIndexRoute: RouteObject = {
 
 export const vendorRoute: RouteObject = {
   path: '/as/:asId/sbes/:sbeId/vendors/:vendorId',
-  handle: { crumb: VendorBreadcrumb },
+  handle: { crumb: VendorBreadcrumb, fallbackCrumb: () => 'Vendor' },
 };
 export const vendorsIndexRoute: RouteObject = {
   path: '/as/:asId/sbes/:sbeId/vendors/',

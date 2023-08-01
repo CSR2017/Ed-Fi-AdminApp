@@ -1,12 +1,11 @@
-import { Box, Flex, HStack, VStack, Text } from '@chakra-ui/react';
+import { Box, Flex, HStack, Text, VStack } from '@chakra-ui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Outlet } from 'react-router-dom';
-import React from 'react';
+import { useMe } from '../api';
 import { AppBar } from './AppBar';
+import { AppBarPublic } from './AppBarPublic';
 import { Breadcrumbs } from './Breadcrumbs';
 import { Nav } from './Nav';
-import { useMe } from '../api';
-import { AppBarPublic } from './AppBarPublic';
 
 export const StandardLayout = () => {
   const queryClient = useQueryClient();
@@ -14,18 +13,10 @@ export const StandardLayout = () => {
   const isLoggedIn = !!me.data;
   const hasRole = !!me.data?.role;
 
-  const [err, setErr] = React.useState<null | any>(null);
-  if (err) {
-    throw err;
-  }
-
   queryClient.setDefaultOptions({
     queries: {
       staleTime: 5 * 60 * 1000,
       retry: false,
-      onError: (err) => {
-        setErr(err);
-      },
     },
   });
   return (

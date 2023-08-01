@@ -19,6 +19,7 @@ import {
   AuthorizationCache,
   Ids,
   isGlobalPrivilege,
+  sbeTenantPrivilegesMap,
 } from '@edanalytics/models';
 import { Edorg } from '@edanalytics/models-server';
 import { createEdorgCompositeNaturalKey } from '@edanalytics/models';
@@ -138,6 +139,33 @@ export function cacheAccordingToPrivileges(
       }
     });
   }
+}
+
+export function initializeSbePrivilegeCache(
+  cache: ITenantCache,
+  privileges: Set<PrivilegeCode>,
+  sbeId: number
+) {
+  Object.keys(sbeTenantPrivilegesMap).forEach((sbeTenantPrivilege: PrivilegeCode) => {
+    if (privileges.has(sbeTenantPrivilege)) {
+      if (!(sbeTenantPrivilege in cache)) {
+        cache[sbeTenantPrivilege] = {};
+      }
+      if (!(String(sbeId) in cache[sbeTenantPrivilege])) {
+        cache[sbeTenantPrivilege][sbeId] = new Set();
+      }
+    }
+  });
+}
+
+export function initializeBasePrivilegeCache(cache: ITenantCache, privileges: Set<PrivilegeCode>) {
+  Object.keys(sbeTenantPrivilegesMap).forEach((sbeTenantPrivilege: PrivilegeCode) => {
+    if (privileges.has(sbeTenantPrivilege)) {
+      if (!(sbeTenantPrivilege in cache)) {
+        cache[sbeTenantPrivilege] = new Set();
+      }
+    }
+  });
 }
 
 /**

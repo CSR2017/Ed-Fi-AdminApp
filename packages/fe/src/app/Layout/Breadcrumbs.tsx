@@ -9,6 +9,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Link as RouterLink, generatePath, useMatches, useParams } from 'react-router-dom';
 import { flatRoutes, routes } from '../routes';
+import { ErrorBoundary } from 'react-error-boundary';
 
 export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
   const matches = useMatches();
@@ -60,6 +61,7 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
       </BreadcrumbItem>
       {breadcrumbs.map((route, i) => {
         const Breadcrumb = route.handle.crumb!;
+        const FallbackBreadcrumb = route.handle.fallbackCrumb ?? ((() => '(error ocurred)') as any);
         const path = route.path!;
         const to = generatePath(path, lastMatch.params);
         return (
@@ -71,7 +73,9 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
               as={RouterLink}
               to={to}
             >
-              <Breadcrumb />
+              <ErrorBoundary FallbackComponent={() => <FallbackBreadcrumb />}>
+                <Breadcrumb />
+              </ErrorBoundary>
             </BreadcrumbLink>
           </BreadcrumbItem>
         );

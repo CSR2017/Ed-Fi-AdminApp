@@ -193,6 +193,7 @@ function makeQueries<
         },
       });
       return useQuery({
+        useErrorBoundary: true,
         enabled:
           (args.enabled === undefined || args.enabled) && (isAuthd || args.optional !== true),
         queryKey: tenantKey(
@@ -209,13 +210,7 @@ function makeQueries<
             `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${args.id}`,
             args.tenantId
           );
-          try {
-            return await methods.getOne(url, getDto);
-          } catch (HttpException) {
-            if (!args.optional) throw HttpException;
-            console.log('Query failed: ' + url);
-            return null;
-          }
+          return await methods.getOne(url, getDto);
         },
       });
     },
@@ -237,6 +232,7 @@ function makeQueries<
         },
       });
       return useQuery({
+        useErrorBoundary: true,
         enabled:
           (args.enabled === undefined || args.enabled) && (isAuthd || args.optional !== true),
         queryKey: tenantKey(
@@ -248,18 +244,12 @@ function makeQueries<
             `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s`,
             args.tenantId
           );
-          try {
-            return await methods.getManyMap(
-              url,
-              getDto,
-              undefined,
-              idPropertyKey ?? ('id' as keyof GetType)
-            );
-          } catch (HttpException) {
-            if (!args.optional) throw HttpException;
-            console.log('Query failed: ' + url);
-            return {};
-          }
+          return await methods.getManyMap(
+            url,
+            getDto,
+            undefined,
+            idPropertyKey ?? ('id' as keyof GetType)
+          );
         },
       });
     },

@@ -14,6 +14,7 @@ import {
   cacheAccordingToPrivileges,
   cacheEdorgPrivilegesDownward,
   cacheEdorgPrivilegesUpward,
+  initializeSbePrivilegeCache,
 } from './authorization/helpers';
 
 @Injectable()
@@ -165,6 +166,7 @@ export class AuthService {
           const [sbeId, myPrivileges] = sbePrivilegesEntries[is];
 
           cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe', sbeId);
+          initializeSbePrivilegeCache(cache, myPrivileges, sbeId);
           cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.vendor', true, sbeId);
           cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.claimset', true, sbeId);
           const sbeOdss = await this.odssRepository.findBy({ sbeId });

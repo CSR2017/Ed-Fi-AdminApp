@@ -5,6 +5,14 @@ import { PageTemplate } from '../PageTemplate';
 import { NameCell } from './NameCell';
 
 export const ClaimsetsPage = () => {
+  return (
+    <PageTemplate title="Claimsets">
+      <ClaimsetsPageContent />
+    </PageTemplate>
+  );
+};
+
+export const ClaimsetsPageContent = () => {
   const params = useParams() as { asId: string; sbeId: string };
   const claimsets = claimsetQueries.useAll({
     tenantId: params.asId,
@@ -12,21 +20,19 @@ export const ClaimsetsPage = () => {
   });
 
   return (
-    <PageTemplate title="Claimsets">
-      <DataTable
-        data={Object.values(claimsets?.data || {})}
-        columns={[
-          {
-            accessorKey: 'displayName',
-            cell: NameCell(params),
-            header: () => 'Name',
-          },
-          {
-            accessorKey: 'applicationsCount',
-            header: () => 'Applications count',
-          },
-        ]}
-      />
-    </PageTemplate>
+    <DataTable
+      data={Object.values(claimsets?.data || {})}
+      columns={[
+        {
+          accessorKey: 'displayName',
+          cell: NameCell(params),
+          header: () => 'Name',
+        },
+        {
+          accessorKey: 'applicationsCount',
+          header: () => 'Applications count',
+        },
+      ]}
+    />
   );
 };

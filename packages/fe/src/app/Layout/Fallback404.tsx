@@ -4,7 +4,7 @@ import { useRouteError } from 'react-router';
 export const ErrorFallback = () => {
   const message = (useRouteError() as Error)?.message ?? 'Not found';
   return (
-    <Box pt="30vh" textAlign="center">
+    <Box pt="30vh" textAlign="center" px="5em">
       <VStack
         borderRadius="4px"
         border="1px solid"

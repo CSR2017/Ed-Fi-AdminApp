@@ -28,7 +28,7 @@ export const claimsetIndexRoute: RouteObject = {
 
 export const claimsetRoute: RouteObject = {
   path: '/as/:asId/sbes/:sbeId/claimsets/:claimsetId',
-  handle: { crumb: ClaimsetBreadcrumb },
+  handle: { crumb: ClaimsetBreadcrumb, fallbackCrumb: () => 'Claimset' },
 };
 export const claimsetsIndexRoute: RouteObject = {
   path: '/as/:asId/sbes/:sbeId/claimsets/',
