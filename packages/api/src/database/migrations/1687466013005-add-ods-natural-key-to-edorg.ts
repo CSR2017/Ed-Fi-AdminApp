@@ -10,6 +10,12 @@ export class AdOdsNaturalKeyToEdorg1687466013005 implements MigrationInterface {
       `ALTER TABLE "edorg" ADD CONSTRAINT "UQ_07c5479767d3c27eb0150fee1d9" UNIQUE ("sbeId", "odsId", "educationOrganizationId")`
     );
     const edorgs = await queryRunner.manager.getRepository(Edorg).find({
+      select: {
+        ods: {
+          dbName: true,
+        },
+        id: true,
+      },
       relations: {
         ods: true,
       },
