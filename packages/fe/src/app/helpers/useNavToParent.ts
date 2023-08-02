@@ -27,5 +27,5 @@ export const useNavToParent = () => {
       })
   );
 
-  return breadcrumbs.length > 1 ? generatePath(breadcrumbs.slice(-2)[0] ?? '/', params) : '/';
+  return breadcrumbs.length > 1 ? '/' + generatePath(breadcrumbs.slice(-2)[0] ?? '/', params) : '/';
 };

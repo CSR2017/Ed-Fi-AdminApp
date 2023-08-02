@@ -73,6 +73,9 @@ export class PostOwnershipDto
   tenantId?: ITenant['id'] | undefined;
 
   @Expose()
+  type: 'ods' | 'edorg' | 'sbe';
+
+  @Expose()
   @IsNumber()
   roleId?: IRole['id'] | undefined;
 
@@ -96,6 +99,12 @@ export class PostOwnershipDto
 
   @IsIn([true], { message: 'You need to select a resource.' })
   get hasResource() {
-    return this.sbeId !== undefined || this.odsId !== undefined || this.edorgId !== undefined;
+    return this.type === 'sbe'
+      ? this.sbeId !== undefined
+      : this.type === 'ods'
+      ? this.odsId !== undefined
+      : this.type === 'edorg'
+      ? this.edorgId !== undefined
+      : false;
   }
 }

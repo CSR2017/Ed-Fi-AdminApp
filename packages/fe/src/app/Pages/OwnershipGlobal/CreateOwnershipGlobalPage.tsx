@@ -11,8 +11,9 @@ import {
 } from '@chakra-ui/react';
 import { PostOwnershipDto, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
+import { plainToInstance } from 'class-transformer';
 import _ from 'lodash';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { ownershipQueries, sbeQueries, tenantQueries } from '../../api';
@@ -24,6 +25,7 @@ import {
   SelectSbe,
   SelectTenant,
 } from '../../helpers/FormPickers';
+import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { useSearchParamsObject } from '../../helpers/useSearch';
 import { PageTemplate } from '../PageTemplate';
 
@@ -55,6 +57,8 @@ export const CreateOwnershipGlobalPage = () => {
         ? Number(search.tenantId)
         : undefined;
 
+    dto.type = search.type ?? 'ods';
+
     return dto;
   }, [
     search.tenantId !== undefined && search.tenantId in (tenants.data ?? {}),
@@ -73,6 +77,7 @@ export const CreateOwnershipGlobalPage = () => {
     setValue,
     watch,
     reset,
+    setError,
   } = useForm({
     resolver,
     defaultValues: ownershipFormDefaults,
@@ -86,8 +91,7 @@ export const CreateOwnershipGlobalPage = () => {
     reset((values) => _.defaults(values, { sbeId: ownershipFormDefaults.sbeId }));
   }, [ownershipFormDefaults.sbeId]);
 
-  const [type, setType] = useState<'edorg' | 'ods' | 'sbe'>(search.type ?? 'ods');
-  const sbeId = watch('sbeId');
+  const [sbeId, type] = watch(['sbeId', 'type']);
 
   return tenants.data && sbes.data ? (
     <PageTemplate constrainWidth title={'Grant new resource ownership'} actions={undefined}>
@@ -95,7 +99,7 @@ export const CreateOwnershipGlobalPage = () => {
         <FormLabel>Resource type</FormLabel>
         <RadioGroup
           onChange={(value: any) => {
-            setType(value);
+            setValue('type', value);
             setValue('edorgId', undefined);
             setValue('odsId', undefined);
           }}
@@ -109,10 +113,11 @@ export const CreateOwnershipGlobalPage = () => {
         </RadioGroup>
         <form
           onSubmit={handleSubmit((data) => {
+            const body = plainToInstance(PostOwnershipDto, data);
             if (type !== 'sbe') {
-              data.sbeId = undefined;
+              body.sbeId = undefined;
             }
-            postOwnership.mutate(data);
+            postOwnership.mutate(body, mutationErrCallback(setError));
           })}
         >
           <FormControl isInvalid={!!errors.hasResource && (sbeId === undefined || type === 'sbe')}>

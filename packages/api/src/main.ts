@@ -1,17 +1,18 @@
 import './modes/dev';
 process.env['NODE_CONFIG_DIR'] = './packages/api/config';
 import './utils/checkEnv';
-import colors from 'colors/safe';
+import { formErrFromValidator, wait } from '@edanalytics/utils';
 import { ClassSerializerInterceptor, Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import colors from 'colors/safe';
 import * as config from 'config';
 import * as pgSession from 'connect-pg-simple';
 import * as expressSession from 'express-session';
 import passport from 'passport';
 import { Client } from 'pg';
 import { AppModule } from './app/app.module';
-import { wait } from '@edanalytics/utils';
+import { ValidationException } from './utils/ValidationException';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -46,7 +47,15 @@ async function bootstrap() {
     done(null, user);
   });
   app.setGlobalPrefix(globalPrefix);
-  app.useGlobalPipes(new ValidationPipe({ transform: true, stopAtFirstError: false }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      stopAtFirstError: false,
+      exceptionFactory: (validationErrors = []) => {
+        return new ValidationException(formErrFromValidator(validationErrors));
+      },
+    })
+  );
   if (config.FE_URL.includes('localhost')) {
     wait(1000).then(() => {
       console.log('');

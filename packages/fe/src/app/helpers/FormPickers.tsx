@@ -19,6 +19,7 @@ function SelectWrapper<Dto extends Record<Name, number>, Name extends keyof Dto>
   name: Name;
   options: Record<string, { value: number | string; label: string }>;
   onClick?: (value: any) => void;
+  isLoading?: boolean;
 }) {
   const optionsArray = Object.values(props.options);
   return (
@@ -35,7 +36,9 @@ function SelectWrapper<Dto extends Record<Name, number>, Name extends keyof Dto>
             value === undefined
               ? { label: 'Select an option', value: '' as any }
               : {
-                  label: props.options?.[value as any]?.label ?? '...loading',
+                  label: props.isLoading
+                    ? '...loading'
+                    : props.options?.[value as any]?.label ?? '',
                   value: value,
                 }
           }
@@ -53,20 +56,21 @@ type FormPickerTypeProps<
   TName extends FieldPath<TFieldValues>,
   IncludeSbe extends boolean,
   IncludeTenant extends TenantOptions,
-  OtherProps extends object = {}
+  OtherProps extends object = object
 > = {
   control: Control<TFieldValues>;
   name: TName;
   onClick?: (value: any) => void;
+  isLoading?: boolean;
 } & OtherProps &
   (IncludeTenant extends TenantOptions.Never
-    ? {}
+    ? object
     : IncludeTenant extends TenantOptions.Optional
     ? {
         tenantId: string | number | undefined;
       }
     : { tenantId: string | number }) &
-  (IncludeSbe extends false ? {} : { sbeId: string | number });
+  (IncludeSbe extends false ? object : { sbeId: string | number });
 
 export const SelectRole = <
   TFieldValues extends FieldValues = FieldValues,
@@ -113,7 +117,9 @@ export const SelectSbe = <
       },
     ])
   );
-  return <SelectWrapper control={control} name={name} options={options} />;
+  return (
+    <SelectWrapper control={control} name={name} options={options} isLoading={sbes.isLoading} />
+  );
 };
 export const SelectTenant = <
   TFieldValues extends FieldValues = FieldValues,
@@ -132,7 +138,9 @@ export const SelectTenant = <
       },
     ])
   );
-  return <SelectWrapper control={control} name={name} options={options} />;
+  return (
+    <SelectWrapper control={control} name={name} options={options} isLoading={tenants.isLoading} />
+  );
 };
 export const SelectUser = <
   TFieldValues extends FieldValues = FieldValues,
@@ -151,7 +159,9 @@ export const SelectUser = <
       },
     ])
   );
-  return <SelectWrapper control={control} name={name} options={options} />;
+  return (
+    <SelectWrapper control={control} name={name} options={options} isLoading={users.isLoading} />
+  );
 };
 
 export const SelectClaimset = <
@@ -177,7 +187,14 @@ export const SelectClaimset = <
       },
     ])
   );
-  return <SelectWrapper control={control} name={name} options={options} />;
+  return (
+    <SelectWrapper
+      control={control}
+      name={name}
+      options={options}
+      isLoading={claimsets.isLoading}
+    />
+  );
 };
 
 export const SelectVendor = <
@@ -197,7 +214,9 @@ export const SelectVendor = <
       },
     ])
   );
-  return <SelectWrapper control={control} name={name} options={options} />;
+  return (
+    <SelectWrapper control={control} name={name} options={options} isLoading={vendors.isLoading} />
+  );
 };
 
 export const SelectApplication = <
@@ -217,7 +236,14 @@ export const SelectApplication = <
       },
     ])
   );
-  return <SelectWrapper control={control} name={name} options={options} />;
+  return (
+    <SelectWrapper
+      control={control}
+      name={name}
+      options={options}
+      isLoading={applications.isLoading}
+    />
+  );
 };
 
 export const SelectOds = <
@@ -243,7 +269,9 @@ export const SelectOds = <
       },
     ])
   );
-  return <SelectWrapper control={control} name={name} options={options} />;
+  return (
+    <SelectWrapper control={control} name={name} options={options} isLoading={odss.isLoading} />
+  );
 };
 
 export const SelectEdorg = <
@@ -259,9 +287,9 @@ export const SelectEdorg = <
   >
 ) => {
   const { control, name, tenantId, sbeId } = props;
-  const odss = edorgQueries.useAll({ tenantId, sbeId });
+  const edorgs = edorgQueries.useAll({ tenantId, sbeId });
   const options = Object.fromEntries(
-    Object.values(odss.data ?? {}).map((edorg) => [
+    Object.values(edorgs.data ?? {}).map((edorg) => [
       props.useEdorgId ? edorg.educationOrganizationId : edorg.id,
       {
         value: props.useEdorgId ? edorg.educationOrganizationId : edorg.id,
@@ -269,5 +297,7 @@ export const SelectEdorg = <
       },
     ])
   );
-  return <SelectWrapper control={control} name={name} options={options} />;
+  return (
+    <SelectWrapper control={control} name={name} options={options} isLoading={edorgs.isLoading} />
+  );
 };

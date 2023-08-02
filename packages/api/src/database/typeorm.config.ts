@@ -18,6 +18,7 @@ import { EducationOrganizationIdToNumber1687881668666 } from './migrations/16878
 import { UniqueOwnershipConstraints1687900131470 } from './migrations/1687900131470-uniqueOwnershipConstraints';
 import { Initial1688158300508 } from './migrations/1687190483471-initial';
 import { EdorgShortname1689282856860 } from './migrations/1689282856860-edorg-shortname';
+import { OwnershipUniquenessSoftdelete1691010443030 } from './migrations/1691010443030-ownershipUniquenessSoftdelete';
 
 const config: Pick<
   PostgresConnectionOptions,
@@ -46,6 +47,7 @@ const config: Pick<
     EducationOrganizationIdToNumber1687881668666,
     UniqueOwnershipConstraints1687900131470,
     EdorgShortname1689282856860,
+    OwnershipUniquenessSoftdelete1691010443030,
   ],
   // logging: ['query'],
 };

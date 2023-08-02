@@ -3,9 +3,9 @@ import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 
 @Entity()
-@Unique(['tenantId', 'sbeId'])
-@Unique(['tenantId', 'odsId'])
-@Unique(['tenantId', 'edorgId'])
+@Unique(['tenantId', 'sbeId', 'deleted'])
+@Unique(['tenantId', 'odsId', 'deleted'])
+@Unique(['tenantId', 'edorgId', 'deleted'])
 export class Ownership extends EntityBase implements IOwnership {
   @ManyToOne('Tenant', (tenant: ITenant) => tenant.ownerships)
   tenant: ITenant;

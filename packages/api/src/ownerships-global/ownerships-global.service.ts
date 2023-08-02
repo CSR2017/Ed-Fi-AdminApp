@@ -1,8 +1,11 @@
 import { GetUserDto, PostOwnershipDto, PutOwnershipDto } from '@edanalytics/models';
 import { Ownership } from '@edanalytics/models-server';
+import { formErrFromValidator } from '@edanalytics/utils';
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { ValidationError } from 'class-validator';
 import { EntityManager, Repository } from 'typeorm';
+import { ValidationException } from '../utils/ValidationException';
 
 @Injectable()
 export class OwnershipsGlobalService {
@@ -12,7 +15,27 @@ export class OwnershipsGlobalService {
     @InjectEntityManager()
     private readonly entityManager: EntityManager
   ) {}
-  create(createOwnershipDto: PostOwnershipDto) {
+  async create(createOwnershipDto: PostOwnershipDto) {
+    const isRedundant = !!(
+      await this.ownershipsRepository.findBy({
+        tenantId: createOwnershipDto.tenantId,
+        edorgId: createOwnershipDto.edorgId,
+        odsId: createOwnershipDto.odsId,
+        sbeId: createOwnershipDto.sbeId,
+      })
+    ).length;
+
+    if (isRedundant) {
+      const err = new ValidationError();
+      err.property = 'tenantId';
+      err.constraints = {
+        server:
+          'An ownership already exists for this tenant\u2013resource combination. To minimize confusion we disallow duplication.',
+      };
+      err.value = false;
+      throw new ValidationException(formErrFromValidator([err]));
+    }
+
     return this.ownershipsRepository.save(this.ownershipsRepository.create(createOwnershipDto));
   }
 
