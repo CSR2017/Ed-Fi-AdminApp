@@ -2,14 +2,12 @@ import { Link, Text } from '@chakra-ui/react';
 import { GetUserDto } from '@edanalytics/models';
 import { UseQueryResult } from '@tanstack/react-query';
 import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
-import { UserPage } from '../Pages/User/UserPage';
-import { UsersPage } from '../Pages/User/UsersPage';
-import { userQueries } from '../api';
-import { getRelationDisplayName } from '../helpers';
-import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 import { CreateUser } from '../Pages/UserGlobal/CreateUserGlobalPage';
 import { UserGlobalPage } from '../Pages/UserGlobal/UserGlobalPage';
 import { UsersGlobalPage } from '../Pages/UserGlobal/UsersGlobalPage';
+import { userQueries } from '../api';
+import { getRelationDisplayName } from '../helpers';
+import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const UserGlobalBreadcrumb = () => {
   const params = useParams() as { userId: string; asId: string };
@@ -22,6 +20,7 @@ const UserGlobalBreadcrumb = () => {
 
 export const userGlobalCreateRoute: RouteObject = {
   path: '/users/create',
+  handle: { crumb: () => 'Create' },
   element: <CreateUser />,
 };
 export const userGlobalIndexRoute: RouteObject = {

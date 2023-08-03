@@ -58,7 +58,7 @@ export const EdorgLink = (props: {
       </RouterLink>
     </Link>
   ) : typeof props.id === 'number' ? (
-    <Text title="Edorg may have been deleted." as="i" color="gray.500">
+    <Text title="Ed-Org may have been deleted." as="i" color="gray.500">
       not found
     </Text>
   ) : null;

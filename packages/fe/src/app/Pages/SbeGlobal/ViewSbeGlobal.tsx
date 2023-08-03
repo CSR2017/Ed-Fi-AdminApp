@@ -8,13 +8,13 @@ export const ViewSbeGlobal = (props: { sbe: GetSbeDto }) => {
       <FormLabel as="p">Environment label</FormLabel>
       <Text>{sbe.envLabel}</Text>
       <FormLabel as="p">Admin API URL</FormLabel>
-      <Text>{sbe.configPublic?.adminApiUrl}</Text>
+      <Text>{sbe.configPublic?.adminApiUrl ?? '-'}</Text>
       <FormLabel as="p">Admin API key</FormLabel>
-      <Text>{sbe.configPublic?.adminApiKey}</Text>
+      <Text>{sbe.configPublic?.adminApiKey ?? '-'}</Text>
       <FormLabel as="p">Admin API client name</FormLabel>
-      <Text>{sbe.configPublic?.adminApiClientDisplayName}</Text>
+      <Text>{sbe.configPublic?.adminApiClientDisplayName ?? '-'}</Text>
       <FormLabel as="p">SB metadata ARN</FormLabel>
-      <Text>{sbe.configPublic?.sbeMetaArn}</Text>
+      <Text>{sbe.configPublic?.sbeMetaArn ?? '-'}</Text>
       {sbe.configPublic?.sbeMetaKey ? (
         <>
           <FormLabel as="p">SB metadata key</FormLabel>
@@ -22,17 +22,17 @@ export const ViewSbeGlobal = (props: { sbe: GetSbeDto }) => {
         </>
       ) : null}
       <FormLabel as="p">Last successful connection to Starting Blocks</FormLabel>
-      <Text>{sbe.configPublic?.lastSuccessfulConnectionSbMetaLong}</Text>
+      <Text>{sbe.configPublic?.lastSuccessfulConnectionSbMetaLong ?? '-'}</Text>
       <FormLabel as="p">Last failed connection to Starting Blocks</FormLabel>
-      <Text>{sbe.configPublic?.lastFailedConnectionSbMetaLong}</Text>
+      <Text>{sbe.configPublic?.lastFailedConnectionSbMetaLong ?? '-'}</Text>
       <FormLabel as="p">Last successful connection to Ed-Fi Admin API</FormLabel>
-      <Text>{sbe.configPublic?.lastSuccessfulConnectionAdminApiLong}</Text>
+      <Text>{sbe.configPublic?.lastSuccessfulConnectionAdminApiLong ?? '-'}</Text>
       <FormLabel as="p">Last failed connection to Ed-Fi Admin API</FormLabel>
-      <Text>{sbe.configPublic?.lastFailedConnectionAdminApiLong}</Text>
+      <Text>{sbe.configPublic?.lastFailedConnectionAdminApiLong ?? '-'}</Text>
       <FormLabel as="p">Last successful sync with Starting Blocks</FormLabel>
-      <Text>{sbe.configPublic?.lastSuccessfulPullLong}</Text>
+      <Text>{sbe.configPublic?.lastSuccessfulPullLong ?? '-'}</Text>
       <FormLabel as="p">Last failed sync with Starting Blocks</FormLabel>
-      <Text>{sbe.configPublic?.lastFailedPullLong}</Text>
+      <Text>{sbe.configPublic?.lastFailedPullLong ?? '-'}</Text>
     </>
   );
 };

@@ -15,25 +15,25 @@ const TenantBreadcrumb = () => {
   return tenant.data?.displayName ?? params.tenantId;
 };
 export const tenantCreateRoute: RouteObject = {
-  path: 'tenants/create',
+  path: '/tenants/create',
   handle: { crumb: () => 'Create' },
   element: <CreateTenant />,
 };
 
 export const tenantIndexRoute: RouteObject = {
-  path: 'tenants/:tenantId/',
+  path: '/tenants/:tenantId/',
   element: <TenantPage />,
 };
 export const tenantRoute: RouteObject = {
-  path: 'tenants/:tenantId',
+  path: '/tenants/:tenantId',
   handle: { crumb: TenantBreadcrumb },
 };
 export const tenantsIndexRoute: RouteObject = {
-  path: 'tenants/',
+  path: '/tenants/',
   element: <TenantsPage />,
 };
 export const tenantsRoute: RouteObject = {
-  path: 'tenants',
+  path: '/tenants',
   handle: { crumb: () => 'Tenants' },
 };
 

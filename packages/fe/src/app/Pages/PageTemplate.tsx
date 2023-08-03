@@ -11,7 +11,7 @@ export const PageTemplate = (props: {
   actions?: ReactNode;
 }) => {
   return (
-    <Box maxW={props.constrainWidth ? undefined : undefined} mx="-0.5rem" px="0.5rem">
+    <Box mx="-0.5rem" px="0.5rem">
       <HStack
         borderTop="1px solid"
         borderBottom="1px solid"
@@ -47,7 +47,7 @@ export const PageTemplate = (props: {
           </Box>
         )}
       >
-        {props.children}
+        <Box maxW={props.constrainWidth ? '25em' : undefined}>{props.children}</Box>
       </ErrorBoundary>
     </Box>
   );

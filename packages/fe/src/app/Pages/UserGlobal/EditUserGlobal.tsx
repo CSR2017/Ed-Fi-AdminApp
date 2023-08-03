@@ -54,6 +54,8 @@ export const EditUserGlobal = (props: { user: GetUserDto }) => {
           roleId: validatedData.roleId,
           isActive: validatedData.isActive,
           username: validatedData.username,
+          givenName: validatedData.givenName === '' ? null : validatedData.givenName,
+          familyName: validatedData.familyName === '' ? null : validatedData.familyName,
         });
       })}
     >

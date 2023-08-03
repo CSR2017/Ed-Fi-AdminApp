@@ -32,7 +32,7 @@ export const useSbeGlobalActions = (sbe: GetSbeDto | undefined): ActionsType => 
     ? {}
     : {
         GrantOwnership: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
-          const to = `/sbes/${sbe.id}?type=sbe`;
+          const to = `/ownerships/create?sbeId=${sbe.id}&type=sbe`;
           return (
             <AuthorizeComponent
               config={{

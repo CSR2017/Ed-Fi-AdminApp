@@ -26,6 +26,9 @@ export const useNavToParent = () => {
           : 0;
       })
   );
-
-  return breadcrumbs.length > 1 ? '/' + generatePath(breadcrumbs.slice(-2)[0] ?? '/', params) : '/';
+  if (breadcrumbs.length > 1) {
+    return generatePath(breadcrumbs.slice(-2)[0] ?? '/', params);
+  } else {
+    return '/';
+  }
 };

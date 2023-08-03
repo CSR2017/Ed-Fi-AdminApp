@@ -1,5 +1,5 @@
 import { Expose } from 'class-transformer';
-import { IsBoolean, IsNumber, IsOptional, MinLength } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 import type { IUser, IUserConfig } from '../interfaces/user.interface';
 import { DtoGetBase__User, GetDto } from '../utils/get-base.dto';
 import { makeSerializer } from '../utils/make-serializer';
@@ -56,12 +56,12 @@ export class PutUserDto
 
   @Expose()
   @IsOptional()
-  @MinLength(2)
+  @IsString()
   givenName?: string | null;
 
   @Expose()
   @IsOptional()
-  @MinLength(2)
+  @IsString()
   familyName?: string | null;
 }
 

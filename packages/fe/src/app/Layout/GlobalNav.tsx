@@ -1,4 +1,3 @@
-import { Text } from '@chakra-ui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   BsBuildings,
@@ -18,7 +17,8 @@ import { arrayElemIf, authorize, usePrivilegeCacheForConfig } from '../helpers';
 import { INavButtonProps, NavButton } from './NavButton';
 
 export const isMatch = (activeRoute: string, item: INavButtonProps) => {
-  return activeRoute.startsWith(item.route);
+  const nextChar = activeRoute.charAt(item.route.length);
+  return activeRoute.startsWith(item.route) && (nextChar === '/' || nextChar === '');
 };
 
 export const tagMatch = (items: INavButtonProps[], match: string | null): INavButtonProps[] =>
@@ -169,11 +169,14 @@ export const GlobalNav = (props: object) => {
   ];
   const flatItems = items.flatMap((item) => flatten(item));
 
-  let deepestMatch = null;
+  let deepestMatch: string | null = null;
   const currentMatches = useMatches();
 
   currentMatches.forEach((m) => {
-    if (flatItems.some((item) => isMatch(m.pathname, item))) {
+    if (
+      flatItems.some((item) => isMatch(m.pathname, item)) &&
+      m.pathname.length > (deepestMatch ?? '').length
+    ) {
       deepestMatch = m.pathname;
     }
   });

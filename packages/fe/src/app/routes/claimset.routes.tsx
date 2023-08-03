@@ -42,6 +42,7 @@ export const claimsetsRoute: RouteObject = {
 export const ClaimsetLink = (props: {
   id: number | undefined;
   query: UseQueryResult<Record<string | number, GetClaimsetDto>, unknown>;
+  sbeId?: string | number;
 }) => {
   const claimset = getEntityFromQuery(props.id, props.query);
   const params = useParams() as {
@@ -52,7 +53,7 @@ export const ClaimsetLink = (props: {
     <Link as="span">
       <RouterLink
         title="Go to claimset"
-        to={`/as/${params.asId}/sbes/${params.sbeId}/claimsets/${claimset.id}`}
+        to={`/as/${params.asId}/sbes/${params.sbeId ?? props.sbeId}/claimsets/${claimset.id}`}
       >
         {getRelationDisplayName(claimset.id, props.query)}
       </RouterLink>

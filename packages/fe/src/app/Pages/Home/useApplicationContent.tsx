@@ -185,6 +185,7 @@ export const ApplicationTable = (props: { sbe: GetSbeDto }) => {
           cell: (info) => (
             <ClaimsetLink
               query={claimsets}
+              sbeId={props.sbe.id}
               id={claimsetsByName.data[info.row.original.claimSetName]?.id}
             />
           ),

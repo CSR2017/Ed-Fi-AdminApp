@@ -91,6 +91,7 @@ export function DataTable<T extends object>(props: {
     getPaginationRowModel: getPaginationRowModel(),
     enableMultiRowSelection: false,
     debugTable: false,
+    autoResetPageIndex: false,
     initialState: {
       pagination: {
         pageSize: pageSizes[0],

@@ -93,6 +93,7 @@ export const indexRoute: RouteObject = {
 };
 export const publicRoute: RouteObject = {
   path: '/public',
+  // TODO figure out what this content is actually going to be, or alternatively where to redirect to for login
   element: (
     <Box p="5em">
       <Text
@@ -102,8 +103,8 @@ export const publicRoute: RouteObject = {
         fontWeight="black"
         fontSize="6xl"
       >
-        Starting Blocks drives synergies to increase profits and deliver value for your private
-        equity overlords.
+        Starting Blocks drives synergies to increase profits and deliver value for your vampire
+        squid overlords.
       </Text>
       <UnorderedList color="teal.600" mt="2em" fontSize="3xl" fontWeight="bold">
         <ListItem>Productivity feature.</ListItem>

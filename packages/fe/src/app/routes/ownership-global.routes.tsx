@@ -15,25 +15,25 @@ const OwnershipGlobalBreadcrumb = () => {
   return ownership.data?.displayName ?? params.ownershipId;
 };
 export const ownershipGlobalCreateRoute: RouteObject = {
-  path: 'ownerships/create',
+  path: '/ownerships/create',
   handle: { crumb: () => 'Create' },
   element: <CreateOwnershipGlobalPage />,
 };
 
 export const ownershipGlobalIndexRoute: RouteObject = {
-  path: 'ownerships/:ownershipId/',
+  path: '/ownerships/:ownershipId/',
   element: <OwnershipGlobalPage />,
 };
 export const ownershipGlobalRoute: RouteObject = {
-  path: 'ownerships/:ownershipId',
+  path: '/ownerships/:ownershipId',
   handle: { crumb: OwnershipGlobalBreadcrumb },
 };
 export const ownershipsGlobalIndexRoute: RouteObject = {
-  path: 'ownerships/',
+  path: '/ownerships/',
   element: <OwnershipsGlobalPage />,
 };
 export const ownershipsGlobalRoute: RouteObject = {
-  path: 'ownerships',
+  path: '/ownerships',
   handle: { crumb: () => 'Ownerships' },
 };
 

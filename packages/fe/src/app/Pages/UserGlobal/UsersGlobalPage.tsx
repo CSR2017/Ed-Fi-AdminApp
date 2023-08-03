@@ -29,7 +29,7 @@ export const UsersGlobalPage = () => {
   const tenants = tenantQueries.useAll({});
   const actions = useMultipleUserGlobalActions();
   return (
-    <PageTemplate title="Resource users" actions={<ActionBarActions actions={actions} />}>
+    <PageTemplate title="Users" actions={<ActionBarActions actions={actions} />}>
       <DataTable
         data={Object.values(users?.data || {})}
         columns={[
@@ -37,6 +37,10 @@ export const UsersGlobalPage = () => {
             accessorKey: 'displayName',
             cell: NameCell,
             header: () => 'Name',
+          },
+          {
+            accessorKey: 'username',
+            header: 'Username',
           },
           {
             id: 'role',

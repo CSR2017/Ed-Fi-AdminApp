@@ -16,23 +16,23 @@ const SbeGlobalBreadcrumb = () => {
 };
 
 export const sbeGlobalCreateRoute: RouteObject = {
-  path: 'sbes/create',
+  path: '/sbes/create',
   element: <CreateSbeGlobalPage />,
 };
 export const sbeGlobalIndexRoute: RouteObject = {
-  path: 'sbes/:sbeId/',
+  path: '/sbes/:sbeId/',
   element: <SbeGlobalPage />,
 };
 export const sbeGlobalRoute: RouteObject = {
-  path: 'sbes/:sbeId',
+  path: '/sbes/:sbeId',
   handle: { crumb: SbeGlobalBreadcrumb },
 };
 export const sbesGlobalIndexRoute: RouteObject = {
-  path: 'sbes/',
+  path: '/sbes/',
   element: <SbesGlobalPage />,
 };
 export const sbesGlobalRoute: RouteObject = {
-  path: 'sbes',
+  path: '/sbes',
   handle: { crumb: () => 'Environments' },
 };
 

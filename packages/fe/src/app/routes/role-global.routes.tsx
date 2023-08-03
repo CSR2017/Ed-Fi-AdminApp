@@ -23,6 +23,7 @@ export const roleGlobalIndexRoute: RouteObject = {
 };
 export const roleGlobalCreateRoute: RouteObject = {
   path: '/roles/create',
+  handle: { crumb: () => 'Create' },
   element: <CreateRoleGlobalPage />,
 };
 export const roleGlobalRoute: RouteObject = {
@@ -45,12 +46,12 @@ export const RoleGlobalLink = (props: {
   const role = getEntityFromQuery(props.id, props.query);
   return role ? (
     <Link as="span">
-      <RouterLink title="Go to roleglkobal" to={`/roles/${role.id}`}>
+      <RouterLink title="Go to role" to={`/roles/${role.id}`}>
         {getRelationDisplayName(role.id, props.query)}
       </RouterLink>
     </Link>
   ) : typeof props.id === 'number' ? (
-    <Text title="RoleGlobal may have been deleted." as="i" color="gray.500">
+    <Text title="Role may have been deleted." as="i" color="gray.500">
       not found
     </Text>
   ) : null;

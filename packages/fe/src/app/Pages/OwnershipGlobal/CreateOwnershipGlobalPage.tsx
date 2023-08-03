@@ -95,94 +95,92 @@ export const CreateOwnershipGlobalPage = () => {
 
   return tenants.data && sbes.data ? (
     <PageTemplate constrainWidth title={'Grant new resource ownership'} actions={undefined}>
-      <Box w="20em">
-        <FormLabel>Resource type</FormLabel>
-        <RadioGroup
-          onChange={(value: any) => {
-            setValue('type', value);
-            setValue('edorgId', undefined);
-            setValue('odsId', undefined);
-          }}
-          value={type}
-        >
-          <Stack direction="column" pl="1em" spacing={1}>
-            <Radio value="edorg">Ed-Org</Radio>
-            <Radio value="ods">Ods</Radio>
-            <Radio value="sbe">Whole environment</Radio>
-          </Stack>
-        </RadioGroup>
-        <form
-          onSubmit={handleSubmit((data) => {
-            const body = plainToInstance(PostOwnershipDto, data);
-            if (type !== 'sbe') {
-              body.sbeId = undefined;
-            }
-            postOwnership.mutate(body, mutationErrCallback(setError));
-          })}
-        >
-          <FormControl isInvalid={!!errors.hasResource && (sbeId === undefined || type === 'sbe')}>
-            <FormLabel>Starting Blocks environment</FormLabel>
-            <SelectSbe name="sbeId" control={control} tenantId={undefined} />
-            <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
-          </FormControl>
-          {type === 'ods' && sbeId !== undefined ? (
-            <FormControl isDisabled={sbeId === undefined} isInvalid={!!errors.hasResource}>
-              <FormLabel>ODS</FormLabel>
-              <SelectOds
-                sbeId={sbeId}
-                control={control}
-                name="odsId"
-                useDbName={false}
-                tenantId={undefined}
-              />
-              <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
-            </FormControl>
-          ) : null}
-          {type === 'edorg' && sbeId !== undefined ? (
-            <FormControl isDisabled={sbeId === undefined} isInvalid={!!errors.hasResource}>
-              <FormLabel>Ed-Org</FormLabel>
-              <SelectEdorg
-                sbeId={sbeId}
-                control={control}
-                name="edorgId"
-                useEdorgId={false}
-                tenantId={undefined}
-              />
-              <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
-            </FormControl>
-          ) : null}
-          <FormControl isInvalid={!!errors.tenantId}>
-            <FormLabel>Tenant</FormLabel>
-            <SelectTenant name="tenantId" control={control} />
-            <FormErrorMessage>{errors.tenantId?.message}</FormErrorMessage>
-          </FormControl>
-          <FormControl isInvalid={!!errors.roleId}>
-            <FormLabel>Role</FormLabel>
-            <SelectRole
-              name="roleId"
-              types={[RoleType.ResourceOwnership]}
+      <FormLabel>Resource type</FormLabel>
+      <RadioGroup
+        onChange={(value: any) => {
+          setValue('type', value);
+          setValue('edorgId', undefined);
+          setValue('odsId', undefined);
+        }}
+        value={type}
+      >
+        <Stack direction="column" pl="1em" spacing={1}>
+          <Radio value="edorg">Ed-Org</Radio>
+          <Radio value="ods">Ods</Radio>
+          <Radio value="sbe">Whole environment</Radio>
+        </Stack>
+      </RadioGroup>
+      <form
+        onSubmit={handleSubmit((data) => {
+          const body = plainToInstance(PostOwnershipDto, data);
+          if (type !== 'sbe') {
+            body.sbeId = undefined;
+          }
+          postOwnership.mutate(body, mutationErrCallback(setError));
+        })}
+      >
+        <FormControl isInvalid={!!errors.hasResource && (sbeId === undefined || type === 'sbe')}>
+          <FormLabel>Starting Blocks environment</FormLabel>
+          <SelectSbe name="sbeId" control={control} tenantId={undefined} />
+          <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
+        </FormControl>
+        {type === 'ods' && sbeId !== undefined ? (
+          <FormControl isDisabled={sbeId === undefined} isInvalid={!!errors.hasResource}>
+            <FormLabel>ODS</FormLabel>
+            <SelectOds
+              sbeId={sbeId}
               control={control}
+              name="odsId"
+              useDbName={false}
               tenantId={undefined}
             />
-            <FormErrorMessage>{errors.roleId?.message}</FormErrorMessage>
+            <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
           </FormControl>
-          <ButtonGroup mt={4} colorScheme="teal">
-            <Button isLoading={isLoading} type="submit">
-              Save
-            </Button>
-            <Button
-              variant="ghost"
-              isLoading={isLoading}
-              type="reset"
-              onClick={() => {
-                navigate(navToParentOptions);
-              }}
-            >
-              Cancel
-            </Button>
-          </ButtonGroup>
-        </form>
-      </Box>
+        ) : null}
+        {type === 'edorg' && sbeId !== undefined ? (
+          <FormControl isDisabled={sbeId === undefined} isInvalid={!!errors.hasResource}>
+            <FormLabel>Ed-Org</FormLabel>
+            <SelectEdorg
+              sbeId={sbeId}
+              control={control}
+              name="edorgId"
+              useEdorgId={false}
+              tenantId={undefined}
+            />
+            <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
+          </FormControl>
+        ) : null}
+        <FormControl isInvalid={!!errors.tenantId}>
+          <FormLabel>Tenant</FormLabel>
+          <SelectTenant name="tenantId" control={control} />
+          <FormErrorMessage>{errors.tenantId?.message}</FormErrorMessage>
+        </FormControl>
+        <FormControl isInvalid={!!errors.roleId}>
+          <FormLabel>Role</FormLabel>
+          <SelectRole
+            name="roleId"
+            types={[RoleType.ResourceOwnership]}
+            control={control}
+            tenantId={undefined}
+          />
+          <FormErrorMessage>{errors.roleId?.message}</FormErrorMessage>
+        </FormControl>
+        <ButtonGroup mt={4} colorScheme="teal">
+          <Button isLoading={isLoading} type="submit">
+            Save
+          </Button>
+          <Button
+            variant="ghost"
+            isLoading={isLoading}
+            type="reset"
+            onClick={() => {
+              navigate(navToParentOptions);
+            }}
+          >
+            Cancel
+          </Button>
+        </ButtonGroup>
+      </form>
     </PageTemplate>
   ) : null;
 };
