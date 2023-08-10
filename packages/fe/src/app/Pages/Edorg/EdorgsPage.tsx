@@ -7,7 +7,7 @@ import { queryClient } from '../../app';
 import { AuthorizeConfig, arrayElemIf, authorize } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { EdorgLink, OdsLink, UserLink } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { NameCell } from './NameCell';
 
 export const EdorgsPage = () => {

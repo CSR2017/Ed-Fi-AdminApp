@@ -5,7 +5,7 @@ import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { SbePage } from '../Pages/Sbe/SbePage';
 import { SbesPage } from '../Pages/Sbe/SbesPage';
 import { sbeQueries } from '../api';
-import { getRelationDisplayName } from '../helpers';
+import { getRelationDisplayName, useNavContext } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const SbeBreadcrumb = () => {
@@ -40,10 +40,12 @@ export const SbeLink = (props: {
   query: UseQueryResult<Record<string | number, GetSbeDto>, unknown>;
 }) => {
   const sbe = getEntityFromQuery(props.id, props.query);
-  const params = useParams() as { asId: string };
+  const navContext = useNavContext();
+  const asId = navContext.asId!;
+
   return sbe ? (
     <Link as="span">
-      <RouterLink title="Go to sbe" to={`/as/${params.asId}/sbes/${sbe.id}`}>
+      <RouterLink title="Go to sbe" to={`/as/${asId}/sbes/${sbe.id}`}>
         {getRelationDisplayName(sbe.id, props.query)}
       </RouterLink>
     </Link>

@@ -4,7 +4,7 @@ import { Link as RouterLink, useParams } from 'react-router-dom';
 import { ownershipQueries, roleQueries, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { RoleLink, UserLink } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 
 export const OwnershipsPage = () => {
   const params = useParams() as { asId: string };

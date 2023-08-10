@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import { ClassConstructor, instanceToPlain, plainToInstance } from 'class-transformer';
 
 axios.defaults.baseURL = `${import.meta.env.VITE_API_URL}/api/`;
@@ -11,10 +11,10 @@ apiClient.interceptors.response.use(
   (res) => res.data,
   (error) => {
     if ([401].includes(error?.response?.status)) {
+      console.log('Redirecting to login');
       window.location.href = `${window.location.origin}/login?redirect=${encodeURIComponent(
         window.location.href.replace(window.location.origin, '')
       )}`;
-      console.warn(error);
     } else {
       throw error?.response?.data ?? error;
     }

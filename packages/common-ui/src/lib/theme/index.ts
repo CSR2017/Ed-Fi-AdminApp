@@ -154,6 +154,20 @@ export const theme = extendTheme({
         container: { fontFamily: 'mono', fontWeight: 'semibold' },
       },
     },
+    Card: {
+      variants: {
+        elevated: {
+          container: {
+            borderWidth: '1px',
+            borderColor: 'border',
+            boxShadow: 'md',
+            _dark: {
+              bg: 'gray.700',
+            },
+          },
+        },
+      },
+    },
   },
   shadows: {
     xs: '0 0 0 1px rgba(0, 0, 0, 0.05)',

@@ -8,7 +8,7 @@ import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { OwnershipGlobalLink, TenantLink } from '../../routes';
 import { RoleGlobalLink } from '../../routes/role-global.routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { useMultipleOwnershipGlobalActions } from './useMultipleOwnershipGlobalActions';
 import { useOwnershipGlobalActions } from './useOwnershipGlobalActions';
 

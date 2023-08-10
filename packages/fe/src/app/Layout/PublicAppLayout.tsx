@@ -1,27 +1,10 @@
 import { Box, VStack } from '@chakra-ui/react';
-import { useQueryClient } from '@tanstack/react-query';
 import { Outlet } from 'react-router-dom';
-import React from 'react';
 import { useMe } from '../api';
 import { AppBar } from './AppBar';
 import { AppBarPublic } from './AppBarPublic';
 
 export const PublicAppLayout = () => {
-  const queryClient = useQueryClient();
-  const [err, setErr] = React.useState<null | any>(null);
-  if (err) {
-    throw err;
-  }
-
-  queryClient.setDefaultOptions({
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      retry: false,
-      onError: (err) => {
-        setErr(err);
-      },
-    },
-  });
   const me = useMe();
 
   return (

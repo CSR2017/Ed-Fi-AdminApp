@@ -1,12 +1,7 @@
-import {
-  ITenantCache,
-  PrivilegeCode,
-  minimumPrivileges,
-  upwardInheritancePrivileges,
-} from '@edanalytics/models';
+import { ITenantCache, PrivilegeCode, upwardInheritancePrivileges } from '@edanalytics/models';
 import { Edorg, Ods, Ownership, Sbe, User, UserTenantMembership } from '@edanalytics/models-server';
 import { faker } from '@faker-js/faker';
-import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, IsNull, Repository, TreeRepository } from 'typeorm';
 import { CacheService } from '../app/cache.module';
@@ -85,20 +80,6 @@ export class AuthService {
     if (user === null) return null;
 
     return user;
-  }
-
-  async findOrCreateUser(user: Partial<User> & Pick<User, 'username'>) {
-    const foundUser = await this.getUser(user.username);
-    if (foundUser) {
-      return foundUser;
-    } else {
-      const newUser = await this.usersRepo.save({
-        ...user,
-        isActive: true,
-        roleId: null,
-      });
-      return await this.getUser(newUser.username);
-    }
   }
 
   validateUser(username: string) {

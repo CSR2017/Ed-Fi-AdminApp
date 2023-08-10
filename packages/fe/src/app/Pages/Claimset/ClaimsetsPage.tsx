@@ -1,7 +1,7 @@
 import { DataTable } from '@edanalytics/common-ui';
-import { useParams } from 'react-router-dom';
 import { claimsetQueries } from '../../api';
-import { PageTemplate } from '../PageTemplate';
+import { useNavContext } from '../../helpers';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { NameCell } from './NameCell';
 
 export const ClaimsetsPage = () => {
@@ -13,10 +13,13 @@ export const ClaimsetsPage = () => {
 };
 
 export const ClaimsetsPageContent = () => {
-  const params = useParams() as { asId: string; sbeId: string };
+  const navContext = useNavContext();
+  const sbeId = navContext.sbeId!;
+  const asId = navContext.asId!;
+
   const claimsets = claimsetQueries.useAll({
-    tenantId: params.asId,
-    sbeId: params.sbeId,
+    tenantId: asId,
+    sbeId: sbeId,
   });
 
   return (
@@ -25,7 +28,7 @@ export const ClaimsetsPageContent = () => {
       columns={[
         {
           accessorKey: 'displayName',
-          cell: NameCell(params),
+          cell: NameCell,
           header: () => 'Name',
         },
         {

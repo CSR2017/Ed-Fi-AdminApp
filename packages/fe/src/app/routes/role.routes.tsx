@@ -5,7 +5,7 @@ import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { RolePage } from '../Pages/Role/RolePage';
 import { RolesPage } from '../Pages/Role/RolesPage';
 import { roleQueries } from '../api';
-import { getRelationDisplayName } from '../helpers';
+import { getRelationDisplayName, useNavContext } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const RoleBreadcrumb = () => {
@@ -39,10 +39,12 @@ export const RoleLink = (props: {
   query: UseQueryResult<Record<string | number, GetRoleDto>, unknown>;
 }) => {
   const role = getEntityFromQuery(props.id, props.query);
-  const params = useParams() as { asId: string };
+  const navContext = useNavContext();
+  const asId = navContext.asId!;
+
   return role ? (
     <Link as="span">
-      <RouterLink title="Go to role" to={`/as/${params.asId}/roles/${role.id}`}>
+      <RouterLink title="Go to role" to={`/as/${asId}/roles/${role.id}`}>
         {getRelationDisplayName(role.id, props.query)}
       </RouterLink>
     </Link>

@@ -11,9 +11,10 @@ import {
   useClipboard,
 } from '@chakra-ui/react';
 import { GetApplicationDto, createEdorgCompositeNaturalKey } from '@edanalytics/models';
+import { memo, useMemo } from 'react';
 import { BiEdit, BiPlus, BiShieldX, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
-import { Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { applicationQueries, useApplicationResetCredential } from '../../api';
 import {
   ActionPropsConfirm,
@@ -23,7 +24,6 @@ import {
   useNavToParent,
 } from '../../helpers';
 import { useSearchParamsObject } from '../../helpers/useSearch';
-import { memo, useMemo } from 'react';
 
 export const useApplicationActions = ({
   application,
@@ -31,8 +31,8 @@ export const useApplicationActions = ({
   tenantId,
 }: {
   application: GetApplicationDto | undefined;
-  sbeId: string;
-  tenantId: string;
+  sbeId: string | number;
+  tenantId: string | number;
 }): ActionsType => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -193,12 +193,11 @@ export const useApplicationsActions = ({
   sbeId,
   tenantId,
 }: {
-  sbeId: string;
-  tenantId: string;
+  sbeId: string | number;
+  tenantId: string | number;
 }): ActionsType => {
   const navigate = useNavigate();
-  const params = useParams() as { asId: string; sbeId: string };
-  const to = `/as/${params.asId}/sbes/${params.sbeId}/applications/create`;
+  const to = `/as/${tenantId}/sbes/${sbeId}/applications/create`;
   return {
     Create: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
       return (

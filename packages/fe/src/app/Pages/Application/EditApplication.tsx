@@ -10,32 +10,36 @@ import {
 import { GetApplicationDto, PutApplicationForm } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { applicationQueries, claimsetQueries, edorgQueries } from '../../api';
+import { useNavContext } from '../../helpers';
 import { SelectClaimset, SelectEdorg, SelectVendor } from '../../helpers/FormPickers';
 
 const resolver = classValidatorResolver(PutApplicationForm);
 
 export const EditApplication = (props: { application: GetApplicationDto }) => {
   const { application } = props;
-  const params = useParams() as { asId: string; sbeId: string };
+  const navContext = useNavContext();
+  const sbeId = navContext.sbeId!;
+  const asId = navContext.asId!;
+
   const navigate = useNavigate();
   const goToView = () => {
-    navigate(`/as/${params.asId}/sbes/${params.sbeId}/applications/${application.id}`);
+    navigate(`/as/${asId}/sbes/${sbeId}/applications/${application.id}`);
   };
   const edorgs = edorgQueries.useAll({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
+    sbeId: sbeId,
+    tenantId: asId,
   });
 
   const claimsets = claimsetQueries.useAll({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
+    sbeId: sbeId,
+    tenantId: asId,
   });
 
   const putApplication = applicationQueries.usePut({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
+    sbeId: sbeId,
+    tenantId: asId,
     callback: goToView,
   });
   const defaultValues = new PutApplicationForm();
@@ -72,31 +76,26 @@ export const EditApplication = (props: { application: GetApplicationDto }) => {
         <FormControl isInvalid={!!errors.educationOrganizationId}>
           <FormLabel>Ed-org</FormLabel>
           <SelectEdorg
-            tenantId={params.asId}
+            tenantId={asId}
             name="educationOrganizationId"
             useEdorgId
-            sbeId={params.sbeId}
+            sbeId={sbeId}
             control={control}
           />
           <FormErrorMessage>{errors.educationOrganizationId?.message}</FormErrorMessage>
         </FormControl>
         <FormControl isInvalid={!!errors.vendorId}>
           <FormLabel>Vendor</FormLabel>
-          <SelectVendor
-            tenantId={params.asId}
-            name="vendorId"
-            sbeId={params.sbeId}
-            control={control}
-          />
+          <SelectVendor tenantId={asId} name="vendorId" sbeId={sbeId} control={control} />
           <FormErrorMessage>{errors.vendorId?.message}</FormErrorMessage>
         </FormControl>
         <FormControl isInvalid={!!errors.claimSetName}>
           <FormLabel>Claimset</FormLabel>
           <SelectClaimset
             useName
-            tenantId={params.asId}
+            tenantId={asId}
             name="claimSetName"
-            sbeId={params.sbeId}
+            sbeId={sbeId}
             control={control}
           />
           <FormErrorMessage>{errors.claimSetName?.message}</FormErrorMessage>

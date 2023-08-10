@@ -9,7 +9,7 @@ import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { useReadTenantEntity } from '../../helpers/useStandardRowActionsNew';
 import { UserLink, userRoute } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 
 const NameCell = (info: CellContext<GetUserTenantMembershipDto, unknown>) => {
   const params = useParams() as { asId: string };

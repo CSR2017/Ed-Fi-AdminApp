@@ -6,9 +6,9 @@ import { useParams } from 'react-router-dom';
 import { roleQueries, useMyTenants, userQueries } from '../../api';
 import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { UserLink } from '../../routes';
+import { UserGlobalLink } from '../../routes';
 import { RoleGlobalLink } from '../../routes/role-global.routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { useRoleGlobalActions } from './useRoleGlobalActions';
 import { useMultipleRoleGlobalActions } from './useMultipleRoleGlobalActions';
 import { ActionBarActions } from '../../helpers';
@@ -62,7 +62,7 @@ export const RolesGlobalPage = () => {
             id: 'modifiedBy',
             accessorFn: (info) => getRelationDisplayName(info.modifiedById, users),
             header: () => 'Modified by',
-            cell: (info) => <UserLink query={users} id={info.row.original.modifiedById} />,
+            cell: (info) => <UserGlobalLink query={users} id={info.row.original.modifiedById} />,
           },
           {
             accessorKey: 'createdDetailed',
@@ -72,7 +72,7 @@ export const RolesGlobalPage = () => {
             id: 'createdBy',
             accessorFn: (info) => getRelationDisplayName(info.createdById, users),
             header: () => 'Created by',
-            cell: (info) => <UserLink query={users} id={info.row.original.createdById} />,
+            cell: (info) => <UserGlobalLink query={users} id={info.row.original.createdById} />,
           },
         ]}
       />

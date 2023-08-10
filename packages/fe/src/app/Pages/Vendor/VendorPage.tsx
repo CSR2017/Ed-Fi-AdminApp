@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { vendorQueries } from '../../api';
 import { useSearchParamsObject } from '../../helpers/useSearch';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { EditVendor } from './EditVendor';
 import { ViewVendor } from './ViewVendor';
 import { ErrorBoundary } from 'react-error-boundary';

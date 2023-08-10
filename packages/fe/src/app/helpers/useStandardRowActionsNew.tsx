@@ -9,7 +9,10 @@ export type BaseRow = { id: number; displayName: string };
 export const useReadTenantEntity = (props: {
   route: RouteObject;
   entity: BaseRow | undefined;
-  params: { asId: string; sbeId?: string | undefined } & Record<any, string | number>;
+  params: { asId: string | number; sbeId?: string | number | undefined } & Record<
+    any,
+    string | number
+  >;
   privilege: TenantBasePrivilege | TenantSbePrivilege;
 }) => {
   const path = props.route.path!;

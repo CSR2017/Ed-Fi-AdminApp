@@ -1,11 +1,11 @@
-import { useParams } from 'react-router-dom';
 import { sbeQueries } from '../../api';
+import { useNavContext } from '../../helpers';
 import { SbeCard } from './SbeCard';
 
 export const SbesCardList = () => {
-  const params = useParams() as { asId: string };
+  const asId = useNavContext().asId!;
 
-  const sbes = sbeQueries.useAll({ optional: true, tenantId: params.asId });
+  const sbes = sbeQueries.useAll({ optional: true, tenantId: asId });
   const sbesArr = Object.values(sbes.data ?? {});
 
   return sbesArr.length ? (

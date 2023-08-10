@@ -104,7 +104,6 @@ export class AbandonSoftDeletion1691520653756 implements MigrationInterface {
     );
     await queryRunner.query(`ALTER TABLE "user" DROP COLUMN "deleted"`);
     await queryRunner.query(`ALTER TABLE "user" DROP COLUMN "deletedById"`);
-    await queryRunner.query(`ALTER TABLE "user" DROP COLUMN "lastLogin"`);
     await queryRunner.query(`ALTER TABLE "tenant" DROP COLUMN "deleted"`);
     await queryRunner.query(`ALTER TABLE "tenant" DROP COLUMN "deletedById"`);
     await queryRunner.query(`ALTER TABLE "ods" DROP COLUMN "deleted"`);
@@ -179,7 +178,6 @@ export class AbandonSoftDeletion1691520653756 implements MigrationInterface {
     await queryRunner.query(`ALTER TABLE "ods" ADD "deleted" TIMESTAMP`);
     await queryRunner.query(`ALTER TABLE "tenant" ADD "deletedById" integer`);
     await queryRunner.query(`ALTER TABLE "tenant" ADD "deleted" TIMESTAMP`);
-    await queryRunner.query(`ALTER TABLE "user" ADD "lastLogin" TIMESTAMP`);
     await queryRunner.query(`ALTER TABLE "user" ADD "deletedById" integer`);
     await queryRunner.query(`ALTER TABLE "user" ADD "deleted" TIMESTAMP`);
     await queryRunner.query(

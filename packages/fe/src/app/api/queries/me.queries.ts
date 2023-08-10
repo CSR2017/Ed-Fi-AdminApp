@@ -35,7 +35,9 @@ export const useMyTenants = () =>
   useQuery({
     staleTime: 30 * 1000,
     queryKey: [`me`, 'tenants'],
-    queryFn: () => methods.getManyMap(`${baseUrl}/auth/my-tenants`, GetTenantDto),
+    queryFn: () => {
+      return methods.getManyMap(`${baseUrl}/auth/my-tenants`, GetTenantDto);
+    },
   });
 export const usePutMe = (callback?: () => void) => {
   const queryClient = useQueryClient();

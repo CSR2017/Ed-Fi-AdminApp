@@ -18,7 +18,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { privilegeQueries, roleQueries } from '../../api';
 import { PrivilegesInput } from './PrivilegesInput';
 import { useNavToParent } from '../../helpers';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { useState } from 'react';
 
 const resolver = classValidatorResolver(PostRoleDto);

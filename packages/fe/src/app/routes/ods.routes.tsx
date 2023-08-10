@@ -5,7 +5,7 @@ import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { OdsPage } from '../Pages/Ods/OdsPage';
 import { OdssPage } from '../Pages/Ods/OdssPage';
 import { odsQueries } from '../api';
-import { getRelationDisplayName } from '../helpers';
+import { getRelationDisplayName, useNavContext } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const OdsBreadcrumb = () => {
@@ -40,10 +40,13 @@ export const OdsLink = (props: {
   query: UseQueryResult<Record<string | number, GetOdsDto>, unknown>;
 }) => {
   const ods = getEntityFromQuery(props.id, props.query);
-  const params = useParams() as { asId: string; sbeId: string };
+  const navContext = useNavContext();
+  const sbeId = navContext.sbeId!;
+  const asId = navContext.asId!;
+
   return ods ? (
     <Link as="span">
-      <RouterLink title="Go to ods" to={`/as/${params.asId}/sbes/${ods.sbeId}/odss/${ods.id}`}>
+      <RouterLink title="Go to ods" to={`/as/${asId}/sbes/${sbeId}/odss/${ods.id}`}>
         {getRelationDisplayName(ods.id, props.query)}
       </RouterLink>
     </Link>

@@ -8,7 +8,7 @@ import { ActionBarActions } from '../../helpers';
 import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { SbeGlobalLink, UserGlobalLink } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { useSbeGlobalActions } from './useSbeGlobalActions';
 import { useSbesGlobalActions } from './useSbesGlobalActions';
 

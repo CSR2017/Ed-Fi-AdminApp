@@ -13,7 +13,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { tenantQueries } from '../../api';
 import { useNavToParent } from '../../helpers';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { useQueryClient } from '@tanstack/react-query';
 
 const resolver = classValidatorResolver(PostTenantDto);

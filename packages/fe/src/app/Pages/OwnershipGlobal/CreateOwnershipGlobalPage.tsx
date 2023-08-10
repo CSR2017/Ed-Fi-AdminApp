@@ -24,7 +24,7 @@ import {
 } from '../../helpers/FormPickers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { useSearchParamsObject } from '../../helpers/useSearch';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 
 const resolver = classValidatorResolver(PostOwnershipDto);
 

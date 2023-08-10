@@ -5,7 +5,7 @@ import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { OwnershipPage } from '../Pages/Ownership/OwnershipPage';
 import { OwnershipsPage } from '../Pages/Ownership/OwnershipsPage';
 import { ownershipQueries } from '../api';
-import { getRelationDisplayName } from '../helpers';
+import { getRelationDisplayName, useNavContext } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const OwnershipBreadcrumb = () => {
@@ -40,10 +40,12 @@ export const OwnershipLink = (props: {
   query: UseQueryResult<Record<string | number, GetOwnershipDto>, unknown>;
 }) => {
   const ownership = getEntityFromQuery(props.id, props.query);
-  const params = useParams() as { asId: string };
+  const navContext = useNavContext();
+  const asId = navContext.asId!;
+
   return ownership ? (
     <Link as="span">
-      <RouterLink title="Go to ownership" to={`/as/${params.asId}/ownerships/${ownership.id}`}>
+      <RouterLink title="Go to ownership" to={`/as/${asId}/ownerships/${ownership.id}`}>
         {getRelationDisplayName(ownership.id, props.query)}
       </RouterLink>
     </Link>

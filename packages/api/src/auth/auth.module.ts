@@ -18,7 +18,6 @@ import { AuthService } from './auth.service';
 import { SessionSerializer } from './helpers/session.serializer';
 import { IdpService } from './idp.service';
 import { RegisterAlIdpsService } from './login/applauncher.strategy';
-import { LocalStrategy } from './login/local.strategy';
 import { RegisterOidcIdpsService } from './login/oidc.strategy';
 
 @Global()
@@ -42,7 +41,6 @@ import { RegisterOidcIdpsService } from './login/oidc.strategy';
   providers: [
     AuthService,
     IdpService,
-    LocalStrategy,
     SessionSerializer,
     RegisterOidcIdpsService,
     RegisterAlIdpsService,

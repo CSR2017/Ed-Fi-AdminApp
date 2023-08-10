@@ -5,7 +5,7 @@ import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { VendorPage } from '../Pages/Vendor/VendorPage';
 import { VendorsPage } from '../Pages/Vendor/VendorsPage';
 import { vendorQueries } from '../api';
-import { getRelationDisplayName } from '../helpers';
+import { getRelationDisplayName, useNavContext } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const VendorBreadcrumb = () => {
@@ -44,17 +44,13 @@ export const VendorLink = (props: {
   query: UseQueryResult<Record<string | number, GetVendorDto>, unknown>;
 }) => {
   const vendor = getEntityFromQuery(props.id, props.query);
-  const params = useParams() as {
-    vendorId: string;
-    asId: string;
-    sbeId: string;
-  };
+  const navContext = useNavContext();
+  const sbeId = navContext.sbeId!;
+  const asId = navContext.asId!;
+
   return vendor ? (
     <Link as="span">
-      <RouterLink
-        title="Go to vendor"
-        to={`/as/${params.asId}/sbes/${params.sbeId}/vendors/${vendor.id}`}
-      >
+      <RouterLink title="Go to vendor" to={`/as/${asId}/sbes/${sbeId}/vendors/${vendor.id}`}>
         {getRelationDisplayName(vendor.id, props.query)}
       </RouterLink>
     </Link>

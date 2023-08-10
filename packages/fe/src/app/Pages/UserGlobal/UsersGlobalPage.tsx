@@ -8,7 +8,7 @@ import { TableRowActions } from '../../helpers/TableRowActions';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { UserGlobalLink } from '../../routes';
 import { RoleGlobalLink } from '../../routes/role-global.routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { useMultipleUserGlobalActions } from './useMultipleUserGlobalActions';
 import { useUserGlobalActions } from './useUserGlobalActions';
 

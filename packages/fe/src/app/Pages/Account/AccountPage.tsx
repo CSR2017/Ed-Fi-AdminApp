@@ -1,5 +1,5 @@
 import { useMe } from '../../api';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { ViewAccount } from './ViewAccount';
 
 export const AccountPage = () => {

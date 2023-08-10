@@ -3,7 +3,7 @@ import { DataTable } from '@edanalytics/common-ui';
 import { useParams } from 'react-router-dom';
 import { vendorQueries } from '../../api';
 import { VendorLink } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 
 export const VendorsPageContent = () => {
   const params = useParams() as { asId: string; sbeId: string };

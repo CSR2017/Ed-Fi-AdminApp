@@ -5,7 +5,7 @@ import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { ClaimsetPage } from '../Pages/Claimset/ClaimsetPage';
 import { ClaimsetsPage } from '../Pages/Claimset/ClaimsetsPage';
 import { claimsetQueries } from '../api';
-import { getRelationDisplayName } from '../helpers';
+import { getRelationDisplayName, useNavContext } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const ClaimsetBreadcrumb = () => {
@@ -42,19 +42,15 @@ export const claimsetsRoute: RouteObject = {
 export const ClaimsetLink = (props: {
   id: number | undefined;
   query: UseQueryResult<Record<string | number, GetClaimsetDto>, unknown>;
-  sbeId?: string | number;
 }) => {
   const claimset = getEntityFromQuery(props.id, props.query);
-  const params = useParams() as {
-    asId: string;
-    sbeId: string;
-  };
+  const navContext = useNavContext();
+  const sbeId = navContext.sbeId!;
+  const asId = navContext.asId!;
+
   return claimset ? (
     <Link as="span">
-      <RouterLink
-        title="Go to claimset"
-        to={`/as/${params.asId}/sbes/${params.sbeId ?? props.sbeId}/claimsets/${claimset.id}`}
-      >
+      <RouterLink title="Go to claimset" to={`/as/${asId}/sbes/${sbeId}/claimsets/${claimset.id}`}>
         {getRelationDisplayName(claimset.id, props.query)}
       </RouterLink>
     </Link>

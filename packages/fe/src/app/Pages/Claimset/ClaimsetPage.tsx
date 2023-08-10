@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { useParams } from 'react-router-dom';
 import { claimsetQueries } from '../../api';
 import { ActionBarActions } from '../../helpers';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { ViewClaimset } from './ViewClaimset';
 import { useClaimsetActions } from './useClaimsetActions';
 import { ErrorBoundary } from 'react-error-boundary';

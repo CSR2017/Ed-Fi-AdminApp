@@ -5,7 +5,7 @@ import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { ApplicationPage } from '../Pages/Application/ApplicationPage';
 import { ApplicationsPage } from '../Pages/Application/ApplicationsPage';
 import { applicationQueries } from '../api';
-import { getRelationDisplayName } from '../helpers';
+import { getRelationDisplayName, useNavContext } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 import { CreateApplicationPage } from '../Pages/Application/CreateApplicationPage';
 
@@ -51,15 +51,15 @@ export const ApplicationLink = (props: {
   sbeId?: string | number;
 }) => {
   const application = getEntityFromQuery(props.id, props.query);
-  const params = useParams() as {
-    asId: string;
-    sbeId: string;
-  };
+  const navContext = useNavContext();
+  const sbeId = navContext.sbeId!;
+  const asId = navContext.asId!;
+
   return application ? (
     <Link as="span">
       <RouterLink
         title="Go to application"
-        to={`/as/${params.asId}/sbes/${params.sbeId ?? props.sbeId}/applications/${application.id}`}
+        to={`/as/${asId}/sbes/${sbeId ?? props.sbeId}/applications/${application.id}`}
       >
         {getRelationDisplayName(application.id, props.query)}
       </RouterLink>

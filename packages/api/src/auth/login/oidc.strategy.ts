@@ -1,7 +1,8 @@
-import { AppLauncher, Oidc } from '@edanalytics/models-server';
-import { Inject, Injectable } from '@nestjs/common';
+import { AppLauncher, Oidc, User } from '@edanalytics/models-server';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import config from 'config';
+import crypto from 'crypto';
 import { Issuer, Strategy, TokenSet } from 'openid-client';
 import passport from 'passport';
 import { Repository } from 'typeorm';
@@ -36,21 +37,29 @@ export class RegisterOidcIdpsService {
             usePKCE: false,
           },
           async (tokenset: TokenSet, userinfo, done) => {
-            try {
-              let username: string | undefined = undefined;
-              if (typeof userinfo.email !== 'string' || userinfo.email === '') {
-                throw new Error('Invalid email from IdP');
-              } else {
-                username = userinfo.email;
-              }
-              const user = await this.authService.findOrCreateUser({
-                username: username,
-                givenName: userinfo.given_name === '' ? null : userinfo.given_name,
-                familyName: userinfo.family_name === '' ? null : userinfo.family_name,
-              });
+            let username: string | undefined = undefined;
+            if (typeof userinfo.email !== 'string' || userinfo.email === '') {
+              throw new Error('Invalid email from IdP');
+            } else {
+              username = userinfo.email;
+            }
+            const user: User = await this.authService.validateUser(username).catch((err) => {
+              Logger.error(err);
+              return done(err, false);
+            });
+
+            if (user === null) {
+              const usernameHash = crypto.createHash('sha1');
+              usernameHash.update(username);
+              Logger.warn(`User sha1:${usernameHash.digest('hex')} not found in database`);
+              return done(new Error(USER_NOT_FOUND), false);
+            } else if (user.roleId === null || user.roleId === undefined) {
+              const usernameHash = crypto.createHash('sha1');
+              usernameHash.update(username);
+              Logger.warn(`No role assigned for User sha1:${usernameHash.digest('hex')}`);
+              return done(new Error(NO_ROLE), false);
+            } else {
               return done(null, user);
-            } catch (err) {
-              return done(null, false);
             }
           }
         );
@@ -59,3 +68,6 @@ export class RegisterOidcIdpsService {
     });
   }
 }
+
+export const USER_NOT_FOUND = 'User not found';
+export const NO_ROLE = 'No role assigned for user';

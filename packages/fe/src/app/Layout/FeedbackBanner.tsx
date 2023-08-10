@@ -6,13 +6,11 @@ import {
   Badge,
   Box,
   CloseButton,
-  ListItem,
-  UnorderedList,
 } from '@chakra-ui/react';
 import {
   IWorkflowFailureErrors,
-  StatusType,
   OperationResult,
+  StatusType,
   stdDetailed,
 } from '@edanalytics/utils';
 import _ from 'lodash';

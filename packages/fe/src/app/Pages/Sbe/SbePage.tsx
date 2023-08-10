@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import { ReactNode } from 'react';
 import { sbeQueries } from '../../api';
 import { sbeIndexRoute } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { ActionBarActions } from '../../helpers/ActionBarActions';
 import { ViewSbe } from './ViewSbe';
 import _ from 'lodash';

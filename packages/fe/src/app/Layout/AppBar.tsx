@@ -10,10 +10,9 @@ import {
   MenuList,
   Text,
 } from '@chakra-ui/react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai';
 import { RxCaretDown } from 'react-icons/rx';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import logoUrl from '../../assets/starting-blocks.svg';
 import { apiClient, useMe, useMyTenants } from '../api';
 import { asTenantIdAtom } from './Nav';
@@ -21,8 +20,6 @@ import { asTenantIdAtom } from './Nav';
 export const AppBar = () => {
   const me = useMe();
 
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const asId = useAtomValue(asTenantIdAtom);
   const tenants = useMyTenants();
   const tenant = asId === undefined ? undefined : tenants.data?.[asId];
@@ -68,9 +65,8 @@ export const AppBar = () => {
         <MenuList>
           <MenuItem
             onClick={() => {
-              navigate('/public');
               apiClient.post('/auth/logout', {}).then(() => {
-                queryClient.invalidateQueries({ queryKey: ['me'] });
+                window.location.href = window.location.origin;
               });
             }}
           >

@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { sbeQueries, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { UserLink } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { NameCell } from './NameCell';
 
 export const SbesPage = () => {

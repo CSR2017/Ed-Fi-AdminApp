@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { odsQueries, userQueries } from '../../api/queries/queries';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { UserLink } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { NameCell } from './NameCell';
 
 export const OdssPage = () => {
@@ -24,7 +24,7 @@ export const OdssPage = () => {
         columns={[
           {
             accessorKey: 'displayName',
-            cell: NameCell(params),
+            cell: NameCell,
             header: () => 'Name',
           },
           {

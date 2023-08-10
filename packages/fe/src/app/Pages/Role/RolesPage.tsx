@@ -7,7 +7,7 @@ import { roleQueries, useMyTenants, userQueries } from '../../api';
 import { getEntityFromQuery } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { RoleLink, UserLink, rolesRoute } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { TableRowActions } from '../../helpers/TableRowActions';
 import { useRoleActions } from './useRoleActions';
 

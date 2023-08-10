@@ -6,7 +6,7 @@ import { BiEdit, BiTrash } from 'react-icons/bi';
 import { roleQueries } from '../../api';
 import { AuthorizeComponent, tenantRoleAuthConfig, useNavToParent } from '../../helpers';
 import { roleIndexRoute } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { EditRole } from './EditRole';
 import { ViewRole } from './ViewRole';
 import { useRoleActions } from './useRoleActions';

@@ -1,12 +1,11 @@
 import { DataTable } from '@edanalytics/common-ui';
 import { GetClaimsetDto, GetEdorgDto, createEdorgCompositeNaturalKey } from '@edanalytics/models';
 import _ from 'lodash';
-import { useParams } from 'react-router-dom';
 import { applicationQueries, claimsetQueries, edorgQueries } from '../../api';
-import { ActionBarActions } from '../../helpers';
+import { ActionBarActions, useNavContext } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { ClaimsetLink, EdorgLink } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { NameCell } from './NameCell';
 import { useApplicationsActions } from './useApplicationActions';
 
@@ -19,24 +18,29 @@ export const ApplicationsPage = () => {
 };
 
 export const ApplicationsPageActions = () => {
-  const params = useParams() as { sbeId: string; asId: string };
+  const navContext = useNavContext();
+  const sbeId = navContext.sbeId!;
+  const asId = navContext.asId!;
 
   const actions = useApplicationsActions({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
+    sbeId: sbeId,
+    tenantId: asId,
   });
   return <ActionBarActions actions={_.omit(actions, 'View')} />;
 };
 
 export const ApplicationsPageContent = () => {
-  const params = useParams() as { sbeId: string; asId: string };
+  const navContext = useNavContext();
+  const sbeId = navContext.sbeId!;
+  const asId = navContext.asId!;
+
   const applications = applicationQueries.useAll({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
+    sbeId: sbeId,
+    tenantId: asId,
   });
   const edorgs = edorgQueries.useAll({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
+    sbeId: sbeId,
+    tenantId: asId,
   });
   const edorgsByEdorgId = {
     ...edorgs,
@@ -51,8 +55,8 @@ export const ApplicationsPageContent = () => {
     }, {}),
   };
   const claimsets = claimsetQueries.useAll({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
+    sbeId: sbeId,
+    tenantId: asId,
   });
   const claimsetsByName = {
     ...claimsets,
@@ -71,7 +75,7 @@ export const ApplicationsPageContent = () => {
       columns={[
         {
           accessorKey: 'displayName',
-          cell: NameCell({ asId: params.asId, sbeId: params.sbeId }),
+          cell: NameCell({ asId: asId, sbeId: sbeId }),
           header: () => 'Name',
         },
         {

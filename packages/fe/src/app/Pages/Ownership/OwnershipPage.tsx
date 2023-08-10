@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { ownershipQueries } from '../../api';
 import { useNavToParent } from '../../helpers';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { ViewOwnership } from './ViewOwnership';
 
 export const OwnershipPage = () => {

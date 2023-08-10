@@ -3,7 +3,7 @@ import { DataTable } from '@edanalytics/common-ui';
 import { tenantQueries, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { TenantLink, UserLink } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { useTenantsActions } from './useTenantsActions';
 import _ from 'lodash';
 import { ActionBarActions, TableRowActions } from '../../helpers';

@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { useParams } from 'react-router-dom';
 import { edorgQueries } from '../../api';
 import { ActionBarActions } from '../../helpers';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { ViewEdorg } from './ViewEdorg';
 
 export const EdorgPage = () => {

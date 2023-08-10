@@ -1,6 +1,11 @@
 import {
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Alert,
   AlertIcon,
+  Heading,
   Icon,
   Stat,
   StatLabel,
@@ -26,25 +31,26 @@ import {
   AuthorizeConfig,
   authorize,
   getRelationDisplayName,
+  useNavContext,
   usePrivilegeCacheForConfig,
 } from '../../helpers';
 import { ClaimsetLink, EdorgLink } from '../../routes';
 import { NameCell } from '../Application/NameCell';
 
 export const useApplicationContent = (props: { sbe: GetSbeDto }) => {
-  const params = useParams() as { asId: string };
+  const { asId } = useNavContext();
   const appAuth: AuthorizeConfig = {
     privilege: 'tenant.sbe.edorg.application:read',
     subject: {
       id: '__filtered__',
       sbeId: props.sbe.id,
-      tenantId: Number(params.asId),
+      tenantId: Number(asId),
     },
   };
   const queryClient = useQueryClient();
 
   const odsAuth: AuthorizeConfig = {
-    subject: { id: '__filtered__', sbeId: props.sbe.id, tenantId: Number(params.asId) },
+    subject: { id: '__filtered__', sbeId: props.sbe.id, tenantId: Number(asId) },
     privilege: 'tenant.sbe.ods:read',
   };
   usePrivilegeCacheForConfig([appAuth, odsAuth]);
@@ -68,50 +74,57 @@ export const useApplicationContent = (props: { sbe: GetSbeDto }) => {
           </Stat>
         ),
         Tab: <Tab>Applications</Tab>,
-        TabContent: (
-          <TabPanel>
-            <ErrorBoundary
-              FallbackComponent={(arg: { error: { message: string } }) => (
-                <Alert status="error">
-                  <AlertIcon />
-                  {arg.error.message}
-                </Alert>
-              )}
-            >
-              <ApplicationTable sbe={props.sbe} />
-            </ErrorBoundary>
-          </TabPanel>
+        AccordionItem: (
+          <AccordionItem>
+            <AccordionButton>
+              <Heading fontWeight="medium" fontSize="md" as="span" flex="1" textAlign="left">
+                Applications
+              </Heading>
+              <AccordionIcon />
+            </AccordionButton>
+            <AccordionPanel pb={4}>
+              <ErrorBoundary
+                FallbackComponent={(arg: { error: { message: string } }) => (
+                  <Alert status="error">
+                    <AlertIcon />
+                    {arg.error.message}
+                  </Alert>
+                )}
+              >
+                <ApplicationTable sbe={props.sbe} />
+              </ErrorBoundary>
+            </AccordionPanel>
+          </AccordionItem>
         ),
       }
     : {
         Stat: null,
-        Tab: null,
-        TabContent: null,
+        AccordionItem: null,
       };
 };
 
 export const ApplicationTable = (props: { sbe: GetSbeDto }) => {
-  const params = useParams() as { asId: string };
+  const asId = useNavContext().asId!;
   const appAuth: AuthorizeConfig = {
     privilege: 'tenant.sbe.edorg.application:read',
     subject: {
       id: '__filtered__',
       sbeId: props.sbe.id,
-      tenantId: Number(params.asId),
+      tenantId: asId,
     },
   };
   const applications = applicationQueries.useAll({
     optional: true,
-    tenantId: params.asId,
+    tenantId: asId,
     sbeId: props.sbe.id,
   });
   const edorgs = edorgQueries.useAll({
     optional: true,
-    tenantId: params.asId,
+    tenantId: asId,
     sbeId: props.sbe.id,
   });
   const odsAuth: AuthorizeConfig = {
-    subject: { id: '__filtered__', sbeId: props.sbe.id, tenantId: Number(params.asId) },
+    subject: { id: '__filtered__', sbeId: props.sbe.id, tenantId: asId },
     privilege: 'tenant.sbe.ods:read',
   };
   usePrivilegeCacheForConfig([appAuth, odsAuth]);
@@ -130,7 +143,7 @@ export const ApplicationTable = (props: { sbe: GetSbeDto }) => {
   const claimsets = claimsetQueries.useAll({
     optional: true,
     sbeId: props.sbe.id,
-    tenantId: params.asId,
+    tenantId: asId,
   });
   const claimsetsByName = {
     ...claimsets,
@@ -150,7 +163,7 @@ export const ApplicationTable = (props: { sbe: GetSbeDto }) => {
       columns={[
         {
           accessorKey: 'displayName',
-          cell: NameCell({ asId: params.asId, sbeId: props.sbe.id }),
+          cell: NameCell({ asId: asId, sbeId: props.sbe.id }),
           header: () => 'Name',
         },
         {
@@ -196,18 +209,18 @@ export const ApplicationTable = (props: { sbe: GetSbeDto }) => {
 };
 
 export const ApplicationStat = (props: { sbe: GetSbeDto }) => {
-  const params = useParams() as { asId: string };
+  const asId = useNavContext().asId!;
   const appAuth: AuthorizeConfig = {
     privilege: 'tenant.sbe.edorg.application:read',
     subject: {
       id: '__filtered__',
       sbeId: props.sbe.id,
-      tenantId: Number(params.asId),
+      tenantId: asId,
     },
   };
   const applications = applicationQueries.useAll({
     optional: false,
-    tenantId: params.asId,
+    tenantId: asId,
     sbeId: props.sbe.id,
   });
 

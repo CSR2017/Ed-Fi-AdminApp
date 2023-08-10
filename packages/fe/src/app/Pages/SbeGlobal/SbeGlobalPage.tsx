@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import { sbeQueries } from '../../api';
 import { ActionBarButton } from '../../helpers';
 import { sbeGlobalIndexRoute } from '../../routes';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { EditSbeAdminApi } from './EditSbeAdminApi';
 import { EditSbeMeta } from './EditSbeMeta';
 import { RegisterSbeAdminApi } from './RegisterSbeAdminApi';

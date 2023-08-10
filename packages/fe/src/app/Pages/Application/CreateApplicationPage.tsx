@@ -19,24 +19,26 @@ import { ApplicationYopassResponseDto, PostApplicationForm } from '@edanalytics/
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useApplicationPost } from '../../api';
-import { useNavToParent } from '../../helpers';
+import { useNavContext, useNavToParent } from '../../helpers';
 import { SelectClaimset, SelectEdorg, SelectVendor } from '../../helpers/FormPickers';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 const resolver = classValidatorResolver(PostApplicationForm);
 
 export const CreateApplicationPage = () => {
   const navigate = useNavigate();
-  const params = useParams() as { asId: string; sbeId: string };
+  const navContext = useNavContext();
+  const sbeId = navContext.sbeId!;
+  const asId = navContext.asId!;
   const navToParentOptions = useNavToParent();
 
   const [result, setResult] = useState<ApplicationYopassResponseDto | null>(null);
   const clipboard = useClipboard('');
 
   const postApplication = useApplicationPost({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
+    sbeId: sbeId,
+    tenantId: asId,
     callback: (result) => {
       setResult(result);
       clipboard.setValue(result.link);
@@ -60,10 +62,7 @@ export const CreateApplicationPage = () => {
         onClose={() => {
           setResult(null);
           clipboard.setValue('');
-          result &&
-            navigate(
-              `/as/${params.asId}/sbes/${params.sbeId}/applications/${result.applicationId}`
-            );
+          result && navigate(`/as/${asId}/sbes/${sbeId}/applications/${result.applicationId}`);
         }}
       >
         <ModalOverlay />
@@ -94,31 +93,26 @@ export const CreateApplicationPage = () => {
         <FormControl isInvalid={!!errors.educationOrganizationId}>
           <FormLabel>Ed-org</FormLabel>
           <SelectEdorg
-            tenantId={params.asId}
+            tenantId={asId}
             name="educationOrganizationId"
             useEdorgId
-            sbeId={params.sbeId}
+            sbeId={sbeId}
             control={control}
           />
           <FormErrorMessage>{errors.educationOrganizationId?.message}</FormErrorMessage>
         </FormControl>
         <FormControl isInvalid={!!errors.vendorId}>
           <FormLabel>Vendor</FormLabel>
-          <SelectVendor
-            tenantId={params.asId}
-            name="vendorId"
-            sbeId={params.sbeId}
-            control={control}
-          />
+          <SelectVendor tenantId={asId} name="vendorId" sbeId={sbeId} control={control} />
           <FormErrorMessage>{errors.vendorId?.message}</FormErrorMessage>
         </FormControl>
         <FormControl isInvalid={!!errors.claimSetName}>
           <FormLabel>Claimset</FormLabel>
           <SelectClaimset
             useName
-            tenantId={params.asId}
+            tenantId={asId}
             name="claimSetName"
-            sbeId={params.sbeId}
+            sbeId={sbeId}
             control={control}
           />
           <FormErrorMessage>{errors.claimSetName?.message}</FormErrorMessage>

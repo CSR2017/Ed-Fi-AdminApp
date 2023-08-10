@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { tenantQueries } from '../../api';
 import { ActionBarActions, useNavToParent } from '../../helpers';
 import { useSearchParamsObject } from '../../helpers/useSearch';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { EditTenant } from './EditTenant';
 import { ViewTenant } from './ViewTenant';
 import { useTenantActions } from './useTenantActions';

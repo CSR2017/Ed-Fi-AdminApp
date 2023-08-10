@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { ownershipQueries } from '../../api';
 import { ActionBarActions } from '../../helpers/ActionBarActions';
 import { useSearchParamsObject } from '../../helpers/useSearch';
-import { PageTemplate } from '../PageTemplate';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { EditOwnershipGlobal } from './EditOwnershipGlobal';
 import { ViewOwnershipGlobal } from './ViewOwnershipGlobal';
 import { useOwnershipGlobalActions } from './useOwnershipGlobalActions';

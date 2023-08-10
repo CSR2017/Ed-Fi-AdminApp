@@ -1,6 +1,6 @@
 import { Box, ListItem, Text, UnorderedList } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
-import { RouteObject, RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { Outlet, RouteObject, RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { ErrorFallback } from '../Layout/Fallback404';
 import { PublicAppLayout } from '../Layout/PublicAppLayout';
 import { StandardLayout } from '../Layout/StandardLayout';
@@ -68,6 +68,10 @@ import {
   userGlobalIndexRoute,
   userGlobalCreateRoute,
 } from './user-global.routes';
+import { GlobalHome } from '../Pages/Home/GlobalHome';
+import { UnauthenticatedPage } from '../Layout/Unauthenticated';
+import { useMe } from '../api';
+import { LandingLayoutRouteElement } from '../Layout/LandingLayout';
 export * from './account.routes';
 export * from './application.routes';
 export * from './claimset.routes';
@@ -90,34 +94,14 @@ export const fallback404Route: RouteObject = {
 
 export const indexRoute: RouteObject = {
   path: '/',
+  element: <GlobalHome />,
 };
-export const publicRoute: RouteObject = {
-  path: '/public',
-  // TODO figure out what this content is actually going to be, or alternatively where to redirect to for login
-  element: (
-    <Box p="5em">
-      <Text
-        background="linear-gradient(45deg, var(--chakra-colors-blue-700), var(--chakra-colors-teal-600))"
-        backgroundClip="text"
-        textColor="transparent"
-        fontWeight="black"
-        fontSize="6xl"
-      >
-        Starting Blocks drives synergies to increase profits and deliver value for your vampire
-        squid overlords.
-      </Text>
-      <UnorderedList color="teal.600" mt="2em" fontSize="3xl" fontWeight="bold">
-        <ListItem>Productivity feature.</ListItem>
-        <ListItem>More insights. More actionable.</ListItem>
-        <ListItem>Strategic.</ListItem>
-        <ListItem>Efficiency feature.</ListItem>
-        <ListItem>Complete business solution.</ListItem>
-      </UnorderedList>
-    </Box>
-  ),
+export const unauthenticatedRoute: RouteObject = {
+  path: '/unauthenticated',
+  element: <UnauthenticatedPage />,
 };
 const Login = memo(() => {
-  const { redirect } = useSearchParamsObject();
+  const { redirect } = useSearchParamsObject() as any;
   useEffect(() => {
     window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/oidc/1/login${
       redirect ? `?redirect=${redirect}` : ''
@@ -134,18 +118,35 @@ export const asRoute: RouteObject = {
   path: '/as/:asId',
   element: <TenantHome />,
 };
+
+export const landingLayoutRoute: RouteObject = {
+  element: <LandingLayoutRouteElement />,
+  errorElement: <ErrorFallback />,
+  children: [unauthenticatedRoute],
+};
 export const publicLayoutRoute: RouteObject = {
   element: <PublicAppLayout />,
   errorElement: <ErrorFallback />,
-  children: [publicRoute, secretRoute],
+  children: [landingLayoutRoute, secretRoute],
 };
-export const mainLayoutRoute: RouteObject = {
-  element: <StandardLayout />,
-  errorElement: <ErrorFallback />,
-  handle: { crumb: () => 'Home' },
-  children: [
-    indexRoute,
 
+const AuthenticatedRoute = () => {
+  const me = useMe();
+  if (me.isLoading || me.data === undefined) {
+    return null;
+  } else if (me.data === null) {
+    window.location.href = `${window.location.origin}/login?redirect=${encodeURIComponent(
+      window.location.href.replace(window.location.origin, '')
+    )}`;
+    return null;
+  }
+  return <Outlet />;
+};
+
+export const authenticatedRoutes: RouteObject = {
+  element: <AuthenticatedRoute />,
+  errorElement: <ErrorFallback />,
+  children: [
     sbesGlobalRoute,
     sbesGlobalIndexRoute,
     sbeGlobalCreateRoute,
@@ -225,6 +226,13 @@ export const mainLayoutRoute: RouteObject = {
     asRoute,
     accountRouteGlobal,
   ],
+};
+
+export const mainLayoutRoute: RouteObject = {
+  element: <StandardLayout />,
+  errorElement: <ErrorFallback />,
+  handle: { crumb: () => 'Home' },
+  children: [indexRoute, authenticatedRoutes],
 };
 export const routes = [mainLayoutRoute, publicLayoutRoute, loginRoute, fallback404Route];
 const addPathToHandle = (r: RouteObject) => {

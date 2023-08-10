@@ -1,20 +1,4 @@
 import {
-  Controller,
-  Get,
-  Header,
-  HttpException,
-  HttpStatus,
-  Next,
-  Param,
-  Post,
-  Query,
-  Req,
-  Request,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
-import { Response } from 'express';
-import {
   AuthorizationCache,
   GetSessionDataDto,
   Ids,
@@ -25,9 +9,24 @@ import {
   toGetTenantDto,
 } from '@edanalytics/models';
 import { Tenant } from '@edanalytics/models-server';
+import {
+  Controller,
+  Get,
+  Header,
+  Logger,
+  Next,
+  Param,
+  Post,
+  Query,
+  Req,
+  Request,
+  Res,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import config from 'config';
+import { randomUUID } from 'crypto';
+import { Response } from 'express';
 import passport from 'passport';
 import { Repository } from 'typeorm';
 import { Authorize, NoAuthorization } from './authorization';
@@ -36,8 +35,7 @@ import { AuthCache } from './helpers/inject-auth-cache';
 import { UserPrivileges } from './helpers/inject-user-privileges';
 import { ReqUser } from './helpers/user.decorator';
 import { IdpService } from './idp.service';
-import { LocalAuthGuard } from './login/local-auth.guard';
-import { randomUUID } from 'crypto';
+import { NO_ROLE, USER_NOT_FOUND } from './login/oidc.strategy';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -96,26 +94,45 @@ export class AuthController {
     }
     passport.authenticate(`oidc-${oidcId}`, {
       successRedirect: `${config.FE_URL}${redirect}`,
-      failWithError: true,
-    })(req, res, next);
-  }
+      failureRedirect: `${config.FE_URL}/unauthenticated`,
+    })(req, res, (err: Error) => {
+      Logger.error(err);
 
-  @UseGuards(LocalAuthGuard)
-  @Public()
-  @Post('/local/login')
-  async login(@Request() req) {
-    return toGetSessionDataDto(req.user);
+      if (err.message === USER_NOT_FOUND) {
+        res.redirect(
+          `${config.FE_URL}/unauthenticated?msg=Oops, it looks like your user hasn't been created yet. We'll let you know when you can log in.`
+        );
+      } else if (err.message === NO_ROLE) {
+        res.redirect(
+          `${config.FE_URL}/unauthenticated?msg=Your login worked, but it looks like your setup isn't quite complete. We'll let you know when everything's ready.`
+        );
+      } else if (
+        err.message?.startsWith('did not find expected authorization request details in session')
+      ) {
+        res.redirect(
+          `${config.FE_URL}/unauthenticated?msg=Login failed. There may be an issue, but please try again.`
+        );
+      } else if (err.message?.startsWith('invalid_grant (Code not valid)')) {
+        res.redirect(
+          `${config.FE_URL}/unauthenticated?msg=It looks like there was a hiccup during login. Please try again.`
+        );
+      } else {
+        res.redirect(
+          `${config.FE_URL}/unauthenticated?msg=It looks like your login was not successful. Please try again and contact us if the issue persists.`
+        );
+      }
+    });
   }
 
   @Get('me')
   @NoAuthorization()
-  @Header('Cache-Control', 'none')
+  @Header('Cache-Control', 'no-store')
   async me(@ReqUser() session: GetSessionDataDto, @Req() req) {
     return toGetSessionDataDto(session);
   }
   @Get('my-tenants')
   @NoAuthorization()
-  @Header('Cache-Control', 'none')
+  @Header('Cache-Control', 'no-store')
   async myTenants(
     @ReqUser() session: GetSessionDataDto,
     @UserPrivileges() privileges: Set<PrivilegeCode>,

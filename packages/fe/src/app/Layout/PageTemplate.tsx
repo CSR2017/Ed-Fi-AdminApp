@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
 export const PageTemplate = (props: {
-  title: ReactNode;
+  title?: ReactNode;
   children?: ReactNode;
   constrainWidth?: boolean;
   justifyActionsLeft?: boolean;
@@ -22,9 +22,11 @@ export const PageTemplate = (props: {
         mx="-0.5rem"
         px="0.5rem"
       >
-        <Heading color="gray.700" size="page-heading">
-          {props.title}
-        </Heading>
+        {props.title ? (
+          <Heading color="gray.700" size="page-heading">
+            {props.title}
+          </Heading>
+        ) : null}
         <ErrorBoundary
           FallbackComponent={(arg: { error: { message: string } }) => (
             <Text as="i" color="gray.500" fontSize="sm">

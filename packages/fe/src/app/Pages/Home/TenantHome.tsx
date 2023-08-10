@@ -1,14 +1,19 @@
-import { useParams } from 'react-router-dom';
-import { PageTemplate } from '../PageTemplate';
+import { Heading } from '@chakra-ui/react';
+import { AuthorizeComponent, sbeAuthConfig, useNavContext } from '../../helpers';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { SbesCardList } from './SbesCardList';
-import { AuthorizeComponent, sbeAuthConfig } from '../../helpers';
 
 export const TenantHome = () => {
-  const params = useParams() as { asId: string };
+  const asId = useNavContext().asId!;
   return (
     <PageTemplate title="Home">
-      <AuthorizeComponent config={sbeAuthConfig('__filtered__', params.asId, 'tenant.sbe:read')}>
-        <SbesCardList />
+      <AuthorizeComponent config={sbeAuthConfig('__filtered__', asId, 'tenant.sbe:read')}>
+        <>
+          <Heading size="md" mb={5} mt={10}>
+            StartingBlocks environments
+          </Heading>
+          <SbesCardList />
+        </>
       </AuthorizeComponent>
     </PageTemplate>
   );

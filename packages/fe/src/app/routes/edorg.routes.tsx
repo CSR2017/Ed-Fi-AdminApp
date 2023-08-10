@@ -5,7 +5,7 @@ import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { EdorgPage } from '../Pages/Edorg/EdorgPage';
 import { EdorgsPage } from '../Pages/Edorg/EdorgsPage';
 import { edorgQueries } from '../api';
-import { getRelationDisplayName } from '../helpers';
+import { getRelationDisplayName, useNavContext } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const EdorgBreadcrumb = () => {
@@ -44,16 +44,13 @@ export const EdorgLink = (props: {
   query: UseQueryResult<Record<string | number, GetEdorgDto>, unknown>;
 }) => {
   const edorg = getEntityFromQuery(props.id, props.query);
-  const params = useParams() as {
-    asId: string;
-    sbeId: string;
-  };
+  const navContext = useNavContext();
+  const sbeId = navContext.sbeId!;
+  const asId = navContext.asId!;
+
   return edorg ? (
     <Link as="span">
-      <RouterLink
-        title="Go to edorg"
-        to={`/as/${params.asId}/sbes/${edorg.sbeId}/edorgs/${edorg.id}`}
-      >
+      <RouterLink title="Go to edorg" to={`/as/${asId}/sbes/${sbeId}/edorgs/${edorg.id}`}>
         {getRelationDisplayName(edorg.id, props.query)}
       </RouterLink>
     </Link>

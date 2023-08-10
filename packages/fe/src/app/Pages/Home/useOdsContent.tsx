@@ -1,28 +1,38 @@
-import { Stat, StatLabel, StatNumber, Tab, TabPanel } from '@chakra-ui/react';
+import {
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Heading,
+  Stat,
+  StatLabel,
+  StatNumber,
+  Tab,
+  TabPanel,
+} from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetSbeDto } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { odsQueries } from '../../api';
 import {
   AuthorizeConfig,
   authorize,
+  useNavContext,
   usePrivilegeCacheForConfig,
-  useQueryIfAuth,
 } from '../../helpers';
 import { NameCell } from '../Ods/NameCell';
-import { odsQueries } from '../../api';
 
 export const useOdsContent = (props: { sbe: GetSbeDto }) => {
-  const params = useParams() as { asId: string };
+  const asId = useNavContext().asId!;
   const odsAuth: AuthorizeConfig = {
     privilege: 'tenant.sbe.ods:read',
     subject: {
       id: '__filtered__',
       sbeId: props.sbe.id,
-      tenantId: Number(params.asId),
+      tenantId: Number(asId),
     },
   };
-  const odss = odsQueries.useAll({ optional: true, tenantId: params.asId, sbeId: props.sbe.id });
+  const odss = odsQueries.useAll({ optional: true, tenantId: asId, sbeId: props.sbe.id });
   usePrivilegeCacheForConfig(odsAuth);
   const queryClient = useQueryClient();
 
@@ -34,30 +44,36 @@ export const useOdsContent = (props: { sbe: GetSbeDto }) => {
             <StatNumber>{Object.keys(odss.data ?? {}).length}</StatNumber>
           </Stat>
         ),
-        Tab: <Tab>ODS's</Tab>,
-        TabContent: (
-          <TabPanel>
-            <DataTable
-              pageSizes={[5, 10, 15]}
-              data={Object.values(odss?.data || {})}
-              columns={[
-                {
-                  accessorKey: 'displayName',
-                  cell: NameCell({ asId: params.asId, sbeId: String(props.sbe.id) }),
-                  header: () => 'Name',
-                },
-                {
-                  accessorKey: 'createdDetailed',
-                  header: () => 'Created',
-                },
-              ]}
-            />
-          </TabPanel>
+        AccordionItem: (
+          <AccordionItem>
+            <AccordionButton>
+              <Heading fontWeight="medium" fontSize="md" as="span" flex="1" textAlign="left">
+                ODS's
+              </Heading>
+              <AccordionIcon />
+            </AccordionButton>
+            <AccordionPanel pb={4}>
+              <DataTable
+                pageSizes={[5, 10, 15]}
+                data={Object.values(odss?.data || {})}
+                columns={[
+                  {
+                    accessorKey: 'displayName',
+                    cell: NameCell,
+                    header: () => 'Name',
+                  },
+                  {
+                    accessorKey: 'createdDetailed',
+                    header: () => 'Created',
+                  },
+                ]}
+              />
+            </AccordionPanel>
+          </AccordionItem>
         ),
       }
     : {
         Stat: null,
-        Tab: null,
-        TabContent: null,
+        AccordionItem: null,
       };
 };

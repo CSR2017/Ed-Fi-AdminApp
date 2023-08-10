@@ -5,7 +5,7 @@ import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { UserPage } from '../Pages/User/UserPage';
 import { UsersPage } from '../Pages/User/UsersPage';
 import { userQueries } from '../api';
-import { getRelationDisplayName } from '../helpers';
+import { getRelationDisplayName, useNavContext } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const UserBreadcrumb = () => {
@@ -40,16 +40,14 @@ export const UserLink = (props: {
   /**@deprecated unneeded and no longer used. */
   query?: UseQueryResult<Record<string | number, GetUserDto>, unknown>;
 }) => {
-  const params = useParams() as { asId: string };
+  const navContext = useNavContext();
+  const asId = navContext.asId!;
 
-  const users = userQueries.useAll({ tenantId: params.asId });
+  const users = userQueries.useAll({ tenantId: asId });
   const user = getEntityFromQuery(props.id, users);
   return user ? (
     <Link as="span">
-      <RouterLink
-        title="Go to user"
-        to={(params.asId ? `/as/${params.asId}` : '') + `/users/${user.id}`}
-      >
+      <RouterLink title="Go to user" to={`/as/${asId}/users/${user.id}`}>
         {getRelationDisplayName(user.id, users)}
       </RouterLink>
     </Link>

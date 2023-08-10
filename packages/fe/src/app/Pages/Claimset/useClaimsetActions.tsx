@@ -1,19 +1,19 @@
 import { GetClaimsetDto } from '@edanalytics/models';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
-import { ActionsType, AuthorizeComponent, LinkActionProps } from '../../helpers';
+import { ActionsType, AuthorizeComponent, LinkActionProps, useNavContext } from '../../helpers';
 
 export const useClaimsetActions = ({
   claimset,
-  sbeId,
-  tenantId,
 }: {
   claimset: GetClaimsetDto | undefined;
-  sbeId: string;
-  tenantId: string;
 }): ActionsType => {
+  const navContext = useNavContext();
+  const sbeId = navContext.sbeId!;
+  const asId = navContext.asId!;
+
   const navigate = useNavigate();
-  const to = (id: number | string) => `/as/${tenantId}/sbes/${sbeId}/claimsets/${id}`;
+  const to = (id: number | string) => `/as/${asId}/sbes/${sbeId}/claimsets/${id}`;
 
   return claimset
     ? {
@@ -25,7 +25,7 @@ export const useClaimsetActions = ({
                 privilege: 'tenant.sbe.claimset:read',
                 subject: {
                   sbeId: Number(sbeId),
-                  tenantId: Number(tenantId),
+                  tenantId: Number(asId),
                   id: claimset.id,
                 },
               }}

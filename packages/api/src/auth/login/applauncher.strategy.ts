@@ -43,11 +43,10 @@ export class RegisterAlIdpsService {
               throw invalidToken;
             }
 
-            const user = await this.authService.findOrCreateUser({
-              username: payload.username,
-            });
+            const user = await this.authService.validateUser(payload.username);
             return done(null, user);
           } catch (err) {
+            Logger.error(err);
             return done(null, false);
           }
         });
