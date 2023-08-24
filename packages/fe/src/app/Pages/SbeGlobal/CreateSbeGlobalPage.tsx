@@ -24,7 +24,7 @@ export const CreateSbeGlobalPage = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
   } = useForm<PostSbeDto>({ resolver });
 
   return (
@@ -32,7 +32,7 @@ export const CreateSbeGlobalPage = () => {
       <Box w="20em">
         <form
           onSubmit={handleSubmit((data) =>
-            postSbe.mutate(
+            postSbe.mutateAsync(
               {
                 ...data,
               },
@@ -44,18 +44,18 @@ export const CreateSbeGlobalPage = () => {
             )
           )}
         >
-          <FormControl isInvalid={!!errors.envLabel}>
-            <FormLabel>Environment label</FormLabel>
-            <Input {...register('envLabel')} placeholder="envlabel" />
-            <FormErrorMessage>{errors.envLabel?.message}</FormErrorMessage>
+          <FormControl isInvalid={!!errors.name}>
+            <FormLabel>Name</FormLabel>
+            <Input {...register('name')} placeholder="name" />
+            <FormErrorMessage>{errors.name?.message}</FormErrorMessage>
           </FormControl>
           <ButtonGroup mt={4} colorScheme="teal">
-            <Button isLoading={isLoading} type="submit">
+            <Button isLoading={isSubmitting} type="submit">
               Save
             </Button>
             <Button
               variant="ghost"
-              isLoading={isLoading}
+              isLoading={isSubmitting}
               type="reset"
               onClick={() => {
                 navigate(navToParentOptions);

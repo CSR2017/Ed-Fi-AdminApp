@@ -6,7 +6,7 @@ import {
   FormLabel,
   Input,
 } from '@chakra-ui/react';
-import { PutRoleDto } from '@edanalytics/models';
+import { GetRoleDto, PutRoleDto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -14,7 +14,7 @@ import { roleQueries } from '../../api';
 
 const resolver = classValidatorResolver(PutRoleDto);
 
-export const EditRole = () => {
+export const EditRole = (props: { role: GetRoleDto }) => {
   const navigate = useNavigate();
   const params = useParams() as {
     asId: string;
@@ -25,33 +25,32 @@ export const EditRole = () => {
     callback: goToView,
     tenantId: params.asId,
   });
-  const role = roleQueries.useOne({
-    id: params.roleId,
-    tenantId: params.asId,
-  }).data;
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isLoading },
-  } = useForm<PutRoleDto>({ resolver, defaultValues: { ...role } });
+    formState: { errors, isSubmitting },
+  } = useForm<PutRoleDto>({
+    resolver,
+    defaultValues: { ...props.role, privileges: props.role.privileges.map((p) => p.code) },
+  });
 
-  return role ? (
-    <form onSubmit={handleSubmit((data) => putRole.mutate(data))}>
-      {/* TODO: replace this with real content */}
+  return (
+    <form onSubmit={handleSubmit((data) => putRole.mutateAsync(data))}>
       <FormControl isInvalid={!!errors.id}>
         <FormLabel>Id</FormLabel>
         <Input {...register('id')} placeholder="id" />
         <FormErrorMessage>{errors.id?.message}</FormErrorMessage>
       </FormControl>
       <ButtonGroup>
-        <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+        <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
           Save
         </Button>
         <Button
           mt={4}
           colorScheme="teal"
           variant="ghost"
-          isLoading={isLoading}
+          isLoading={isSubmitting}
           type="reset"
           onClick={goToView}
         >
@@ -59,5 +58,5 @@ export const EditRole = () => {
         </Button>
       </ButtonGroup>
     </form>
-  ) : null;
+  );
 };

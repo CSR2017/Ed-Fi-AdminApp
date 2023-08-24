@@ -13,6 +13,8 @@ export type BasePrivilege =
   | 'sbe:delete'
   | 'sbe:create'
   | 'sbe:refresh-resources'
+  | 'sb-sync-queue:read'
+  | 'sb-sync-queue:archive'
   | 'ods:read'
   | 'edorg:read'
   | 'privilege:read'
@@ -112,6 +114,8 @@ export const privilegeCodes = [
   'sbe:delete',
   'sbe:create',
   'sbe:refresh-resources',
+  'sb-sync-queue:read',
+  'sb-sync-queue:archive',
   'ods:read',
   'edorg:read',
   'privilege:read',

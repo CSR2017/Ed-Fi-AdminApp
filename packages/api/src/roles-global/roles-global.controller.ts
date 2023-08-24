@@ -75,7 +75,10 @@ export class RolesGlobalController {
       id: '__filtered__',
     },
   })
-  remove(@Param('roleId', new ParseIntPipe()) roleId: number, @ReqUser() user: GetSessionDataDto) {
+  async remove(
+    @Param('roleId', new ParseIntPipe()) roleId: number,
+    @ReqUser() user: GetSessionDataDto
+  ) {
     return this.roleService.remove(roleId, user);
   }
 }

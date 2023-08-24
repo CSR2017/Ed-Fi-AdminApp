@@ -6,12 +6,16 @@ import { roleQueries } from '../../api';
 import { AuthorizeComponent, globalRoleAuthConfig } from '../../helpers';
 import { ActionPropsConfirm, ActionsType, LinkActionProps } from '../../helpers/ActionsType';
 import { useSearchParamsObject } from '../../helpers/useSearch';
+import { mutationErrCallback } from '../../helpers/mutationErrCallback';
+import { usePopBanner } from '../../Layout/FeedbackBanner';
 
 export const useRoleGlobalActions = (role: GetRoleDto | undefined): ActionsType => {
   const navigate = useNavigate();
   const search = useSearchParamsObject();
   const to = (id: number | string) => `/roles/${id}`;
   const deleteRole = roleQueries.useDelete({});
+  const popBanner = usePopBanner();
+
   return role === undefined
     ? {}
     : {
@@ -34,7 +38,7 @@ export const useRoleGlobalActions = (role: GetRoleDto | undefined): ActionsType 
           return (
             <AuthorizeComponent config={globalRoleAuthConfig(role.id, 'role:update')}>
               <props.children
-                isDisabled={search?.edit}
+                isDisabled={'edit' in search && search.edit === 'true'}
                 icon={BiEdit}
                 text="Edit"
                 title={'Edit ' + role.displayName}
@@ -55,6 +59,7 @@ export const useRoleGlobalActions = (role: GetRoleDto | undefined): ActionsType 
                 onClick={() =>
                   deleteRole.mutateAsync(role.id, {
                     onSuccess: () => navigate(`/roles`),
+                    ...mutationErrCallback({ popBanner }),
                   })
                 }
                 confirm={true}

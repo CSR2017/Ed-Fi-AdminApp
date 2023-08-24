@@ -32,12 +32,11 @@ export const EditUser = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
   } = useForm<PutUserDto>({ resolver, defaultValues: { ...user } });
 
   return user ? (
-    <form onSubmit={handleSubmit((data) => putUser.mutate(data))}>
-      {/* TODO: replace this with real content */}
+    <form onSubmit={handleSubmit((data) => putUser.mutateAsync(data))}>
       <FormControl isInvalid={!!errors.givenName}>
         <FormLabel>Given Name</FormLabel>
         <Input {...register('givenName')} placeholder="givenName" />
@@ -49,14 +48,14 @@ export const EditUser = () => {
         <FormErrorMessage>{errors.familyName?.message}</FormErrorMessage>
       </FormControl>
       <ButtonGroup>
-        <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+        <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
           Save
         </Button>
         <Button
           mt={4}
           colorScheme="teal"
           variant="ghost"
-          isLoading={isLoading}
+          isLoading={isSubmitting}
           type="reset"
           onClick={goToView}
         >

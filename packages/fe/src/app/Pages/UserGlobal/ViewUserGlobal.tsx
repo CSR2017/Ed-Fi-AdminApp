@@ -2,6 +2,7 @@ import { FormLabel, Tag, Text } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 import { roleQueries, userQueries } from '../../api';
 import { RoleGlobalLink } from '../../routes/role-global.routes';
+import { Attribute, AttributeContainer } from '@edanalytics/common-ui';
 
 export const ViewUserGlobal = () => {
   const params = useParams() as {
@@ -14,20 +15,19 @@ export const ViewUserGlobal = () => {
 
   return user ? (
     <>
-      <FormLabel as="p">Username</FormLabel>
-      <Text>{user.username}</Text>
-      <FormLabel as="p">Given name</FormLabel>
-      <Text>{user.givenName}</Text>
-      <FormLabel as="p">Family name</FormLabel>
-      <Text>{user.familyName}</Text>
-      <FormLabel as="p">Status</FormLabel>
-      {user.isActive ? (
-        <Tag colorScheme="green">Active</Tag>
-      ) : (
-        <Tag colorScheme="orange">Inactive</Tag>
-      )}
-      <FormLabel as="p">Role</FormLabel>
-      <RoleGlobalLink id={user.roleId} query={roles} />
+      <Attribute label="Given Name" value={user.givenName} />
+      <Attribute label="Family Name" value={user.familyName} />
+      <Attribute isCopyable label="Username" value={user.username} />
+      <AttributeContainer label="Status">
+        {user.isActive ? (
+          <Tag colorScheme="green">Active</Tag>
+        ) : (
+          <Tag colorScheme="orange">Inactive</Tag>
+        )}
+      </AttributeContainer>
+      <AttributeContainer label="Role">
+        <RoleGlobalLink id={user.roleId} query={roles} />
+      </AttributeContainer>
     </>
   ) : null;
 };

@@ -17,6 +17,9 @@ import { Authorize } from '../auth/authorization';
 import { ReqUser } from '../auth/helpers/user.decorator';
 import { throwNotFound } from '../utils';
 import { UserTenantMembershipsGlobalService } from './user-tenant-memberships-global.service';
+import { ValidationError } from 'class-validator';
+import { ValidationException } from '../utils/customExceptions';
+import { formErrFromValidator } from '@edanalytics/utils';
 
 @ApiTags('UserTenantMembership - Global')
 @Controller()
@@ -38,6 +41,23 @@ export class UserTenantMembershipsGlobalController {
     @Body() createUserTenantMembershipDto: PostUserTenantMembershipDto,
     @ReqUser() user: GetSessionDataDto
   ) {
+    const isRedundant = !!(
+      await this.userTenantMembershipsRepository.findBy({
+        tenantId: createUserTenantMembershipDto.tenantId,
+        userId: createUserTenantMembershipDto.userId,
+      })
+    ).length;
+
+    if (isRedundant) {
+      const err = new ValidationError();
+      err.property = 'tenantId';
+      err.constraints = {
+        server:
+          'A membership already exists for this tenant\u2013user combination. To minimize confusion we disallow duplication.',
+      };
+      err.value = false;
+      throw new ValidationException(formErrFromValidator([err]));
+    }
     return toGetUserTenantMembershipDto(
       await this.userTenantMembershipService.create(
         addUserCreating(createUserTenantMembershipDto, user)

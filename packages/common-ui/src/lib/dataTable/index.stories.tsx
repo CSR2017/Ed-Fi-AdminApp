@@ -1,8 +1,5 @@
-import React from 'react';
-import { ComponentStory, ComponentMeta } from '@storybook/react';
-
-import { DataTable } from './index';
 import { faker } from '@faker-js/faker';
+import { DataTable } from './index';
 
 export default {
   title: 'DataTable',
@@ -11,7 +8,7 @@ export default {
 
 export const Standard = () => (
   <DataTable
-    data={makeData(250)}
+    data={makeData(25000)}
     columns={[
       {
         accessorKey: 'firstName',

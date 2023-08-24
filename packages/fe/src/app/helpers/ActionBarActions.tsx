@@ -9,7 +9,19 @@ export const ActionBarActions = (props: {
 }) => {
   const { show, actions } = props;
   const hidden = Object.entries(actions);
-  const visible = hidden.splice(0, show === true ? hidden.length : show === undefined ? 6 : show);
+  const visible = hidden.splice(
+    0,
+    // show all
+    show === true
+      ? hidden.length
+      : // show 4 by default, including "more" menu
+      show === undefined
+      ? hidden.length === 4
+        ? 4
+        : 3
+      : // show defined number
+        show
+  );
   return (
     <>
       {visible.map(([key, Action]) => (

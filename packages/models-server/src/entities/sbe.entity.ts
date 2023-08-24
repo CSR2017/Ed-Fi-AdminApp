@@ -6,11 +6,9 @@ import {
   ISbeConfigPrivate,
   ISbeConfigPublic,
 } from '@edanalytics/models';
-import { FakeMeUsing, deployEnv, schoolYear } from '@edanalytics/utils';
-import { faker } from '@faker-js/faker';
 import { Column, Entity, OneToMany } from 'typeorm';
-import { EntityBase } from '../utils/entity-base';
 import { JSONEncryptionTransformer } from 'typeorm-encrypted';
+import { EntityBase } from '../utils/entity-base';
 
 @Entity()
 export class Sbe extends EntityBase implements ISbe {
@@ -24,6 +22,9 @@ export class Sbe extends EntityBase implements ISbe {
 
   @Column()
   envLabel: string;
+
+  @Column()
+  name: string;
 
   @Column({ type: 'jsonb', nullable: true })
   configPublic: ISbeConfigPublic | null;

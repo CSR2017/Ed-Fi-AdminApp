@@ -1,38 +1,80 @@
-import { FormLabel, Text } from '@chakra-ui/react';
+import { Attribute } from '@edanalytics/common-ui';
 import { GetSbeDto } from '@edanalytics/models';
+import { AuthorizeComponent } from '../../helpers';
+import { SbeSyncQueue } from './SbeSyncQueue';
 
 export const ViewSbeGlobal = (props: { sbe: GetSbeDto }) => {
   const { sbe } = props;
   return (
     <>
-      <FormLabel as="p">Environment label</FormLabel>
-      <Text>{sbe.envLabel}</Text>
-      <FormLabel as="p">Admin API URL</FormLabel>
-      <Text>{sbe.configPublic?.adminApiUrl ?? '-'}</Text>
-      <FormLabel as="p">Admin API key</FormLabel>
-      <Text>{sbe.configPublic?.adminApiKey ?? '-'}</Text>
-      <FormLabel as="p">Admin API client name</FormLabel>
-      <Text>{sbe.configPublic?.adminApiClientDisplayName ?? '-'}</Text>
-      <FormLabel as="p">SB metadata ARN</FormLabel>
-      <Text>{sbe.configPublic?.sbeMetaArn ?? '-'}</Text>
+      <Attribute isCopyable label="Environment label" value={sbe.envLabel} />
+      <Attribute
+        label="Last successful connection to Starting Blocks"
+        value={sbe.configPublic?.lastSuccessfulConnectionSbMeta}
+        isDate
+      />
+      <Attribute
+        label="Last failed connection to Starting Blocks"
+        value={sbe.configPublic?.lastFailedConnectionSbMeta}
+        isDate
+      />
+      <Attribute
+        label="Last successful connection to Ed-Fi Admin API"
+        value={sbe.configPublic?.lastSuccessfulConnectionAdminApi}
+        isDate
+      />
+      <Attribute
+        label="Last failed connection to Ed-Fi Admin API"
+        value={sbe.configPublic?.lastFailedConnectionAdminApi}
+        isDate
+      />
+      <Attribute
+        label="Last successful sync with Starting Blocks"
+        value={sbe.configPublic?.lastSuccessfulPull}
+        isDate
+      />
+      <Attribute
+        label="Last failed sync with Starting Blocks"
+        value={sbe.configPublic?.lastFailedPull}
+        isDate
+      />
+      <Attribute
+        isCopyable
+        isUrl
+        isUrlExternal
+        label="Admin API URL"
+        value={sbe.configPublic?.adminApiUrl}
+      />
+      <Attribute
+        isMasked
+        isCopyable
+        label="Admin API key (not secret)"
+        value={sbe.configPublic?.adminApiKey}
+      />
+      <Attribute
+        isCopyable
+        label="Admin API client name"
+        value={sbe.configPublic?.adminApiClientDisplayName}
+      />
+      <Attribute isCopyable label="SB metadata ARN" value={sbe.configPublic?.sbeMetaArn} />
       {sbe.configPublic?.sbeMetaKey ? (
-        <>
-          <FormLabel as="p">SB metadata key</FormLabel>
-          <Text>{sbe.configPublic?.sbeMetaKey}</Text>
-        </>
+        <Attribute
+          isCopyable
+          isMasked
+          label="SB metadata key (not secret)"
+          value={sbe.configPublic?.sbeMetaKey}
+        />
       ) : null}
-      <FormLabel as="p">Last successful connection to Starting Blocks</FormLabel>
-      <Text>{sbe.configPublic?.lastSuccessfulConnectionSbMetaLong ?? '-'}</Text>
-      <FormLabel as="p">Last failed connection to Starting Blocks</FormLabel>
-      <Text>{sbe.configPublic?.lastFailedConnectionSbMetaLong ?? '-'}</Text>
-      <FormLabel as="p">Last successful connection to Ed-Fi Admin API</FormLabel>
-      <Text>{sbe.configPublic?.lastSuccessfulConnectionAdminApiLong ?? '-'}</Text>
-      <FormLabel as="p">Last failed connection to Ed-Fi Admin API</FormLabel>
-      <Text>{sbe.configPublic?.lastFailedConnectionAdminApiLong ?? '-'}</Text>
-      <FormLabel as="p">Last successful sync with Starting Blocks</FormLabel>
-      <Text>{sbe.configPublic?.lastSuccessfulPullLong ?? '-'}</Text>
-      <FormLabel as="p">Last failed sync with Starting Blocks</FormLabel>
-      <Text>{sbe.configPublic?.lastFailedPullLong ?? '-'}</Text>
+      <AuthorizeComponent
+        config={{
+          privilege: 'sb-sync-queue:read',
+          subject: {
+            id: '__filtered__',
+          },
+        }}
+      >
+        <SbeSyncQueue sbe={sbe} />
+      </AuthorizeComponent>
     </>
   );
 };

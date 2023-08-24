@@ -9,3 +9,4 @@ export * from './role.interface';
 export * from './ownership.interface';
 export * from './oidc.interface';
 export * from './app-launcher.interface';
+export * from './sb-sync-queue.interface';

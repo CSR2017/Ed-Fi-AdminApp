@@ -46,9 +46,9 @@ export const addUserModifying = <IEntity extends { modifiedById?: number }>(
  */
 export const addUserCreating = <IEntity extends { createdById?: number }>(
   entity: IEntity,
-  user: GetUserDto
+  user?: GetUserDto | undefined
 ) => {
-  entity.createdById = user.id;
+  entity.createdById = user?.id;
   return entity;
 };
 

@@ -36,7 +36,9 @@ import {
   PutUserDto,
   PutUserTenantMembershipDto,
   PutVendorDto,
+  SbSyncQueueDto,
   SpecificIds,
+  toOperationResultDto,
 } from '@edanalytics/models';
 import {
   QueryKey,
@@ -51,10 +53,10 @@ import { AxiosResponse } from 'axios';
 import { ClassConstructor } from 'class-transformer';
 import kebabCase from 'kebab-case';
 import path from 'path-browserify';
-import { apiClient, methods } from '../methods';
-import { useAuthorize, usePrivilegeCacheForConfig } from '../../helpers';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
+import { useAuthorize } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
+import { apiClient, methods } from '../methods';
 import { StatusType } from '@edanalytics/utils';
 
 const baseUrl = '';
@@ -85,7 +87,7 @@ const baseUrl = '';
  * ```
  */
 export const tenantKey = (key: QueryKey, tenantId?: number | string) =>
-  tenantId === undefined ? key : [...key, 'tenant', tenantId];
+  tenantId === undefined ? key : [...key, 'tenant', Number(tenantId)];
 
 export const tenantUrl = (url: string, tenantId?: number | string) =>
   tenantId === undefined
@@ -223,6 +225,14 @@ function makeQueries<
       enabled?: boolean;
       optional?: boolean | undefined;
     }) => {
+      kebabCaseName === 'sb-sync-queue' &&
+        console.log(
+          tenantKey(
+            [...(includeSbe ? ['sbes', String(args.sbeId)] : []), `${kebabCaseName}s`, 'list'],
+            Number(args.tenantId)
+          )
+        );
+
       const privilegeCode = `${args.tenantId === undefined ? '' : 'tenant.'}${
         args.sbeId === undefined ? '' : 'sbe.'
       }${kebabCaseName === 'application' ? 'edorg.' : ''}${kebabCaseName}:read` as PrivilegeCode;
@@ -261,37 +271,41 @@ function makeQueries<
       sbeId?: number | string;
       callback?: (result: GetType) => void;
     }) => {
+      const tenantId = args.tenantId === undefined ? undefined : String(args.tenantId);
+      const sbeId = args.sbeId === undefined ? undefined : String(args.sbeId);
       const queryClient = useQueryClient();
       return useMutation({
         mutationFn: (entity: PutType) =>
           methods.put(
             tenantUrl(
-              `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${
+              `${includeSbe ? `sbes/${sbeId}` : ''}/${kebabCaseName}s/${
                 entity[(idPropertyKey ?? 'id') as keyof PutType]
               }`,
-              args.tenantId
+              tenantId
             ),
             putDto,
             getDto,
             entity
           ),
         onSuccess: (newEntity) => {
+          const detailKey = tenantKey(
+            [
+              ...(includeSbe ? ['sbes', sbeId] : []),
+              `${kebabCaseName}s`,
+              'detail',
+              String(newEntity[(idPropertyKey ?? 'id') as keyof GetType]),
+            ],
+            tenantId
+          );
+          const listKey = tenantKey(
+            [...(includeSbe ? ['sbes', sbeId] : []), `${kebabCaseName}s`, 'list'],
+            tenantId
+          );
           queryClient.invalidateQueries({
-            queryKey: tenantKey(
-              [
-                ...(includeSbe ? ['sbes', args.sbeId] : []),
-                `${kebabCaseName}s`,
-                'detail',
-                String(newEntity[(idPropertyKey ?? 'id') as keyof GetType]),
-              ],
-              args.tenantId
-            ),
+            queryKey: detailKey,
           });
           queryClient.invalidateQueries({
-            queryKey: tenantKey(
-              [...(includeSbe ? ['sbes', args.sbeId] : []), `${kebabCaseName}s`, 'list'],
-              args.tenantId
-            ),
+            queryKey: listKey,
           });
           args.callback && args.callback(newEntity);
         },
@@ -437,7 +451,7 @@ export const userTenantMembershipQueries = makeQueries({
   putDto: PutUserTenantMembershipDto,
   postDto: PostUserTenantMembershipDto,
   includeSbe: false,
-  includeTenant: TenantOptions.Required,
+  includeTenant: TenantOptions.Optional,
 });
 
 export const vendorQueries = makeQueries({
@@ -469,6 +483,34 @@ export const claimsetQueries = makeQueries({
   includeSbe: true,
   includeTenant: TenantOptions.Required,
 });
+
+export const sbSyncQueueQueries = makeQueries({
+  name: 'SbSyncQueue',
+  authorizeById: false,
+  getDto: SbSyncQueueDto,
+  putDto: class Nothing {},
+  postDto: class Nothing {},
+  includeSbe: false,
+  includeTenant: TenantOptions.Never,
+});
+
+export const usePostSbSyncQueue = () => {
+  const queryClient = useQueryClient();
+  console.log('blah', tenantKey(['sb-sync-queues', 'list'], NaN));
+
+  return useMutation({
+    mutationFn: () =>
+      methods.post(`${baseUrl}/sb-sync-queues`, class Nothing {}, OperationResultDto, {}),
+    onSuccess: () => {
+      // Give the sync schedule worker a chance to create the sync jobs
+      setTimeout(() => {
+        queryClient.invalidateQueries({
+          queryKey: tenantKey(['sb-sync-queues', 'list']),
+        });
+      }, 1000);
+    },
+  });
+};
 
 export const useSbeEditSbMeta = (callback?: () => void) => {
   const queryClient = useQueryClient();

@@ -1,17 +1,14 @@
-import { useParams, useSearchParams } from 'react-router-dom';
 import _ from 'lodash';
-import { ReactNode } from 'react';
-import { sbeQueries } from '../../api';
-import { ActionBarButton } from '../../helpers';
-import { sbeGlobalIndexRoute } from '../../routes';
+import { useParams } from 'react-router-dom';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { EditSbeAdminApi } from './EditSbeAdminApi';
+import { sbeQueries } from '../../api';
+import { ActionBarActions } from '../../helpers/ActionBarActions';
+import { useSearchParamsObject } from '../../helpers/useSearch';
 import { EditSbeMeta } from './EditSbeMeta';
 import { RegisterSbeAdminApi } from './RegisterSbeAdminApi';
 import { ViewSbeGlobal } from './ViewSbeGlobal';
 import { useSbeGlobalActions } from './useSbeGlobalActions';
-import { ActionBarActions } from '../../helpers/ActionBarActions';
-import { useSearchParamsObject } from '../../helpers/useSearch';
+import { EditSbe } from './EditSbe';
 
 export const SbeGlobalPage = () => {
   const params = useParams() as { sbeId: string };
@@ -19,14 +16,13 @@ export const SbeGlobalPage = () => {
     id: params.sbeId,
   }).data;
   const { edit } = useSearchParamsObject() as {
-    edit?: 'admin-api' | 'sbe-meta';
+    edit?: 'admin-api' | 'sbe-meta' | 'name';
   };
 
   const actions = useSbeGlobalActions(sbe);
 
   return (
     <PageTemplate
-      constrainWidth
       title={sbe?.displayName || 'Sbe'}
       actions={<ActionBarActions actions={_.omit(actions, 'View')} />}
     >
@@ -35,6 +31,8 @@ export const SbeGlobalPage = () => {
           <RegisterSbeAdminApi sbe={sbe} />
         ) : edit === 'sbe-meta' ? (
           <EditSbeMeta sbe={sbe} />
+        ) : edit === 'name' ? (
+          <EditSbe sbe={sbe} />
         ) : (
           <ViewSbeGlobal sbe={sbe} />
         )

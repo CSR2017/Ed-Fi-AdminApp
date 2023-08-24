@@ -3,34 +3,24 @@ import {
   PostSbeDto,
   PutSbeAdminApi,
   PutSbeAdminApiRegister,
+  PutSbeDto,
   PutSbeMeta,
   toGetSbeDto,
   toOperationResultDto,
 } from '@edanalytics/models';
 import { Sbe, addUserCreating, addUserModifying, regarding } from '@edanalytics/models-server';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-  Response,
-} from '@nestjs/common';
+import { StatusType, formErrFromValidator } from '@edanalytics/utils';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ValidationError } from 'class-validator';
 import { Repository } from 'typeorm';
 import { Authorize } from '../auth/authorization';
 import { ReqUser } from '../auth/helpers/user.decorator';
 import { StartingBlocksService } from '../tenants/sbes/starting-blocks/starting-blocks.service';
 import { throwNotFound } from '../utils';
-import { SbesGlobalService } from './sbes-global.service';
-import { ValidationError } from 'class-validator';
-import { StatusType, OperationResult, formErrFromValidator } from '@edanalytics/utils';
 import { ValidationException, WorkflowFailureException } from '../utils/customExceptions';
-import { Response as Res } from 'express';
+import { SbesGlobalService } from './sbes-global.service';
 
 @ApiTags('Sbe - Global')
 @Controller()
@@ -141,6 +131,20 @@ export class SbesGlobalController {
     return toGetSbeDto(
       await this.sbeService.updateSbMeta(sbeId, addUserModifying(updateDto, user))
     );
+  }
+  @Put(':sbeId')
+  @Authorize({
+    privilege: 'sbe:update',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  async update(
+    @Param('sbeId', new ParseIntPipe()) sbeId: number,
+    @Body() updateDto: PutSbeDto,
+    @ReqUser() user: GetSessionDataDto
+  ) {
+    return toGetSbeDto(await this.sbeService.update(sbeId, addUserModifying(updateDto, user)));
   }
 
   @Put(':sbeId/register-admin-api')

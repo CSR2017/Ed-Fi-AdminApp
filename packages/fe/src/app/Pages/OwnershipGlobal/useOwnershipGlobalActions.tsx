@@ -71,6 +71,7 @@ export const useOwnershipGlobalActions = (ownership: GetOwnershipDto | undefined
             >
               <props.children
                 icon={BiTrash}
+                isDisabled={deleteOwnership.isLoading}
                 text="Delete"
                 title="Delete ownership"
                 confirmBody="This will permanently delete the ownership."

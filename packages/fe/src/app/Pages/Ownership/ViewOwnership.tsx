@@ -1,4 +1,4 @@
-import { FormLabel, Text } from '@chakra-ui/react';
+import { Attribute } from '@edanalytics/common-ui';
 import { useParams } from 'react-router-dom';
 import { ownershipQueries } from '../../api';
 
@@ -13,11 +13,5 @@ export const ViewOwnership = () => {
     tenantId: params.asId,
   }).data;
 
-  return ownership ? (
-    <>
-      {/* TODO: replace this with real content */}
-      <FormLabel as="p">Id</FormLabel>
-      <Text>{ownership.id}</Text>
-    </>
-  ) : null;
+  return ownership ? <Attribute label="Id" value={ownership.id} /> : null;
 };

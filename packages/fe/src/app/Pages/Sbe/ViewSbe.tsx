@@ -1,6 +1,7 @@
 import { FormLabel, Text } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 import { sbeQueries } from '../../api';
+import { Attribute } from '@edanalytics/common-ui';
 
 export const ViewSbe = () => {
   const params = useParams() as {
@@ -14,20 +15,37 @@ export const ViewSbe = () => {
 
   return sbe ? (
     <>
-      <FormLabel as="p">Environment label</FormLabel>
-      <Text>{sbe.envLabel}</Text>
-      <FormLabel as="p">Last successful connection to Starting Blocks</FormLabel>
-      <Text>{sbe.configPublic?.lastSuccessfulConnectionSbMetaLong}</Text>
-      <FormLabel as="p">Last failed connection to Starting Blocks</FormLabel>
-      <Text>{sbe.configPublic?.lastFailedConnectionSbMetaLong}</Text>
-      <FormLabel as="p">Last successful connection to Ed-Fi Admin API</FormLabel>
-      <Text>{sbe.configPublic?.lastSuccessfulConnectionAdminApiLong}</Text>
-      <FormLabel as="p">Last failed connection to Ed-Fi Admin API</FormLabel>
-      <Text>{sbe.configPublic?.lastFailedConnectionAdminApiLong}</Text>
-      <FormLabel as="p">Last successful sync with Starting Blocks</FormLabel>
-      <Text>{sbe.configPublic?.lastSuccessfulPullLong}</Text>
-      <FormLabel as="p">Last failed sync with Starting Blocks</FormLabel>
-      <Text>{sbe.configPublic?.lastFailedPullLong}</Text>
+      <Attribute label="Environment label" value={sbe.envLabel} />
+      <Attribute
+        label="Last successful connection to Starting Blocks"
+        value={sbe.configPublic?.lastSuccessfulConnectionSbMeta}
+        isDate
+      />
+      <Attribute
+        label="Last failed connection to Starting Blocks"
+        value={sbe.configPublic?.lastFailedConnectionSbMeta}
+        isDate
+      />
+      <Attribute
+        label="Last successful connection to Ed-Fi Admin API"
+        value={sbe.configPublic?.lastSuccessfulConnectionAdminApi}
+        isDate
+      />
+      <Attribute
+        label="Last failed connection to Ed-Fi Admin API"
+        value={sbe.configPublic?.lastFailedConnectionAdminApi}
+        isDate
+      />
+      <Attribute
+        label="Last successful sync with Starting Blocks"
+        value={sbe.configPublic?.lastSuccessfulPull}
+        isDate
+      />
+      <Attribute
+        label="Last failed sync with Starting Blocks"
+        value={sbe.configPublic?.lastFailedPull}
+        isDate
+      />
     </>
   ) : null;
 };

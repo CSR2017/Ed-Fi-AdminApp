@@ -1,15 +1,15 @@
 import { HStack } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
-import { tenantQueries, userQueries } from '../../api';
-import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { TenantLink, UserLink } from '../../routes';
-import { PageTemplate } from '../../Layout/PageTemplate';
-import { useTenantsActions } from './useTenantsActions';
-import _ from 'lodash';
-import { ActionBarActions, TableRowActions } from '../../helpers';
-import { CellContext } from '@tanstack/react-table';
 import { GetTenantDto } from '@edanalytics/models';
+import { CellContext } from '@tanstack/react-table';
+import _ from 'lodash';
+import { PageTemplate } from '../../Layout/PageTemplate';
+import { tenantQueries, userQueries } from '../../api';
+import { ActionBarActions, TableRowActions } from '../../helpers';
+import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
+import { TenantLink, UserGlobalLink } from '../../routes';
 import { useTenantActions } from './useTenantActions';
+import { useTenantsActions } from './useTenantsActions';
 
 const TenantNameCell = (info: CellContext<GetTenantDto, unknown>) => {
   const tenants = tenantQueries.useAll({});
@@ -24,7 +24,7 @@ const TenantNameCell = (info: CellContext<GetTenantDto, unknown>) => {
 
 export const TenantsPage = () => {
   const tenants = tenantQueries.useAll({});
-  const users = userQueries.useAll({});
+  const users = userQueries.useAll({ optional: true });
   const actions = useTenantsActions();
 
   return (
@@ -41,7 +41,7 @@ export const TenantsPage = () => {
             id: 'modifiedBy',
             accessorFn: (info) => getRelationDisplayName(info.modifiedById, users),
             header: () => 'Modified by',
-            cell: (info) => <UserLink query={users} id={info.row.original.modifiedById} />,
+            cell: (info) => <UserGlobalLink id={info.row.original.modifiedById} />,
           },
           {
             accessorKey: 'createdDetailed',
@@ -51,7 +51,7 @@ export const TenantsPage = () => {
             id: 'createdBy',
             accessorFn: (info) => getRelationDisplayName(info.createdById, users),
             header: () => 'Created by',
-            cell: (info) => <UserLink query={users} id={info.row.original.createdById} />,
+            cell: (info) => <UserGlobalLink id={info.row.original.createdById} />,
           },
         ]}
       />

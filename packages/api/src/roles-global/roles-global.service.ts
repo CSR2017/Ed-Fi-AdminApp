@@ -1,10 +1,19 @@
 import { GetUserDto, PostRoleDto, PutRoleDto, RoleType } from '@edanalytics/models';
-import { Privilege, Role } from '@edanalytics/models-server';
+import {
+  Ownership,
+  Privilege,
+  Role,
+  User,
+  UserTenantMembership,
+  regarding,
+} from '@edanalytics/models-server';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import _ from 'lodash';
 import { EntityManager, In, Repository } from 'typeorm';
 import { throwNotFound } from '../utils';
+import { WorkflowFailureException } from '../utils/customExceptions';
+import { StatusType } from '@edanalytics/utils';
 
 @Injectable()
 export class RolesGlobalService {
@@ -14,7 +23,13 @@ export class RolesGlobalService {
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
     @InjectRepository(Privilege)
-    private privilegesRepository: Repository<Privilege>
+    private privilegesRepository: Repository<Privilege>,
+    @InjectRepository(UserTenantMembership)
+    private utmRepository: Repository<UserTenantMembership>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    @InjectRepository(Ownership)
+    private ownershipsRepository: Repository<Ownership>
   ) {}
   async create(createRoleDto: PostRoleDto) {
     const uniqueReqPrivileges = _.uniq(createRoleDto.privileges);
@@ -56,6 +71,20 @@ export class RolesGlobalService {
 
   async remove(id: number, user: GetUserDto) {
     const old = await this.findOne(id).catch(throwNotFound);
+    const memberships = await this.utmRepository.findBy({ roleId: id });
+    const users = await this.usersRepository.findBy({ roleId: id });
+    const ownerships = await this.ownershipsRepository.findBy({ roleId: id });
+
+    if (memberships.length || ownerships.length || users.length) {
+      throw new WorkflowFailureException({
+        status: StatusType.error,
+        title: 'Oops, it looks like this role is still being used.',
+        message: `Make sure it's not applied to any ${
+          ownerships.length ? 'memberships' : users.length ? 'users' : 'ownerships'
+        } before trying again.`,
+        regarding: regarding(old),
+      });
+    }
     await this.rolesRepository.remove(old);
     return undefined;
   }

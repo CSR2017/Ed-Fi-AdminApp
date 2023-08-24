@@ -12,3 +12,4 @@ export * from './starting-blocks.dto';
 export * from './edfi-admin-api.dto';
 export * from './post-login.dto';
 export * from './operations.dto';
+export * from './sb-sync-queue.dto';

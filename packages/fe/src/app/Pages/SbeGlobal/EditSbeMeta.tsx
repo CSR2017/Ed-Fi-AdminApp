@@ -27,13 +27,13 @@ export const EditSbeMeta = (props: { sbe: GetSbeDto }) => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
   } = useForm<PutSbeMeta>({ resolver, defaultValues: sbeFormDefaults });
 
   return sbe ? (
     <form
       onSubmit={handleSubmit((data) =>
-        putSbe.mutate({
+        putSbe.mutateAsync({
           ...data,
         })
       )}
@@ -58,14 +58,14 @@ export const EditSbeMeta = (props: { sbe: GetSbeDto }) => {
         </>
       ) : null}
       <ButtonGroup>
-        <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+        <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
           Connect
         </Button>
         <Button
           mt={4}
           colorScheme="teal"
           variant="ghost"
-          isLoading={isLoading}
+          isLoading={isSubmitting}
           type="reset"
           onClick={goToView}
         >

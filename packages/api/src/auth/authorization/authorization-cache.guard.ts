@@ -37,7 +37,7 @@ export class AuthCacheGuard implements CanActivate {
     let userTenantCache: ITenantCache = {};
     if (typeof tenantIdStr === 'string') {
       const tenantId = Number(tenantIdStr);
-      userTenantCache = await this.authService.buildTenantOwnershipCache(tenantId);
+      userTenantCache = await this.authService.getTenantOwnershipCache(tenantId);
       Object.keys(userTenantCache).forEach((k: keyof ITenantCache) => {
         if (userPrivileges.has(k)) {
           authorizationCache[k] = userTenantCache[k] as any;

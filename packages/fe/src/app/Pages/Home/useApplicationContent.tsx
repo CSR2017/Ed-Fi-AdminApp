@@ -11,7 +11,6 @@ import {
   StatLabel,
   StatNumber,
   Tab,
-  TabPanel,
   Tooltip,
 } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
@@ -24,7 +23,6 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
 import { BiErrorCircle } from 'react-icons/bi';
-import { useParams } from 'react-router-dom';
 import { applicationQueries, claimsetQueries, edorgQueries } from '../../api';
 import { queryClient } from '../../app';
 import {
@@ -36,9 +34,11 @@ import {
 } from '../../helpers';
 import { ClaimsetLink, EdorgLink } from '../../routes';
 import { NameCell } from '../Application/NameCell';
+import { useApplicationsActions } from '../Application/useApplicationActions';
+import { AccordionHeaderActions } from '../../helpers/AccordionHeaderActions';
 
 export const useApplicationContent = (props: { sbe: GetSbeDto }) => {
-  const { asId } = useNavContext();
+  const asId = useNavContext().asId!;
   const appAuth: AuthorizeConfig = {
     privilege: 'tenant.sbe.edorg.application:read',
     subject: {
@@ -54,6 +54,7 @@ export const useApplicationContent = (props: { sbe: GetSbeDto }) => {
     privilege: 'tenant.sbe.ods:read',
   };
   usePrivilegeCacheForConfig([appAuth, odsAuth]);
+  const actions = useApplicationsActions({ sbeId: props.sbe.id, tenantId: asId });
 
   return authorize({ queryClient, config: appAuth })
     ? {
@@ -82,7 +83,7 @@ export const useApplicationContent = (props: { sbe: GetSbeDto }) => {
               </Heading>
               <AccordionIcon />
             </AccordionButton>
-            <AccordionPanel pb={4}>
+            <AccordionPanel pb={10}>
               <ErrorBoundary
                 FallbackComponent={(arg: { error: { message: string } }) => (
                   <Alert status="error">
@@ -158,6 +159,7 @@ export const ApplicationTable = (props: { sbe: GetSbeDto }) => {
 
   return (
     <DataTable
+      queryKeyPrefix={`${props.sbe.id}_app`}
       pageSizes={[5, 10, 15]}
       data={Object.values(applications?.data || {})}
       columns={[
@@ -198,7 +200,6 @@ export const ApplicationTable = (props: { sbe: GetSbeDto }) => {
           cell: (info) => (
             <ClaimsetLink
               query={claimsets}
-              sbeId={props.sbe.id}
               id={claimsetsByName.data[info.row.original.claimSetName]?.id}
             />
           ),

@@ -30,6 +30,7 @@ export interface ISbe extends IEntityBase {
   edorgs: IEdorg[];
 
   envLabel: string;
+  name: string;
   configPublic: ISbeConfigPublic | null;
   configPrivate: ISbeConfigPrivate | null;
 }

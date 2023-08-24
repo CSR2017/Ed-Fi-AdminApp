@@ -23,7 +23,7 @@ export const PageTemplate = (props: {
         px="0.5rem"
       >
         {props.title ? (
-          <Heading color="gray.700" size="page-heading">
+          <Heading whiteSpace="nowrap" color="gray.700" size="page-heading">
             {props.title}
           </Heading>
         ) : null}
@@ -49,7 +49,7 @@ export const PageTemplate = (props: {
           </Box>
         )}
       >
-        <Box maxW={props.constrainWidth ? '25em' : undefined}>{props.children}</Box>
+        <Box maxW={props.constrainWidth ? '30em' : undefined}>{props.children}</Box>
       </ErrorBoundary>
     </Box>
   );

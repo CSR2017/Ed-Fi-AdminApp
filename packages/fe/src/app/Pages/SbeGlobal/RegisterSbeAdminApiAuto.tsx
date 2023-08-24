@@ -31,7 +31,7 @@ export const RegisterSbeAdminApiAuto = (props: { sbe: GetSbeDto }) => {
     register,
     setError,
     handleSubmit,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
   } = useForm<PutSbeAdminApiRegister>({
     resolver,
     defaultValues: sbeFormDefaults,
@@ -42,7 +42,7 @@ export const RegisterSbeAdminApiAuto = (props: { sbe: GetSbeDto }) => {
   return sbe ? (
     <form
       onSubmit={handleSubmit((data) =>
-        putSbe.mutate(
+        putSbe.mutateAsync(
           {
             ...data,
           },
@@ -56,14 +56,14 @@ export const RegisterSbeAdminApiAuto = (props: { sbe: GetSbeDto }) => {
         <FormErrorMessage>{errors.adminRegisterUrl?.message}</FormErrorMessage>
       </FormControl>
       <ButtonGroup>
-        <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+        <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
           Connect
         </Button>
         <Button
           mt={4}
           colorScheme="teal"
           variant="ghost"
-          isLoading={isLoading}
+          isLoading={isSubmitting}
           type="reset"
           onClick={goToView}
         >

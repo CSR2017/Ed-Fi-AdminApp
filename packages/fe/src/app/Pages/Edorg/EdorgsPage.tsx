@@ -29,8 +29,6 @@ export const EdorgsPage = () => {
     sbeId: params.sbeId,
   });
 
-  const users = userQueries.useAll({ tenantId: params.asId, optional: true });
-
   return (
     <PageTemplate title="Education Organizations">
       <DataTable
@@ -38,7 +36,7 @@ export const EdorgsPage = () => {
         columns={[
           {
             accessorKey: 'displayName',
-            cell: NameCell(params),
+            cell: NameCell,
             header: () => 'Name',
           },
           {

@@ -1,6 +1,7 @@
 import { FormLabel, Text } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 import { userQueries } from '../../api';
+import { Attribute } from '@edanalytics/common-ui';
 
 export const ViewUser = () => {
   const params = useParams() as {
@@ -14,12 +15,9 @@ export const ViewUser = () => {
 
   return user ? (
     <>
-      <FormLabel as="p">Given Name</FormLabel>
-      <Text color="gray.600">{user.givenName}</Text>
-      <FormLabel as="p">Family Name</FormLabel>
-      <Text color="gray.600">{user.familyName}</Text>
-      <FormLabel as="p">Username</FormLabel>
-      <Text color="gray.600">{user.username}</Text>
+      <Attribute label="Given Name" value={user.givenName} />
+      <Attribute label="Family Name" value={user.familyName} />
+      <Attribute isCopyable label="Username" value={user.username} />
     </>
   ) : null;
 };

@@ -2,9 +2,14 @@ import {
   Box,
   Button,
   ButtonGroup,
-  chakra,
   HStack,
   Icon,
+  IconButton,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  InputProps,
+  InputRightElement,
   Select,
   Table,
   Tbody,
@@ -13,29 +18,51 @@ import {
   Th,
   Thead,
   Tr,
+  chakra,
+  forwardRef,
 } from '@chakra-ui/react';
 import {
   ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
+  FilterFn,
   RowSelectionState,
   SortingState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
 import React, { useMemo } from 'react';
+import { BiSearch } from 'react-icons/bi';
+import { BsX } from 'react-icons/bs';
 import { FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
+import { useSearchParams } from 'react-router-dom';
 
+import { rankItem } from '@tanstack/match-sorter-utils';
+
+const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+  // Rank the item
+  const itemRank = rankItem(row.getValue(columnId), value);
+
+  // Store the itemRank info
+  addMeta({
+    itemRank,
+  });
+
+  // Return if the item should be filtered in/out
+  return itemRank.passed;
+};
 /**
  * Wrapper around @tanstack/react-table.
  *
- * Uses Chakra-UI table with no style overrrides (e.g. just plained old themed Chakra table).
+ * Uses Chakra-UI table with no style overrrides (e.g. just plain old themed Chakra table).
  *
  * Notes:
- * - Sorting is done automatically. The `accessorKey` or `accessorFn` column attributes therefore need to yield the value to be sorted. For example, you wouldn't want to display the `displayName` of a relation but sort on their `id`.
- *   - Use the `getRelationDisplayName()` helper function to conveniently build a `accessorFn` which returns the display value.
+ * - Sorting is done automatically. The `accessorKey` or `accessorFn` column attributes therefore need to yield the value to be sorted (even if you want a custom `cell` render property, you'll still need to provide an appropriate accessor).
+ * - Use the `getRelationDisplayName()` helper function to conveniently build a `accessorFn` which returns the display value.
  * - The `data` and `columns` props are passed through to react-table unchanged, so feel free to use the full react-table API.
+ * - Pagination, sorting, and filtering state are all stored in the URL, with the key prefix provided.
  *
  * @example <caption>column config for basic text value</caption>
  * ({
@@ -70,22 +97,45 @@ export function DataTable<T extends object>(props: {
   columns: ColumnDef<T>[];
   enableRowSelection?: boolean;
   pageSizes?: number[];
+  queryKeyPrefix?: string | undefined;
 }) {
   const data = useMemo(() => [...props.data], [props.data]);
   const columns = props.columns;
   const pageSizes = props.pageSizes ?? [10, 25, 50, 100];
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const globalFilter = getFilterParam(searchParams, props.queryKeyPrefix);
+  const setGlobalFilter = (value: string | undefined) => {
+    setSearchParams(
+      setFilterParam(value === '' ? undefined : value, searchParams, props.queryKeyPrefix)
+    );
+  };
+  const sortParams = getSortParams(searchParams, props.queryKeyPrefix);
+
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
-  const [sorting, setSorting] = React.useState<SortingState>([]);
   const table = useReactTable({
     data,
     columns,
+    filterFns: {
+      fuzzy: fuzzyFilter,
+    },
     state: {
-      sorting,
+      sorting: sortParams,
       rowSelection,
+      globalFilter,
     },
     onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
+    onSortingChange: (updater) =>
+      setSearchParams(
+        setSortParams(
+          typeof updater === 'function' ? updater(sortParams) : updater,
+          searchParams,
+          props.queryKeyPrefix
+        )
+      ),
+    globalFilterFn: fuzzyFilter,
+    onGlobalFilterChange: setGlobalFilter,
+    getFilteredRowModel: getFilteredRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -101,6 +151,44 @@ export function DataTable<T extends object>(props: {
 
   return (
     <Box>
+      <InputGroup
+        css={{
+          '&:hover .clear-filter': {
+            color: 'var(--chakra-colors-gray-800)',
+            transition: '0.3s',
+          },
+        }}
+        maxW="30em"
+        my={4}
+      >
+        <InputLeftElement pointerEvents="none" color="gray.300">
+          <Icon fontSize="1.2em" as={BiSearch} />
+        </InputLeftElement>
+        <DebouncedInput
+          debounce={300}
+          borderRadius="100em"
+          paddingStart={10}
+          paddingEnd={10}
+          placeholder="Search"
+          value={globalFilter ?? ''}
+          onChange={(v) => setGlobalFilter(v)}
+        />
+        {globalFilter ? (
+          <InputRightElement>
+            <IconButton
+              onClick={() => setGlobalFilter(undefined)}
+              className="clear-filter"
+              fontSize="xl"
+              color="gray.300"
+              variant="ghost"
+              size="sm"
+              borderRadius={'100em'}
+              icon={<Icon as={BsX} />}
+              aria-label="clear search"
+            />
+          </InputRightElement>
+        ) : null}
+      </InputGroup>
       <Table>
         <Thead>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -213,3 +301,86 @@ export function DataTable<T extends object>(props: {
     </Box>
   );
 }
+
+const getSortParams = (
+  searchParams: URLSearchParams,
+  prefix?: string | undefined
+): SortingState => {
+  const sortColName = `${prefix ? prefix + '_' : ''}sortCol`;
+  const sortDescName = `${prefix ? prefix + '_' : ''}sortDesc`;
+
+  const cols = searchParams.getAll(sortColName);
+  const isDescs = searchParams.getAll(sortDescName).map((isDesc) => isDesc === 'true');
+  if (cols.length === isDescs.length) {
+    return cols.map((col, i) => ({
+      desc: isDescs[i],
+      id: col,
+    }));
+  } else {
+    console.warn('Failed to parse table-sorting state from URL.');
+    return [];
+  }
+};
+const getFilterParam = (
+  searchParams: URLSearchParams,
+  prefix?: string | undefined
+): string | undefined => {
+  const paramName = `${prefix ? prefix + '_' : ''}search`;
+
+  return searchParams.get(paramName) ?? undefined;
+};
+
+const setFilterParam = (
+  state: string | undefined,
+  searchParams: URLSearchParams,
+  prefix?: string | undefined
+) => {
+  const paramName = `${prefix ? prefix + '_' : ''}search`;
+  searchParams.delete(paramName);
+  state && searchParams.set(paramName, state);
+  return searchParams;
+};
+
+const setSortParams = (
+  state: SortingState,
+  searchParams: URLSearchParams,
+  prefix?: string | undefined
+) => {
+  const sortColName = `${prefix ? prefix + '_' : ''}sortCol`;
+  const sortDescName = `${prefix ? prefix + '_' : ''}sortDesc`;
+  searchParams.delete(sortColName);
+  searchParams.delete(sortDescName);
+
+  state.forEach((sort) => {
+    searchParams.append(sortColName, String(sort.id));
+    searchParams.append(sortDescName, String(sort.desc));
+  });
+  return searchParams;
+};
+
+const DebouncedInput = forwardRef<
+  InputProps & {
+    /** (ms) */
+    debounce?: number;
+    onChange: (value: any) => void;
+  },
+  'input'
+>(({ value: initialValue, onChange, debounce = 500, ...otherProps }, ref) => {
+  const [value, setValue] = React.useState(initialValue);
+
+  React.useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  React.useEffect(() => {
+    const timeout = setTimeout(() => {
+      onChange(value);
+    }, debounce);
+
+    return () => clearTimeout(timeout);
+  }, [value]);
+
+  return (
+    <Input ref={ref} {...otherProps} value={value} onChange={(e) => setValue(e.target.value)} />
+  );
+});

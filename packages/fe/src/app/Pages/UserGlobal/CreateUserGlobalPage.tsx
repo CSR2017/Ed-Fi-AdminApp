@@ -32,7 +32,7 @@ export const CreateUser = () => {
     register,
     handleSubmit,
     control,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
   } = useForm<PostUserDto>({ resolver, defaultValues: {} });
 
   return (
@@ -40,7 +40,7 @@ export const CreateUser = () => {
       <Box w="20em">
         <form
           onSubmit={handleSubmit((data) =>
-            putUser.mutate(data, {
+            putUser.mutateAsync(data, {
               onSuccess: () => {
                 queryClient.invalidateQueries({ queryKey: ['me', 'users'] });
               },
@@ -78,14 +78,14 @@ export const CreateUser = () => {
             <FormErrorMessage>{errors.roleId?.message}</FormErrorMessage>
           </FormControl>
           <ButtonGroup>
-            <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+            <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
               Save
             </Button>
             <Button
               mt={4}
               colorScheme="teal"
               variant="ghost"
-              isLoading={isLoading}
+              isLoading={isSubmitting}
               type="reset"
               onClick={() => navigate(parentPath)}
             >

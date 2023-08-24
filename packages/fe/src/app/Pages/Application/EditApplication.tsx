@@ -52,7 +52,7 @@ export const EditApplication = (props: { application: GetApplicationDto }) => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
     formState,
     control,
     watch,
@@ -64,7 +64,7 @@ export const EditApplication = (props: { application: GetApplicationDto }) => {
   return edorgs.data && claimsets.data ? (
     <form
       onSubmit={handleSubmit((data) => {
-        putApplication.mutate(data);
+        return putApplication.mutateAsync(data);
       })}
     >
       <Box width="20em">
@@ -101,10 +101,10 @@ export const EditApplication = (props: { application: GetApplicationDto }) => {
           <FormErrorMessage>{errors.claimSetName?.message}</FormErrorMessage>
         </FormControl>
         <ButtonGroup mt={4} colorScheme="teal">
-          <Button isLoading={isLoading} type="submit">
+          <Button isLoading={isSubmitting} type="submit">
             Save
           </Button>
-          <Button variant="ghost" isLoading={isLoading} type="reset" onClick={goToView}>
+          <Button variant="ghost" isLoading={isSubmitting} type="reset" onClick={goToView}>
             Cancel
           </Button>
         </ButtonGroup>

@@ -48,7 +48,7 @@ export class PutRoleDto
   @Expose()
   @IsIn(privilegeCodes, { each: true })
   @IsValidPrivileges()
-  privileges: string[];
+  privileges: (string | PrivilegeCode)[];
 }
 
 export class PostRoleDto extends DtoPostBase implements PostDto<IRole, 'tenant' | 'privileges'> {
@@ -74,5 +74,5 @@ export class PostRoleDto extends DtoPostBase implements PostDto<IRole, 'tenant' 
   @Expose()
   @IsIn(privilegeCodes, { each: true })
   @IsValidPrivileges()
-  privileges: string[];
+  privileges: (string | PrivilegeCode)[];
 }

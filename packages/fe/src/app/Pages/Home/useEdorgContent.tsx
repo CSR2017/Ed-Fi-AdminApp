@@ -8,7 +8,6 @@ import {
   StatLabel,
   StatNumber,
   Tab,
-  TabPanel,
 } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetEdorgDto, GetSbeDto } from '@edanalytics/models';
@@ -25,7 +24,7 @@ import { EdorgLink, OdsLink } from '../../routes';
 import { NameCell } from '../Edorg/NameCell';
 
 export const useEdorgContent = (props: { sbe: GetSbeDto }) => {
-  const { asId } = useNavContext();
+  const asId = useNavContext().asId!;
   const edorgs = edorgQueries.useAll({
     optional: true,
     tenantId: asId,
@@ -67,14 +66,15 @@ export const useEdorgContent = (props: { sbe: GetSbeDto }) => {
               </Heading>
               <AccordionIcon />
             </AccordionButton>
-            <AccordionPanel pb={4}>
+            <AccordionPanel pb={10}>
               <DataTable
+                queryKeyPrefix={`${props.sbe.id}_edorg`}
                 pageSizes={[5, 10, 15]}
                 data={Object.values(edorgs?.data || {})}
                 columns={[
                   {
                     accessorKey: 'displayName',
-                    cell: NameCell({ asId: String(asId), sbeId: String(props.sbe.id) }),
+                    cell: NameCell,
                     header: () => 'Name',
                   },
                   {

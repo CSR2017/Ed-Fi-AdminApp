@@ -6,8 +6,12 @@ import {
   BsClipboardFill,
   BsFolder,
   BsFolderFill,
+  BsInboxes,
+  BsInboxesFill,
   BsPeople,
   BsPeopleFill,
+  BsPersonBadge,
+  BsPersonBadgeFill,
   BsPersonVcard,
   BsPersonVcardFill,
 } from 'react-icons/bs';
@@ -15,6 +19,7 @@ import { useMatches } from 'react-router-dom';
 import { sbeQueries } from '../api';
 import { arrayElemIf, authorize, usePrivilegeCacheForConfig } from '../helpers';
 import { INavButtonProps, NavButton } from './NavButton';
+import _ from 'lodash';
 
 export const isMatch = (activeRoute: string, item: INavButtonProps) => {
   const nextChar = activeRoute.charAt(item.route.length);
@@ -60,7 +65,19 @@ export const GlobalNav = (props: object) => {
       },
     },
     {
+      privilege: 'user-tenant-membership:read',
+      subject: {
+        id: '__filtered__',
+      },
+    },
+    {
       privilege: 'sbe:read',
+      subject: {
+        id: '__filtered__',
+      },
+    },
+    {
+      privilege: 'sb-sync-queue:read',
       subject: {
         id: '__filtered__',
       },
@@ -101,6 +118,21 @@ export const GlobalNav = (props: object) => {
       authorize({
         queryClient,
         config: {
+          privilege: 'user-tenant-membership:read',
+          subject: { id: '__filtered__' },
+        },
+      }),
+      {
+        route: `/user-tenant-memberships`,
+        icon: BsPersonBadge,
+        activeIcon: BsPersonBadgeFill,
+        text: 'Tenant Memberships',
+      }
+    ),
+    ...arrayElemIf(
+      authorize({
+        queryClient,
+        config: {
           privilege: 'role:read',
           subject: { id: '__filtered__' },
         },
@@ -131,6 +163,21 @@ export const GlobalNav = (props: object) => {
       authorize({
         queryClient,
         config: {
+          privilege: 'sb-sync-queue:read',
+          subject: { id: '__filtered__' },
+        },
+      }),
+      {
+        route: `/sb-sync-queues`,
+        icon: BsInboxes,
+        activeIcon: BsInboxesFill,
+        text: 'SB Sync Queue',
+      }
+    ),
+    ...arrayElemIf(
+      authorize({
+        queryClient,
+        config: {
           privilege: 'sbe:read',
           subject: { id: '__filtered__' },
         },
@@ -140,7 +187,9 @@ export const GlobalNav = (props: object) => {
         icon: BsFolder,
         activeIcon: BsFolderFill,
         text: 'Environments',
-        childItems: Object.values(sbes.data || {})
+        childItems: _.sortBy(Object.values(sbes.data || {}), (sbe) =>
+          sbe.displayName.toLocaleLowerCase()
+        )
           .map((sbe) =>
             arrayElemIf(
               authorize({

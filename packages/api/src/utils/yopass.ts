@@ -35,17 +35,7 @@ export const postYopassSecret = async (body: PostApplicationResponseDto & { url:
   const pwd = randomString();
   const yopassBody = {
     expiration: 7 * 24 * 60 * 60,
-    message: await encryptMessage(
-      `KEY:
-${body.key}
-
-SECRET:
-${body.secret}
-
-URL:
-${body.url}`,
-      pwd
-    ),
+    message: await encryptMessage(JSON.stringify(body), pwd),
     one_time: true,
   };
   const yopassResponse = await axios.post<any, AxiosResponse<Response>>(

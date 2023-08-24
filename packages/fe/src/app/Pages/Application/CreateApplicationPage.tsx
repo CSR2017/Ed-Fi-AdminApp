@@ -48,7 +48,7 @@ export const CreateApplicationPage = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
     control,
   } = useForm<PostApplicationForm>({
     resolver,
@@ -56,7 +56,7 @@ export const CreateApplicationPage = () => {
   });
 
   return (
-    <PageTemplate title="New application">
+    <PageTemplate title="New application" constrainWidth>
       <Modal
         isOpen={!!result}
         onClose={() => {
@@ -82,7 +82,7 @@ export const CreateApplicationPage = () => {
       </Modal>
       <form
         onSubmit={handleSubmit((data) => {
-          postApplication.mutate(data);
+          return postApplication.mutateAsync(data);
         })}
       >
         <FormControl isInvalid={!!errors.applicationName}>
@@ -118,12 +118,12 @@ export const CreateApplicationPage = () => {
           <FormErrorMessage>{errors.claimSetName?.message}</FormErrorMessage>
         </FormControl>
         <ButtonGroup mt={4} colorScheme="teal">
-          <Button isLoading={isLoading} type="submit">
+          <Button isLoading={isSubmitting} type="submit">
             Save
           </Button>
           <Button
             variant="ghost"
-            isLoading={isLoading}
+            isLoading={isSubmitting}
             type="reset"
             onClick={() => {
               navigate(navToParentOptions);

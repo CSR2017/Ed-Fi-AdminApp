@@ -1,4 +1,4 @@
-import { FormLabel, Text } from '@chakra-ui/react';
+import { Attribute } from '@edanalytics/common-ui';
 import { useParams } from 'react-router-dom';
 import { vendorQueries } from '../../api';
 
@@ -16,16 +16,19 @@ export const ViewVendor = () => {
 
   return vendor ? (
     <>
-      <FormLabel as="p">Company</FormLabel>
-      <Text>{vendor.company}</Text>
-      <FormLabel as="p">Namespace</FormLabel>
-      <Text>{vendor.namespacePrefixes === '' ? '-' : vendor.namespacePrefixes}</Text>
-      <FormLabel as="p">Contact</FormLabel>
-      <Text>{vendor.contactName}</Text>
+      <Attribute label="Company" value={vendor.company} />
+      <Attribute
+        label="Namespace"
+        value={vendor.namespacePrefixes === '' ? '-' : vendor.namespacePrefixes}
+      />
+      <Attribute label="Contact" value={vendor.contactName} />
       {vendor.contactEmailAddress ? (
-        <Text href={`mailto:${vendor.contactEmailAddress}`} as="a">
-          {vendor.contactEmailAddress}
-        </Text>
+        <Attribute
+          label="Contact email"
+          value={`mailto:${vendor.contactEmailAddress}`}
+          isUrl
+          isUrlExternal
+        />
       ) : null}
     </>
   ) : null;

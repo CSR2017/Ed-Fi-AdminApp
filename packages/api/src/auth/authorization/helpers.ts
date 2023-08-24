@@ -201,36 +201,55 @@ export const cacheEdorgPrivilegesDownward = (
 
 /**
  * Apply privileges from an edorg ownership to its edorg, ods, sbe, vendor, and claimset _ancestors_. Does _NOT_ climb _down_ the edorg tree.
+ *
+ * Checks that the supplied privileges include the minimum set, but only applies that minimum &mdash; no _extra_ privileges can be inherited upward.
  */
 export const cacheEdorgPrivilegesUpward = (
   cache: ITenantCache,
   edorg: Edorg,
+  /** Privileges to apply.
+   *
+   *  This is a possibly-TBD question of business rules. But we _probably_ don't want it to be possible for an ownership of a leaf entity to grant any more than the minimum default access to its parent trunk entities.
+   * */
   ownedPrivileges: Set<PrivilegeCode>,
   ancestors: Edorg[]
 ) => {
-  const appliedPrivileges = new Set(
-    [...ownedPrivileges].filter((p) => upwardInheritancePrivileges.has(p))
-  );
-
-  [...minimumPrivileges].forEach((mp) => {
-    if (!appliedPrivileges.has(mp)) {
+  [...upwardInheritancePrivileges].forEach((mp) => {
+    if (!ownedPrivileges.has(mp)) {
       throw new Error(`Resource ownership lacks required permission ${mp}.`);
     }
   });
-
   ancestors.forEach((ancestorEdorg) => {
     cacheAccordingToPrivileges(
       cache,
-      appliedPrivileges,
+      upwardInheritancePrivileges,
       'tenant.sbe.edorg',
       ancestorEdorg.id,
       ancestorEdorg.sbeId
     );
   });
-  cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe.ods', edorg.odsId, edorg.sbeId);
-  cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe.claimset', true, edorg.sbeId);
-  cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe.vendor', true, edorg.sbeId);
-  cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe', edorg.sbeId);
+  cacheAccordingToPrivileges(
+    cache,
+    upwardInheritancePrivileges,
+    'tenant.sbe.ods',
+    edorg.odsId,
+    edorg.sbeId
+  );
+  cacheAccordingToPrivileges(
+    cache,
+    upwardInheritancePrivileges,
+    'tenant.sbe.claimset',
+    true,
+    edorg.sbeId
+  );
+  cacheAccordingToPrivileges(
+    cache,
+    upwardInheritancePrivileges,
+    'tenant.sbe.vendor',
+    true,
+    edorg.sbeId
+  );
+  cacheAccordingToPrivileges(cache, upwardInheritancePrivileges, 'tenant.sbe', edorg.sbeId);
 };
 
 /**

@@ -1,5 +1,5 @@
 import { GetUserDto } from '@edanalytics/models';
-import { BiEdit, BiTrash } from 'react-icons/bi';
+import { BiEdit, BiIdCard, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { userQueries } from '../../api';
@@ -14,7 +14,7 @@ export const useUserGlobalActions = (user: GetUserDto | undefined): ActionsType 
   const location = useLocation();
   const search = useSearchParamsObject();
   const onApplicationPage = user && location.pathname.endsWith(`/users/${user.id}`);
-  const inEdit = onApplicationPage && search?.edit === 'true';
+  const inEdit = onApplicationPage && 'edit' in search && search?.edit === 'true';
 
   const navigate = useNavigate();
   const to = (id: number | string) => `/users/${id}`;
@@ -37,6 +37,27 @@ export const useUserGlobalActions = (user: GetUserDto | undefined): ActionsType 
                 icon={HiOutlineEye}
                 text="View"
                 title={'View ' + user.displayName}
+                to={path}
+                onClick={() => navigate(path)}
+              />
+            </AuthorizeComponent>
+          );
+        },
+        Assign: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
+          const path = `/user-tenant-memberships/create?userId=${user.id}`;
+          return (
+            <AuthorizeComponent
+              config={{
+                privilege: 'user-tenant-membership:create',
+                subject: {
+                  id: '__filtered__',
+                },
+              }}
+            >
+              <props.children
+                icon={BiIdCard}
+                text="Add tenant"
+                title={'Add ' + user.displayName + ' to a tenant'}
                 to={path}
                 onClick={() => navigate(path)}
               />

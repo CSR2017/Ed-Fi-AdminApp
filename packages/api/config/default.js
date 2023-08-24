@@ -13,6 +13,8 @@ module.exports = {
   DB_RUN_MIGRATIONS: true,
   DB_SYNCHRONIZE: false,
   API_PORT: 5000,
+  // min hr day mo yr
+  SB_SYNC_CRON: '0 2 * * *',
   TYPEORM_LOGGING: undefined,
   DB_CONNECTION_STRING: defer(function () {
     const ssl = this.DB_SSL ? 'require' : 'disable';

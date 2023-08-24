@@ -1,5 +1,5 @@
 import { Expose } from 'class-transformer';
-import { EdorgType } from '../enums';
+import { EdorgType, EdorgTypeShort } from '../enums';
 import { IEdorg } from '../interfaces/edorg.interface';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
 import { makeSerializer } from '../utils/make-serializer';
@@ -27,8 +27,12 @@ export class GetEdorgDto
   @Expose()
   discriminator: EdorgType;
 
+  get discriminatorShort() {
+    return EdorgTypeShort[this.discriminator];
+  }
+
   override get displayName() {
     return this.nameOfInstitution;
   }
 }
-export const toGetEdorgDto = makeSerializer(GetEdorgDto);
+export const toGetEdorgDto = makeSerializer<GetEdorgDto, IEdorg>(GetEdorgDto);

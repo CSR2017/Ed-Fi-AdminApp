@@ -1,25 +1,7 @@
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Box,
-  Flex,
-  FormLabel,
-  Grid,
-  HStack,
-  Heading,
-  Link,
-  ListItem,
-  SimpleGrid,
-  Tag,
-  Text,
-  UnorderedList,
-} from '@chakra-ui/react';
+import { FormLabel, Link, ListItem, Text, UnorderedList } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
-import { useMe, useMyTenants } from '../../api';
-import _ from 'lodash';
+import { useMe } from '../../api';
+import { Attribute, AttributeContainer } from '@edanalytics/common-ui';
 
 export const ViewAccount = () => {
   const me = useMe();
@@ -28,13 +10,10 @@ export const ViewAccount = () => {
 
   return user ? (
     <>
-      <FormLabel as="p">Username</FormLabel>
-      <Text>{user.username}</Text>
-      <FormLabel as="p">User role</FormLabel>
-      <Text>{user.role?.displayName}</Text>
+      <Attribute label="Username" value={user.username} />
+      <Attribute label="User role" value={user.role?.displayName} />
       {utmArr.length > 1 ? (
-        <>
-          <FormLabel as="p">Tenants</FormLabel>
+        <AttributeContainer label="Tenants">
           <UnorderedList>
             {utmArr.map((t) => (
               <ListItem key={t.id}>
@@ -44,12 +23,9 @@ export const ViewAccount = () => {
               </ListItem>
             ))}
           </UnorderedList>
-        </>
+        </AttributeContainer>
       ) : utmArr.length > 0 ? (
-        <>
-          <FormLabel as="p">Tenant</FormLabel>
-          <Text>{utmArr[0].tenant.displayName}</Text>
-        </>
+        <Attribute label="Tenant" value={utmArr[0].tenant.displayName} />
       ) : null}
     </>
   ) : null;

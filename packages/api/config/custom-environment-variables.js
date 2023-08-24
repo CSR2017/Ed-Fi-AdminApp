@@ -6,4 +6,5 @@ module.exports = {
   MY_URL: 'MY_URL',
   YOPASS_URL: 'YOPASS_URL',
   TYPEORM_LOGGING: 'TYPEORM_LOGGING',
+  SB_SYNC_CRON: 'SB_SYNC_CRON',
 };

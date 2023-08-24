@@ -1,25 +1,24 @@
 import {
+  Box,
   Button,
   ButtonGroup,
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Text,
   Input,
-  Box,
   Radio,
   RadioGroup,
   Stack,
 } from '@chakra-ui/react';
-import { PrivilegeCode, PostRoleDto, RoleType, DependencyErrors } from '@edanalytics/models';
+import { DependencyErrors, PostRoleDto, PrivilegeCode, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { Controller, useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
-import { privilegeQueries, roleQueries } from '../../api';
-import { PrivilegesInput } from './PrivilegesInput';
-import { useNavToParent } from '../../helpers';
-import { PageTemplate } from '../../Layout/PageTemplate';
 import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { PageTemplate } from '../../Layout/PageTemplate';
+import { privilegeQueries, roleQueries } from '../../api';
+import { useNavToParent } from '../../helpers';
+import { PrivilegesInput } from './PrivilegesInput';
 
 const resolver = classValidatorResolver(PostRoleDto);
 
@@ -35,7 +34,7 @@ export const CreateRoleGlobalPage = () => {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
     control,
   } = useForm<PostRoleDto>({
     resolver,
@@ -59,11 +58,11 @@ export const CreateRoleGlobalPage = () => {
   }
 
   return (
-    <PageTemplate constrainWidth title={'Grant new resource ownership'} actions={undefined}>
+    <PageTemplate constrainWidth title={'Create role'} actions={undefined}>
       <Box>
         <form
           onSubmit={handleSubmit((data) => {
-            postRole.mutate(data);
+            return postRole.mutateAsync(data);
           })}
         >
           <FormControl isInvalid={!!errors.name}>
@@ -122,14 +121,14 @@ export const CreateRoleGlobalPage = () => {
             </FormErrorMessage>
           </FormControl>
           <ButtonGroup>
-            <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+            <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
               Save
             </Button>
             <Button
               mt={4}
               colorScheme="teal"
               variant="ghost"
-              isLoading={isLoading}
+              isLoading={isSubmitting}
               type="reset"
               onClick={() => navigate(parentPath)}
             >

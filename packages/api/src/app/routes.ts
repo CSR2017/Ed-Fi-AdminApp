@@ -16,6 +16,7 @@ import { UsersModule } from '../tenants/users/users.module';
 import { UserTenantMembershipsGlobalModule } from '../user-tenant-memberships-global/user-tenant-memberships-global.module';
 import { UsersGlobalModule } from '../users-global/users-global.module';
 import { TenantsGlobalModule } from '../tenants/tenants-global.module';
+import { SbSyncModule } from '../sb-sync/sb-sync.module';
 
 export const routes: Routes = [
   {
@@ -61,6 +62,10 @@ export const routes: Routes = [
   {
     path: '/privileges',
     module: PrivilegesModule,
+  },
+  {
+    path: '/sb-sync-queues',
+    module: SbSyncModule,
   },
   {
     path: '/sbes',

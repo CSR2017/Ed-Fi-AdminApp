@@ -1,4 +1,4 @@
-import { FormLabel, Text } from '@chakra-ui/react';
+import { Attribute } from '@edanalytics/common-ui';
 import { useParams } from 'react-router-dom';
 import { claimsetQueries } from '../../api';
 
@@ -16,10 +16,8 @@ export const ViewClaimset = () => {
 
   return claimset ? (
     <>
-      <FormLabel as="p">Is reserved</FormLabel>
-      <Text>{String(claimset.isSystemReserved ?? false)}</Text>
-      <FormLabel as="p">Applications</FormLabel>
-      <Text>{claimset.applicationsCount}</Text>
+      <Attribute label="Is reserved" value={claimset.isSystemReserved ?? false} />
+      <Attribute label="Applications" value={claimset.applicationsCount} />
     </>
   ) : null;
 };

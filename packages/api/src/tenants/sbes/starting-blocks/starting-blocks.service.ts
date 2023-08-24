@@ -30,7 +30,7 @@ export class StartingBlocksService {
   }
 
   async logIntoAdminApi(sbe: Sbe) {
-    if (typeof sbe.configPublic.adminApiUrl !== 'string') {
+    if (typeof sbe?.configPublic?.adminApiUrl !== 'string') {
       return {
         status: 'NO_ADMIN_API_URL' as const,
       };
@@ -270,6 +270,7 @@ export class StartingBlocksService {
         data: JSON.parse(Buffer.from(result.Payload).toString('utf8')) as SbMetaEnv,
       };
     } catch (LambdaError: LambdaServiceException | any) {
+      Logger.error(LambdaError);
       return {
         status: 'FAILURE' as const,
         error: LambdaError.message

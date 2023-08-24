@@ -2,7 +2,7 @@ import { stdDetailed, stdShort } from '@edanalytics/utils';
 import { Expose, Type } from 'class-transformer';
 import { IsOptional, IsString, MinLength } from 'class-validator';
 import { ISbe, ISbeConfigPrivate, ISbeConfigPublic } from '../interfaces/sbe.interface';
-import { IsArn } from '../utils';
+import { DtoPutBase, IsArn, PutDto } from '../utils';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
 import { makeSerializer } from '../utils/make-serializer';
 import { DtoPostBase, PostDto } from '../utils/post-base.dto';
@@ -89,8 +89,11 @@ export class GetSbeDto
   @Type(() => GetSbeConfigPublic)
   configPublic: GetSbeConfigPublic;
 
+  @Expose()
+  name: string;
+
   override get displayName() {
-    return this.envLabel;
+    return this.name;
   }
 }
 export const toGetSbeDto = makeSerializer<GetSbeDto, ISbe>(GetSbeDto);
@@ -145,9 +148,19 @@ export class PutSbeMeta {
 
 export class PostSbeDto
   extends DtoPostBase
-  implements PostDto<ISbe, 'ownerships' | 'odss' | 'edorgs' | 'configPrivate' | 'configPublic'>
+  implements
+    PostDto<ISbe, 'ownerships' | 'envLabel' | 'odss' | 'edorgs' | 'configPrivate' | 'configPublic'>
 {
   @Expose()
   @MinLength(3)
-  envLabel: string;
+  name: string;
+}
+export class PutSbeDto
+  extends DtoPutBase
+  implements
+    PutDto<ISbe, 'ownerships' | 'envLabel' | 'odss' | 'edorgs' | 'configPrivate' | 'configPublic'>
+{
+  @Expose()
+  @MinLength(3)
+  name: string;
 }

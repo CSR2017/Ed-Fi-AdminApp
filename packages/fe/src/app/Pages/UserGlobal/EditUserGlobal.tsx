@@ -39,7 +39,7 @@ export const EditUserGlobal = (props: { user: GetUserDto }) => {
     control,
     register,
     handleSubmit,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver,
     defaultValues: userFormDefaults,
@@ -49,7 +49,7 @@ export const EditUserGlobal = (props: { user: GetUserDto }) => {
     <form
       onSubmit={handleSubmit((data) => {
         const validatedData = data as PutUserDto;
-        putUser.mutate({
+        return putUser.mutateAsync({
           id: validatedData.id,
           roleId: validatedData.roleId,
           isActive: validatedData.isActive,
@@ -90,14 +90,14 @@ export const EditUserGlobal = (props: { user: GetUserDto }) => {
         <FormErrorMessage>{errors.roleId?.message}</FormErrorMessage>
       </FormControl>
       <ButtonGroup>
-        <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+        <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
           Save
         </Button>
         <Button
           mt={4}
           colorScheme="teal"
           variant="ghost"
-          isLoading={isLoading}
+          isLoading={isSubmitting}
           type="reset"
           onClick={goToView}
         >

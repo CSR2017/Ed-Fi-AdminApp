@@ -76,6 +76,7 @@ export const FeedbackBanners = () => {
     <Box>
       {_.sortBy(Object.entries(banners), 0).map(([id, banner]) => (
         <Alert
+          key={id}
           title={`${stdDetailed(new Date(Number(id)))}${
             banner.regarding ? ` - ${banner.regarding}` : ''
           }`}

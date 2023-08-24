@@ -52,8 +52,9 @@ export const useOdsContent = (props: { sbe: GetSbeDto }) => {
               </Heading>
               <AccordionIcon />
             </AccordionButton>
-            <AccordionPanel pb={4}>
+            <AccordionPanel pb={10}>
               <DataTable
+                queryKeyPrefix={`${props.sbe.id}_ods`}
                 pageSizes={[5, 10, 15]}
                 data={Object.values(odss?.data || {})}
                 columns={[

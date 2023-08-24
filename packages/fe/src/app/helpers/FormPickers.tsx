@@ -1,6 +1,34 @@
-import { RoleType } from '@edanalytics/models';
-import { Select } from 'chakra-react-select';
-import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form';
+import {
+  Box,
+  Checkbox,
+  FormControl,
+  HStack,
+  Icon,
+  IconButton,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTrigger,
+  Text,
+} from '@chakra-ui/react';
+import { VirtualizedSelect } from '@edanalytics/common-ui';
+import { EdorgType, EdorgTypeShort, RoleType } from '@edanalytics/models';
+import { enumValues } from '@edanalytics/utils';
+import _ from 'lodash';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
+import {
+  Control,
+  Controller,
+  ControllerFieldState,
+  ControllerRenderProps,
+  FieldPath,
+  FieldValues,
+  UseFormStateReturn,
+} from 'react-hook-form';
+import { BsFunnel, BsFunnelFill } from 'react-icons/bs';
 import {
   TenantOptions,
   applicationQueries,
@@ -14,40 +42,104 @@ import {
   vendorQueries,
 } from '../api';
 
+const InnerSelect = (
+  props: {
+    field: ControllerRenderProps<any, any>;
+    fieldState: ControllerFieldState;
+    formState: UseFormStateReturn<any>;
+  } & {
+    control: Control<any>;
+    name: any;
+    options: Record<string, { value: number | string; label: string; subLabel?: string }>;
+    onClick?: (value: any) => void;
+    isLoading?: boolean;
+  }
+) => {
+  const optionsArray = useMemo(
+    () => _.sortBy(Object.values(props.options), 'label'),
+    [props.options]
+  );
+
+  useEffect(() => {
+    if (
+      !props.isLoading &&
+      props.field.value !== undefined &&
+      !(String(props.field.value) in props.options)
+    ) {
+      props.field.onChange(undefined);
+    }
+  }, [props.options, props.field.value, props.field.onChange]);
+
+  return (
+    <VirtualizedSelect
+      options={optionsArray as any}
+      name={props.field.name}
+      onBlur={props.field.onBlur}
+      selectedOptionStyle="check"
+      value={
+        props.field.value === undefined
+          ? { label: 'Select an option', value: '' as any }
+          : {
+              label: props.isLoading
+                ? '...loading'
+                : props.options?.[props.field.value as any]?.label ?? '',
+              subLabel: props.isLoading
+                ? undefined
+                : props.options?.[props.field.value as any]?.subLabel,
+              value: props.field.value,
+            }
+      }
+      onChange={(value: any) => {
+        props.field.onChange(value?.value);
+      }}
+    />
+  );
+};
+
 function SelectWrapper<Dto extends Record<Name, number>, Name extends keyof Dto>(props: {
   control: Control<Dto>;
   name: Name;
-  options: Record<string, { value: number | string; label: string }>;
+  options: Record<string, { value: number | string; label: string; subLabel?: string }>;
   onClick?: (value: any) => void;
   isLoading?: boolean;
+  filterApplied?: boolean;
+  filterPane?: ReactNode;
+  onFilterDoubleClick?: () => void;
 }) {
-  const optionsArray = Object.values(props.options);
   return (
-    <Controller
-      control={props.control}
-      name={props.name as any}
-      render={({ field, field: { value } }) => (
-        <Select
-          options={optionsArray as any}
-          name={field.name}
-          onBlur={field.onBlur}
-          selectedOptionStyle="check"
-          value={
-            value === undefined
-              ? { label: 'Select an option', value: '' as any }
-              : {
-                  label: props.isLoading
-                    ? '...loading'
-                    : props.options?.[value as any]?.label ?? '',
-                  value: value,
-                }
-          }
-          onChange={(value) => {
-            field.onChange(value?.value);
-          }}
+    <HStack>
+      <Box flexGrow={1}>
+        <Controller
+          control={props.control}
+          name={props.name as any}
+          render={(args) => <InnerSelect {...args} {...props} />}
         />
+      </Box>
+      {props.filterPane === undefined || props.filterPane === null ? null : (
+        <Popover>
+          <PopoverTrigger>
+            <IconButton
+              variant="ghost"
+              aria-label="edit filters"
+              icon={<Icon as={props.filterApplied ? BsFunnelFill : BsFunnel} />}
+              onDoubleClick={props.onFilterDoubleClick}
+            />
+          </PopoverTrigger>
+          <PopoverContent w="xs">
+            <PopoverArrow />
+
+            <PopoverHeader justifyContent="space-between" display="flex" fontWeight="bold">
+              Filters <PopoverCloseButton position="unset" />
+            </PopoverHeader>
+            <PopoverBody>
+              <FormControl display="flex" py="1em" gap="0.35em" flexDir="column">
+                {props.filterPane}
+              </FormControl>
+            </PopoverBody>
+          </PopoverContent>
+        </Popover>
       )}
-    />
+    </HStack>
   );
 }
 
@@ -288,16 +380,65 @@ export const SelectEdorg = <
 ) => {
   const { control, name, tenantId, sbeId } = props;
   const edorgs = edorgQueries.useAll({ tenantId, sbeId });
-  const options = Object.fromEntries(
-    Object.values(edorgs.data ?? {}).map((edorg) => [
-      props.useEdorgId ? edorg.educationOrganizationId : edorg.id,
-      {
-        value: props.useEdorgId ? edorg.educationOrganizationId : edorg.id,
-        label: edorg.displayName,
-      },
-    ])
+  const discriminators = useMemo(
+    () => _.uniq(Object.values(edorgs.data ?? {}).map((edorg) => edorg.discriminator)),
+    [edorgs]
+  );
+  const [include, setInclude] = useState<string[]>(enumValues(EdorgType));
+  const options = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.values(edorgs.data ?? {})
+          .map((edorg) =>
+            include.includes(edorg.discriminator)
+              ? [
+                  [
+                    props.useEdorgId ? edorg.educationOrganizationId : edorg.id,
+                    {
+                      value: props.useEdorgId ? edorg.educationOrganizationId : edorg.id,
+                      label: edorg.displayName,
+                      subLabel: `${edorg.educationOrganizationId} ${edorg.discriminatorShort}`,
+                    },
+                  ],
+                ]
+              : []
+          )
+          .flat(1)
+      ),
+    [edorgs]
+  );
+  const filterApplied = useMemo(
+    () => !discriminators.every((d) => include.includes(d)),
+    [discriminators, include]
   );
   return (
-    <SelectWrapper control={control} name={name} options={options} isLoading={edorgs.isLoading} />
+    <SelectWrapper
+      control={control}
+      name={name}
+      options={options}
+      isLoading={edorgs.isLoading}
+      filterApplied={filterApplied}
+      onFilterDoubleClick={() => setInclude(enumValues(EdorgType))}
+      filterPane={
+        discriminators.length ? (
+          discriminators.map((d) => (
+            <Checkbox
+              isChecked={include.includes(d)}
+              onChange={() =>
+                setInclude((old): string[] =>
+                  old.includes(d) ? old.filter((di) => di !== d) : [...old, d]
+                )
+              }
+            >
+              {EdorgTypeShort[d]}
+            </Checkbox>
+          ))
+        ) : (
+          <Text as="i" color="gray.400">
+            (No Ed-Org types available)
+          </Text>
+        )
+      }
+    />
   );
 };

@@ -1,6 +1,12 @@
 import { theme } from '../src/lib/theme';
-export const parameters = {
-  chakra: {
-    theme,
+import { reactRouterParameters, withRouter } from 'storybook-addon-react-router-v6';
+
+export default {
+  decorators: [withRouter],
+  parameters: {
+    reactRouter: reactRouterParameters({}),
+    chakra: {
+      theme,
+    },
   },
 };

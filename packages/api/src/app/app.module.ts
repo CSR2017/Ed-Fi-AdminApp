@@ -30,6 +30,7 @@ import { AppService } from './app.service';
 import { CacheModule } from './cache.module';
 import { routes } from './routes';
 import { SeedModule } from '../database/seed.module';
+import { SbSyncModule } from '../sb-sync/sb-sync.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { SeedModule } from '../database/seed.module';
     RolesGlobalModule,
     OdssGlobalModule,
     EdorgsGlobalModule,
+    SbSyncModule,
   ],
   controllers: [AppController],
   providers: [

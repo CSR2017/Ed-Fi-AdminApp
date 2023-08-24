@@ -15,6 +15,9 @@ declare module 'config' {
   interface IConfig {
     AWS_DB_SECRET?: string | undefined;
     DB_SECRET_VALUE: never;
+    /**
+     * Format: `postgres://username@host:port/db?password=password&sslmode=ssl`
+     */
     DB_CONNECTION_STRING: string | Promise<string>;
 
     /** Serialized JSON array of "query" | "schema" | "error" | "warn" | "info" | "log" | "migration" */
@@ -32,6 +35,7 @@ declare module 'config' {
     MY_URL: string;
     YOPASS_URL: string;
     API_PORT: number;
+    SB_SYNC_CRON: string;
 
     SAMPLE_SBE_CONFIG?: {
       adminApiUrl: string;

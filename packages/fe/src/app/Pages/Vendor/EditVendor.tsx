@@ -36,11 +36,11 @@ export const EditVendor = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
   } = useForm<PutVendorDto>({ resolver, defaultValues: { ...vendor } });
 
   return vendor ? (
-    <form onSubmit={handleSubmit((data) => putVendor.mutate(data))}>
+    <form onSubmit={handleSubmit((data) => putVendor.mutateAsync(data))}>
       {/* TODO add the rest of the form */}
       <FormControl isInvalid={!!errors.company}>
         <FormLabel>Company</FormLabel>
@@ -48,14 +48,14 @@ export const EditVendor = () => {
         <FormErrorMessage>{errors.company?.message}</FormErrorMessage>
       </FormControl>
       <ButtonGroup>
-        <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+        <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
           Save
         </Button>
         <Button
           mt={4}
           colorScheme="teal"
           variant="ghost"
-          isLoading={isLoading}
+          isLoading={isSubmitting}
           type="reset"
           onClick={goToView}
         >

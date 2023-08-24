@@ -2,6 +2,7 @@ import { Box, Divider, Image, Text, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { Outlet } from 'react-router-dom';
 import logoUrl from '../../assets/starting-blocks.svg';
+import bgUrl from '../../assets/starting-blocks-no-text.svg';
 
 export const LandingLayoutRouteElement = () => (
   <LandingLayout>
@@ -22,7 +23,7 @@ export const LandingLayout = (props: { children: ReactNode }) => {
           width: '100%',
           height: '100%',
           opacity: '0.1',
-          background: 'url(http://localhost:4200/src/assets/starting-blocks-no-text.svg)',
+          background: `url(${bgUrl})`,
           backgroundRepeat: 'no-repeat',
           backgroundSize: 'cover',
           zIndex: '-1',

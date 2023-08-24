@@ -1,6 +1,10 @@
 const config = {
   stories: ['../src/lib/**/*.stories.@(js|jsx|ts|tsx|mdx)'],
-  addons: ['@storybook/addon-essentials', '@chakra-ui/storybook-addon'],
+  addons: [
+    '@storybook/addon-essentials',
+    '@chakra-ui/storybook-addon',
+    'storybook-addon-react-router-v6',
+  ],
   framework: {
     name: '@storybook/react-vite',
     options: {},

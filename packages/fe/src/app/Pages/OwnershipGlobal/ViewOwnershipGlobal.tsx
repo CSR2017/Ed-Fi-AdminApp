@@ -4,6 +4,7 @@ import { ownershipQueries, roleQueries, tenantQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers';
 import { TenantLink } from '../../routes';
 import { RoleGlobalLink } from '../../routes/role-global.routes';
+import { Attribute, AttributeContainer } from '@edanalytics/common-ui';
 
 export const ViewOwnershipGlobal = () => {
   const params = useParams() as {
@@ -17,20 +18,24 @@ export const ViewOwnershipGlobal = () => {
 
   return ownership ? (
     <>
-      <FormLabel as="p">Tenant</FormLabel>
-      <TenantLink id={ownership.tenantId} query={tenants} />
-      <FormLabel as="p">Resource</FormLabel>
-      <Text>
-        {ownership.edorg
-          ? ownership.edorg.displayName
-          : ownership.ods
-          ? ownership.ods.displayName
-          : ownership.sbe
-          ? ownership.sbe.displayName
-          : '-'}
-      </Text>
-      <FormLabel as="p">Role</FormLabel>
-      <RoleGlobalLink id={ownership.roleId} query={roles} />
+      <AttributeContainer label="Tenant">
+        <TenantLink id={ownership.tenantId} query={tenants} />
+      </AttributeContainer>
+      <Attribute
+        label="Resource"
+        value={
+          ownership.edorg
+            ? ownership.edorg.displayName
+            : ownership.ods
+            ? ownership.ods.displayName
+            : ownership.sbe
+            ? ownership.sbe.displayName
+            : '-'
+        }
+      />
+      <AttributeContainer label="Role">
+        <RoleGlobalLink id={ownership.roleId} query={roles} />
+      </AttributeContainer>
     </>
   ) : null;
 };

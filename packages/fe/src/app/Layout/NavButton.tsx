@@ -46,7 +46,7 @@ export const NavButton = (props: INavButtonProps) => {
       aria-current={isActive ? 'page' : 'false'}
       fontWeight="normal"
       _activeLink={{
-        fontWeight: 'bold',
+        fontWeight: '700',
       }}
       as={RouterLink}
       onClick={() => {

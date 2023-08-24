@@ -46,7 +46,7 @@ export const UserGlobalLink = (props: {
   /**@deprecated unneeded and no longer used. */
   query?: UseQueryResult<Record<string | number, GetUserDto>, unknown>;
 }) => {
-  const users = userQueries.useAll({});
+  const users = userQueries.useAll({ optional: true });
   const user = getEntityFromQuery(props.id, users);
   return user ? (
     <Link as="span">

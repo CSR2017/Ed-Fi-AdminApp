@@ -12,11 +12,10 @@ import {
   chakra,
   useBoolean,
 } from '@chakra-ui/react';
-import { ConfirmAction } from '@edanalytics/common-ui';
+import { ConfirmAction, JsonSecret, SecretValue } from '@edanalytics/common-ui';
 import { useEffect, useState } from 'react';
 import { BsInfoCircle } from 'react-icons/bs';
-import { useLocation, useParams } from 'react-router-dom';
-import { useMe } from '../../api';
+import { useLocation } from 'react-router-dom';
 import { getMessage } from '../../helpers';
 
 const placeholder = `KEY:
@@ -30,13 +29,29 @@ https://gbes-infinite-campus.mth-dev-61a.eaedfi.edanalytics.org/
 `;
 
 export const SecretPage = () => {
-  const params = useParams();
   const { hash } = useLocation();
   const [hashMark, uuid, key] = hash.split('/');
   const [secret, setSecret] = useState<string | null>(null);
+  let secretJson: null | JsonSecret = null;
+  if (secret !== null) {
+    try {
+      secretJson = JSON.parse(secret);
+      if (
+        !(
+          secretJson &&
+          typeof secretJson.key === 'string' &&
+          typeof secretJson.secret === 'string' &&
+          typeof secretJson.url === 'string'
+        )
+      ) {
+        throw new Error('Retrieved secret not valid');
+      }
+    } catch (NotJson) {
+      // that's fine, it's just old format pre-JSON.
+    }
+  }
   const [show, setShow] = useBoolean(false);
   const [isError, setIsError] = useBoolean(false);
-  const me = useMe();
 
   useEffect(() => {
     const func = async () => {
@@ -55,7 +70,7 @@ export const SecretPage = () => {
   }, [uuid, key, show]);
   return (
     <VStack p={10}>
-      <Box w="100%" maxW="60em">
+      <Box w="100%" maxW="50em">
         <Heading mb={4} fontSize="xl">
           Retrieve credentials
         </Heading>
@@ -131,6 +146,8 @@ export const SecretPage = () => {
                     </Tooltip>{' '}
                   </AlertDescription>
                 </Alert>
+              ) : show && secretJson ? (
+                <SecretValue secret={secretJson} />
               ) : (
                 <chakra.pre
                   fontSize="lg"

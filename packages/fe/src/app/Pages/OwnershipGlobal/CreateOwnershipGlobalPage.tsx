@@ -44,11 +44,11 @@ export const CreateOwnershipGlobalPage = () => {
   const navigate = useNavigate();
   const navToParentOptions = useNavToParent();
   const goToView = (id: string | number) => navigate(`/ownerships/${id}`);
-  const search = useSearchParamsObject(getDefaults);
 
   const tenants = tenantQueries.useAll({});
   const sbes = sbeQueries.useAll({});
 
+  const search = useSearchParamsObject(getDefaults);
   const ownershipFormDefaults: Partial<PostOwnershipDto> = Object.assign(
     new PostOwnershipDto(),
     search
@@ -61,7 +61,7 @@ export const CreateOwnershipGlobalPage = () => {
   });
   const {
     handleSubmit,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
     control,
     setValue,
     watch,
@@ -96,7 +96,7 @@ export const CreateOwnershipGlobalPage = () => {
           if (type !== 'sbe') {
             body.sbeId = undefined;
           }
-          postOwnership.mutate(body, mutationErrCallback({ setError }));
+          return postOwnership.mutateAsync(body, mutationErrCallback({ setError }));
         })}
       >
         <FormControl isInvalid={!!errors.hasResource && (sbeId === undefined || type === 'sbe')}>
@@ -146,12 +146,12 @@ export const CreateOwnershipGlobalPage = () => {
           <FormErrorMessage>{errors.roleId?.message}</FormErrorMessage>
         </FormControl>
         <ButtonGroup mt={4} colorScheme="teal">
-          <Button isLoading={isLoading} type="submit">
+          <Button isLoading={isSubmitting} type="submit">
             Save
           </Button>
           <Button
             variant="ghost"
-            isLoading={isLoading}
+            isLoading={isSubmitting}
             type="reset"
             onClick={() => {
               navigate(navToParentOptions);

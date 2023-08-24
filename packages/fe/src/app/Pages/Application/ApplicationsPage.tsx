@@ -1,10 +1,10 @@
 import { DataTable } from '@edanalytics/common-ui';
 import { GetClaimsetDto, GetEdorgDto, createEdorgCompositeNaturalKey } from '@edanalytics/models';
 import _ from 'lodash';
-import { applicationQueries, claimsetQueries, edorgQueries } from '../../api';
+import { applicationQueries, claimsetQueries, edorgQueries, vendorQueries } from '../../api';
 import { ActionBarActions, useNavContext } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { ClaimsetLink, EdorgLink } from '../../routes';
+import { ClaimsetLink, EdorgLink, VendorLink } from '../../routes';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { NameCell } from './NameCell';
 import { useApplicationsActions } from './useApplicationActions';
@@ -58,6 +58,10 @@ export const ApplicationsPageContent = () => {
     sbeId: sbeId,
     tenantId: asId,
   });
+  const vendors = vendorQueries.useAll({
+    sbeId: sbeId,
+    tenantId: asId,
+  });
   const claimsetsByName = {
     ...claimsets,
     data: Object.values(claimsets.data ?? {}).reduce<Record<string, GetClaimsetDto>>(
@@ -102,6 +106,12 @@ export const ApplicationsPageContent = () => {
               }
             />
           ),
+        },
+        {
+          id: 'vendor',
+          accessorFn: (info) => getRelationDisplayName(info.claimSetName, claimsetsByName),
+          header: () => 'Vendor',
+          cell: (info) => <VendorLink query={vendors} id={info.row.original.vendorId} />,
         },
         {
           id: 'claimest',

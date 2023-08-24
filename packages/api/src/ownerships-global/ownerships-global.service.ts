@@ -1,12 +1,13 @@
 import { GetUserDto, PostOwnershipDto, PutOwnershipDto } from '@edanalytics/models';
 import { Ownership } from '@edanalytics/models-server';
 import { formErrFromValidator } from '@edanalytics/utils';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { ValidationError } from 'class-validator';
 import { EntityManager, Repository } from 'typeorm';
-import { ValidationException } from '../utils/customExceptions';
+import { AuthService } from '../auth/auth.service';
 import { throwNotFound } from '../utils';
+import { ValidationException } from '../utils/customExceptions';
 
 @Injectable()
 export class OwnershipsGlobalService {
@@ -14,7 +15,9 @@ export class OwnershipsGlobalService {
     @InjectRepository(Ownership)
     private ownershipsRepository: Repository<Ownership>,
     @InjectEntityManager()
-    private readonly entityManager: EntityManager
+    private readonly entityManager: EntityManager,
+
+    @Inject(AuthService) private readonly authService: AuthService
   ) {}
   async create(createOwnershipDto: PostOwnershipDto) {
     const isRedundant = !!(
@@ -36,6 +39,7 @@ export class OwnershipsGlobalService {
       err.value = false;
       throw new ValidationException(formErrFromValidator([err]));
     }
+    this.authService.reloadTenantOwnershipCache(createOwnershipDto.tenantId);
 
     return this.ownershipsRepository.save(this.ownershipsRepository.create(createOwnershipDto));
   }
@@ -46,12 +50,14 @@ export class OwnershipsGlobalService {
 
   async update(id: number, updateOwnershipDto: PutOwnershipDto) {
     const old = await this.findOne(id).catch(throwNotFound);
+    this.authService.reloadTenantOwnershipCache(old.tenantId);
     return this.ownershipsRepository.save({ ...old, ...updateOwnershipDto });
   }
 
   async remove(id: number, user: GetUserDto) {
     const old = await this.findOne(id).catch(throwNotFound);
     await this.ownershipsRepository.remove(old);
+    this.authService.reloadTenantOwnershipCache(old.tenantId);
     return undefined;
   }
 }

@@ -9,6 +9,9 @@ export default defineConfig({
   server: {
     port: 4200,
     host: 'localhost',
+    fs: {
+      allow: ['./packages/fe', '../../node_modules/@fontsource'],
+    },
   },
 
   preview: {

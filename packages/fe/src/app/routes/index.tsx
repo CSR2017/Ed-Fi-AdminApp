@@ -72,6 +72,19 @@ import { GlobalHome } from '../Pages/Home/GlobalHome';
 import { UnauthenticatedPage } from '../Layout/Unauthenticated';
 import { useMe } from '../api';
 import { LandingLayoutRouteElement } from '../Layout/LandingLayout';
+import {
+  utmsGlobalRoute,
+  utmsGlobalIndexRoute,
+  utmGlobalRoute,
+  utmGlobalIndexRoute,
+  utmGlobalCreateRoute,
+} from './utm-global.routes';
+import {
+  sbSyncQueuesRoute,
+  sbSyncQueuesIndexRoute,
+  sbSyncQueueRoute,
+  sbSyncQueueIndexRoute,
+} from './sb-sync-queue.routes';
 export * from './account.routes';
 export * from './application.routes';
 export * from './claimset.routes';
@@ -83,9 +96,11 @@ export * from './role.routes';
 export * from './sbe-global.routes';
 export * from './sbe.routes';
 export * from './tenant.routes';
+export * from './utm-global.routes';
 export * from './user.routes';
 export * from './user-global.routes';
 export * from './vendor.routes';
+export * from './sb-sync-queue.routes';
 
 export const fallback404Route: RouteObject = {
   path: '*',
@@ -147,6 +162,11 @@ export const authenticatedRoutes: RouteObject = {
   element: <AuthenticatedRoute />,
   errorElement: <ErrorFallback />,
   children: [
+    sbSyncQueuesRoute,
+    sbSyncQueuesIndexRoute,
+    sbSyncQueueRoute,
+    sbSyncQueueIndexRoute,
+
     sbesGlobalRoute,
     sbesGlobalIndexRoute,
     sbeGlobalCreateRoute,
@@ -170,6 +190,12 @@ export const authenticatedRoutes: RouteObject = {
     ownershipGlobalRoute,
     ownershipGlobalIndexRoute,
     ownershipGlobalCreateRoute,
+
+    utmsGlobalRoute,
+    utmsGlobalIndexRoute,
+    utmGlobalRoute,
+    utmGlobalIndexRoute,
+    utmGlobalCreateRoute,
 
     sbesRoute,
     sbesIndexRoute,

@@ -43,7 +43,7 @@ export const UserLink = (props: {
   const navContext = useNavContext();
   const asId = navContext.asId!;
 
-  const users = userQueries.useAll({ tenantId: asId });
+  const users = userQueries.useAll({ tenantId: asId, optional: true });
   const user = getEntityFromQuery(props.id, users);
   return user ? (
     <Link as="span">

@@ -32,7 +32,7 @@ export const RolesGlobalPage = () => {
   const roles = roleQueries.useAll({
     tenantId: params.asId,
   });
-  const users = userQueries.useAll({ tenantId: params.asId });
+  const users = userQueries.useAll({ tenantId: params.asId, optional: true });
   const tenants = useMyTenants();
   const actions = useMultipleRoleGlobalActions();
   return (
@@ -62,7 +62,7 @@ export const RolesGlobalPage = () => {
             id: 'modifiedBy',
             accessorFn: (info) => getRelationDisplayName(info.modifiedById, users),
             header: () => 'Modified by',
-            cell: (info) => <UserGlobalLink query={users} id={info.row.original.modifiedById} />,
+            cell: (info) => <UserGlobalLink id={info.row.original.modifiedById} />,
           },
           {
             accessorKey: 'createdDetailed',
@@ -72,7 +72,7 @@ export const RolesGlobalPage = () => {
             id: 'createdBy',
             accessorFn: (info) => getRelationDisplayName(info.createdById, users),
             header: () => 'Created by',
-            cell: (info) => <UserGlobalLink query={users} id={info.row.original.createdById} />,
+            cell: (info) => <UserGlobalLink id={info.row.original.createdById} />,
           },
         ]}
       />

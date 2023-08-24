@@ -1,5 +1,5 @@
 import { GetTenantDto } from '@edanalytics/models';
-import { BiArch, BiEdit, BiTrash } from 'react-icons/bi';
+import { BiArch, BiEdit, BiTrash, BiUserPlus } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { tenantQueries } from '../../api';
@@ -28,6 +28,27 @@ export const useTenantActions = (tenant: GetTenantDto | undefined): ActionsType 
                 icon={BiArch}
                 text="Assume"
                 title={'Assume ' + tenant.displayName + ' tenant scope'}
+                to={path}
+                onClick={() => navigate(path)}
+              />
+            </AuthorizeComponent>
+          );
+        },
+        Invite: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
+          const path = `/user-tenant-memberships/create?tenantId=${tenant.id}`;
+          return (
+            <AuthorizeComponent
+              config={{
+                privilege: 'user-tenant-membership:create',
+                subject: {
+                  id: '__filtered__',
+                },
+              }}
+            >
+              <props.children
+                icon={BiUserPlus}
+                text="Add user"
+                title={'Add existing user to ' + tenant.displayName}
                 to={path}
                 onClick={() => navigate(path)}
               />

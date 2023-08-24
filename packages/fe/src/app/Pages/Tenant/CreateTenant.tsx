@@ -29,7 +29,7 @@ export const CreateTenant = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
   } = useForm<PostTenantDto>({ resolver, defaultValues: {} });
 
   return (
@@ -37,7 +37,7 @@ export const CreateTenant = () => {
       <Box w="20em">
         <form
           onSubmit={handleSubmit((data) =>
-            putTenant.mutate(data, {
+            putTenant.mutateAsync(data, {
               onSuccess: () => {
                 queryClient.invalidateQueries({ queryKey: ['me', 'tenants'] });
               },
@@ -50,14 +50,14 @@ export const CreateTenant = () => {
             <FormErrorMessage>{errors.name?.message}</FormErrorMessage>
           </FormControl>
           <ButtonGroup>
-            <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+            <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
               Save
             </Button>
             <Button
               mt={4}
               colorScheme="teal"
               variant="ghost"
-              isLoading={isLoading}
+              isLoading={isSubmitting}
               type="reset"
               onClick={() => navigate(parentPath)}
             >

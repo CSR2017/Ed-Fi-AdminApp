@@ -1,9 +1,8 @@
 import { ITenantCache, PrivilegeCode, upwardInheritancePrivileges } from '@edanalytics/models';
 import { Edorg, Ods, Ownership, Sbe, User, UserTenantMembership } from '@edanalytics/models-server';
-import { faker } from '@faker-js/faker';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, IsNull, Repository, TreeRepository } from 'typeorm';
+import { EntityManager, In, Repository, TreeRepository } from 'typeorm';
 import { CacheService } from '../app/cache.module';
 import {
   cacheAccordingToPrivileges,
@@ -82,162 +81,300 @@ export class AuthService {
     return user;
   }
 
-  validateUser(username: string) {
-    return this.getUser(username);
+  async validateUser(username: string) {
+    const user = await this.getUser(username);
+    if (user === null || !user.isActive) {
+      return null;
+    } else {
+      return user;
+    }
   }
 
-  async buildTenantOwnershipCache(tenantId: number) {
+  async constructTenantOwnerships(tenantId: number) {
+    const start = new Date();
+    if (typeof tenantId !== 'number') throw new UnauthorizedException();
+    const ownerships = await this.ownershipsRepository.find({
+      where: {
+        tenantId,
+      },
+      relations: ['sbe', 'ods', 'edorg', 'role', 'role.privileges'],
+    });
+
+    /** Map of all Edorgs needed during execution.
+     *
+     * Just a data repository used to minimize queries for performance reasons; carries no implication of ownership or meaning.
+     * */
+    const allEdorgs = new Map<number, Edorg>();
+    /** Map of all Odss needed during execution.
+     *
+     * Just a data repository used to minimize queries for performance reasons; carries no implication of ownership or meaning.
+     * */
+    const allOdss = new Map<number, Ods>();
+    /** Map of all Sbes needed during execution.
+     *
+     * Just a data repository used to minimize queries for performance reasons; carries no implication of ownership or meaning.
+     * */
+    const allSbes = new Map<number, Sbe>();
+
+    const ownedOdss: Ownership[] = [];
+    const ownedEdorgs: Ownership[] = [];
+
+    /**
+     * Repository of the privileges this tenant has on each relevant Sbe
+     *
+     * These variables are used dynamically. As the authorization builder
+     * works its way up and down the resource hierarchy, it adds new items
+     * or new privileges to existing items as prescribed by the app's
+     * inheritance rules.
+     */
+    const sbePrivileges = new Map<number, Set<PrivilegeCode>>();
+    /**
+     * Repository of the privileges this tenant has on each relevant ODS
+     *
+     * These variables are used dynamically. As the authorization builder
+     * works its way up and down the resource hierarchy, it adds new items
+     * or new privileges to existing items as prescribed by the app's
+     * inheritance rules.
+     */
+    const odsPrivileges = new Map<number, Set<PrivilegeCode>>();
+    /**
+     * Repository of the privileges this tenant has on each relevant Ed-Org
+     *
+     * These variables are used dynamically. As the authorization builder
+     * works its way up and down the resource hierarchy, it adds new items
+     * or new privileges to existing items as prescribed by the app's
+     * inheritance rules.
+     */
+    const edorgPrivileges = new Map<number, Set<PrivilegeCode>>();
+
+    ownerships.forEach((o) => {
+      if (o.sbe) {
+        sbePrivileges.set(o.sbe.id, new Set(o.role?.privileges.map((p) => p.code) ?? []));
+        allSbes.set(o.sbe.id, o.sbe);
+      } else if (o.ods) {
+        odsPrivileges.set(o.ods.id, new Set(o.role?.privileges.map((p) => p.code) ?? []));
+        ownedOdss.push(o);
+        allOdss.set(o.ods.id, o.ods);
+      } else if (o.edorg) {
+        edorgPrivileges.set(o.edorg.id, new Set(o.role?.privileges.map((p) => p.code) ?? []));
+        ownedEdorgs.push(o);
+        allEdorgs.set(o.edorg.id, o.edorg);
+      }
+    });
+
+    const cache: ITenantCache = {
+      'tenant.ownership:read': true,
+      'tenant.role:read': true,
+      'tenant.role:create': true,
+      'tenant.role:update': true,
+      'tenant.role:delete': true,
+      'tenant.user:read': true,
+      'tenant.user-tenant-membership:read': true,
+      'tenant.user-tenant-membership:update': true,
+      'tenant.user-tenant-membership:delete': true,
+      'tenant.user-tenant-membership:create': true,
+      'tenant.sbe:read': new Set(),
+    };
+
+    /*
+
+    First trace the resource tree _downward_ from the owned resources,
+    accumulating more privileges as we go and applying them to the
+    resources we encounter.
+
+    */
+
+    const sbePrivilegesEntries = [...sbePrivileges.entries()];
+    const [allEdorgsRaw, allOdssRaw] = await Promise.all([
+      this.edorgsRepository.findBy([
+        {
+          sbeId: In(sbePrivilegesEntries.map((entry) => entry[0])),
+        },
+        {
+          odsId: In(ownedOdss.map((o) => o.ods.id).filter((id) => typeof id === 'number')),
+        },
+      ]),
+      this.odssRepository.findBy([
+        {
+          sbeId: In(sbePrivilegesEntries.map((entry) => entry[0])),
+        },
+        {
+          id: In(ownedEdorgs.map((o) => o.edorg.odsId).filter((id) => typeof id === 'number')),
+        },
+      ]),
+    ]);
+
+    const rootEdorgsPerOds: Record<number, Edorg[]> = {};
+    allEdorgsRaw.forEach((edorg) => {
+      if (typeof edorg.parentId !== 'number') {
+        if (!(edorg.odsId in rootEdorgsPerOds)) {
+          rootEdorgsPerOds[edorg.odsId] = [];
+        }
+        rootEdorgsPerOds[edorg.odsId].push(edorg);
+      }
+      allEdorgs.set(edorg.id, edorg);
+    });
+
+    const odssPerSbe = Object.fromEntries(
+      sbePrivilegesEntries.map((entry) => [entry[0], [] as Ods[]])
+    );
+    allOdssRaw.forEach((ods) => {
+      if (!(ods.sbeId in odssPerSbe)) {
+        odssPerSbe[ods.sbeId] = [];
+      }
+      odssPerSbe[ods.sbeId].push(ods);
+      allOdss.set(ods.id, ods);
+    });
+
+    sbePrivilegesEntries.forEach((entry) => {
+      const [sbeId, myPrivileges] = entry;
+
+      cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe', sbeId);
+      initializeSbePrivilegeCache(cache, myPrivileges, sbeId);
+      cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.vendor', true, sbeId);
+      cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.claimset', true, sbeId);
+
+      // apply downward-inheriting privileges to ODS's within this SBE
+      odssPerSbe[sbeId].forEach((ods) => {
+        if (!odsPrivileges.has(ods.id)) {
+          odsPrivileges.set(ods.id, new Set());
+        }
+        myPrivileges.forEach((p) => odsPrivileges.get(ods.id).add(p));
+      });
+    });
+
+    const odsPrivilegesEntries = [...odsPrivileges.entries()];
+    odsPrivilegesEntries.forEach((entry) => {
+      const [odsId, myPrivileges] = entry;
+      const ods = allOdss.get(odsId);
+
+      cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.ods', ods.id, ods.sbeId);
+
+      // apply downward-inheriting privileges to Ed-Orgs within this ODS
+      rootEdorgsPerOds[odsId].forEach((edorg) => {
+        if (!edorgPrivileges.has(edorg.id)) {
+          edorgPrivileges.set(edorg.id, new Set());
+        }
+        myPrivileges.forEach((p) => edorgPrivileges.get(edorg.id).add(p));
+      });
+    });
+
+    const edorgPrivilegesEntries = [...edorgPrivileges.entries()];
+
+    const edorgIds = new Set(edorgPrivilegesEntries.map((entry) => entry[0]));
+    const edorgClosureRaw = await this.entityManager.query(
+      'SELECT "id_ancestor", "id_descendant" from "edorg_closure" WHERE "id_ancestor" <> "id_descendant" and "id_ancestor" = ANY ($1)',
+      [[...edorgIds.values()]]
+    );
+
+    const parentEdorgIds = new Set<number>();
+    const ancestorMap = new Map<number, Set<Edorg>>();
+    edorgClosureRaw.forEach((row) => {
+      parentEdorgIds.add(row.id_ancestor);
+      if (!ancestorMap.has(row.id_descendant)) {
+        ancestorMap.set(row.id_descendant, new Set());
+      }
+      ancestorMap.get(row.id_descendant).add(row.id_ancestor);
+    });
+
+    const descendantMap = new Map<number, Edorg[]>();
+    [...allEdorgs.values()].forEach((edorg) => {
+      if (typeof edorg.parentId === 'number') {
+        if (!descendantMap.has(edorg.parentId)) {
+          descendantMap.set(edorg.parentId, [edorg]);
+        } else {
+          descendantMap.set(edorg.parentId, [...descendantMap.get(edorg.parentId), edorg]);
+        }
+      }
+    });
+
+    edorgPrivilegesEntries.forEach((entry) => {
+      const [edorgId, myPrivileges] = entry;
+      const edorg = allEdorgs.get(edorgId);
+
+      let tree: Edorg;
+      if (parentEdorgIds.has(edorgId)) {
+        const buildDescendants = (edorg: Edorg) => {
+          const descendants = descendantMap.get(edorg.id);
+          edorg.children = descendants;
+          descendants && edorg.children.forEach((child) => buildDescendants(child));
+        };
+        tree = edorg;
+        buildDescendants(tree);
+      } else {
+        tree = edorg;
+      }
+      cacheEdorgPrivilegesDownward(cache, myPrivileges, tree, edorgPrivileges);
+    });
+
+    /*
+
+    Then trace the tree _upward_ from the owned resources, applying
+    only the upwardly-inheritable privileges.
+
+    */
+    for (const edorgId in ownedEdorgs) {
+      const ownership = ownedEdorgs[edorgId];
+      const edorg = ownership.edorg!;
+      const ancestors = [...(ancestorMap.get(edorg.id) ?? [])];
+
+      const ownedPrivileges = new Set(ownership.role.privileges.map((p) => p.code) ?? []);
+
+      cacheEdorgPrivilegesUpward(cache, edorg, ownedPrivileges, ancestors);
+    }
+
+    for (const odsId in ownedOdss) {
+      const ownership = ownedOdss[odsId];
+      const ods = ownership.ods!;
+
+      const ownedPrivileges = new Set(ownership.role?.privileges.map((p) => p.code) ?? []);
+      const appliedPrivileges = new Set(
+        [...ownedPrivileges].filter((p) => upwardInheritancePrivileges.has(p))
+      );
+
+      cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe', ods.sbeId);
+      cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe.claimset', true, ods.sbeId);
+      cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe.vendor', true, ods.sbeId);
+    }
+
+    const end = new Date();
+    Logger.verbose(
+      `Tenant ${tenantId} ownership object cached in ${(
+        Number(end) - Number(start)
+      ).toLocaleString()}ms`
+    );
+    return cache;
+  }
+
+  clearTenantOwnershipCache(tenantId: number) {
+    this.cacheManager.del(String(tenantId));
+  }
+
+  async reloadTenantOwnershipCache(
+    tenantId: number,
+    /** Load the cache even if it's currently expired, meaning it hasn't been used in 1hr */
+    evenIfInactive = true
+  ) {
+    const existingValue: ITenantCache | undefined = this.cacheManager.get(String(tenantId));
+
+    if (existingValue || evenIfInactive) {
+      this.clearTenantOwnershipCache(tenantId);
+      const newCache = this.constructTenantOwnerships(tenantId);
+      this.cacheManager.set(String(tenantId), newCache, 10 * 60 /* seconds */);
+      return await newCache;
+    } else {
+      return null;
+    }
+  }
+
+  async getTenantOwnershipCache(tenantId: number) {
     const cachedValue = this.cacheManager.get(String(tenantId));
     if (cachedValue !== undefined) {
       return await cachedValue;
     } else {
-      const buildCache = async () => {
-        const timerKey = `resource ownership cache (id ${faker.datatype.string(4)}) built in`;
-        console.time(timerKey);
-        if (typeof tenantId !== 'number') throw new UnauthorizedException();
-        const ownerships = await this.ownershipsRepository.find({
-          where: {
-            tenantId,
-          },
-          relations: ['sbe', 'ods', 'edorg', 'role', 'role.privileges'],
-        });
-
-        const ownedOdss: Ownership[] = [];
-        const ownedEdorgs: Ownership[] = [];
-
-        const sbePrivileges = new Map<number, Set<PrivilegeCode>>();
-        const odsPrivileges = new Map<number, Set<PrivilegeCode>>();
-        const edorgPrivileges = new Map<number, Set<PrivilegeCode>>();
-
-        ownerships.forEach((o) => {
-          if (o.sbe) {
-            sbePrivileges.set(o.sbe.id, new Set(o.role?.privileges.map((p) => p.code) ?? []));
-          } else if (o.ods) {
-            odsPrivileges.set(o.ods.id, new Set(o.role?.privileges.map((p) => p.code) ?? []));
-            ownedOdss.push(o);
-          } else if (o.edorg) {
-            edorgPrivileges.set(o.edorg.id, new Set(o.role?.privileges.map((p) => p.code) ?? []));
-            ownedEdorgs.push(o);
-          }
-        });
-
-        const cache: ITenantCache = {
-          'tenant.ownership:read': true,
-          'tenant.role:read': true,
-          'tenant.role:create': true,
-          'tenant.role:update': true,
-          'tenant.role:delete': true,
-          'tenant.user:read': true,
-          'tenant.user-tenant-membership:read': true,
-          'tenant.user-tenant-membership:update': true,
-          'tenant.user-tenant-membership:delete': true,
-          'tenant.user-tenant-membership:create': true,
-          'tenant.sbe:read': new Set(),
-        };
-
-        /*
-
-        First trace the resource tree _downward_ from the owned resources,
-        accumulating more privileges as we go and applying them to the
-        resources we encounter.
-
-        */
-        const sbePrivilegesEntries = [...sbePrivileges.entries()];
-        for (let is = 0; is < sbePrivilegesEntries.length; is++) {
-          const [sbeId, myPrivileges] = sbePrivilegesEntries[is];
-
-          cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe', sbeId);
-          initializeSbePrivilegeCache(cache, myPrivileges, sbeId);
-          cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.vendor', true, sbeId);
-          cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.claimset', true, sbeId);
-          const sbeOdss = await this.odssRepository.findBy({ sbeId });
-          for (let io = 0; io < sbeOdss.length; io++) {
-            const ods = sbeOdss[io];
-            if (!odsPrivileges.has(ods.id)) {
-              odsPrivileges.set(ods.id, new Set());
-            }
-            myPrivileges.forEach((p) => odsPrivileges.get(ods.id)?.add(p));
-          }
-        }
-
-        const odsPrivilegesEntries = [...odsPrivileges.entries()];
-        for (let is = 0; is < odsPrivilegesEntries.length; is++) {
-          const [odsId, myPrivileges] = odsPrivilegesEntries[is];
-
-          const ods = await this.odssRepository.findOneBy({ id: odsId });
-          cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.ods', ods.id, ods.sbeId);
-          const odsEdorgs = await this.edorgsRepository.find({
-            where: {
-              odsId,
-              parentId: IsNull(),
-            },
-          });
-          for (let io = 0; io < odsEdorgs.length; io++) {
-            const edorg = odsEdorgs[io];
-            if (!edorgPrivileges.has(edorg.id)) {
-              edorgPrivileges.set(edorg.id, new Set());
-            }
-            myPrivileges.forEach((p) => edorgPrivileges.get(edorg.id)?.add(p));
-          }
-        }
-
-        const edorgPrivilegesEntries = [...edorgPrivileges.entries()];
-        for (let is = 0; is < edorgPrivilegesEntries.length; is++) {
-          const [edorgId, myPrivileges] = edorgPrivilegesEntries[is];
-
-          const edorg = await this.edorgsRepository.findOneBy({ id: edorgId });
-          const tree = await this.edorgsTreeRepository.findDescendantsTree(edorg);
-          cacheEdorgPrivilegesDownward(cache, myPrivileges, tree, edorgPrivileges);
-        }
-
-        /*
-
-        Then trace the tree _upward_ from the owned resources, applying
-        at most the upwardly-inheritable privileges.
-
-        */
-        for (const edorgId in ownedEdorgs) {
-          const ownership = ownedEdorgs[edorgId];
-          const edorg = ownership.edorg!;
-          const ancestors = await this.edorgsTreeRepository.findAncestors(edorg);
-
-          const ownedPrivileges = new Set(ownership.role?.privileges.map((p) => p.code) ?? []);
-
-          cacheEdorgPrivilegesUpward(cache, edorg, ownedPrivileges, ancestors);
-        }
-
-        for (const odsId in ownedOdss) {
-          const ownership = ownedOdss[odsId];
-          const ods = ownership.ods!;
-
-          const ownedPrivileges = new Set(ownership.role?.privileges.map((p) => p.code) ?? []);
-          const appliedPrivileges = new Set(
-            [...ownedPrivileges].filter((p) => upwardInheritancePrivileges.has(p))
-          );
-
-          cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe', ods.sbeId);
-          cacheAccordingToPrivileges(
-            cache,
-            appliedPrivileges,
-            'tenant.sbe.claimset',
-            true,
-            ods.sbeId
-          );
-          cacheAccordingToPrivileges(
-            cache,
-            appliedPrivileges,
-            'tenant.sbe.vendor',
-            true,
-            ods.sbeId
-          );
-        }
-
-        console.timeEnd(timerKey);
-        return cache;
-      };
-      const newCacheValue = buildCache();
-      this.cacheManager.set(String(tenantId), newCacheValue, 20 /* seconds */);
-      return await newCacheValue;
+      const newCache = this.constructTenantOwnerships(tenantId);
+      this.cacheManager.set(String(tenantId), newCache, 10 * 60 /* seconds */);
+      return await newCache;
     }
   }
 }

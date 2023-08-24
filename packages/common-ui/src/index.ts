@@ -4,3 +4,6 @@ export * from './lib/confirmAction';
 export * from './lib/ActionGroup';
 export * from './lib/SuccessFailureBadge';
 export * from './lib/operationResult';
+export * from './lib/VirtualizedSelect';
+export * from './lib/secretValue';
+export * from './lib/attribute';

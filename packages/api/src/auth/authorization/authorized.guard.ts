@@ -43,11 +43,11 @@ export class AuthorizedGuard implements CanActivate {
         >(AUTHORIZE_KEY, [context.getHandler(), context.getClass()]);
 
         if (authorizeRule === undefined) {
-          // Each route _must_ define its authorization rule.
-          Logger.warn('Authorization rule not defined for route' + request.url);
+          // Each route _must_ define its authorization rule or skip authorization _explicitly_.
+          Logger.error('Authorization rule not defined for route' + request.url);
           return false;
         } else if (authorizeRule === null) {
-          Logger.warn('Authorization explicitly skipped for route' + request.url);
+          Logger.verbose('Authorization explicitly skipped for route' + request.url);
         } else {
           const privilege = authorizeRule.privilege;
           const subjectTemplate = authorizeRule.subject;

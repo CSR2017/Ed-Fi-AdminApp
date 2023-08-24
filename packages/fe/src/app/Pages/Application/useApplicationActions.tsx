@@ -113,6 +113,7 @@ export const useApplicationActions = ({
                 }}
               >
                 <props.children
+                  isDisabled={resetCreds.isLoading}
                   icon={() => (resetCreds.isLoading ? <Spinner size="sm" /> : <BiShieldX />)}
                   text="Reset creds"
                   title="Reset application credentials."
@@ -169,6 +170,7 @@ export const useApplicationActions = ({
               }}
             >
               <props.children
+                isDisabled={deleteApplication.isLoading}
                 icon={BiTrash}
                 text="Delete"
                 title="Delete application"

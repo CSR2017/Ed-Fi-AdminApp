@@ -1,9 +1,10 @@
 import { Spinner, useBoolean } from '@chakra-ui/react';
 import { useOperationResultDisclosure } from '@edanalytics/common-ui';
 import { GetSbeDto } from '@edanalytics/models';
-import { BiCog, BiData, BiDownload, BiKey, BiPlug, BiShieldPlus, BiTrash } from 'react-icons/bi';
+import { BiCog, BiData, BiDownload, BiPlug, BiRename, BiShieldPlus, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
+import { usePopBanner } from '../../Layout/FeedbackBanner';
 import {
   sbeQueries,
   useSbeCheckAdminAPI,
@@ -17,9 +18,8 @@ import {
   ActionsType,
   LinkActionProps,
 } from '../../helpers/ActionsType';
-import { useSearchParamsObject } from '../../helpers/useSearch';
-import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
+import { useSearchParamsObject } from '../../helpers/useSearch';
 
 export const useSbeGlobalActions = (sbe: GetSbeDto | undefined): ActionsType => {
   const checkAdminApi = useSbeCheckAdminAPI();
@@ -97,20 +97,16 @@ export const useSbeGlobalActions = (sbe: GetSbeDto | undefined): ActionsType => 
               >
                 <props.children
                   icon={() => (checkLoading ? <Spinner size="sm" /> : <BiPlug />)}
-                  text="Check connection"
-                  title="Check connection to Starting Blocks and Ed-Fi Admin API"
+                  text="Ping Admin API"
+                  title="Check connection to Ed-Fi Admin API"
                   onClick={async () => {
                     setCheckLoading.on();
-                    Promise.all([
-                      checkAdminApi.mutateAsync(sbe, {
+                    checkAdminApi
+                      .mutateAsync(sbe, {
                         onSuccess: (res) => popBanner(res),
                         ...mutationErrCallback({ popBanner }),
-                      }),
-                      checkSbMeta.mutateAsync(sbe, {
-                        onSuccess: (res) => popBanner(res),
-                        ...mutationErrCallback({ popBanner }),
-                      }),
-                    ]).finally(() => setCheckLoading.off());
+                      })
+                      .finally(() => setCheckLoading.off());
                   }}
                 />
               </AuthorizeComponent>
@@ -180,6 +176,28 @@ export const useSbeGlobalActions = (sbe: GetSbeDto | undefined): ActionsType => 
                 icon={BiCog}
                 text="Connect Admin API"
                 title="Setup connection to Ed-Fi Admin API"
+                to={to}
+                onClick={() => navigate(to)}
+              />
+            </AuthorizeComponent>
+          );
+        },
+        Rename: (props: { children: (props: LinkActionProps) => JSX.Element }) => {
+          const to = `/sbes/${sbe.id}?edit=name`;
+          return (
+            <AuthorizeComponent
+              config={{
+                privilege: 'sbe:update',
+                subject: {
+                  id: sbe.id,
+                },
+              }}
+            >
+              <props.children
+                isDisabled={edit === 'name'}
+                icon={BiRename}
+                text="Rename"
+                title="Rename the environment"
                 to={to}
                 onClick={() => navigate(to)}
               />

@@ -28,13 +28,13 @@ export const EditSbeAdminApi = (props: { sbe: GetSbeDto }) => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
   } = useForm<PutSbeAdminApi>({ resolver, defaultValues: sbeFormDefaults });
 
   return sbe ? (
     <form
       onSubmit={handleSubmit((data) =>
-        putSbe.mutate({
+        putSbe.mutateAsync({
           ...data,
         })
       )}
@@ -55,14 +55,14 @@ export const EditSbeAdminApi = (props: { sbe: GetSbeDto }) => {
         <FormErrorMessage>{errors.adminSecret?.message}</FormErrorMessage>
       </FormControl>
       <ButtonGroup>
-        <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+        <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
           Save
         </Button>
         <Button
           mt={4}
           colorScheme="teal"
           variant="ghost"
-          isLoading={isLoading}
+          isLoading={isSubmitting}
           type="reset"
           onClick={goToView}
         >

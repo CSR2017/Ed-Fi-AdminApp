@@ -31,7 +31,8 @@ export const StandardLayout = () => {
                   <Box p={3} px="calc(4vw + 0.5em)">
                     <Breadcrumbs mb={5} />
                     <Box flexGrow={1} pb="2em">
-                      <Outlet />
+                      {/* asId might be one render behind */}
+                      {params.asId && asId === undefined ? null : <Outlet />}
                     </Box>
                   </Box>
                 </Flex>

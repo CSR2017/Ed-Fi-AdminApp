@@ -6,6 +6,7 @@ import {
   Ownership,
   Privilege,
   Role,
+  SbSyncQueue,
   Sbe,
   Tenant,
   User,
@@ -20,6 +21,9 @@ import { UniqueOwnershipConstraints1687900131470 } from './migrations/1687900131
 import { EdorgShortname1689282856860 } from './migrations/1689282856860-edorg-shortname';
 import { OwnershipUniquenessSoftdelete1691010443030 } from './migrations/1691010443030-ownershipUniquenessSoftdelete';
 import { AbandonSoftDeletion1691520653756 } from './migrations/1691520653756-abandonSoftDeletion';
+import { GuaranteeMembershipUniqueness1691694310950 } from './migrations/1691694310950-guaranteeMembershipUniqueness';
+import { AddSeparateSbeNameField1692280869502 } from './migrations/1692280869502-AddSeparateSbeNameField';
+import { NewSbSyncQueue1692740626759 } from './migrations/1692740626759-NewSbSyncQueue';
 
 const config: Pick<
   PostgresConnectionOptions,
@@ -38,6 +42,7 @@ const config: Pick<
     Ownership,
     Oidc,
     AppLauncher,
+    SbSyncQueue,
   ],
   synchronize: false,
   migrationsRun: true,
@@ -50,6 +55,9 @@ const config: Pick<
     EdorgShortname1689282856860,
     OwnershipUniquenessSoftdelete1691010443030,
     AbandonSoftDeletion1691520653756,
+    GuaranteeMembershipUniqueness1691694310950,
+    AddSeparateSbeNameField1692280869502,
+    NewSbSyncQueue1692740626759,
   ],
 };
 export default config;

@@ -1,8 +1,7 @@
-import { FormLabel, Text } from '@chakra-ui/react';
+import { Attribute, AttributeContainer } from '@edanalytics/common-ui';
 import { useParams } from 'react-router-dom';
 import { edorgQueries, odsQueries, sbeQueries } from '../../api';
 import { EdorgLink, OdsLink, SbeLink } from '../../routes';
-import { AuthorizeConfig, useQueryIfAuth } from '../../helpers';
 
 export const ViewEdorg = () => {
   const params = useParams() as {
@@ -26,18 +25,18 @@ export const ViewEdorg = () => {
 
   return edorg ? (
     <>
-      <FormLabel as="p">Type</FormLabel>
-      <Text>{edorg.discriminator}</Text>
+      <Attribute isCopyable label="Type" value={edorg.discriminator} />
       {edorg.parentId ? (
-        <>
-          <FormLabel as="p">Parent</FormLabel>
+        <AttributeContainer label="Parent">
           <EdorgLink id={edorg.parentId} query={edorgs} />
-        </>
+        </AttributeContainer>
       ) : null}
-      <FormLabel as="p">Ods</FormLabel>
-      <OdsLink id={edorg.odsId} query={odss} />
-      <FormLabel as="p">Environment</FormLabel>
-      <SbeLink id={edorg.sbeId} query={sbes} />
+      <AttributeContainer label="ODS">
+        <OdsLink id={edorg.odsId} query={odss} />
+      </AttributeContainer>
+      <AttributeContainer label="Environment">
+        <SbeLink id={edorg.sbeId} query={sbes} />
+      </AttributeContainer>
     </>
   ) : null;
 };

@@ -7,16 +7,41 @@ import {
   Text,
   Input,
 } from '@chakra-ui/react';
-import { DependencyErrors, PrivilegeCode, PutRoleDto, RoleType } from '@edanalytics/models';
+import {
+  DependencyErrors,
+  GetRoleDto,
+  PrivilegeCode,
+  PutRoleDto,
+  RoleType,
+} from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { privilegeQueries, roleQueries } from '../../api';
 import { PrivilegesInput } from './PrivilegesInput';
+import { ConfirmAction } from '@edanalytics/common-ui';
+import { useRef } from 'react';
 
 const resolver = classValidatorResolver(PutRoleDto);
+const hasTenantImpersonation = (form: PutRoleDto) =>
+  form.privileges?.some((p) => p.startsWith('tenant.'));
 
-export const EditRoleGlobal = () => {
+const hasGlobalPrivileges = (form: PutRoleDto) =>
+  form.privileges?.some(
+    (p) => p !== 'me:read' && p !== 'privilege:read' && !p.startsWith('tenant.')
+  );
+
+const hasNewTenantImpersonation = (form: PutRoleDto, existing: GetRoleDto) =>
+  existing.type === RoleType.UserGlobal &&
+  hasTenantImpersonation(form) &&
+  !hasTenantImpersonation({ ...existing, privileges: existing.privileges.map((p) => p.code) });
+
+const hasNewGlobalPrivileges = (form: PutRoleDto, existing: GetRoleDto) =>
+  existing.type === RoleType.UserGlobal &&
+  hasGlobalPrivileges(form) &&
+  !hasGlobalPrivileges({ ...existing, privileges: existing.privileges.map((p) => p.code) });
+
+export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
   const navigate = useNavigate();
   const params = useParams() as {
     roleId: string;
@@ -41,7 +66,8 @@ export const EditRoleGlobal = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isLoading },
+    watch,
+    formState: { errors, isSubmitting },
     control,
   } = useForm<PutRoleDto>({
     resolver,
@@ -55,9 +81,21 @@ export const EditRoleGlobal = () => {
   } catch (error) {
     // either undefined or plain string from class-validator
   }
+  const allValues = watch();
 
+  const tenantImpersonation = hasNewTenantImpersonation(allValues, props.role);
+  const adminPrivileges = hasNewGlobalPrivileges(allValues, props.role);
+  const confirmBody = tenantImpersonation
+    ? adminPrivileges
+      ? "It looks like you're adding some new global privileges that this role didn't used to have. Are you sure you want to do that?"
+      : "It looks like you're adding at least some pieces of tenant impersonation ability to this role. Are you sure you want to do that?"
+    : adminPrivileges
+    ? "It looks like you're adding some global privileges that this role didn't used to have. Are you sure you want to do that?"
+    : null;
+
+  const formRef = useRef<HTMLFormElement>(null);
   return role ? (
-    <form onSubmit={handleSubmit((data) => putRole.mutate(data))}>
+    <form ref={formRef} onSubmit={handleSubmit((data) => putRole.mutateAsync(data))}>
       <FormControl isInvalid={!!errors.description}>
         <FormLabel>Description</FormLabel>
         <Input {...register('description')} placeholder="description" />
@@ -88,14 +126,38 @@ export const EditRoleGlobal = () => {
         </FormErrorMessage>
       </FormControl>
       <ButtonGroup>
-        <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
-          Save
-        </Button>
+        <ConfirmAction
+          action={() => {
+            formRef.current?.dispatchEvent(
+              new Event('submit', { bubbles: true, cancelable: true })
+            );
+          }}
+          skipConfirmation={confirmBody === null}
+          headerText="Add new admin privileges?"
+          bodyText={confirmBody ?? ''}
+          yesButtonText="Yes, save"
+          noButtonText="No, cancel"
+        >
+          {(props) => (
+            <Button
+              mt={4}
+              colorScheme="teal"
+              isLoading={isSubmitting}
+              type="submit"
+              onClick={(e) => {
+                e.preventDefault();
+                props.onClick && props.onClick(e);
+              }}
+            >
+              Save
+            </Button>
+          )}
+        </ConfirmAction>
         <Button
           mt={4}
           colorScheme="teal"
           variant="ghost"
-          isLoading={isLoading}
+          isLoading={isSubmitting}
           type="reset"
           onClick={goToView}
         >

@@ -1,8 +1,8 @@
 import _ from 'lodash';
 import { useParams } from 'react-router-dom';
+import { PageTemplate } from '../../Layout/PageTemplate';
 import { odsQueries } from '../../api';
 import { ActionBarActions } from '../../helpers';
-import { PageTemplate } from '../../Layout/PageTemplate';
 import { ViewOds } from './ViewOds';
 
 export const OdsPage = () => {
@@ -20,7 +20,6 @@ export const OdsPage = () => {
   const actions = {};
   return (
     <PageTemplate
-      constrainWidth
       title={ods?.displayName || 'Ods'}
       actions={<ActionBarActions actions={_.omit(actions, 'View')} />}
     >

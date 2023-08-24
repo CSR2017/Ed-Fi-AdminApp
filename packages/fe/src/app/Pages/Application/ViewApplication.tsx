@@ -1,4 +1,5 @@
-import { FormLabel, Link, Text } from '@chakra-ui/react';
+import { Attribute, AttributeContainer } from '@edanalytics/common-ui';
+import { GetApplicationDto } from '@edanalytics/models';
 import { useParams } from 'react-router-dom';
 import {
   applicationQueries,
@@ -8,7 +9,6 @@ import {
   vendorQueries,
 } from '../../api';
 import { ClaimsetLink, EdorgLink, VendorLink } from '../../routes';
-import { GetApplicationDto } from '@edanalytics/models';
 
 export const ViewApplication = () => {
   const params = useParams() as {
@@ -61,17 +61,17 @@ export const ViewApplication = () => {
 
   return application ? (
     <>
-      <FormLabel as="p">Application name</FormLabel>
-      <Text>{application.displayName}</Text>
-      <FormLabel as="p">Ed-org</FormLabel>
-      <EdorgLink id={edorgByEdorgId?.id} query={edorgs} />
-      <FormLabel as="p">Vendor</FormLabel>
-      <VendorLink id={application?.vendorId} query={vendors} />
-      <FormLabel as="p">Claimset</FormLabel>
-      <ClaimsetLink id={claimsetByName?.id} query={claimsets} />
-      <FormLabel as="p">URL</FormLabel>
-
-      {url ? <Link href={url}>{url}</Link> : <Text>-</Text>}
+      <Attribute label="Application name" value={application.displayName} />
+      <AttributeContainer label="Ed-org">
+        <EdorgLink id={edorgByEdorgId?.id} query={edorgs} />
+      </AttributeContainer>
+      <AttributeContainer label="Vendor">
+        <VendorLink id={application?.vendorId} query={vendors} />
+      </AttributeContainer>
+      <AttributeContainer label="Claimset">
+        <ClaimsetLink id={claimsetByName?.id} query={claimsets} />
+      </AttributeContainer>
+      <Attribute label="URL" value={url} isUrl isUrlExternal isCopyable />
     </>
   ) : null;
 };

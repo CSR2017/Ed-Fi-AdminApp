@@ -34,7 +34,7 @@ export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
   const {
     control,
     handleSubmit,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver,
     defaultValues: ownershipFormDefaults,
@@ -44,7 +44,7 @@ export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
     <form
       onSubmit={handleSubmit((data) => {
         const validatedData = data as PutOwnershipDto;
-        putOwnership.mutate({
+        return putOwnership.mutateAsync({
           id: validatedData.id,
           roleId: validatedData.roleId,
         });
@@ -73,14 +73,14 @@ export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
         <FormErrorMessage>{errors.roleId?.message}</FormErrorMessage>
       </FormControl>
       <ButtonGroup>
-        <Button mt={4} colorScheme="teal" isLoading={isLoading} type="submit">
+        <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
           Save
         </Button>
         <Button
           mt={4}
           colorScheme="teal"
           variant="ghost"
-          isLoading={isLoading}
+          isLoading={isSubmitting}
           type="reset"
           onClick={goToView}
         >
