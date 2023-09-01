@@ -93,6 +93,7 @@ export const SecretPage = () => {
               border="1px"
               borderColor="gray.200"
               boxShadow="lg"
+              bg="foreground-bg"
               css={
                 show
                   ? {}

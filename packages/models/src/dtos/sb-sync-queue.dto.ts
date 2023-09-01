@@ -86,17 +86,23 @@ export class SbSyncQueueDto implements ISbSyncQueue {
       : undefined;
   }
 
-  get completedDetailed() {
-    return this.completedon ? stdDetailed(this.completedon) : undefined;
+  get completedOnNumber() {
+    return this.completedon ? Number(this.completedon) : undefined;
   }
-  get createdDetailed() {
-    return this.createdon ? stdDetailed(this.createdon) : undefined;
+  get createdOnNumber() {
+    return this.createdon ? Number(this.createdon) : undefined;
   }
 }
 export const toSbSyncQueueDto = makeSerializer<
   SbSyncQueueDto,
   Omit<
     SbSyncQueueDto,
-    'completedDetailed' | 'createdDetailed' | 'durationDetailed' | 'sbeId' | 'displayName'
+    | 'createdOnNumber'
+    | 'completedOnNumber'
+    | 'completedDetailed'
+    | 'createdDetailed'
+    | 'durationDetailed'
+    | 'sbeId'
+    | 'displayName'
   >
 >(SbSyncQueueDto);

@@ -24,6 +24,8 @@ import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { SbSyncQueueLink, SbeGlobalLink } from '../../routes';
 import { useSbSyncQueueActions } from './useSbSyncQueueActions';
 import { useSbSyncQueuesActions } from './useSbSyncQueuesActions';
+import _ from 'lodash';
+import { useMemo } from 'react';
 
 export const jobStateColorSchemes: Record<PgBossJobState, string> = {
   active: 'purple',
@@ -48,13 +50,17 @@ const SbSyncQueueNameCell = (info: CellContext<SbSyncQueueDto, unknown>) => {
 
 export const SbSyncQueuesPage = () => {
   const sbSyncQueues = sbSyncQueueQueries.useAll({});
+  const data = useMemo(
+    () => _.sortBy(Object.values(sbSyncQueues?.data || {}), ['createdOnNumber']).reverse(),
+    [sbSyncQueues.data]
+  );
   const actions = useSbSyncQueuesActions();
   const sbes = sbeQueries.useAll({});
 
   return (
     <PageTemplate title="SB Environment Sync" actions={<ActionBarActions actions={actions} />}>
       <SbaaTableAllInOne
-        data={Object.values(sbSyncQueues?.data || {})}
+        data={data}
         columns={[
           {
             accessorKey: 'displayName',
@@ -128,8 +134,7 @@ export const SbSyncQueuesPage = () => {
             enableSorting: false,
           },
           {
-            id: 'createdon',
-            accessorKey: 'createdNumber',
+            accessorKey: 'createdOnNumber',
             cell: ValueAsDate({ default: DateFormat.Long }),
             header: 'Created',
             meta: {

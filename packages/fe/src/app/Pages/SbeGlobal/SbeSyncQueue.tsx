@@ -8,18 +8,23 @@ import {
   Text,
   chakra,
 } from '@chakra-ui/react';
-import { ContentSection, SbaaTableAllInOne, ValueAsDate } from '@edanalytics/common-ui';
+import { ContentSection, DateFormat, SbaaTableAllInOne, ValueAsDate } from '@edanalytics/common-ui';
 import { GetSbeDto } from '@edanalytics/models';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { sbSyncQueueQueries } from '../../api';
 import { jobStateColorSchemes } from '../SbSyncQueue/SbSyncQueuesPage';
+import _ from 'lodash';
 
 export const SbeSyncQueue = (props: { sbe: GetSbeDto }) => {
   const sbSyncQueues = sbSyncQueueQueries.useAll({});
   const filteredQueues = useMemo(
-    () => Object.values(sbSyncQueues.data ?? {}).filter((q) => q.sbeId === props.sbe.id),
+    () =>
+      _.sortBy(
+        Object.values(sbSyncQueues.data ?? {}).filter((q) => q.sbeId === props.sbe.id),
+        ['createdOnNumber']
+      ).reverse(),
     [sbSyncQueues, props.sbe.id]
   );
 
@@ -29,19 +34,25 @@ export const SbeSyncQueue = (props: { sbe: GetSbeDto }) => {
         data={filteredQueues}
         columns={[
           {
-            id: 'displayName',
-            accessorFn: (info) => info.createdon,
+            id: 'link',
             cell: (info) => (
               <Link as={RouterLink} to={`/sb-sync-queues/${info.row.original.id}`}>
-                Created on {info.row.original.createdDetailed}
+                View
               </Link>
             ),
             header: 'Item',
             enableColumnFilter: false,
           },
           {
-            id: 'completedon',
-            accessorFn: (info) => Number(info.completedon),
+            accessorKey: 'createdOnNumber',
+            cell: ValueAsDate({ default: DateFormat.Long }),
+            header: 'Created',
+            meta: {
+              type: 'date',
+            },
+          },
+          {
+            accessorKey: 'completedOnNumber',
             cell: ValueAsDate(),
             header: 'Completed',
             meta: {

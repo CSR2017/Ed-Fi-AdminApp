@@ -88,6 +88,7 @@ export class SbSyncConsumer implements OnModuleInit {
         regarding: regarding(sbe),
       });
     } else if (sbMeta.status === 'SUCCESS') {
+      Logger.verbose('Metadata retrieval succeeded.');
       const sbMetaValue = sbMeta.data;
       try {
         sbOdss.push(...(sbMetaValue.odss ?? []));
@@ -206,18 +207,25 @@ export class SbSyncConsumer implements OnModuleInit {
                 sbEdorg.parent
               );
               const correctValues: DeepPartial<Edorg> = {
-                ...(parent ? { parent } : {}),
+                ...(parent ? { parentId: parent.id } : {}),
                 discriminator: sbEdorg.discriminator,
                 nameOfInstitution: sbEdorg.nameofinstitution,
                 shortNameOfInstitution: sbEdorg.shortnameofinstitution,
               };
               if (!_.isMatch(existing, correctValues)) {
-                edorgsToUpdate.push(Object.assign(existing, correctValues));
+                edorgsToUpdate.push(
+                  Object.assign(
+                    existing,
+                    correctValues,
+                    // TypeORM has to update the closure table using `parent` rather than `parentId` for some reason
+                    parent ? { parentId: undefined, parent } : {}
+                  )
+                );
               }
               edorgsToDelete.delete(existing.id);
             });
 
-            await edorgRepo.save(edorgsToUpdate);
+            await edorgRepo.save(edorgsToUpdate, { chunk: 100 });
             await edorgRepo.delete({
               id: In([...edorgsToDelete]),
             });
