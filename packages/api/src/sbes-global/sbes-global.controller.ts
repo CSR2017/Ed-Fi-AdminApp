@@ -17,7 +17,7 @@ import {
   addUserModifying,
   regarding,
 } from '@edanalytics/models-server';
-import { StatusType, formErrFromValidator } from '@edanalytics/utils';
+import { StatusType } from '@edanalytics/utils';
 import {
   Body,
   Controller,
@@ -31,14 +31,13 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ValidationError } from 'class-validator';
 import { Repository } from 'typeorm';
 import { Authorize } from '../auth/authorization';
 import { ReqUser } from '../auth/helpers/user.decorator';
 import { PgBossInstance, SYNC_CHNL } from '../sb-sync/sb-sync.module';
 import { StartingBlocksService } from '../tenants/sbes/starting-blocks/starting-blocks.service';
 import { throwNotFound } from '../utils';
-import { ValidationException, WorkflowFailureException } from '../utils/customExceptions';
+import { FormValidationException, WorkflowFailureException } from '../utils/customExceptions';
 import { SbesGlobalService } from './sbes-global.service';
 
 @ApiTags('Sbe - Global')
@@ -202,13 +201,10 @@ export class SbesGlobalController {
       addUserModifying(updateDto, user)
     );
     if (result.status === 'ENOTFOUND') {
-      const err = new ValidationError();
-      err.property = 'adminRegisterUrl';
-      err.constraints = {
-        server: 'DNS lookup failed for URL provided.',
-      };
-      err.value = false;
-      throw new ValidationException(formErrFromValidator([err]));
+      throw new FormValidationException({
+        field: 'adminRegisterUrl',
+        message: 'DNS lookup failed for URL provided.',
+      });
     } else if (result.status === 'ERROR') {
       throw new WorkflowFailureException({
         status: StatusType.warning,

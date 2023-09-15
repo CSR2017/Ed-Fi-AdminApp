@@ -188,37 +188,25 @@ cache = {
 };
 ```
 
-One piece of the structure to clarify is the nesting of resources. For example, you might notice that Edorgs live inside an ODS from the perspective of the this app's DDL, but not from the perspective of the cache structure above. The reason is that the cache structure corresponds to the _routing_ structure, and only indirectly to the data model. Payload size limitation is our main reason for putting most of the resources behind something like a specific SBE, and some basic math led us to believe we don't need to go farther, such as behind a specific ODS or even EdOrg.
-
-In the case of the first kind of usage of the `[privilege]: true` result (two kinds listed above the code block), it's used purely for convenience. It's a way to take advantage of cases in which there's no filtering that needs to be done that isn't perfectly easy to do within the controllers or services. For instance, it's trivial to filter Edorgs by `sbeId`, so we implement that filter using regular ORM methods. We then only cache the individual Edorg `id`s if we have to, and otherwise just throw in `true`. In practice, this construct would appear for a tenant who owns an entire Sbe rather than specific Odss or Edorgs inside it. The controller always uses the Edorg ID cache, but it does so via a helper that returns an empty filter in the case of `true`.
+In the case of the first kind of usage of the `[privilege]: true` result (two kinds listed above the code block), it's used purely for convenience. For instance, we filter Edorgs by `sbeId` using regular ORM methods. It's only if there's something more complicated than that that we use the cache for individual IDs (e.g. ODS-scoped ownerships). The controller always uses the Edorg ID cache, but it does so via a helper that returns an empty filter in the case of `true`.
 
 Just to be clear, **_it's the responsibility of the controllers or services to actually implement these various filters which are considered external to the authorization cache._** These will almost always be one of two basic `where` clauses:
 
 - `where sbeId = :sbeId`, or
 - `where tenantId = :tenantId`.
 
-Anything more complicated than that is handled by the authorization derivation and caching system. As just one example, the way the Admin API currently works, applications are easily filterable only by SBE &mdash; whereas we _want_ them filtered by Edorg as well, because tenants have access to Applications via their ownership of Edorgs. We implement this filter by caching the valid Edorg `educationorganizationid`s against the Application privileges, and using them to filter the response from the Admin API.
-
-Anyway, wherever the line between Tenant and [Resource in Question] is squiggly, we do that complicated work in the authorization service rather than the controller.
-
-On the other hand, the second kind of usage of the `true` result is not for logic that's simple, so much as it's for logic that is too tangled up in business behavior to reasonably be owned by the authorization service. You might have several relational IDs in a single POST payload, all of which need to be validated against the tenant's ownerships. The controller or service will likely refer to the cache for those related resources, but in principle the logic could be arbitrary.
+On the other hand, the second kind of usage of the `true` result is not for logic that's simple, so much as it's for logic that is too tangled up in business behavior to reasonably be owned by the authorization service. You might have several relational IDs in a single POST payload, all of which need to be validated against the tenant's ownerships. The controller or service will likely refer to the cache for those related resources, but in principle the logic could be arbitrary. The cache for the creation action would just be `true`, but that doesn't mean there are no restrictions.
 
 ### Ownership cache technical notes
 
 Memory size:
 
-- There are about 1,000 school districts in Texas, and 8,000 total schools. We don't plan to load any Edorgs below the level of School, so call it 10,000 in total.
+- There are about 1,200 LEAs in Texas, and 11,000 Schools. We don't plan to load any Edorgs below the level of School, so call it 12,200 in total... actually just call it 10k.
 - A `Set` of 10,000 numbers in JavaScript is about 280 kB.
 - Say there are six copies of the 10,000 IDs, five for Application privileges and one for `edorg:read`. That would be about 1.7 MB of memory. Not a disaster.
 - In conclusion, memory size doesn't seem like a major concern.
 
-Upon receipt of a request by a tenant whose cache is not already loaded, we need to load the cache. Once that load has started, we don't want to re-start it if another request for that tenant comes in before it's done. This is a regrettable complexity which necessitates statefulness. The question &mdash; whose answer depends on whether we want horizontal scaling to be an option &mdash; is whether we can keep state in a JavaScript variable (e.g. `await getOrAwaitCache(3)`) or whether we have to resort to a database (likely pgboss).
-
-**Possible order of performance optimizations:**
-
-1. Instead of purging all, purge only the ones that involve whichever SBE was involved.
-1. Rebuild only the SBE involved, leaving the others' portions of the cache intact.
-1. Rebuild only the needed part, more narrowly than the entire SBE, leaving other parts intact. For example, an operation on an `application` can only effect the `application` cache, whereas ownership assignment of an `edorg` under an existing `sbe` would potentially add to all the sub-SBE sets.
+Upon receipt of a request by a tenant whose cache is not already loaded, we need to load the cache. Once that load has started, we don't want to re-start it if another request for that tenant comes in before it's done. This necessitates statefulness. The current solution is to use an in-memory JavaScript cache which supports promises. This is significantly nicer to use than one which necessitates polling, but has the downside of not really supporting multi-instance deployments. So far we think that's not really a concern because each instance can just load its own cache, and given the fairly quick load time (<500ms for TX) and fairly quick expiration, there shouldn't be any real issues.
 
 ## User session cache
 
@@ -231,7 +219,7 @@ The reason all the main routes are tenant-specific is to make authorization easi
 ```ts
 // pseudocode
 
-userCache = _.intersection(userPrivilegesCache, tenantPrivilegesCache);
+userCache = intersection(userPrivilegesCache, tenantPrivilegesCache);
 ```
 
 And their CASL abilities like this:
@@ -243,7 +231,7 @@ define.can('read', 'tenant.sbe.vendor', {
   id: {
     $in: [
       '__filtered__', // special keyword used later
-      /* values from userCache */
+      /* ...values from userCache */
     ],
   },
 });
@@ -321,3 +309,7 @@ If the ID values cache for a given resource is a `Set` (rather than the `true` v
 ```
 
 The `__filtered__` option is necessitated by the way CASL works and how we use it. In particular, for `GET all` requests we check CASL once, at the route level, and all we want to know is "do they have the privilege to get _some_ row here". The filtering for _which_ rows is handled outside CASL. We also use the `__filtered__` option for the `GET one` application route, because although we do have the `applicationId` from the route path parameter, we actually cache the `edorgId` instead, and we don't know _that_ value until we get the application back from the Admin API. So that particular single-item route functions like a many-item route.
+
+## Other implementation details
+
+One thing to note about the cache is that even if there aren't any entities for a user to access, we still want the relevant cache item to be present (but empty of course) if they have the relevant privilege. This ensures that they can hit the API route and see the UI page, even if the result is empty data.

@@ -5,12 +5,14 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  Text,
   chakra,
 } from '@chakra-ui/react';
 import { GetSbeDto, PutSbeAdminApi } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 
+import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSbeEditAdminApi } from '../../api';
@@ -42,12 +44,14 @@ export const EditSbeAdminApi = (props: { sbe: GetSbeDto }) => {
     <chakra.form
       w="form-width"
       onSubmit={handleSubmit((data) =>
-        putSbe.mutateAsync(
-          {
-            ...data,
-          },
-          mutationErrCallback({ popBanner, setError })
-        )
+        putSbe
+          .mutateAsync(
+            {
+              ...data,
+            },
+            mutationErrCallback({ popBanner, setError })
+          )
+          .catch(noop)
       )}
     >
       <FormControl isInvalid={!!errors.adminUrl}>
@@ -80,6 +84,11 @@ export const EditSbeAdminApi = (props: { sbe: GetSbeDto }) => {
           Cancel
         </Button>
       </ButtonGroup>
+      {errors.root?.message ? (
+        <Text mt={4} color="red.500">
+          {errors.root?.message}
+        </Text>
+      ) : null}
     </chakra.form>
   ) : null;
 };

@@ -23,16 +23,6 @@ export const OdssPage = () => {
             cell: NameCell,
             header: 'Name',
           },
-          {
-            accessorKey: 'createdDetailed',
-            header: 'Created',
-            meta: { type: 'date' },
-          },
-          {
-            accessorKey: 'modifiedDetailed',
-            header: 'Modified',
-            meta: { type: 'date' },
-          },
         ]}
       />
     </PageTemplate>

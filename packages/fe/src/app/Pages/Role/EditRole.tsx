@@ -5,9 +5,11 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  Text,
 } from '@chakra-ui/react';
 import { GetRoleDto, PutRoleDto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
+import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
@@ -42,7 +44,7 @@ export const EditRole = (props: { role: GetRoleDto }) => {
   return (
     <form
       onSubmit={handleSubmit((data) =>
-        putRole.mutateAsync(data, mutationErrCallback({ popBanner, setError }))
+        putRole.mutateAsync(data, mutationErrCallback({ popBanner, setError })).catch(noop)
       )}
     >
       <FormControl isInvalid={!!errors.id}>
@@ -65,6 +67,11 @@ export const EditRole = (props: { role: GetRoleDto }) => {
           Cancel
         </Button>
       </ButtonGroup>
+      {errors.root?.message ? (
+        <Text mt={4} color="red.500">
+          {errors.root?.message}
+        </Text>
+      ) : null}
     </form>
   );
 };

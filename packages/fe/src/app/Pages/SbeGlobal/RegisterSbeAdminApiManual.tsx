@@ -12,6 +12,7 @@ import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useForm } from 'react-hook-form';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 
+import { noop } from '@tanstack/react-table';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSbeEditAdminApi } from '../../api';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
@@ -42,12 +43,14 @@ export const RegisterSbeAdminApiManual = (props: { sbe: GetSbeDto }) => {
     <chakra.form
       w="form-width"
       onSubmit={handleSubmit((data) =>
-        putSbe.mutateAsync(
-          {
-            ...data,
-          },
-          mutationErrCallback({ popBanner, setError })
-        )
+        putSbe
+          .mutateAsync(
+            {
+              ...data,
+            },
+            mutationErrCallback({ popBanner, setError })
+          )
+          .catch(noop)
       )}
     >
       <FormControl isInvalid={!!errors.adminUrl}>

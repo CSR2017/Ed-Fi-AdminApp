@@ -9,6 +9,7 @@ import {
 import { PutUserTenantMembershipDto, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useQueryClient } from '@tanstack/react-query';
+import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
@@ -47,12 +48,14 @@ export const EditUtmGlobal = () => {
   return utm ? (
     <form
       onSubmit={handleSubmit((data) =>
-        putUserTenantMembership.mutateAsync(data, {
-          ...mutationErrCallback({ popBanner, setError }),
-          onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['me', 'userTenantMemberships'] });
-          },
-        })
+        putUserTenantMembership
+          .mutateAsync(data, {
+            ...mutationErrCallback({ popBanner, setError }),
+            onSuccess: () => {
+              queryClient.invalidateQueries({ queryKey: ['me', 'userTenantMemberships'] });
+            },
+          })
+          .catch(noop)
       )}
     >
       <FormLabel as="p">Tenant</FormLabel>
@@ -84,6 +87,11 @@ export const EditUtmGlobal = () => {
           Cancel
         </Button>
       </ButtonGroup>
+      {errors.root?.message ? (
+        <Text mt={4} color="red.500">
+          {errors.root?.message}
+        </Text>
+      ) : null}
     </form>
   ) : null;
 };

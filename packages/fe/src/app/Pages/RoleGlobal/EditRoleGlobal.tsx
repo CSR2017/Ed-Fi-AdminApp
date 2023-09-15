@@ -16,14 +16,15 @@ import {
   RoleType,
 } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
+import { noop } from '@tanstack/react-table';
+import uniq from 'lodash/uniq';
 import { useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { privilegeQueries, roleQueries } from '../../api';
-import { PrivilegesInput } from './PrivilegesInput';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
-import uniq from 'lodash/uniq';
+import { PrivilegesInput } from './PrivilegesInput';
 
 const resolver = classValidatorResolver(PutRoleDto);
 const hasTenantImpersonation = (form: PutRoleDto) =>
@@ -111,7 +112,7 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
     <form
       ref={formRef}
       onSubmit={handleSubmit((data) =>
-        putRole.mutateAsync(data, mutationErrCallback({ popBanner, setError }))
+        putRole.mutateAsync(data, mutationErrCallback({ popBanner, setError })).catch(noop)
       )}
     >
       <FormControl maxW="form-width" isInvalid={!!errors.description}>
@@ -182,6 +183,11 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
           Cancel
         </Button>
       </ButtonGroup>
+      {errors.root?.message ? (
+        <Text mt={4} color="red.500">
+          {errors.root?.message}
+        </Text>
+      ) : null}
     </form>
   ) : null;
 };

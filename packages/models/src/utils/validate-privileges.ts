@@ -64,6 +64,22 @@ export const privilegeDependencies: Partial<
     dependencies: ['role:read', 'user:read'],
     message: 'All Role features require the ability to also access privileges.',
   },
+  'user-tenant-membership:create': {
+    dependencies: ['role:read', 'user:read', 'user-tenant-membership:read'],
+    message: 'All Role features require the ability to also access privileges.',
+  },
+  'user-tenant-membership:read': {
+    dependencies: ['role:read', 'user:read'],
+    message: 'All Role features require the ability to also access privileges.',
+  },
+  'user-tenant-membership:update': {
+    dependencies: ['role:read', 'user:read', 'user-tenant-membership:read'],
+    message: 'All Role features require the ability to also access privileges.',
+  },
+  'user-tenant-membership:delete': {
+    dependencies: ['role:read', 'user:read', 'user-tenant-membership:read'],
+    message: 'All Role features require the ability to also access privileges.',
+  },
   'tenant.sbe.ods:read': {
     dependencies: ['tenant.sbe:read'],
     message: 'All ODS features require the ability to also access SBEs.',

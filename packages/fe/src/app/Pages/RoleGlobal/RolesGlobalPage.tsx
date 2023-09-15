@@ -52,6 +52,7 @@ export const RolesGlobalPage = () => {
             id: 'type',
             accessorFn: (info) => RoleType[info.type],
             header: 'Type',
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },
@@ -63,6 +64,7 @@ export const RolesGlobalPage = () => {
                 ? getRelationDisplayName(info.tenantId, tenants)
                 : 'Public',
             header: 'Owned by',
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },
@@ -72,6 +74,7 @@ export const RolesGlobalPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.modifiedById, users),
             header: 'Modified by',
             cell: (info) => <UserGlobalLink id={info.row.original.modifiedById} />,
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },
@@ -89,6 +92,7 @@ export const RolesGlobalPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.createdById, users),
             header: 'Created by',
             cell: (info) => <UserGlobalLink id={info.row.original.createdById} />,
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },

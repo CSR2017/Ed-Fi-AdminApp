@@ -6,6 +6,7 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  Text,
   chakra,
 } from '@chakra-ui/react';
 import { GetUserDto, PutUserDto, RoleType } from '@edanalytics/models';
@@ -16,6 +17,7 @@ import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { tenantQueries, userQueries } from '../../api';
 import { SelectRole } from '../../helpers/FormPickers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
+import { noop } from '@tanstack/react-table';
 
 const TextField = <T extends object>(props: {
   errors: FieldErrors<Partial<T>>;
@@ -69,17 +71,19 @@ export const EditUserGlobal = (props: { user: GetUserDto }) => {
       maxW="form-width"
       onSubmit={handleSubmit((data) => {
         const validatedData = data as PutUserDto;
-        return putUser.mutateAsync(
-          {
-            id: validatedData.id,
-            roleId: validatedData.roleId,
-            isActive: validatedData.isActive,
-            username: validatedData.username,
-            givenName: validatedData.givenName === '' ? null : validatedData.givenName,
-            familyName: validatedData.familyName === '' ? null : validatedData.familyName,
-          },
-          mutationErrCallback({ popBanner, setError })
-        );
+        return putUser
+          .mutateAsync(
+            {
+              id: validatedData.id,
+              roleId: validatedData.roleId,
+              isActive: validatedData.isActive,
+              username: validatedData.username,
+              givenName: validatedData.givenName === '' ? null : validatedData.givenName,
+              familyName: validatedData.familyName === '' ? null : validatedData.familyName,
+            },
+            mutationErrCallback({ popBanner, setError })
+          )
+          .catch(noop);
       })}
     >
       <FormControl isInvalid={!!errors.username}>
@@ -127,6 +131,11 @@ export const EditUserGlobal = (props: { user: GetUserDto }) => {
           Cancel
         </Button>
       </ButtonGroup>
+      {errors.root?.message ? (
+        <Text mt={4} color="red.500">
+          {errors.root?.message}
+        </Text>
+      ) : null}
     </chakra.form>
   );
 };

@@ -80,7 +80,7 @@ const FilterValueLabel = ({ column }: { column: Column<any, unknown> }) => {
       }
     }
   }
-  return <>{value}</>;
+  return <>{String(value)}</>;
 };
 
 export const ColumnFilter = ({ column }: { column: Column<any, unknown> }) => {
@@ -714,8 +714,8 @@ export const OptionsFilter = ({
   cancel: () => void;
   apply: React.Dispatch<React.SetStateAction<any>>;
 }) => {
-  const initial = column.getFilterValue() as string | undefined;
-  const [filter, setFilter] = useState<string | undefined>(initial);
+  const initial = column.getFilterValue() as string | undefined | boolean;
+  const [filter, setFilter] = useState<string | undefined | boolean>(initial);
 
   const isDisabled = filter === undefined;
 
@@ -738,8 +738,8 @@ export const OptionsFilter = ({
           onChange={(o: any) => {
             setFilter(o.value);
           }}
-          value={{ label: filter ?? '', v: filter }}
-          options={sortedUniqueValues.map((v) => ({ label: v, value: v }))}
+          value={{ label: filter === undefined ? '' : String(filter), v: filter }}
+          options={sortedUniqueValues.map((v) => ({ label: String(v), value: v }))}
         />
       </PopoverBody>
       <FilterContentFooter

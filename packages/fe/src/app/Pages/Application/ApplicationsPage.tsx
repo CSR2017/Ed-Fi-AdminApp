@@ -53,11 +53,11 @@ export const ApplicationsPageContent = () => {
       return map;
     }, {}),
   };
-  const claimsets = claimsetQueries.useAll({
+  const vendors = vendorQueries.useAll({
     sbeId: sbeId,
     tenantId: asId,
   });
-  const vendors = vendorQueries.useAll({
+  const claimsets = claimsetQueries.useAll({
     sbeId: sbeId,
     tenantId: asId,
   });

@@ -2,7 +2,7 @@ import { Attribute, PageActions, PageContentPane, PageTemplate } from '@edanalyt
 import omit from 'lodash/omit';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useLocation, useParams } from 'react-router-dom';
-import { applicationQueries } from '../../api';
+import { applicationQueries, claimsetQueries } from '../../api';
 
 import { Heading, ScaleFade, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
@@ -11,6 +11,7 @@ import { useSearchParamsObject } from '../../helpers/useSearch';
 import { EditApplication } from './EditApplication';
 import { ViewApplication } from './ViewApplication';
 import { useSingleApplicationActions } from './useApplicationActions';
+import { GetClaimsetDto } from '@edanalytics/models';
 
 export const ApplicationPage = () => {
   const credsLink: unknown = useLocation().state;
@@ -113,13 +114,26 @@ export const ApplicationPageContent = () => {
     sbeId: sbeId,
     tenantId: asId,
   }).data;
+  const claimsets = claimsetQueries.useAll({
+    sbeId: sbeId,
+    tenantId: asId,
+  });
+  const claimsetsByName = Object.values(claimsets.data ?? {}).reduce<
+    Record<string, GetClaimsetDto>
+  >((map, claimset) => {
+    map[claimset.name] = claimset;
+    return map;
+  }, {});
+  const claimset =
+    claimsetsByName && application ? claimsetsByName[application.claimSetName] : undefined;
+
   const { edit } = useSearchParamsObject((value) => ({
     edit: 'edit' in value && value.edit === 'true',
   }));
 
   return application ? (
-    edit ? (
-      <EditApplication application={application} />
+    edit && claimset ? (
+      <EditApplication application={application} claimset={claimset} />
     ) : (
       <ViewApplication />
     )

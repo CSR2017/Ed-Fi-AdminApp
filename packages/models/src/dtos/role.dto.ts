@@ -1,15 +1,15 @@
 import { Expose, Transform, Type } from 'class-transformer';
 import { IsEnum, IsIn, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 import { RoleType } from '../enums';
-import { IPrivilege, ITenant } from '../interfaces';
+import { ITenant } from '../interfaces';
 import { IRole } from '../interfaces/role.interface';
 import { PrivilegeCode, privilegeCodes } from '../types';
+import { IsValidPrivileges } from '../utils';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
 import { makeSerializer } from '../utils/make-serializer';
 import { DtoPostBase, PostDto } from '../utils/post-base.dto';
 import { DtoPutBase, PutDto } from '../utils/put-base.dto';
 import { GetPrivilegeDto } from './privilege.dto';
-import { IsValidPrivileges } from '../utils';
 
 export class GetRoleDto extends DtoGetBase implements GetDto<IRole, 'tenant'> {
   @Expose()
@@ -23,13 +23,13 @@ export class GetRoleDto extends DtoGetBase implements GetDto<IRole, 'tenant'> {
   type: RoleType;
   @Expose()
   @Type(() => GetPrivilegeDto)
-  privileges: IPrivilege[];
+  privileges: GetPrivilegeDto[];
 
   override get displayName() {
     return this.name;
   }
 }
-export const toGetRoleDto = makeSerializer(GetRoleDto);
+export const toGetRoleDto = makeSerializer<GetRoleDto, IRole>(GetRoleDto);
 
 export class PutRoleDto
   extends DtoPutBase

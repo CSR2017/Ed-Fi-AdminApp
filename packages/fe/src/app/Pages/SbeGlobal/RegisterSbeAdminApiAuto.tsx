@@ -9,6 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { GetSbeDto, PutSbeAdminApiRegister } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
+import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
@@ -44,12 +45,14 @@ export const RegisterSbeAdminApiAuto = (props: { sbe: GetSbeDto }) => {
     <chakra.form
       w="form-width"
       onSubmit={handleSubmit((data) =>
-        putSbe.mutateAsync(
-          {
-            ...data,
-          },
-          mutationErrCallback({ setError, popBanner })
-        )
+        putSbe
+          .mutateAsync(
+            {
+              ...data,
+            },
+            mutationErrCallback({ setError, popBanner })
+          )
+          .catch(noop)
       )}
     >
       <FormControl isInvalid={!!errors.adminRegisterUrl}>

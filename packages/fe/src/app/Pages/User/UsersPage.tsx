@@ -23,7 +23,7 @@ const NameCell = (info: CellContext<GetUserTenantMembershipDto, unknown>) => {
 
   const View = useReadTenantEntity({
     entity: info.row.original,
-    params: { ...params, userId: info.row.original.id },
+    params: { ...params, userId: info.row.original.userId },
     privilege: 'tenant.user:read',
     route: userRoute,
   });
@@ -71,6 +71,7 @@ export const UsersPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.roleId, roles),
             cell: (info) => getRelationDisplayName(info.row.original.roleId, roles),
             header: 'Tenant role',
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },

@@ -19,6 +19,16 @@ export class AuthCacheGuard implements CanActivate {
       return true;
     }
     const request = context.switchToHttp().getRequest();
+
+    /** Union of:
+     * - user's global-type rights, and
+     * - intersection of tenant's rights and user's tenant-type rights
+     *
+     * So if a user has a global privilege (e.g. sbe.edorg:read), then
+     * they can use it. If they have a tenant privilege (e.g.
+     * tenant.sbe.edorg:read), they can only use it if the tenant
+     * itself also has that privilege on the relevant resource.
+     */
     const authorizationCache: AuthorizationCache = {};
     const tenantIdStr = request.params?.tenantId;
 
@@ -26,29 +36,22 @@ export class AuthCacheGuard implements CanActivate {
       request.user.id,
       tenantIdStr === undefined ? undefined : Number(tenantIdStr)
     );
-    const userGlobalPrivileges = [...userPrivileges].flatMap((userPrivilege) =>
-      isGlobalPrivilege(userPrivilege) ? [userPrivilege] : []
-    );
-
-    userGlobalPrivileges.forEach((p) => {
-      authorizationCache[p] = true;
+    userPrivileges.forEach((userPrivilege) => {
+      if (isGlobalPrivilege(userPrivilege)) {
+        authorizationCache[userPrivilege] = true;
+      }
     });
 
-    let userTenantCache: ITenantCache = {};
     if (typeof tenantIdStr === 'string') {
       const tenantId = Number(tenantIdStr);
-      userTenantCache = await this.authService.getTenantOwnershipCache(tenantId);
-      Object.keys(userTenantCache).forEach((k: keyof ITenantCache) => {
+      const tenantCache = await this.authService.getTenantOwnershipCache(tenantId);
+      Object.keys(tenantCache).forEach((k: keyof ITenantCache) => {
         if (userPrivileges.has(k)) {
-          authorizationCache[k] = userTenantCache[k] as any;
-        } else {
-          delete userTenantCache[k];
+          authorizationCache[k] = tenantCache[k] as any;
         }
       });
     }
-    request['userTenantCache'] = userTenantCache;
     request['authorizationCache'] = authorizationCache;
-    request['userPrivileges'] = userPrivileges;
 
     return true;
   }

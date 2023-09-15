@@ -6,6 +6,7 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  Text,
 } from '@chakra-ui/react';
 import { PageTemplate } from '@edanalytics/common-ui';
 import { PostTenantDto } from '@edanalytics/models';
@@ -18,6 +19,7 @@ import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { tenantQueries } from '../../api';
 import { useNavToParent } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
+import { noop } from '@tanstack/react-table';
 
 const resolver = classValidatorResolver(PostTenantDto);
 
@@ -43,12 +45,14 @@ export const CreateTenant = () => {
       <Box w="form-width">
         <form
           onSubmit={handleSubmit((data) =>
-            postTenant.mutateAsync(data, {
-              onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['me', 'tenants'] });
-              },
-              ...mutationErrCallback({ popBanner, setError }),
-            })
+            postTenant
+              .mutateAsync(data, {
+                onSuccess: () => {
+                  queryClient.invalidateQueries({ queryKey: ['me', 'tenants'] });
+                },
+                ...mutationErrCallback({ popBanner, setError }),
+              })
+              .catch(noop)
           )}
         >
           <FormControl isInvalid={!!errors.name}>
@@ -71,6 +75,11 @@ export const CreateTenant = () => {
               Cancel
             </Button>
           </ButtonGroup>
+          {errors.root?.message ? (
+            <Text mt={4} color="red.500">
+              {errors.root?.message}
+            </Text>
+          ) : null}
         </form>
       </Box>
     </PageTemplate>

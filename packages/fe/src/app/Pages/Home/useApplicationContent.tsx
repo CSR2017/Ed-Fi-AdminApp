@@ -7,11 +7,13 @@ import {
   AlertIcon,
   Heading,
   Icon,
+  Link,
   Stat,
   StatLabel,
   StatNumber,
   Tab,
   Tooltip,
+  chakra,
 } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import {
@@ -23,6 +25,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
 import { BiErrorCircle } from 'react-icons/bi';
+import { Link as RouterLink } from 'react-router-dom';
 import { applicationQueries, claimsetQueries, edorgQueries } from '../../api';
 import { queryClient } from '../../app';
 import {
@@ -83,6 +86,15 @@ export const useApplicationContent = (props: { sbe: GetSbeDto }) => {
               <AccordionIcon />
             </AccordionButton>
             <AccordionPanel pb={10}>
+              <chakra.div textAlign="right">
+                <Link
+                  color="blue.500"
+                  to={`/as/${asId}/sbes/${props.sbe.id}/applications`}
+                  as={RouterLink}
+                >
+                  Go to main page &rarr;
+                </Link>
+              </chakra.div>
               <ErrorBoundary
                 FallbackComponent={(arg: { error: { message: string } }) => (
                   <Alert status="error">
@@ -227,6 +239,13 @@ export const ApplicationStat = (props: { sbe: GetSbeDto }) => {
   usePrivilegeCacheForConfig([appAuth]);
 
   return authorize({ queryClient, config: appAuth }) ? (
-    <StatNumber>{Object.keys(applications.data ?? {}).length}</StatNumber>
+    <StatNumber
+      color="blue.600"
+      as={RouterLink}
+      to={`/as/${asId}/sbes/${props.sbe.id}/applications`}
+      _hover={{ textDecoration: 'underline' }}
+    >
+      {Object.keys(applications.data ?? {}).length}
+    </StatNumber>
   ) : null;
 };

@@ -266,13 +266,16 @@ export const SelectClaimset = <
     TName,
     true,
     TenantOptions.Required,
-    { useName?: boolean | undefined }
+    { useName?: boolean | undefined; noReserved?: boolean | undefined }
   >
 ) => {
   const { control, name, tenantId, sbeId } = props;
   const claimsets = claimsetQueries.useAll({ tenantId, sbeId });
+  const claimsetsArr = props.noReserved
+    ? Object.values(claimsets.data ?? {}).filter((claimset) => !claimset.isSystemReserved)
+    : Object.values(claimsets.data ?? {});
   const options = Object.fromEntries(
-    Object.values(claimsets.data ?? {}).map((claimset) => [
+    claimsetsArr.map((claimset) => [
       props.useName ? claimset.name : claimset.id,
       {
         value: props.useName ? claimset.name : claimset.id,
@@ -424,6 +427,7 @@ export const SelectEdorg = <
         discriminators.length ? (
           discriminators.map((d) => (
             <Checkbox
+              key={d}
               isChecked={include.includes(d)}
               onChange={() =>
                 setInclude((old): string[] =>

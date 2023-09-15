@@ -1,4 +1,4 @@
-import { SbaaTableAllInOne, PageTemplate, ValueAsDate } from '@edanalytics/common-ui';
+import { PageTemplate, SbaaTableAllInOne } from '@edanalytics/common-ui';
 import { GetEdorgDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
 import { useParams } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { queryClient } from '../../app';
 import { AuthorizeConfig, arrayElemIf, authorize } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { EdorgLink, OdsLink } from '../../routes';
+import { SbeSyncDate } from '../Sbe/SbeSyncDate';
 import { NameCell } from './NameCell';
 
 export const EdorgsPage = () => {
@@ -30,6 +31,7 @@ export const EdorgsPage = () => {
 
   return (
     <PageTemplate title="Education Organizations">
+      <SbeSyncDate />
       <SbaaTableAllInOne
         data={Object.values(edorgs?.data || {})}
         columns={[
@@ -48,6 +50,7 @@ export const EdorgsPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.parentId, edorgs),
             header: 'Parent Ed-Org',
             cell: (info) => <EdorgLink query={edorgs} id={info.row.original.parentId} />,
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },
@@ -56,7 +59,10 @@ export const EdorgsPage = () => {
             id: 'educationOrganizationId',
             accessorFn: (info) => String(info.educationOrganizationId),
             header: 'Education Org ID',
-            meta: { type: 'options' },
+            filterFn: 'equalsString',
+            meta: {
+              type: 'options',
+            },
           },
           ...arrayElemIf(authorize({ config: odsAuth, queryClient }), {
             id: 'ods',
@@ -65,6 +71,7 @@ export const EdorgsPage = () => {
             cell: (info: CellContext<GetEdorgDto, unknown>) => (
               <OdsLink query={odss} id={info.row.original.odsId} />
             ),
+            filterFn: 'equalsString' as const,
             meta: {
               type: 'options',
             },
@@ -73,16 +80,9 @@ export const EdorgsPage = () => {
             id: 'discriminator',
             accessorFn: (info) => info.discriminator,
             header: 'Type',
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
-            },
-          },
-          {
-            accessorKey: 'createdNumber',
-            cell: ValueAsDate(),
-            header: 'Created',
-            meta: {
-              type: 'date',
             },
           },
         ]}

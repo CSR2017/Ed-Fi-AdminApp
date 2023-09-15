@@ -109,9 +109,26 @@ export class PostApplicationDto {
   educationOrganizationIds: number[];
 }
 
-export class PostApplicationForm extends (PostApplicationDto as any as {
-  new (): Omit<PostApplicationDto, 'educationOrganizationIds'>;
-}) {
+export class PostApplicationForm {
+  @Expose()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(40)
+  applicationName: string;
+
+  @Expose()
+  @IsNumber()
+  vendorId: number;
+
+  @Expose()
+  @IsNumber()
+  claimsetId: number;
+
+  @Expose()
+  @IsOptional()
+  @IsNumber()
+  profileId: number;
+
   @Expose()
   @IsNumber()
   educationOrganizationId: number | undefined;

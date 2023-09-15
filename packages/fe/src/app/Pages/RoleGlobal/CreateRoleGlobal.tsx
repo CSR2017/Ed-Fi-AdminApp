@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   ButtonGroup,
   FormControl,
@@ -9,10 +8,12 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  Text,
 } from '@chakra-ui/react';
 import { PageTemplate } from '@edanalytics/common-ui';
 import { DependencyErrors, PostRoleDto, PrivilegeCode, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
+import { noop } from '@tanstack/react-table';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -66,7 +67,9 @@ export const CreateRoleGlobalPage = () => {
     <PageTemplate title={'Create role'}>
       <form
         onSubmit={handleSubmit((data) => {
-          return postRole.mutateAsync(data, mutationErrCallback({ popBanner, setError }));
+          return postRole
+            .mutateAsync(data, mutationErrCallback({ popBanner, setError }))
+            .catch(noop);
         })}
       >
         <FormControl w="form-width" isInvalid={!!errors.name}>
@@ -139,6 +142,11 @@ export const CreateRoleGlobalPage = () => {
             Cancel
           </Button>
         </ButtonGroup>
+        {errors.root?.message ? (
+          <Text mt={4} color="red.500">
+            {errors.root?.message}
+          </Text>
+        ) : null}
       </form>
     </PageTemplate>
   );

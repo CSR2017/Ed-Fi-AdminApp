@@ -73,6 +73,7 @@ export const SbSyncQueuesPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.sbeId, sbes),
             header: 'Environment',
             cell: (info) => <SbeGlobalLink query={sbes} id={info.row.original.sbeId} />,
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },
@@ -85,6 +86,7 @@ export const SbSyncQueuesPage = () => {
                 {info.row.original.state}
               </Badge>
             ),
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },

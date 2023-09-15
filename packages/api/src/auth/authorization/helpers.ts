@@ -88,7 +88,9 @@ export function addIdTo(
 }
 
 /**
- * Cache an allowable ID against all granted privileges on its resource type.
+ * Cache a resource's ID (or a blanket `true`) against all relevant
+ * privileges, if any are present. If no relevant privileges have
+ * been granted, no action is taken.
  *
  * @param cache cache to mutate
  * @param privileges all granted privileges, or at least all relevant ones
@@ -102,7 +104,9 @@ export function cacheAccordingToPrivileges(
   id: number | string | TrueValue
 );
 /**
- * Cache an allowable ID against all granted privileges on its resource type.
+ * Cache a resource's ID (or a blanket `true`) against all relevant
+ * privileges, if any are present. If no relevant privileges have
+ * been granted, no action is taken.
  *
  * @param cache cache to mutate
  * @param privileges all granted privileges, or at least all relevant ones
@@ -141,6 +145,7 @@ export function cacheAccordingToPrivileges(
   }
 }
 
+/** Initialize empty-but-present privilege caches for a tenant's Sbe */
 export function initializeSbePrivilegeCache(
   cache: ITenantCache,
   privileges: Set<PrivilegeCode>,
@@ -158,6 +163,7 @@ export function initializeSbePrivilegeCache(
   });
 }
 
+/** Initialize empty-but-present privilege caches for a tenant's base (not Sbe-child) privileges */
 export function initializeBasePrivilegeCache(cache: ITenantCache, privileges: Set<PrivilegeCode>) {
   Object.keys(sbeTenantPrivilegesMap).forEach((sbeTenantPrivilege: PrivilegeCode) => {
     if (privileges.has(sbeTenantPrivilege)) {

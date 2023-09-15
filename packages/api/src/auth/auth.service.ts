@@ -34,10 +34,21 @@ export class AuthService {
     this.edorgsTreeRepository = this.entityManager.getTreeRepository(Edorg);
   }
 
-  async getUserPrivileges(userId: number, tenantId?: number) {
+  /** Get union of user's global role privileges and tenant role privileges.
+   *
+   * _Note that a global role may contain tenant-type privileges which apply
+   * to any tenant context the user chooses to assume, as if they were assigned
+   * a role within that tenant that granted those privileges locally._
+   */
+  async getUserPrivileges(
+    userId: number,
+    /** Optionally look up a tenant membership, if one exists, whose privileges will be added to the Set */
+    tenantId?: number
+  ) {
     const privileges = new Set<PrivilegeCode>();
 
     if (tenantId !== undefined) {
+      // We don't want to error out if there's no membership, because a user can still be granted tenant-level privileges globally.
       const membership = await this.utmRepo.findOne({
         where: {
           userId,
@@ -47,6 +58,7 @@ export class AuthService {
       });
 
       membership?.role?.privileges?.forEach(({ code }) => {
+        // tenant roles *shouldn't* have any non-tenant privileges, but just in case, we don't want to add any global privileges based on a tenant role.
         if (code.startsWith('tenant.')) {
           privileges.add(code);
         }
@@ -55,6 +67,7 @@ export class AuthService {
     const user = await this.usersRepo.findOneOrFail({
       where: {
         id: userId,
+        isActive: true,
       },
       relations: ['role', 'role.privileges'],
     });
@@ -111,17 +124,17 @@ export class AuthService {
 
     /** Map of all Edorgs needed during execution.
      *
-     * Just a data repository used to minimize queries for performance reasons; carries no implication of ownership or meaning.
+     * Just a data bucket used for dynamic programming; carries no access control meaning itself.
      * */
     const allEdorgs = new Map<number, Edorg>();
     /** Map of all Odss needed during execution.
      *
-     * Just a data repository used to minimize queries for performance reasons; carries no implication of ownership or meaning.
+     * Just a data bucket used for dynamic programming; carries no access control meaning itself.
      * */
     const allOdss = new Map<number, Ods>();
     /** Map of all Sbes needed during execution.
      *
-     * Just a data repository used to minimize queries for performance reasons; carries no implication of ownership or meaning.
+     * Just a data bucket used for dynamic programming; carries no access control meaning itself.
      * */
     const allSbes = new Map<number, Sbe>();
 
@@ -182,6 +195,30 @@ export class AuthService {
       'tenant.user-tenant-membership:update': true,
       'tenant.user-tenant-membership:delete': true,
       'tenant.user-tenant-membership:create': true,
+      /*
+
+      Suppose the tenant has no Sbes. Why would we bother including the
+      privilege with an empty Set (as you see below) instead of just not
+      including it at all?
+
+      We implement the following pattern: if user/tenant has a privilege
+      "in theory" - regardless of whether there exists any data on which
+      they could use it - then we include it in the cache. This is
+      because they should be able to access the relevant page, and see
+      that nothing is there. Otherwise if, for example, a tenant's ODS
+      didn't have any Ed-Orgs populated in it yet, they wouldn't get the
+      Ed-Org page at all.
+
+      So in practical terms the reasons for the following line are:
+      - In the front-end it constitutes the difference between displaying
+      an empty page and displaying no page/nav-item, and
+      - In the API it's the difference between denying a request and
+      returning an empty payload.
+
+      _Not_ because it makes any difference for what data can
+      ultimately be retrieved.
+
+      */
       'tenant.sbe:read': new Set(),
     };
 
@@ -197,7 +234,7 @@ export class AuthService {
     const [allEdorgsRaw, allOdssRaw] = await Promise.all([
       this.edorgsRepository.findBy([
         {
-          sbeId: In(sbePrivilegesEntries.map((entry) => entry[0])),
+          sbeId: In(sbePrivilegesEntries.map(([sbeId, privileges]) => sbeId)),
         },
         {
           odsId: In(ownedOdss.map((o) => o.ods.id).filter((id) => typeof id === 'number')),
@@ -205,7 +242,7 @@ export class AuthService {
       ]),
       this.odssRepository.findBy([
         {
-          sbeId: In(sbePrivilegesEntries.map((entry) => entry[0])),
+          sbeId: In(sbePrivilegesEntries.map(([sbeId, privileges]) => sbeId)),
         },
         {
           id: In(ownedEdorgs.map((o) => o.edorg.odsId).filter((id) => typeof id === 'number')),
@@ -225,7 +262,7 @@ export class AuthService {
     });
 
     const odssPerSbe = Object.fromEntries(
-      sbePrivilegesEntries.map((entry) => [entry[0], [] as Ods[]])
+      sbePrivilegesEntries.map(([sbeId, privileges]) => [sbeId, [] as Ods[]])
     );
     allOdssRaw.forEach((ods) => {
       if (!(ods.sbeId in odssPerSbe)) {
@@ -235,9 +272,7 @@ export class AuthService {
       allOdss.set(ods.id, ods);
     });
 
-    sbePrivilegesEntries.forEach((entry) => {
-      const [sbeId, myPrivileges] = entry;
-
+    sbePrivilegesEntries.forEach(([sbeId, myPrivileges]) => {
       cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe', sbeId);
       initializeSbePrivilegeCache(cache, myPrivileges, sbeId);
       cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.vendor', true, sbeId);
@@ -253,13 +288,12 @@ export class AuthService {
     });
 
     const odsPrivilegesEntries = [...odsPrivileges.entries()];
-    odsPrivilegesEntries.forEach((entry) => {
-      const [odsId, myPrivileges] = entry;
+    odsPrivilegesEntries.forEach(([odsId, myPrivileges]) => {
       const ods = allOdss.get(odsId);
 
       cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.ods', ods.id, ods.sbeId);
 
-      // apply downward-inheriting privileges to Ed-Orgs within this ODS
+      // apply downward-inheriting privileges to root Ed-Orgs within this ODS
       rootEdorgsPerOds[odsId].forEach((edorg) => {
         if (!edorgPrivileges.has(edorg.id)) {
           edorgPrivileges.set(edorg.id, new Set());
@@ -270,7 +304,7 @@ export class AuthService {
 
     const edorgPrivilegesEntries = [...edorgPrivileges.entries()];
 
-    const edorgIds = new Set(edorgPrivilegesEntries.map((entry) => entry[0]));
+    const edorgIds = new Set(edorgPrivilegesEntries.map(([edorgId, privileges]) => edorgId));
     const edorgClosureRaw = await this.entityManager.query(
       'SELECT "id_ancestor", "id_descendant" from "edorg_closure" WHERE "id_ancestor" <> "id_descendant" and "id_ancestor" = ANY ($1)',
       [[...edorgIds.values()]]

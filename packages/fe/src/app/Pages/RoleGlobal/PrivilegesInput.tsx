@@ -15,10 +15,9 @@ import {
   privilegeCodes,
   privilegeDependencies,
 } from '@edanalytics/models';
-import set from 'lodash/set';
 import { BsCheckAll, BsXLg } from 'react-icons/bs';
+import { PrivilegeNest, nestPrivileges } from './nest-privileges';
 
-type PrivilegeNest = Partial<{ [code: string]: PrivilegeNest }>;
 const privilegeCodesSet = new Set(privilegeCodes);
 const isDeepTrue = (children: PrivilegeNest, value: Set<PrivilegeCode>) => {
   let accumulator: boolean | null | undefined = undefined;
@@ -194,12 +193,8 @@ export const PrivilegesInput = (props: {
 }) => {
   const valueSet = new Set(props.value);
   const privileges = props.privileges;
-  const nested = privileges.reduce<PrivilegeNest>((acc, { code }) => {
-    const [path, action] = code.split(':');
-    const pathArr = path.split('.');
-    set(acc, [...pathArr, code], {});
-    return acc;
-  }, {});
+
+  const nested = nestPrivileges(privileges);
 
   const setPrivileges = (privileges: PrivilegeCode[], val: boolean) => {
     const newValue = new Set(props.value);

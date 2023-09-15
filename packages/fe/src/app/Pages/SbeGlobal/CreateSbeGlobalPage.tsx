@@ -6,16 +6,18 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  Text,
 } from '@chakra-ui/react';
 import { PageTemplate } from '@edanalytics/common-ui';
 import { PostSbeDto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
+import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { sbeQueries } from '../../api';
 import { useNavToParent } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
-import { usePopBanner } from '../../Layout/FeedbackBanner';
 
 const resolver = classValidatorResolver(PostSbeDto);
 
@@ -36,17 +38,19 @@ export const CreateSbeGlobalPage = () => {
       <Box w="form-width">
         <form
           onSubmit={handleSubmit((data) =>
-            postSbe.mutateAsync(
-              {
-                ...data,
-              },
-              {
-                onSuccess: (result) => {
-                  navigate(`/sbes/${result.id}`);
+            postSbe
+              .mutateAsync(
+                {
+                  ...data,
                 },
-                ...mutationErrCallback({ setError, popBanner }),
-              }
-            )
+                {
+                  onSuccess: (result) => {
+                    navigate(`/sbes/${result.id}`);
+                  },
+                  ...mutationErrCallback({ setError, popBanner }),
+                }
+              )
+              .catch(noop)
           )}
         >
           <FormControl isInvalid={!!errors.name}>
@@ -69,6 +73,11 @@ export const CreateSbeGlobalPage = () => {
               Cancel
             </Button>
           </ButtonGroup>
+          {errors.root?.message ? (
+            <Text mt={4} color="red.500">
+              {errors.root?.message}
+            </Text>
+          ) : null}
         </form>
       </Box>
     </PageTemplate>

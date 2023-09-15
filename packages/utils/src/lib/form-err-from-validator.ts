@@ -71,6 +71,14 @@ export interface IWorkflowFailureResponse {
   code?: ErrorCode;
   errors: IWorkflowFailureErrors;
 }
+export interface IValidationErrorResponse {
+  message: 'Invalid submission.';
+  type: typeof VALIDATION_RESP_TYPE;
+  errors: FieldErrors;
+}
 
 export const isWorkflowFailureResponse = (obj: any): obj is IWorkflowFailureResponse =>
   obj?.type === WORKFLOW_FAILURE_RESP_TYPE;
+
+export const isFormValidationResponse = (obj: any): obj is IValidationErrorResponse =>
+  obj?.type === VALIDATION_RESP_TYPE;

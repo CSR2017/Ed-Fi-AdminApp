@@ -27,6 +27,7 @@ export const SbesPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.modifiedById, users),
             header: 'Modified by',
             cell: (info) => <UserLink query={users} id={info.row.original.modifiedById} />,
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },
@@ -44,6 +45,7 @@ export const SbesPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.createdById, users),
             header: 'Created by',
             cell: (info) => <UserLink query={users} id={info.row.original.createdById} />,
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },

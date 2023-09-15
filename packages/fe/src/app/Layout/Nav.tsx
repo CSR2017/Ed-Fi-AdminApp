@@ -1,4 +1,4 @@
-import { Box, Text, useBoolean } from '@chakra-ui/react';
+import { Box, useBoolean } from '@chakra-ui/react';
 import { GetTenantDto } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
 import { Select } from 'chakra-react-select';
@@ -6,8 +6,8 @@ import { atom, useAtom } from 'jotai';
 import Cookies from 'js-cookie';
 import { Resizable } from 're-resizable';
 import { useEffect } from 'react';
-import { BsPerson, BsPersonFill } from 'react-icons/bs';
-import { useMatches, useNavigate, useParams } from 'react-router-dom';
+import { BsHouseDoor, BsHouseDoorFill, BsPerson, BsPersonFill } from 'react-icons/bs';
+import { useLocation, useMatches, useNavigate, useParams } from 'react-router-dom';
 import { useMyTenants } from '../api';
 import {
   authorize,
@@ -31,6 +31,8 @@ export const Nav = () => {
 
   const tenants = useMyTenants();
   const currentMatches = useMatches();
+  const path = useLocation().pathname;
+
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const globalAuthConfigs = [
@@ -196,6 +198,15 @@ export const Nav = () => {
           />
         </Box>
       ) : null}
+      <NavButton
+        {...{
+          route: '/',
+          icon: BsHouseDoor,
+          activeIcon: BsHouseDoorFill,
+          text: 'Home',
+          isActive: /^\/(as\/\d+\/?)?$/.test(path),
+        }}
+      />
       <NavButton
         {...{
           route: '/account',

@@ -1,13 +1,4 @@
-import {
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalHeader,
-  ModalOverlay,
-  Text,
-} from '@chakra-ui/react';
-import { ActionsType, Attribute } from '@edanalytics/common-ui';
+import { ActionsType } from '@edanalytics/common-ui';
 
 import { GetApplicationDto, createEdorgCompositeNaturalKey } from '@edanalytics/models';
 import { BiEdit, BiPlus, BiShieldX, BiTrash } from 'react-icons/bi';
@@ -166,7 +157,7 @@ export const useSingleApplicationActions = ({
                 confirmBody:
                   'All systems using this application to access Ed-Fi will no longer be able to do so. This action cannot be undone, though you will be able to create a new application if you want.',
                 onClick: () =>
-                  deleteApplication.mutateAsync(application.id, {
+                  deleteApplication.mutate(application.id, {
                     ...mutationErrCallback({ popBanner }),
                     onSuccess: () => {
                       if (onApplicationPage) {
@@ -209,27 +200,4 @@ export const useMultiApplicationActions = ({
         },
       }
     : {};
-};
-const CredentialResetModal = (props: { href: string | undefined; onClose: () => void }) => {
-  return (
-    <Modal isOpen={!!props.href} onClose={props.onClose}>
-      <ModalOverlay />
-      <ModalContent w="auto" maxW="90vw" borderTop="10px solid" borderColor="green.300">
-        <ModalHeader>Credentials have been reset</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <Attribute
-            p={0}
-            isCopyable
-            isUrl
-            label="One-time link to retrieve Key and Secret"
-            value={props.href}
-          />
-          <Text my={5} as="p" fontStyle="italic">
-            Note: this link will work only once, and will expire after 7 days.
-          </Text>
-        </ModalBody>
-      </ModalContent>
-    </Modal>
-  );
 };

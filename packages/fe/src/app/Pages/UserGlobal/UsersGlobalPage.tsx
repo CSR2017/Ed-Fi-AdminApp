@@ -29,7 +29,6 @@ const NameCell = (info: CellContext<GetUserDto, unknown>) => {
 export const UsersGlobalPage = () => {
   const users = userQueries.useAll({});
   const roles = roleQueries.useAll({});
-  const tenants = tenantQueries.useAll({});
   const actions = useMultipleUserGlobalActions();
   return (
     <PageTemplate title="Users" actions={<PageActions actions={actions} />}>
@@ -50,6 +49,7 @@ export const UsersGlobalPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.roleId, roles),
             header: 'Role',
             cell: (info) => <RoleGlobalLink id={info.row.original.roleId} query={roles} />,
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },

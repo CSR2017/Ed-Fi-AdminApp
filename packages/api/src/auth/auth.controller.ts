@@ -32,7 +32,6 @@ import { Repository } from 'typeorm';
 import { Authorize, NoAuthorization } from './authorization';
 import { Public } from './authorization/public.decorator';
 import { AuthCache } from './helpers/inject-auth-cache';
-import { UserPrivileges } from './helpers/inject-user-privileges';
 import { ReqUser } from './helpers/user.decorator';
 import { IdpService } from './idp.service';
 import { NO_ROLE, USER_NOT_FOUND } from './login/oidc.strategy';
@@ -135,10 +134,10 @@ export class AuthController {
   @Header('Cache-Control', 'no-store')
   async myTenants(
     @ReqUser() session: GetSessionDataDto,
-    @UserPrivileges() privileges: Set<PrivilegeCode>,
+    @AuthCache() privileges: AuthorizationCache,
     @Req() req
   ) {
-    if (privileges?.has('tenant:read')) {
+    if (privileges['tenant:read'] === true) {
       return toGetTenantDto(await this.tenantsRepository.find());
     } else {
       return toGetTenantDto(session?.userTenantMemberships?.map((utm) => utm.tenant) ?? []);

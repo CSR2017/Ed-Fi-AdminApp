@@ -7,11 +7,13 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  Text,
 } from '@chakra-ui/react';
 import { PageTemplate } from '@edanalytics/common-ui';
 import { PostUserDto, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useQueryClient } from '@tanstack/react-query';
+import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
@@ -45,12 +47,14 @@ export const CreateUser = () => {
       <Box w="form-width">
         <form
           onSubmit={handleSubmit((data) =>
-            postUser.mutateAsync(data, {
-              ...mutationErrCallback({ popBanner, setError }),
-              onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['me', 'users'] });
-              },
-            })
+            postUser
+              .mutateAsync(data, {
+                ...mutationErrCallback({ popBanner, setError }),
+                onSuccess: () => {
+                  queryClient.invalidateQueries({ queryKey: ['me', 'users'] });
+                },
+              })
+              .catch(noop)
           )}
         >
           <FormControl isInvalid={!!errors.username}>
@@ -98,6 +102,11 @@ export const CreateUser = () => {
               Cancel
             </Button>
           </ButtonGroup>
+          {errors.root?.message ? (
+            <Text mt={4} color="red.500">
+              {errors.root?.message}
+            </Text>
+          ) : null}
         </form>
       </Box>
     </PageTemplate>

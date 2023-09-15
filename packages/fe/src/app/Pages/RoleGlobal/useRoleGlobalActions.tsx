@@ -95,6 +95,7 @@ export const useRoleGlobalActions = (role: GetRoleDto | undefined): ActionsType 
                                             id: false,
                                           }),
                                         });
+                                        navigate(`/roles`);
                                       },
                                       ...mutationErrCallback({ popBanner }),
                                       onSettled: props.onDelete,

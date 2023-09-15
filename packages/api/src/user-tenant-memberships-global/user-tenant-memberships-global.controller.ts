@@ -16,10 +16,8 @@ import { Repository } from 'typeorm';
 import { Authorize } from '../auth/authorization';
 import { ReqUser } from '../auth/helpers/user.decorator';
 import { throwNotFound } from '../utils';
+import { FormValidationException } from '../utils/customExceptions';
 import { UserTenantMembershipsGlobalService } from './user-tenant-memberships-global.service';
-import { ValidationError } from 'class-validator';
-import { ValidationException } from '../utils/customExceptions';
-import { formErrFromValidator } from '@edanalytics/utils';
 
 @ApiTags('UserTenantMembership - Global')
 @Controller()
@@ -49,14 +47,11 @@ export class UserTenantMembershipsGlobalController {
     ).length;
 
     if (isRedundant) {
-      const err = new ValidationError();
-      err.property = 'tenantId';
-      err.constraints = {
-        server:
+      throw new FormValidationException({
+        field: 'tenantId',
+        message:
           'A membership already exists for this tenant\u2013user combination. To minimize confusion we disallow duplication.',
-      };
-      err.value = false;
-      throw new ValidationException(formErrFromValidator([err]));
+      });
     }
     return toGetUserTenantMembershipDto(
       await this.userTenantMembershipService.create(

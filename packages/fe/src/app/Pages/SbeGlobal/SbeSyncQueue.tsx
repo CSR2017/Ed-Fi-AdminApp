@@ -79,6 +79,7 @@ export const SbeSyncQueue = (props: { sbe: GetSbeDto }) => {
                 {info.row.original.state}
               </Badge>
             ),
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },

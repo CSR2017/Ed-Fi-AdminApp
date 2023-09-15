@@ -1,13 +1,11 @@
 import { GetUserDto, PostOwnershipDto, PutOwnershipDto } from '@edanalytics/models';
 import { Ownership } from '@edanalytics/models-server';
-import { formErrFromValidator } from '@edanalytics/utils';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { ValidationError } from 'class-validator';
 import { EntityManager, Repository } from 'typeorm';
 import { AuthService } from '../auth/auth.service';
 import { throwNotFound } from '../utils';
-import { ValidationException } from '../utils/customExceptions';
+import { FormValidationException } from '../utils/customExceptions';
 
 @Injectable()
 export class OwnershipsGlobalService {
@@ -30,14 +28,11 @@ export class OwnershipsGlobalService {
     ).length;
 
     if (isRedundant) {
-      const err = new ValidationError();
-      err.property = 'tenantId';
-      err.constraints = {
-        server:
+      throw new FormValidationException({
+        field: 'tenantId',
+        message:
           'An ownership already exists for this tenant\u2013resource combination. To minimize confusion we disallow duplication.',
-      };
-      err.value = false;
-      throw new ValidationException(formErrFromValidator([err]));
+      });
     }
 
     const out = await this.ownershipsRepository.save(

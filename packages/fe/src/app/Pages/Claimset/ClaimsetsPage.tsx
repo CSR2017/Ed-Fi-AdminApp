@@ -31,6 +31,13 @@ export const ClaimsetsPageContent = () => {
           header: 'Name',
         },
         {
+          accessorKey: 'isSystemReserved',
+          header: 'Is system-reserved',
+          meta: {
+            type: 'options',
+          },
+        },
+        {
           accessorKey: 'applicationsCount',
           header: 'Applications count',
           meta: {

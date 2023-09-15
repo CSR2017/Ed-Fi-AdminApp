@@ -6,6 +6,7 @@ import {
   FormLabel,
   Input,
   chakra,
+  Text,
 } from '@chakra-ui/react';
 import { PutUserDto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
@@ -46,7 +47,7 @@ export const EditUser = () => {
     <chakra.form
       maxW="form-width"
       onSubmit={handleSubmit((data) =>
-        putUser.mutateAsync(data, mutationErrCallback({ popBanner, setError }))
+        putUser.mutateAsync(data, mutationErrCallback({ popBanner, setError })).catch(noop)
       )}
     >
       <FormControl isInvalid={!!errors.givenName}>
@@ -74,6 +75,11 @@ export const EditUser = () => {
           Cancel
         </Button>
       </ButtonGroup>
+      {errors.root?.message ? (
+        <Text mt={4} color="red.500">
+          {errors.root?.message}
+        </Text>
+      ) : null}
     </chakra.form>
   ) : null;
 };

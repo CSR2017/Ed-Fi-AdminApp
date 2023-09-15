@@ -8,13 +8,16 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  Text,
 } from '@chakra-ui/react';
 import { PageTemplate } from '@edanalytics/common-ui';
 import { PostOwnershipDto, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
+import { noop } from '@tanstack/react-table';
 import { plainToInstance } from 'class-transformer';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { ownershipQueries, sbeQueries, tenantQueries } from '../../api';
 import { useNavToParent } from '../../helpers';
 import {
@@ -26,7 +29,6 @@ import {
 } from '../../helpers/FormPickers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { useSearchParamsObject } from '../../helpers/useSearch';
-import { usePopBanner } from '../../Layout/FeedbackBanner';
 
 const resolver = classValidatorResolver(PostOwnershipDto);
 
@@ -100,7 +102,9 @@ export const CreateOwnershipGlobalPage = () => {
             if (type !== 'sbe') {
               body.sbeId = undefined;
             }
-            return postOwnership.mutateAsync(body, mutationErrCallback({ setError, popBanner }));
+            return postOwnership
+              .mutateAsync(body, mutationErrCallback({ setError, popBanner }))
+              .catch(noop);
           })}
         >
           <FormControl isInvalid={!!errors.hasResource && (sbeId === undefined || type === 'sbe')}>
@@ -164,6 +168,11 @@ export const CreateOwnershipGlobalPage = () => {
               Cancel
             </Button>
           </ButtonGroup>
+          {errors.root?.message ? (
+            <Text mt={4} color="red.500">
+              {errors.root?.message}
+            </Text>
+          ) : null}
         </form>
       </Box>
     </PageTemplate>

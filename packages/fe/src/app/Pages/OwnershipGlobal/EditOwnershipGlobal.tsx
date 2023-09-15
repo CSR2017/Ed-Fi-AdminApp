@@ -8,12 +8,13 @@ import {
 } from '@chakra-ui/react';
 import { GetOwnershipDto, PutOwnershipDto, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
+import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
+import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { ownershipQueries, tenantQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers';
 import { SelectRole } from '../../helpers/FormPickers';
-import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
 const resolver = classValidatorResolver(PutOwnershipDto);
@@ -48,13 +49,15 @@ export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
     <form
       onSubmit={handleSubmit((data) => {
         const validatedData = data as PutOwnershipDto;
-        return putOwnership.mutateAsync(
-          {
-            id: validatedData.id,
-            roleId: validatedData.roleId,
-          },
-          mutationErrCallback({ popBanner, setError })
-        );
+        return putOwnership
+          .mutateAsync(
+            {
+              id: validatedData.id,
+              roleId: validatedData.roleId,
+            },
+            mutationErrCallback({ popBanner, setError })
+          )
+          .catch(noop);
       })}
     >
       <FormLabel as="p">Tenant</FormLabel>
@@ -94,6 +97,11 @@ export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
           Cancel
         </Button>
       </ButtonGroup>
+      {errors.root?.message ? (
+        <Text mt={4} color="red.500">
+          {errors.root?.message}
+        </Text>
+      ) : null}
     </form>
   );
 };

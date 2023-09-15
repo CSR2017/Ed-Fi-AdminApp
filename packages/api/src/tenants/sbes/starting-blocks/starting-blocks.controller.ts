@@ -1,5 +1,6 @@
 import {
   GetApplicationDto,
+  GetClaimsetDto,
   Ids,
   PostApplicationDto,
   PostApplicationForm,
@@ -16,14 +17,15 @@ import {
   toGetVendorDto,
   toPostApplicationResponseDto,
 } from '@edanalytics/models';
+import { Edorg, Sbe } from '@edanalytics/models-server';
 import {
   BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
-  HttpException,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -33,16 +35,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { Repository } from 'typeorm';
 import { Authorize } from '../../../auth/authorization';
 import { InjectFilter } from '../../../auth/helpers/inject-filter';
 import { checkId } from '../../../auth/helpers/where-ids';
-import { postYopassSecret, throwNotFound } from '../../../utils';
+import { FormValidationException, postYopassSecret, throwNotFound } from '../../../utils';
 import { StartingBlocksService } from './starting-blocks.service';
-import { ValidationError } from 'class-validator';
-import { instanceToPlain, plainToInstance } from 'class-transformer';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Edorg, Sbe } from '@edanalytics/models-server';
-import { Repository } from 'typeorm';
 
 @ApiTags('Ed-Fi Resources')
 @Controller()
@@ -256,8 +256,23 @@ export class StartingBlocksController {
     @InjectFilter('tenant.sbe.edorg.application:update')
     validIds: Ids
   ) {
+    let claimset: GetClaimsetDto;
+    try {
+      claimset = await this.sbService.getClaimset(sbeId, application.claimsetId);
+    } catch (claimsetNotFound) {
+      Logger.error(claimsetNotFound);
+      throw new BadRequestException('Error trying to use claimset');
+    }
+    if (claimset.isSystemReserved) {
+      throw new FormValidationException({
+        field: 'claimsetId',
+        message: 'Cannot use system-reserved claimset',
+      });
+    }
+
     const dto = plainToInstance(PutApplicationDto, {
       ...instanceToPlain(application),
+      claimSetName: claimset.name,
       educationOrganizationIds: [application.educationOrganizationId],
     });
     const edorg = await this.edorgRepository.findOneByOrFail({
@@ -274,10 +289,10 @@ export class StartingBlocksController {
     ) {
       return toGetApplicationDto(await this.sbService.putApplication(sbeId, applicationId, dto));
     } else {
-      const err = new ValidationError();
-      err.property = 'educationOrganizationId';
-      err.value = 'Invalid education organization ID';
-      throw new BadRequestException([err]);
+      throw new FormValidationException({
+        field: 'educationOrganizationId',
+        message: 'Invalid education organization ID',
+      });
     }
   }
 
@@ -298,8 +313,22 @@ export class StartingBlocksController {
     @InjectFilter('tenant.sbe.edorg.application:create')
     validIds: Ids
   ) {
+    let claimset: GetClaimsetDto;
+    try {
+      claimset = await this.sbService.getClaimset(sbeId, application.claimsetId);
+    } catch (claimsetNotFound) {
+      Logger.error(claimsetNotFound);
+      throw new BadRequestException('Error trying to use claimset');
+    }
+    if (claimset.isSystemReserved) {
+      throw new FormValidationException({
+        field: 'claimsetId',
+        message: 'Cannot use system-reserved claimset',
+      });
+    }
     const dto = plainToInstance(PostApplicationDto, {
       ...instanceToPlain(application),
+      claimSetName: claimset.name,
       educationOrganizationIds: [application.educationOrganizationId],
     });
     const edorg = await this.edorgRepository.findOneByOrFail({
@@ -336,10 +365,10 @@ export class StartingBlocksController {
         });
       }
     } else {
-      const err = new ValidationError();
-      err.property = 'educationOrganizationId';
-      err.value = 'Invalid education organization ID';
-      throw new BadRequestException([err]);
+      throw new FormValidationException({
+        field: 'educationOrganizationId',
+        message: 'Invalid education organization ID',
+      });
     }
   }
 

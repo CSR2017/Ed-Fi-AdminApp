@@ -1,4 +1,4 @@
-import { Box, HStack } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import {
   PageActions,
   PageTemplate,
@@ -9,29 +9,15 @@ import {
   SbaaTablePagination,
   SbaaTableProvider,
   SbaaTableSearch,
-  TableRowActions,
   ValueAsDate,
 } from '@edanalytics/common-ui';
-import { GetUserTenantMembershipDto } from '@edanalytics/models';
-import { CellContext } from '@tanstack/react-table';
 import omit from 'lodash/omit';
 import { roleQueries, tenantQueries, userQueries, userTenantMembershipQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { TenantLink, UserGlobalLink, UtmGlobalLink } from '../../routes';
+import { TenantLink, UserGlobalLink } from '../../routes';
 import { RoleGlobalLink } from '../../routes/role-global.routes';
-import { useUtmActionsGlobal } from './useUtmActionsGlobal';
 import { useUtmsActionsGlobal } from './useUtmsActionsGlobal';
-
-const UtmGlobalNameCell = (info: CellContext<GetUserTenantMembershipDto, unknown>) => {
-  const userTenantMemberships = userTenantMembershipQueries.useAll({});
-  const actions = useUtmActionsGlobal(info.row.original);
-  return (
-    <HStack justify="space-between">
-      <UtmGlobalLink id={info.row.original.id} query={userTenantMemberships} />
-      <TableRowActions actions={actions} />
-    </HStack>
-  );
-};
+import { UtmGlobalNameCell } from './UtmGlobalNameCell';
 
 export const UtmsGlobalPage = () => {
   const userTenantMemberships = userTenantMembershipQueries.useAll({});
@@ -59,6 +45,7 @@ export const UtmsGlobalPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.tenantId, tenants),
             header: 'Tenant',
             cell: (info) => <TenantLink id={info.row.original.tenantId} query={tenants} />,
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },
@@ -68,6 +55,7 @@ export const UtmsGlobalPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.userId, users),
             header: 'User',
             cell: (info) => <UserGlobalLink id={info.row.original.userId} />,
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },
@@ -77,6 +65,7 @@ export const UtmsGlobalPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.roleId, roles),
             header: 'Role',
             cell: (info) => <RoleGlobalLink id={info.row.original.roleId} query={roles} />,
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },

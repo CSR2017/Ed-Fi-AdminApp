@@ -6,7 +6,6 @@ import {
   toGetRoleDto,
 } from '@edanalytics/models';
 import { Role, addUserCreating, addUserModifying } from '@edanalytics/models-server';
-import { formErrFromValidator } from '@edanalytics/utils';
 import {
   Body,
   Controller,
@@ -21,12 +20,11 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ValidationError } from 'class-validator';
 import { Repository } from 'typeorm';
 import { Authorize, CheckAbility, CheckAbilityType } from '../auth/authorization';
 import { ReqUser } from '../auth/helpers/user.decorator';
 import { throwNotFound } from '../utils';
-import { ValidationException } from '../utils/customExceptions';
+import { FormValidationException } from '../utils/customExceptions';
 import { RolesGlobalService } from './roles-global.service';
 
 @ApiTags('Role - Global')
@@ -51,13 +49,10 @@ export class RolesGlobalController {
       (!createRoleDto.privileges.includes('me:read') ||
         !createRoleDto.privileges.includes('privilege:read'))
     ) {
-      const err = new ValidationError();
-      err.property = 'privileges';
-      err.constraints = {
-        server: 'Minimum privileges not present (me:read or privilege:read).',
-      };
-      err.value = false;
-      throw new ValidationException(formErrFromValidator([err]));
+      throw new FormValidationException({
+        field: 'privileges',
+        message: 'Minimum privileges not present (me:read or privilege:read).',
+      });
     }
     return toGetRoleDto(await this.roleService.create(addUserCreating(createRoleDto, user)));
   }
@@ -104,13 +99,10 @@ export class RolesGlobalController {
       (!updateRoleDto.privileges.includes('me:read') ||
         !updateRoleDto.privileges.includes('privilege:read'))
     ) {
-      const err = new ValidationError();
-      err.property = 'privileges';
-      err.constraints = {
-        server: 'Minimum privileges not present (me:read or privilege:read).',
-      };
-      err.value = false;
-      throw new ValidationException(formErrFromValidator([err]));
+      throw new FormValidationException({
+        field: 'privileges',
+        message: 'Minimum privileges not present (me:read or privilege:read).',
+      });
     }
 
     return toGetRoleDto(

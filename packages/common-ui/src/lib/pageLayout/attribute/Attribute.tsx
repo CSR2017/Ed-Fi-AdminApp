@@ -12,12 +12,13 @@ import {
   PopoverTrigger,
   StyleProps,
   chakra,
+  forwardRef as chakraForwardRef,
   useClipboard,
   useDisclosure,
 } from '@chakra-ui/react';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactElement, forwardRef, useEffect, useState } from 'react';
 import { BiCopy } from 'react-icons/bi';
 import { BsCheckCircle } from 'react-icons/bs';
 import { Link as RouterLink } from 'react-router-dom';
@@ -43,48 +44,56 @@ const dateFormatStrings: Record<number, string | undefined> = {
   3: undefined,
 };
 
-export const AttributeContainer = (props: { label: string; children: ReactNode } & StyleProps) => {
-  const { label, children, ...styles } = props;
-  return (
-    <Box p="var(--chakra-space-3)" {...styles}>
-      <FormLabel variant="view" as="p">
-        {label}
-      </FormLabel>
-      {children}
-    </Box>
-  );
-};
+export const AttributeContainer = chakraForwardRef<{ label: string }, 'div'>(
+  (props, ref): ReactElement => {
+    const { label, children, ...styles } = props;
+    return (
+      <Box p="var(--chakra-space-3)" {...styles}>
+        <Box w="fit-content" ref={ref}>
+          <FormLabel variant="view" w="fit-content" as="p">
+            {label}
+          </FormLabel>
+          {children}
+        </Box>
+      </Box>
+    );
+  }
+);
 
-export function Attribute(
+function _Attribute(
   props: AttributeBaseProps & {
     isUrl: true;
     isUrlExternal?: boolean;
     value: string | undefined;
-  }
+  },
+  ref: any
 ): JSX.Element;
 
-export function Attribute(
+function _Attribute(
   props: AttributeBaseProps & {
     isDate: true;
     defaultDateFmt?: DateFormat;
     value: Date | undefined | null;
-  }
+  },
+  ref: any
 ): JSX.Element;
 
-export function Attribute(
+function _Attribute(
   props: AttributeBaseProps & {
     value: string | undefined | null | boolean | number;
-  }
+  },
+  ref: any
 ): JSX.Element;
 
-export function Attribute(
+function _Attribute(
   props: AttributeBaseProps & {
     isUrl?: boolean | undefined;
     isUrlExternal?: boolean | undefined;
     isDate?: boolean | undefined;
     defaultDateFmt?: DateFormat;
     value: string | Date | undefined | null | boolean | number;
-  }
+  },
+  ref: any
 ) {
   const {
     isUrl,
@@ -126,7 +135,7 @@ export function Attribute(
   }, []);
 
   return (
-    <AttributeContainer {...styles} label={label}>
+    <AttributeContainer ref={ref} {...styles} label={label}>
       <chakra.div display="inline-block" lineHeight={1}>
         {isCopyable && resultValue !== undefined ? (
           <Popover placement="top">
@@ -198,6 +207,8 @@ export function Attribute(
     </AttributeContainer>
   );
 }
+
+export const Attribute = forwardRef(_Attribute) as typeof _Attribute;
 
 export const DateValue = (props: { value: Date; defaultDateFmt?: DateFormat }) => {
   const [fmt, setFmt] = useState(props.defaultDateFmt ?? 0);

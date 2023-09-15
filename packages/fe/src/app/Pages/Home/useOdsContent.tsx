@@ -4,13 +4,16 @@ import {
   AccordionItem,
   AccordionPanel,
   Heading,
+  Link,
   Stat,
   StatLabel,
   StatNumber,
+  chakra,
 } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetSbeDto } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
+import { Link as RouterLink } from 'react-router-dom';
 import { odsQueries } from '../../api';
 import {
   AuthorizeConfig,
@@ -39,7 +42,14 @@ export const useOdsContent = (props: { sbe: GetSbeDto }) => {
         Stat: (
           <Stat flex="0 0 auto">
             <StatLabel>ODS's</StatLabel>
-            <StatNumber>{Object.keys(odss.data ?? {}).length}</StatNumber>
+            <StatNumber
+              color="blue.600"
+              as={RouterLink}
+              to={`/as/${asId}/sbes/${props.sbe.id}/odss`}
+              _hover={{ textDecoration: 'underline' }}
+            >
+              {Object.keys(odss.data ?? {}).length}
+            </StatNumber>
           </Stat>
         ),
         AccordionItem: (
@@ -51,6 +61,11 @@ export const useOdsContent = (props: { sbe: GetSbeDto }) => {
               <AccordionIcon />
             </AccordionButton>
             <AccordionPanel pb={10}>
+              <chakra.div textAlign="right">
+                <Link color="blue.500" to={`/as/${asId}/sbes/${props.sbe.id}/odss`} as={RouterLink}>
+                  Go to main page &rarr;
+                </Link>
+              </chakra.div>
               <DataTable
                 queryKeyPrefix={`${props.sbe.id}_ods`}
                 pageSizes={[5, 10, 15]}

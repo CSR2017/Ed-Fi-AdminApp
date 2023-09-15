@@ -5,6 +5,7 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  Text,
   chakra,
 } from '@chakra-ui/react';
 import { GetSbeDto, PutSbeMeta } from '@edanalytics/models';
@@ -13,6 +14,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 
+import { noop } from '@tanstack/react-table';
 import { useSbeEditSbMeta } from '../../api';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
@@ -41,12 +43,14 @@ export const EditSbeMeta = (props: { sbe: GetSbeDto }) => {
     <chakra.form
       w="form-width"
       onSubmit={handleSubmit((data) =>
-        putSbe.mutateAsync(
-          {
-            ...data,
-          },
-          mutationErrCallback({ popBanner, setError })
-        )
+        putSbe
+          .mutateAsync(
+            {
+              ...data,
+            },
+            mutationErrCallback({ popBanner, setError })
+          )
+          .catch(noop)
       )}
     >
       <FormControl isInvalid={!!errors.arn}>
@@ -83,6 +87,11 @@ export const EditSbeMeta = (props: { sbe: GetSbeDto }) => {
           Cancel
         </Button>
       </ButtonGroup>
+      {errors.root?.message ? (
+        <Text mt={4} color="red.500">
+          {errors.root?.message}
+        </Text>
+      ) : null}
     </chakra.form>
   ) : null;
 };

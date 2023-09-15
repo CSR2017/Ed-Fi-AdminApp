@@ -1,4 +1,4 @@
-import { Box, HStack } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import {
   PageActions,
   SbaaTableAllInOne,
@@ -9,28 +9,14 @@ import {
   SbaaTablePagination,
   SbaaTableProvider,
   SbaaTableSearch,
-  TableRowActions,
   ValueAsDate,
 } from '@edanalytics/common-ui';
-import { GetOwnershipDto } from '@edanalytics/models';
-import { CellContext } from '@tanstack/react-table';
 import { ownershipQueries, roleQueries, tenantQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { OwnershipGlobalLink, TenantLink } from '../../routes';
+import { TenantLink } from '../../routes';
 import { RoleGlobalLink } from '../../routes/role-global.routes';
 import { useMultipleOwnershipGlobalActions } from './useMultipleOwnershipGlobalActions';
-import { useOwnershipGlobalActions } from './useOwnershipGlobalActions';
-
-const OwnershipsNameCell = (info: CellContext<GetOwnershipDto, unknown>) => {
-  const ownerships = ownershipQueries.useAll({});
-  const actions = useOwnershipGlobalActions(info.row.original);
-  return (
-    <HStack justify="space-between">
-      <OwnershipGlobalLink id={info.row.original.id} query={ownerships} />
-      <TableRowActions actions={actions} />
-    </HStack>
-  );
-};
+import { OwnershipsNameCell } from './OwnershipsNameCell';
 
 export const OwnershipsGlobalPage = () => {
   const ownerships = ownershipQueries.useAll({});
@@ -52,6 +38,7 @@ export const OwnershipsGlobalPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.tenantId, tenants),
             header: 'Tenant',
             cell: (info) => <TenantLink id={info.row.original.tenantId} query={tenants} />,
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },
@@ -61,6 +48,7 @@ export const OwnershipsGlobalPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.roleId, roles),
             header: 'Role',
             cell: (info) => <RoleGlobalLink id={info.row.original.roleId} query={roles} />,
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },
@@ -82,6 +70,7 @@ export const OwnershipsGlobalPage = () => {
                 : original.sbe
                 ? original.sbe.displayName
                 : '-',
+            filterFn: 'equalsString',
             meta: {
               type: 'options',
             },

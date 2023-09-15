@@ -4,14 +4,17 @@ import {
   AccordionItem,
   AccordionPanel,
   Heading,
+  Link,
   Stat,
   StatLabel,
   StatNumber,
   Tab,
+  chakra,
 } from '@chakra-ui/react';
 import { DataTable } from '@edanalytics/common-ui';
 import { GetEdorgDto, GetSbeDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
+import { Link as RouterLink } from 'react-router-dom';
 import { edorgQueries, odsQueries } from '../../api';
 import {
   AuthorizeConfig,
@@ -22,6 +25,7 @@ import {
 } from '../../helpers';
 import { EdorgLink, OdsLink } from '../../routes';
 import { NameCell } from '../Edorg/NameCell';
+import { SbeSyncDate } from '../Sbe/SbeSyncDate';
 
 export const useEdorgContent = (props: { sbe: GetSbeDto }) => {
   const asId = useNavContext().asId!;
@@ -54,7 +58,14 @@ export const useEdorgContent = (props: { sbe: GetSbeDto }) => {
         Stat: (
           <Stat flex="0 0 auto">
             <StatLabel>Ed-Orgs</StatLabel>
-            <StatNumber>{Object.keys(edorgs.data ?? {}).length}</StatNumber>
+            <StatNumber
+              color="blue.600"
+              as={RouterLink}
+              to={`/as/${asId}/sbes/${props.sbe.id}/edorgs`}
+              _hover={{ textDecoration: 'underline' }}
+            >
+              {Object.keys(edorgs.data ?? {}).length}
+            </StatNumber>
           </Stat>
         ),
         Tab: <Tab>Ed-Orgs</Tab>,
@@ -67,6 +78,16 @@ export const useEdorgContent = (props: { sbe: GetSbeDto }) => {
               <AccordionIcon />
             </AccordionButton>
             <AccordionPanel pb={10}>
+              <SbeSyncDate left />
+              <chakra.div textAlign="right">
+                <Link
+                  color="blue.500"
+                  to={`/as/${asId}/sbes/${props.sbe.id}/edorgs`}
+                  as={RouterLink}
+                >
+                  Go to main page &rarr;
+                </Link>
+              </chakra.div>
               <DataTable
                 queryKeyPrefix={`${props.sbe.id}_edorg`}
                 pageSizes={[5, 10, 15]}

@@ -5,6 +5,7 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  Text,
   chakra,
 } from '@chakra-ui/react';
 import { PutTenantDto } from '@edanalytics/models';
@@ -12,6 +13,7 @@ import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 
+import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { tenantQueries } from '../../api';
@@ -43,12 +45,14 @@ export const EditTenant = () => {
     <chakra.form
       maxW="form-width"
       onSubmit={handleSubmit((data) =>
-        putTenant.mutateAsync(data, {
-          ...mutationErrCallback({ popBanner, setError }),
-          onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['me', 'tenants'] });
-          },
-        })
+        putTenant
+          .mutateAsync(data, {
+            ...mutationErrCallback({ popBanner, setError }),
+            onSuccess: () => {
+              queryClient.invalidateQueries({ queryKey: ['me', 'tenants'] });
+            },
+          })
+          .catch(noop)
       )}
     >
       <FormControl isInvalid={!!errors.name}>
@@ -71,6 +75,11 @@ export const EditTenant = () => {
           Cancel
         </Button>
       </ButtonGroup>
+      {errors.root?.message ? (
+        <Text mt={4} color="red.500">
+          {errors.root?.message}
+        </Text>
+      ) : null}
     </chakra.form>
   ) : null;
 };
