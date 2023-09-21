@@ -7,7 +7,7 @@ import { queryClient } from '../../app';
 import { AuthorizeConfig, arrayElemIf, authorize } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { EdorgLink, OdsLink } from '../../routes';
-import { SbeSyncDate } from '../Sbe/SbeSyncDate';
+import { SbeSyncDateOverlay } from '../Sbe/SbeSyncDate';
 import { NameCell } from './NameCell';
 
 export const EdorgsPage = () => {
@@ -31,7 +31,7 @@ export const EdorgsPage = () => {
 
   return (
     <PageTemplate title="Education Organizations">
-      <SbeSyncDate />
+      <SbeSyncDateOverlay />
       <SbaaTableAllInOne
         data={Object.values(edorgs?.data || {})}
         columns={[

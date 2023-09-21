@@ -3,15 +3,22 @@ import {
   AccordionIcon,
   AccordionItem,
   AccordionPanel,
+  Box,
+  HStack,
   Heading,
   Link,
   Stat,
   StatLabel,
   StatNumber,
   Tab,
-  chakra,
 } from '@chakra-ui/react';
-import { DataTable } from '@edanalytics/common-ui';
+import {
+  SbaaTable,
+  SbaaTableFilters,
+  SbaaTablePagination,
+  SbaaTableProvider,
+  SbaaTableSearch,
+} from '@edanalytics/common-ui';
 import { GetEdorgDto, GetSbeDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
 import { Link as RouterLink } from 'react-router-dom';
@@ -25,7 +32,7 @@ import {
 } from '../../helpers';
 import { EdorgLink, OdsLink } from '../../routes';
 import { NameCell } from '../Edorg/NameCell';
-import { SbeSyncDate } from '../Sbe/SbeSyncDate';
+import { SbeSyncDateValue } from '../Sbe/SbeSyncDate';
 
 export const useEdorgContent = (props: { sbe: GetSbeDto }) => {
   const asId = useNavContext().asId!;
@@ -59,7 +66,7 @@ export const useEdorgContent = (props: { sbe: GetSbeDto }) => {
           <Stat flex="0 0 auto">
             <StatLabel>Ed-Orgs</StatLabel>
             <StatNumber
-              color="blue.600"
+              color="teal.600"
               as={RouterLink}
               to={`/as/${asId}/sbes/${props.sbe.id}/edorgs`}
               _hover={{ textDecoration: 'underline' }}
@@ -78,17 +85,8 @@ export const useEdorgContent = (props: { sbe: GetSbeDto }) => {
               <AccordionIcon />
             </AccordionButton>
             <AccordionPanel pb={10}>
-              <SbeSyncDate left />
-              <chakra.div textAlign="right">
-                <Link
-                  color="blue.500"
-                  to={`/as/${asId}/sbes/${props.sbe.id}/edorgs`}
-                  as={RouterLink}
-                >
-                  Go to main page &rarr;
-                </Link>
-              </chakra.div>
-              <DataTable
+              <SbeSyncDateValue mb={2} display="block" />
+              <SbaaTableProvider
                 queryKeyPrefix={`${props.sbe.id}_edorg`}
                 pageSizes={[5, 10, 15]}
                 data={Object.values(edorgs?.data || {})}
@@ -118,7 +116,24 @@ export const useEdorgContent = (props: { sbe: GetSbeDto }) => {
                     header: 'Type',
                   },
                 ]}
-              />
+              >
+                <Box mb={4}>
+                  <HStack justify="space-between" align="end">
+                    <SbaaTableSearch />
+                    <Link
+                      alignSelf="center"
+                      color="blue.500"
+                      to={`/as/${asId}/sbes/${props.sbe.id}/edorgs`}
+                      as={RouterLink}
+                    >
+                      Go to main page &rarr;
+                    </Link>
+                  </HStack>
+                  <SbaaTableFilters mb={4} />
+                </Box>
+                <SbaaTable />
+                <SbaaTablePagination />
+              </SbaaTableProvider>
             </AccordionPanel>
           </AccordionItem>
         ),

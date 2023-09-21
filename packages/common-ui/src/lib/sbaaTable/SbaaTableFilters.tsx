@@ -41,7 +41,6 @@ export const SbaaTableFilters: DivComponent = (props) => {
         px={2}
         mt={3}
         fontSize="sm"
-        justify="space-between"
         {...rest}
       >
         <Sorting />
@@ -65,6 +64,29 @@ export const Sorting = () => {
 
   return (
     <HStack gap={0}>
+      <Menu>
+        <MenuButton
+          isDisabled={!sortableColumns.length}
+          title={!sortableColumns.length ? 'No columns available to sort' : undefined}
+          variant="outline"
+          colorScheme="teal"
+          as={Button}
+          size="xs"
+          rightIcon={<Icon as={BiPlus} />}
+          mr={2}
+        >
+          Add sort
+        </MenuButton>
+        <MenuList>
+          {sortableColumns.map((column) => (
+            <MenuItem onClick={() => column.toggleSorting(false, true)} key={column.id}>
+              {typeof column.columnDef.header === 'function'
+                ? column.columnDef.header({ table, column, header: null as any })
+                : column.columnDef.header}
+            </MenuItem>
+          ))}
+        </MenuList>
+      </Menu>
       {sortingState.length ? <Text fontWeight="bold">Sort by:</Text> : null}
       {sortingState.map((sort, i) => {
         const column = table.getColumn(sort.id);
@@ -81,7 +103,6 @@ export const Sorting = () => {
                   : column.toggleSorting(true, true)
               }
               as="button"
-              color="gray.500"
               key={sort.id}
             >
               {typeof column.columnDef.header === 'function'
@@ -104,28 +125,6 @@ export const Sorting = () => {
           </HStack>
         );
       })}
-      <Menu>
-        <MenuButton
-          isDisabled={!sortableColumns.length}
-          title={!sortableColumns.length ? 'No columns available to sort' : undefined}
-          variant="outline"
-          colorScheme="teal"
-          as={Button}
-          size="xs"
-          rightIcon={<Icon as={BiPlus} />}
-        >
-          Add sort
-        </MenuButton>
-        <MenuList>
-          {sortableColumns.map((column) => (
-            <MenuItem onClick={() => column.toggleSorting(false, true)} key={column.id}>
-              {typeof column.columnDef.header === 'function'
-                ? column.columnDef.header({ table, column, header: null as any })
-                : column.columnDef.header}
-            </MenuItem>
-          ))}
-        </MenuList>
-      </Menu>
     </HStack>
   );
 };
@@ -156,14 +155,6 @@ const Filters = () => {
 
   return (
     <HStack gap={0}>
-      {columnFilters.map((columnFilter) => {
-        const column = table.getColumn(columnFilter.id);
-        if (column) {
-          return <ColumnFilter column={column} key={columnFilter.id} />;
-        } else {
-          return null;
-        }
-      })}
       <Popover
         returnFocusOnClose={false}
         isOpen={isOpen}
@@ -222,6 +213,14 @@ const Filters = () => {
           </PopoverContent>
         ) : null}
       </Popover>
+      {columnFilters.map((columnFilter) => {
+        const column = table.getColumn(columnFilter.id);
+        if (column) {
+          return <ColumnFilter column={column} key={columnFilter.id} />;
+        } else {
+          return null;
+        }
+      })}
     </HStack>
   );
 };

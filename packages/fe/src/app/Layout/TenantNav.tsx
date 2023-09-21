@@ -289,7 +289,7 @@ export const TenantNav = (props: { tenantId: string }) => {
       ))}
       {sbeItems.length ? (
         <>
-          <Text px={3} mt={4} as="h3" color="gray.500" mb={2} fontWeight="600">
+          <Text px={3} mt={4} as="h3" color="gray.600" mb={2} fontWeight="600">
             Environments
           </Text>
           {tagMatch(sbeItems, deepestMatch).map((item) => (

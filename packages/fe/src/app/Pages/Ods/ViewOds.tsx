@@ -10,7 +10,7 @@ import { edorgQueries, odsQueries, sbeQueries } from '../../api';
 import { AuthorizeComponent, getRelationDisplayName } from '../../helpers';
 import { EdorgLink, SbeLink } from '../../routes';
 import { NameCell } from '../Edorg/NameCell';
-import { SbeSyncDate } from '../Sbe/SbeSyncDate';
+import { SbeSyncDateOverlay } from '../Sbe/SbeSyncDate';
 
 export const ViewOds = () => {
   const params = useParams() as {
@@ -57,7 +57,7 @@ export const ViewOds = () => {
         }}
       >
         <ContentSection heading="Ed-Orgs">
-          <SbeSyncDate />
+          <SbeSyncDateOverlay />
           <DataTable
             queryKeyPrefix={`edorg`}
             data={filteredEdorgs}

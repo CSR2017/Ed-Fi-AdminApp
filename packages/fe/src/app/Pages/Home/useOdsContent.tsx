@@ -3,14 +3,21 @@ import {
   AccordionIcon,
   AccordionItem,
   AccordionPanel,
+  Box,
+  HStack,
   Heading,
   Link,
   Stat,
   StatLabel,
   StatNumber,
-  chakra,
 } from '@chakra-ui/react';
-import { DataTable } from '@edanalytics/common-ui';
+import {
+  SbaaTable,
+  SbaaTableFilters,
+  SbaaTablePagination,
+  SbaaTableProvider,
+  SbaaTableSearch,
+} from '@edanalytics/common-ui';
 import { GetSbeDto } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link as RouterLink } from 'react-router-dom';
@@ -43,7 +50,7 @@ export const useOdsContent = (props: { sbe: GetSbeDto }) => {
           <Stat flex="0 0 auto">
             <StatLabel>ODS's</StatLabel>
             <StatNumber
-              color="blue.600"
+              color="teal.600"
               as={RouterLink}
               to={`/as/${asId}/sbes/${props.sbe.id}/odss`}
               _hover={{ textDecoration: 'underline' }}
@@ -61,12 +68,7 @@ export const useOdsContent = (props: { sbe: GetSbeDto }) => {
               <AccordionIcon />
             </AccordionButton>
             <AccordionPanel pb={10}>
-              <chakra.div textAlign="right">
-                <Link color="blue.500" to={`/as/${asId}/sbes/${props.sbe.id}/odss`} as={RouterLink}>
-                  Go to main page &rarr;
-                </Link>
-              </chakra.div>
-              <DataTable
+              <SbaaTableProvider
                 queryKeyPrefix={`${props.sbe.id}_ods`}
                 pageSizes={[5, 10, 15]}
                 data={Object.values(odss?.data || {})}
@@ -76,12 +78,25 @@ export const useOdsContent = (props: { sbe: GetSbeDto }) => {
                     cell: NameCell,
                     header: 'Name',
                   },
-                  {
-                    accessorKey: 'createdDetailed',
-                    header: 'Created',
-                  },
                 ]}
-              />
+              >
+                <Box mb={4}>
+                  <HStack justify="space-between" align="end">
+                    <SbaaTableSearch />
+                    <Link
+                      alignSelf="center"
+                      color="blue.500"
+                      to={`/as/${asId}/sbes/${props.sbe.id}/odss`}
+                      as={RouterLink}
+                    >
+                      Go to main page &rarr;
+                    </Link>
+                  </HStack>
+                  <SbaaTableFilters mb={4} />
+                </Box>
+                <SbaaTable />
+                <SbaaTablePagination />
+              </SbaaTableProvider>
             </AccordionPanel>
           </AccordionItem>
         ),

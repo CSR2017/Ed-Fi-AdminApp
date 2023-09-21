@@ -34,11 +34,7 @@ const FilterValueLabel = ({ column }: { column: Column<any, unknown> }) => {
   const value = column.getFilterValue();
 
   if (value === undefined) {
-    return (
-      <Text color="gray.500" as="i">
-        No filter
-      </Text>
-    );
+    return <Text as="i">No filter</Text>;
   } else {
     if (column.columnDef.meta?.type === 'date' && Array.isArray(value)) {
       if (value[0] && value[1]) {
@@ -109,7 +105,6 @@ export const ColumnFilter = ({ column }: { column: Column<any, unknown> }) => {
                 <Text
                   visibility={column.getFilterValue() === undefined ? 'hidden' : 'visible'}
                   as="span"
-                  color="gray.500"
                 >
                   <FilterValueLabel column={column} />
                 </Text>

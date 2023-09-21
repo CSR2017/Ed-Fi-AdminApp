@@ -1,7 +1,6 @@
 import {
   Button,
   ChakraComponent,
-  HStack,
   Icon,
   IconButton,
   InputGroup,
@@ -80,11 +79,12 @@ export const SbaaTableAdvancedButton: ChakraComponent<'button'> = (props) => {
 
   return (
     <Button
+      alignSelf="center"
       aria-label="show settings"
       variant="link"
       borderRadius="99em"
       size="sm"
-      colorScheme="blue"
+      colorScheme="teal"
       onClick={setShowSettings.toggle}
       {...rest}
     >

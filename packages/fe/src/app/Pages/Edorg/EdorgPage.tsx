@@ -3,7 +3,7 @@ import omit from 'lodash/omit';
 import { useParams } from 'react-router-dom';
 import { edorgQueries } from '../../api';
 import { ViewEdorg } from './ViewEdorg';
-import { SbeSyncDate } from '../Sbe/SbeSyncDate';
+import { SbeSyncDateOverlay } from '../Sbe/SbeSyncDate';
 
 export const EdorgPage = () => {
   const params = useParams() as {
@@ -23,7 +23,7 @@ export const EdorgPage = () => {
       title={edorg?.displayName || 'Edorg'}
       actions={<PageActions actions={omit(actions, 'View')} />}
     >
-      <SbeSyncDate />
+      <SbeSyncDateOverlay />
       {edorg ? <ViewEdorg /> : null}
     </PageTemplate>
   );

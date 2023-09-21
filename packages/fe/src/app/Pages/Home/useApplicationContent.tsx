@@ -5,6 +5,8 @@ import {
   AccordionPanel,
   Alert,
   AlertIcon,
+  Box,
+  HStack,
   Heading,
   Icon,
   Link,
@@ -13,9 +15,14 @@ import {
   StatNumber,
   Tab,
   Tooltip,
-  chakra,
 } from '@chakra-ui/react';
-import { DataTable } from '@edanalytics/common-ui';
+import {
+  SbaaTable,
+  SbaaTableFilters,
+  SbaaTablePagination,
+  SbaaTableProvider,
+  SbaaTableSearch,
+} from '@edanalytics/common-ui';
 import {
   GetClaimsetDto,
   GetEdorgDto,
@@ -86,15 +93,6 @@ export const useApplicationContent = (props: { sbe: GetSbeDto }) => {
               <AccordionIcon />
             </AccordionButton>
             <AccordionPanel pb={10}>
-              <chakra.div textAlign="right">
-                <Link
-                  color="blue.500"
-                  to={`/as/${asId}/sbes/${props.sbe.id}/applications`}
-                  as={RouterLink}
-                >
-                  Go to main page &rarr;
-                </Link>
-              </chakra.div>
               <ErrorBoundary
                 FallbackComponent={(arg: { error: { message: string } }) => (
                   <Alert status="error">
@@ -169,7 +167,7 @@ export const ApplicationTable = (props: { sbe: GetSbeDto }) => {
   };
 
   return (
-    <DataTable
+    <SbaaTableProvider
       queryKeyPrefix={`${props.sbe.id}_app`}
       pageSizes={[5, 10, 15]}
       data={Object.values(applications?.data || {})}
@@ -216,7 +214,24 @@ export const ApplicationTable = (props: { sbe: GetSbeDto }) => {
           ),
         },
       ]}
-    />
+    >
+      <Box mb={4}>
+        <HStack justify="space-between" align="end">
+          <SbaaTableSearch />
+          <Link
+            alignSelf="center"
+            color="blue.500"
+            to={`/as/${asId}/sbes/${props.sbe.id}/applications`}
+            as={RouterLink}
+          >
+            Go to main page &rarr;
+          </Link>
+        </HStack>
+        <SbaaTableFilters mb={4} />
+      </Box>
+      <SbaaTable />
+      <SbaaTablePagination />
+    </SbaaTableProvider>
   );
 };
 
@@ -240,7 +255,7 @@ export const ApplicationStat = (props: { sbe: GetSbeDto }) => {
 
   return authorize({ queryClient, config: appAuth }) ? (
     <StatNumber
-      color="blue.600"
+      color="teal.600"
       as={RouterLink}
       to={`/as/${asId}/sbes/${props.sbe.id}/applications`}
       _hover={{ textDecoration: 'underline' }}
