@@ -16,7 +16,7 @@ export class AppController {
   @Public()
   @Header('Cache-Control', 'no-store')
   @Get('secret/:secretId/')
-  secret(@Param('secretId') secretId: number) {
+  secret(@Param('secretId') secretId: string) {
     return axios
       .get(`${config.YOPASS_URL}/secret/${secretId}`)
       .then((res) => {

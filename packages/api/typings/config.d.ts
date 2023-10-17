@@ -38,29 +38,14 @@ declare module 'config' {
     API_PORT: number;
     SB_SYNC_CRON: string;
 
-    SAMPLE_SBE_CONFIG?: {
-      adminApiUrl: string;
-      adminApiKey: string;
-      adminApiSecret: string;
-      sbeMetaUrl: string;
-      sbeMetaKey: string;
-      sbeMetaSecret: string;
-    };
     SAMPLE_OIDC_CONFIG?: {
       issuer: string;
       clientSecret: string;
       clientId: string;
       scope: string;
     };
-    SAMPLE_APP_LAUNCHER_CONFIG?: {
-      url: string;
-      poolId: string;
-      clientId: string;
-    };
 
-    SEED_BASIC: string;
-    SEED_SAMPLE_CONFIG: string;
-    SEED_DEMO_DATA: string;
+    ADMIN_USERNAME?: string | undefined;
   }
 
   const config: IConfig;

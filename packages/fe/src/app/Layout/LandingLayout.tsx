@@ -2,7 +2,7 @@ import { Box, Divider, Image, Link, Text, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { Outlet } from 'react-router-dom';
 import bgUrl from '../../assets/starting-blocks-no-text.svg';
-import logoUrl from '../../assets/starting-blocks.svg';
+import logoUrl from '../../assets/sbaa-logo-full.svg';
 
 export const LandingLayoutRouteElement = () => (
   <LandingLayout>
@@ -35,21 +35,12 @@ export const LandingLayout = (props: { children: ReactNode }) => {
       flex="1 1 100%"
       h="100%"
     >
-      <Box filter={'drop-shadow(13px 13px 15px rgba(0,0,0,0.15))'}>
-        <Image display="inline" src={logoUrl} />
-        <Text
-          fontWeight={600}
-          fontSize="5xl"
-          ml="0.2em"
-          color="gray.600"
-          verticalAlign="top"
-          as="span"
-          fontFamily="mono"
-          lineHeight={0.4}
-        >
-          Admin App
-        </Text>
-      </Box>
+      <Image
+        filter={'drop-shadow(13px 13px 15px rgba(0,0,0,0.15))'}
+        display="inline"
+        src={logoUrl}
+      />
+
       <Divider borderColor="gray.500" w="40%" />
       <Box flex="0.6 1 0%">{props.children}</Box>
       <Box fontSize="sm" color="gray.600" textAlign="center">

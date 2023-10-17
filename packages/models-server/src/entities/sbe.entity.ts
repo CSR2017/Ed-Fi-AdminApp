@@ -38,7 +38,6 @@ export class Sbe extends EntityBase implements ISbe {
           return new JSONEncryptionTransformer({
             key: DB_SECRETS_ENCRYPTION.KEY,
             algorithm: 'aes-256-cbc',
-            iv: DB_SECRETS_ENCRYPTION.IV,
             ivLength: 16,
           }).from(value);
         } else {
@@ -50,7 +49,6 @@ export class Sbe extends EntityBase implements ISbe {
           return new JSONEncryptionTransformer({
             key: DB_SECRETS_ENCRYPTION.KEY,
             algorithm: 'aes-256-cbc',
-            iv: DB_SECRETS_ENCRYPTION.IV,
             ivLength: 16,
           }).to(value);
         } else {

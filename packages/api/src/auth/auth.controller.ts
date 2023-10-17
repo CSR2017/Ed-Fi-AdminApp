@@ -13,8 +13,10 @@ import {
   Controller,
   Get,
   Header,
+  InternalServerErrorException,
   Logger,
   Next,
+  NotFoundException,
   Param,
   Post,
   Query,
@@ -33,7 +35,6 @@ import { Authorize, NoAuthorization } from './authorization';
 import { Public } from './authorization/public.decorator';
 import { AuthCache } from './helpers/inject-auth-cache';
 import { ReqUser } from './helpers/user.decorator';
-import { IdpService } from './idp.service';
 import { NO_ROLE, USER_NOT_FOUND } from './login/oidc.strategy';
 
 @ApiTags('Auth')
@@ -41,23 +42,28 @@ import { NO_ROLE, USER_NOT_FOUND } from './login/oidc.strategy';
 export class AuthController {
   constructor(
     @InjectRepository(Tenant)
-    private readonly tenantsRepository: Repository<Tenant>,
-    private readonly idpService: IdpService
+    private readonly tenantsRepository: Repository<Tenant>
   ) {}
 
   @Public()
-  @Get('/oidc/:oidcId/login')
+  @Get('/login/:oidcId')
   oidcLogin(@Param('oidcId') oidcId: number, @Res() res: Response, @Request() req, @Next() next) {
     passport.authenticate(`oidc-${oidcId}`, {
       state: JSON.stringify({
         redirect: req.query?.redirect ?? '/',
         random: randomUUID(),
       }),
-    })(req, res, next);
+    })(req, res, (err) => {
+      if (err?.message.includes('Unknown authentication strategy')) {
+        throw new NotFoundException();
+      } else {
+        throw new InternalServerErrorException();
+      }
+    });
   }
 
   @Public()
-  @Get('/oidc/:oidcId/callback')
+  @Get('/callback/:oidcId')
   oidcLoginCallback(
     @Param('oidcId') oidcId: number,
     @Res() res: Response,

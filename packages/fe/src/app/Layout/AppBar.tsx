@@ -76,6 +76,7 @@ export const AppBar = () => {
             </MenuItem>
           ) : null}
           <MenuItem
+            // TODO EA-specific support link
             href="https://support.startingblocks.org/support/tickets/new"
             as="a"
             target="_blank"

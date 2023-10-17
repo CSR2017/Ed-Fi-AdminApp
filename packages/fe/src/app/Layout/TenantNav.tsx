@@ -231,7 +231,7 @@ export const TenantNav = (props: { tenantId: string }) => {
         text: 'Users',
       }
     ),
-    // TODO these are ATM not considered MVP, but that's still a little TBD and we might disable them by some means other than deleting the code. The code _is_ "correct" as of 7/17/23.
+    // TODO these are ATM not considered MVP, and the ultimate design is TBD... but in theory tenants should be able to view their roles and ownerships. Code below "correct" as of 7/17/23.
     // ...arrayElemIf(
     //   authorize({
     //     queryClient,

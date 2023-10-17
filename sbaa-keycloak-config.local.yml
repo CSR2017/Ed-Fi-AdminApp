@@ -10,7 +10,7 @@ clients:
     clientAuthenticatorType: client-secret
     secret: big-secret-123
     redirectUris:
-      - http://localhost:3333/api/auth/oidc/1/callback
+      - http://localhost:3333/api/auth/callback/1
     webOrigins:
       - http://localhost:4200
     protocolMappers:

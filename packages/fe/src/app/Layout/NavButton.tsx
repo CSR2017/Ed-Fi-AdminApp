@@ -22,7 +22,7 @@ export interface INavButtonProps {
   isActive?: boolean;
 }
 
-// TODO: The "resource explorer"-style tree component should probably be its own nice abstraction, with navigation links merely implementing the required interface. With the expectation of that eventually happening, not much effort has been put into making the existing setup very elegant.
+// TODO: The "resource explorer"-style tree component should probably be its own nice abstraction, with navigation links just implementing the interface. With the expectation of that eventually happening, not much effort has been put into making the existing setup very elegant.
 /**
  * Component which renders a navigation link, possibly with an
  * expandable nested list of indented sub-items.

@@ -33,7 +33,9 @@ async function bootstrap() {
         createTableIfMissing: true,
         conString: pgConnectionStr,
         schemaName: 'appsession',
+        ttl: 60 * 60 * 2, // 2hr (if omitted defaults to 24hr)
       }),
+      // cryptographic signing is not necessary here. expressSession is very generic and there are other ways of using it for which signing is important.
       secret: 'my-secret',
       resave: false,
       saveUninitialized: false,

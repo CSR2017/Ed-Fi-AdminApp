@@ -43,6 +43,7 @@ import {
   vendorQueries,
 } from '../api';
 
+// TODO add deselect capability
 const InnerSelect = (
   props: {
     field: ControllerRenderProps<any, any>;

@@ -68,28 +68,40 @@ export class RolesService {
   }
 
   async update(tenantId: number, id: number, updateRoleDto: PutRoleDto) {
-    const old = await this.findOne(tenantId, id);
-    const uniqueReqPrivileges = _.uniq(updateRoleDto.privileges);
-    const newPrivileges = await this.privilegesRepository.findBy({
-      code: In(updateRoleDto.privileges),
+    const old = await this.rolesRepository.findOneBy({
+      id,
     });
-    if (newPrivileges.length !== uniqueReqPrivileges.length) {
-      throw new BadRequestException('Invalid privileges');
+    if (old === null) {
+      return {
+        status: 'NOT_FOUND' as const,
+      };
+    } else if (old.tenantId !== tenantId) {
+      return {
+        status: 'PUBLIC_ROLE' as const,
+      };
+    } else if (old.type !== RoleType.UserTenant) {
+      return {
+        status: 'NOT_TENANT_USER_ROLE' as const,
+      };
+    } else {
+      const uniqueReqPrivileges = _.uniq(updateRoleDto.privileges);
+      const newPrivileges = await this.privilegesRepository.findBy({
+        code: In(updateRoleDto.privileges),
+      });
+      if (newPrivileges.length !== uniqueReqPrivileges.length) {
+        return {
+          status: 'INVALID_PRIVILEGES' as const,
+        };
+      }
+      return {
+        result: await this.rolesRepository.save({
+          ...old,
+          name: updateRoleDto.name,
+          description: updateRoleDto.description,
+          privileges: newPrivileges,
+        }),
+        status: 'SUCCESS' as const,
+      };
     }
-    if (old.type !== RoleType.UserTenant) {
-      throw new BadRequestException(`Attempting to update invalid role type (${old.type})`);
-    }
-    return this.rolesRepository.save({
-      ...old,
-      name: updateRoleDto.name,
-      description: updateRoleDto.description,
-      privileges: newPrivileges,
-    });
-  }
-
-  async remove(tenantId: number, id: number, user: GetUserDto) {
-    const old = await this.findOne(tenantId, id).catch(throwNotFound);
-    await this.rolesRepository.remove(old);
-    return undefined;
   }
 }

@@ -1,6 +1,7 @@
 import { defineStyle, extendTheme } from '@chakra-ui/react';
 import { transparentize } from '@chakra-ui/theme-tools';
 
+// TODO EA theme
 export const theme = extendTheme({
   colors: {
     'foreground-bg': '#fbfbfb',

@@ -91,6 +91,7 @@ export class StartingBlocksController {
     },
   })
   async getVendors(
+    // TODO including these unused parameters is necessary for NestJS's Open API spec generation, which uses metadata configured by the parameter decorators.
     @Param('sbeId', new ParseIntPipe()) sbeId: number,
     @Param('tenantId', new ParseIntPipe()) tenantId: number,
     @ReqSbe() sbe: Sbe,
@@ -220,6 +221,7 @@ export class StartingBlocksController {
   ) {
     const allApplications = await this.sbService.getApplications(sbe);
     return allApplications.filter((a) =>
+      // TODO once Admin API is fixed so the application includes an array of edorg ids, the desired logic is to do safe operations if _any_ edorg is allowed, and unsafe ones if _all_ are allowed.
       checkId(
         createEdorgCompositeNaturalKey({
           educationOrganizationId: a.educationOrganizationId,

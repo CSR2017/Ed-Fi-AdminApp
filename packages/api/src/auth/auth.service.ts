@@ -82,7 +82,6 @@ export class AuthService {
     const user = await this.usersRepo.findOne({
       where: {
         username,
-        userTenantMemberships: {},
       },
       relations: ['role'],
     });

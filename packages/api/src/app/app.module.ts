@@ -29,7 +29,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CacheModule } from './cache.module';
 import { routes } from './routes';
-import { SeedModule } from '../database/seed.module';
 import { SbSyncModule } from '../sb-sync/sb-sync.module';
 
 @Module({
@@ -44,7 +43,6 @@ import { SbSyncModule } from '../sb-sync/sb-sync.module';
         };
       },
     }),
-    SeedModule,
     TypeOrmModule.forFeature([User, Sbe, Ods, Edorg, Ownership]),
     RouterModule.register(routes),
     AuthModule,

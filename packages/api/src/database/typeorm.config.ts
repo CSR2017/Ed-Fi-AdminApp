@@ -1,5 +1,4 @@
 import {
-  AppLauncher,
   Edorg,
   Ods,
   Oidc,
@@ -28,6 +27,8 @@ import { NullableEnvlabel1693335908870 } from './migrations/1693335908870-Nullab
 import { FkOnDeleteTweaks1693514948085 } from './migrations/1693514948085-fkOnDeleteTweaks';
 import { FkOnDeleteFix1694446892889 } from './migrations/1694446892889-FkOnDeleteFix';
 import { LowercaseUniqueUsernames1697054661848 } from './migrations/1697054661848-LowercaseUniqueUsernames';
+import { Seeding1697203599392 } from './migrations/1697203599392-Seeding';
+import { RemoveRemainingAppLauncherThings1697207080973 } from './migrations/1697207080973-RemoveRemainingAppLauncherThings';
 
 const config: Pick<
   PostgresConnectionOptions,
@@ -45,7 +46,6 @@ const config: Pick<
     Role,
     Ownership,
     Oidc,
-    AppLauncher,
     SbSyncQueue,
   ],
   synchronize: false,
@@ -66,6 +66,8 @@ const config: Pick<
     FkOnDeleteTweaks1693514948085,
     FkOnDeleteFix1694446892889,
     LowercaseUniqueUsernames1697054661848,
+    Seeding1697203599392,
+    RemoveRemainingAppLauncherThings1697207080973,
   ],
 };
 export default config;

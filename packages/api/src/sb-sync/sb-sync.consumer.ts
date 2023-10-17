@@ -56,6 +56,7 @@ export class SbSyncConsumer implements OnModuleInit {
     return this.sbesRepository.find();
   }
 
+  // TODO this piece is coupled to Starting Blocks but could be replaced with anything which retrieves the set of ODS's and Ed-Orgs
   async refreshResources(sbeId: number, user: GetUserDto | undefined) {
     type SbMetaEdorgFlat = SbMetaEdorg & {
       dbname: SbMetaOds['dbname'];
@@ -126,10 +127,9 @@ export class SbSyncConsumer implements OnModuleInit {
               },
             });
 
-            const odssToDelete = new Set(existingOdss.map((o) => o.id));
-            /**
-             * get ods ID given ods dbname
-             */
+            /** Initially all ODSs, present ones dynamically removed */
+            const odsIdsToDelete = new Set(existingOdss.map((o) => o.id));
+            /** Map of dbname to Ods entity */
             const odsMap = Object.fromEntries(existingOdss.map((o) => [o.dbName, o]));
             const newOdss = sbOdss.flatMap((sbOds) => {
               if (sbOds.dbname in odsMap) {
@@ -137,7 +137,7 @@ export class SbSyncConsumer implements OnModuleInit {
                 if (id === undefined) {
                   Logger.error('ODS id-dbName map failed');
                 }
-                odssToDelete.delete(id);
+                odsIdsToDelete.delete(id);
                 return [];
               } else {
                 return [
@@ -157,7 +157,7 @@ export class SbSyncConsumer implements OnModuleInit {
             });
 
             await odsRepo.delete({
-              id: In([...odssToDelete.values()]),
+              id: In([...odsIdsToDelete.values()]),
             });
 
             const existingEdorgs = await edorgRepo.find({
@@ -167,7 +167,7 @@ export class SbSyncConsumer implements OnModuleInit {
             });
 
             /**
-             * get edorg ID given ods ID and edorg educationorganizationid
+             * get edorg entity given ods ID and edorg educationorganizationid
              */
             const odsEdorgMap = Object.fromEntries(
               Object.values(odsMap).map((ods) => [ods.id, new Map<number, Edorg>()])
@@ -222,7 +222,7 @@ export class SbSyncConsumer implements OnModuleInit {
                   Object.assign(
                     existing,
                     correctValues,
-                    // TypeORM has to update the closure table using `parent` rather than `parentId` for some reason
+                    // TypeORM has to update the closure table using `parent` entity rather than `parentId` for some reason
                     parent ? { parentId: undefined, parent } : {}
                   )
                 );
@@ -234,6 +234,7 @@ export class SbSyncConsumer implements OnModuleInit {
             await edorgRepo.delete({
               id: In([...edorgsToDelete]),
             });
+            // TODO now that the sync is managed by a queue, we should pull the sync log using a ViewEntity rather than storing the timestamps on the Sbe
             await this.sbesRepository.save({
               ...sbe,
               envLabel: sbMetaValue.envlabel,
@@ -244,13 +245,13 @@ export class SbSyncConsumer implements OnModuleInit {
               },
             });
 
-            if (newEdorgs.length || edorgsToDelete.size || newOdss.length || odssToDelete.size) {
+            if (newEdorgs.length || edorgsToDelete.size || newOdss.length || odsIdsToDelete.size) {
               const activeCacheKeys = this.cacheManager.keys();
               const reloadCaches = async () => {
                 const start = Number(new Date());
                 const logger = setInterval(() => {
                   Logger.log(`Rebuilding tenant caches. ${Number(new Date()) - start}ms elapsed.`);
-                });
+                }, 2000);
                 for (let i = 0; i < activeCacheKeys.length; i++) {
                   const key = activeCacheKeys[i];
                   await this.authService.reloadTenantOwnershipCache(Number(key));
@@ -263,7 +264,7 @@ export class SbSyncConsumer implements OnModuleInit {
             return toOperationResultDto({
               title: `Sync succeeded`,
               type: 'Success',
-              message: `${sbEdorgs.length} total Ed-Orgs (${newEdorgs.length} added, ${edorgsToDelete.size} deleted), ${sbOdss.length} total ODS's. (${newOdss.length} added, ${odssToDelete.size} deleted).`,
+              message: `${sbEdorgs.length} total Ed-Orgs (${newEdorgs.length} added, ${edorgsToDelete.size} deleted), ${sbOdss.length} total ODS's. (${newOdss.length} added, ${odsIdsToDelete.size} deleted).`,
               regarding: regarding(sbe),
             });
           })

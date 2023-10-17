@@ -15,24 +15,17 @@ export const isAll = (ids: Ids): ids is TrueValue => typeof ids === 'boolean' &&
 
 /*
 
-TODO clean up these typings.
+TODO The code around privileges and authorization rule helpers is an ungainly mixture of TS utilities, non-DRY object maps, and function overloads. There's probably a way to make it much better, but watch out for the usability. We've abandoned a couple DRYer refactors already because of what they did to intellisense.
 
-Broadly, there are two different versions of several kinds of behavior. The two
-versions are for the privileges that appear (a) at the top tenant level or (b)
-within a tenant's specific SBE. The several kinds of behavior are just the various things
-used by cacheAccordingToPrivileges at the bottom of this file.
-
-There's probably a way to make this all much more DRY. There are several requirements though:
-
-  a) separately type both SBE-nested and non-SBE-nested "full" privilege strings, to power the overloads
-  b) type the "child portion" of those "full" strings (e.g. edorg.application:read is the child portion of tenant.sbe.edorg.application:read)
-  c) map the full strings onto the child portion
-  d) map the full strings onto the parent portion (e.g. tenant.sbe)
-  e) type the "resource portion" of the both the SBE-nested and non-SBE-nested full privilege strings (e.g. tenant.ownership for tenant.ownership:read, or edorg.application for tenant.sbe.edorg.application)
-  f) map the "resource portion" strings onto arrays of all associated privileges
+  a) separately type both SBE-nested and non-SBE-nested privilege strings, to power the overloads
+  b) type the "child segment" of those "full" strings (e.g. edorg.application:read is the child segment of tenant.sbe.edorg.application:read)
+  c) map the full strings onto the child segment
+  d) map the full strings onto the parent segment (e.g. tenant.sbe)
+  e) type the "resource segment" of the both the SBE-nested and non-SBE-nested full privilege strings (e.g. tenant.ownership for tenant.ownership:read, or edorg.application for tenant.sbe.edorg.application)
+  f) map the "resource segment" strings onto arrays of all associated privileges
   g) provide good typing hints. Sometimes you can find a more DRY way of getting a type, but it loses the nice intellisense compared to explicit string unions.
   h) support the different overloads for SBE vs non-SBE privileges passed into the helpers.
-  i) replace an ID value with `true` where appropriate for the privilege (i.e. for `create` privileges)
+  i) specify `true` as the sole possible value where appropriate (i.e. for `create` privileges)
 
 */
 
@@ -117,8 +110,7 @@ export const sbeTenantPrivilegesMap: Record<TenantSbePrivilege, SbeSubEntityPriv
  * which is why we do it like this). By virtue of our particular business logic,
  * vendors and claimsets are either `true` or nothing. Together, these
  * make it possible to entirely avoid having to query the Admin API during cache
- * building. That's almost certainly worth the minor inconsistency of Applications
- * using Edorg IDs.
+ * building.
  */
 export interface ITenantCache
   extends Partial<

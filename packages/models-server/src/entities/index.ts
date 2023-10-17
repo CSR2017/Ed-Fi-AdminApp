@@ -8,5 +8,4 @@ export * from './privilege.entity';
 export * from './role.entity';
 export * from './ownership.entity';
 export * from './oidc.entity';
-export * from './app-launcher.entity';
 export * from './sb-sync-queue.view.entity';

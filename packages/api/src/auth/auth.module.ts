@@ -1,5 +1,4 @@
 import {
-  AppLauncher,
   Edorg,
   Ods,
   Oidc,
@@ -16,8 +15,6 @@ import { UsersModule } from '../tenants/users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { SessionSerializer } from './helpers/session.serializer';
-import { IdpService } from './idp.service';
-import { RegisterAlIdpsService } from './login/applauncher.strategy';
 import { RegisterOidcIdpsService } from './login/oidc.strategy';
 
 @Global()
@@ -34,17 +31,10 @@ import { RegisterOidcIdpsService } from './login/oidc.strategy';
       UserTenantMembership,
       Tenant,
       Oidc,
-      AppLauncher,
     ]),
   ],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    IdpService,
-    SessionSerializer,
-    RegisterOidcIdpsService,
-    RegisterAlIdpsService,
-  ],
+  providers: [AuthService, SessionSerializer, RegisterOidcIdpsService],
   exports: [AuthService],
 })
 export class AuthModule {}

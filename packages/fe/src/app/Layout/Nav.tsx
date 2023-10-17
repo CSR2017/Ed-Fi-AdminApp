@@ -1,11 +1,11 @@
-import { Box, useBoolean } from '@chakra-ui/react';
+import { Box, Text, useBoolean } from '@chakra-ui/react';
 import { GetTenantDto } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
 import { Select } from 'chakra-react-select';
 import { atom, useAtom } from 'jotai';
 import Cookies from 'js-cookie';
 import { Resizable } from 're-resizable';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { BsHouseDoor, BsHouseDoorFill, BsPerson, BsPersonFill } from 'react-icons/bs';
 import { useLocation, useMatches, useNavigate, useParams } from 'react-router-dom';
 import { useMyTenants } from '../api';
@@ -21,15 +21,46 @@ import { GlobalNav } from './GlobalNav';
 import { NavButton } from './NavButton';
 import { TenantNav } from './TenantNav';
 
+const parseDefaultTenant = (defaultTenant: string | undefined) => {
+  const num = Number(defaultTenant);
+  return !isNaN(num) ? num : undefined;
+};
+
 export const asTenantIdAtom = atom<number | undefined>(undefined);
 
 export const Nav = () => {
-  const params = useParams();
-
-  const defaultTenant: any = params?.asId ?? Cookies.get('defaultTenant');
-  const [tenantId, setTenantId] = useAtom(asTenantIdAtom);
+  const [isResizing, setIsResizing] = useBoolean(false);
 
   const tenants = useMyTenants();
+  return (
+    <Box
+      pb={3}
+      pt={8}
+      flex="0 0 20em"
+      overflowX="hidden"
+      overflowY="auto"
+      bg="foreground-bg"
+      enable={{ right: true }}
+      defaultSize={{ width: '15em', height: '100%' }}
+      onResizeStart={setIsResizing.on}
+      onResizeStop={setIsResizing.off}
+      borderRightWidth={isResizing ? '3px' : undefined}
+      borderRightColor={isResizing ? 'teal.500' : undefined}
+      minWidth="11em"
+      maxWidth="min(40em, 80%)"
+      as={Resizable}
+    >
+      {tenants.data ? <NavContent tenants={tenants.data} /> : <Text px={3}>...Loading</Text>}
+    </Box>
+  );
+};
+
+const NavContent = ({ tenants }: { tenants: Record<GetTenantDto['id'], GetTenantDto> }) => {
+  const params = useParams() as { asId?: string };
+
+  const defaultTenant = parseDefaultTenant(params?.asId ?? Cookies.get('defaultTenant'));
+
+  const [tenantId, _setTenantId] = useAtom(asTenantIdAtom);
   const currentMatches = useMatches();
   const path = useLocation().pathname;
 
@@ -49,17 +80,37 @@ export const Nav = () => {
       config,
     })
   );
-  const selectedTenant = tenantId === undefined ? undefined : tenants.data?.[tenantId];
-  const isInTenantContext = currentMatches.some((m) => m.pathname.startsWith('/as/'));
-  const tenantsCount = Object.keys(tenants.data || {}).length;
-  const firstTenantId: string | undefined = Object.keys(tenants.data || {})?.[0];
+  const selectedTenant = tenantId === undefined ? undefined : tenants?.[tenantId];
+  const tenantsCount = Object.keys(tenants).length;
+  const firstTenantId: string | undefined = Object.keys(tenants)?.[0];
+
+  const setTenantId = useMemo(() => {
+    return (newTenantId: number | undefined) => {
+      if (newTenantId === undefined) {
+        if (params.asId) {
+          navigate('/');
+        }
+        _setTenantId(undefined);
+      } else {
+        if (newTenantId in tenants) {
+          _setTenantId(newTenantId);
+          if (params.asId !== String(newTenantId)) {
+            navigate(`/as/${newTenantId}`);
+          }
+        } else {
+          if (params.asId) {
+            navigate('/');
+          }
+          _setTenantId(undefined);
+        }
+      }
+    };
+  }, [_setTenantId, tenants, params, navigate]);
 
   // Set initial tenantId
   useEffect(() => {
     setTenantId(
-      typeof defaultTenant === 'string' && defaultTenant !== 'undefined' && defaultTenant !== 'NaN'
-        ? Number(defaultTenant)
-        : undefined
+      defaultTenant !== undefined && defaultTenant in tenants ? defaultTenant : undefined
     );
   }, []);
 
@@ -87,34 +138,16 @@ export const Nav = () => {
       // and you don't have any global privileges
       !hasGlobalPrivileges &&
       // and your tenant isn't already set
-      params.asId === undefined
+      tenantId === undefined
     ) {
       // then set it
       setTenantId(Number(firstTenantId));
     }
-  }, [tenantsCount, firstTenantId, hasGlobalPrivileges, params.asId, setTenantId]);
-
-  const [isResizing, setIsResizing] = useBoolean(false);
+  }, [tenantsCount, firstTenantId, hasGlobalPrivileges, tenantId, setTenantId]);
 
   return (
-    <Box
-      pb={3}
-      pt={8}
-      flex="0 0 20em"
-      overflowX="hidden"
-      overflowY="auto"
-      bg="foreground-bg"
-      enable={{ right: true }}
-      defaultSize={{ width: '15em', height: '100%' }}
-      onResizeStart={setIsResizing.on}
-      onResizeStop={setIsResizing.off}
-      borderRightWidth={isResizing ? '3px' : undefined}
-      borderRightColor={isResizing ? 'teal.500' : undefined}
-      minWidth="11em"
-      maxWidth="min(40em, 80%)"
-      as={Resizable}
-    >
-      {Object.keys(tenants.data ?? {}).length > 1 || hasGlobalPrivileges ? (
+    <>
+      {Object.keys(tenants).length > 1 || hasGlobalPrivileges ? (
         <Box mb={7} px={3}>
           <Select
             aria-label="Select a tenant (or global) context"
@@ -137,16 +170,7 @@ export const Nav = () => {
             onChange={(option) => {
               const value = option?.value ?? undefined;
               const newTenantId = value === undefined ? undefined : Number(value);
-              if (newTenantId !== undefined) {
-                navigate(`/as/${newTenantId}`);
-              } else {
-                if (isInTenantContext) {
-                  navigate('/');
-                  setTenantId(newTenantId);
-                } else {
-                  setTenantId(newTenantId);
-                }
-              }
+              setTenantId(newTenantId);
             }}
             options={[
               {
@@ -158,7 +182,7 @@ export const Nav = () => {
                   fontSize: 'md',
                 },
               },
-              ...Object.values(tenants.data ?? ({} as Record<string, GetTenantDto>))
+              ...Object.values(tenants)
                 .sort((a, b) => Number(a.displayName > b.displayName) - 0.5)
                 .map((t) => ({
                   label: t.displayName,
@@ -217,6 +241,6 @@ export const Nav = () => {
         }}
       />
       {tenantId === undefined ? <GlobalNav /> : <TenantNav tenantId={String(tenantId)} />}
-    </Box>
+    </>
   );
 };

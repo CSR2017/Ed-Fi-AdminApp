@@ -1,4 +1,4 @@
-import { AppLauncher, Oidc, User } from '@edanalytics/models-server';
+import { Oidc, User } from '@edanalytics/models-server';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import config from 'config';
@@ -12,13 +12,11 @@ import { AuthService } from '../auth.service';
 export class RegisterOidcIdpsService {
   constructor(
     @InjectRepository(Oidc)
-    private oidcRepo: Repository<Oidc>,
-    @InjectRepository(AppLauncher)
-    private alRepo: Repository<AppLauncher>,
+    private readonly oidcRepo: Repository<Oidc>,
     @Inject(AuthService)
-    private authService: AuthService
+    private readonly authService: AuthService
   ) {
-    oidcRepo.find().then((oidcs) => {
+    this.oidcRepo.find().then((oidcs) => {
       oidcs.forEach(async (oidcConfig) => {
         const TrustIssuer = await Issuer.discover(
           `${oidcConfig.issuer}/.well-known/openid-configuration`
@@ -31,7 +29,7 @@ export class RegisterOidcIdpsService {
           {
             client,
             params: {
-              redirect_uri: `${config.MY_URL}/api/auth/oidc/${oidcConfig.id}/callback`,
+              redirect_uri: `${config.MY_URL}/api/auth/callback/${oidcConfig.id}`,
               scope: oidcConfig.scope,
             },
             usePKCE: false,

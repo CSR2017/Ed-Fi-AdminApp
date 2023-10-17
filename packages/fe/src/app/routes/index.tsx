@@ -126,7 +126,8 @@ export const unauthenticatedRoute: RouteObject = {
 const Login = memo(() => {
   const { redirect } = useSearchParamsObject() as any;
   useEffect(() => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/oidc/1/login${
+    // TODO the backend supports multiple (trusted) IdPs, so maybe we should support that here with some kind of login screen
+    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/login/1${
       redirect ? `?redirect=${redirect}` : ''
     }`;
   }, []);

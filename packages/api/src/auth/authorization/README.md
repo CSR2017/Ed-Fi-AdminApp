@@ -1,159 +1,18 @@
 # Authorization
 
-## All privileges
+Each action in the app is gated behind one or more privileges applied to one or more resources. The app has several mechanisms for applying privileges:
 
-(for now ignore the question of exactly which CRUD operations exist in MVP)
+- User's global role in the app. Typical users have a no global privileges beyond reading their own profile.
+- User's roles in one or more app tenants. Typical users will be members of one tenant.
+- Role applied to tenant's ownership of an environment, ODS, or ed-org.
 
-```py
-me:read
+There are three levels of authorization context in the app:
 
-ownership:read
-ownership:update
-ownership:delete
-ownership:create
+- Global: does the user have a sufficient global role?
+- Tenant: does the user have a sufficient global role _or_ tenant role?
+- Tenant&ndash;environment: does the user have a sufficient global or tenant role, _and_ does the tenant have a sufficient ownership role?
 
-user:read
-user:update
-user:delete
-user:create
-
-tenant:read
-
-tenant.user:read
-
-tenant.user-tenant-membership:read
-tenant.user-tenant-membership:update
-tenant.user-tenant-membership:delete
-tenant.user-tenant-membership:create
-
-tenant.role:read
-tenant.role:update
-tenant.role:delete
-tenant.role:create
-
-tenant.ownership:read
-
-tenant.sbe:read
-tenant.sbe:update
-tenant.sbe:delete
-tenant.sbe:create
-
-tenant.sbe.vendor:read
-tenant.sbe.vendor:update
-tenant.sbe.vendor:delete
-tenant.sbe.vendor:create
-
-tenant.sbe.claimset:read
-tenant.sbe.claimset:update
-tenant.sbe.claimset:delete
-tenant.sbe.claimset:create
-
-tenant.sbe.ods:read
-tenant.sbe.ods:update
-tenant.sbe.ods:delete
-tenant.sbe.ods:create
-
-tenant.sbe.edorg:read
-tenant.sbe.edorg:update
-tenant.sbe.edorg:delete
-tenant.sbe.edorg:create
-
-tenant.sbe.edorg.application:read
-tenant.sbe.edorg.application:update
-tenant.sbe.edorg.application:delete
-tenant.sbe.edorg.application:create
-tenant.sbe.edorg.application:reset-credentials
-
-# Global versions of the above, to be implemented post-MVP:
-user-tenant-membership:read
-user-tenant-membership:update
-user-tenant-membership:delete
-user-tenant-membership:create
-
-role:read
-role:update
-role:delete
-role:create
-
-ownership:read
-
-sbe:read
-sbe:update
-sbe:delete
-sbe:create
-
-sbe.vendor:read
-sbe.vendor:update
-sbe.vendor:delete
-sbe.vendor:create
-
-sbe.claimset:read
-sbe.claimset:update
-sbe.claimset:delete
-sbe.claimset:create
-
-sbe.ods:read
-sbe.ods:update
-sbe.ods:delete
-sbe.ods:create
-
-sbe.edorg:read
-sbe.edorg:update
-sbe.edorg:delete
-sbe.edorg:create
-
-sbe.edorg.application:read
-sbe.edorg.application:update
-sbe.edorg.application:delete
-sbe.edorg.application:create
-sbe.edorg.application:reset-credentials
-```
-
-## Roles
-
-### Standard MVP global role
-
-```
-me:read
-```
-
-### Standard MVP tenant user role
-
-```
-tenant:read
-
-tenant.user:read
-tenant.user-tenant-membership:read
-tenant.role:read
-tenant.ownership:read
-tenant.sbe:read
-tenant.sbe.vendor:read
-tenant.sbe.claimset:read
-tenant.sbe.ods:read
-tenant.sbe.edorg:read
-
-tenant.sbe.edorg.application:read
-tenant.sbe.edorg.application:update
-tenant.sbe.edorg.application:delete
-tenant.sbe.edorg.application:create
-tenant.sbe.edorg.application:reset-credentials
-```
-
-### Standard MVP tenant resource ownership role
-
-```
-tenant.sbe:read
-tenant.sbe.vendor:read
-tenant.sbe.claimset:read
-tenant.sbe.ods:read
-tenant.sbe.edorg:read
-
-tenant.sbe.edorg.application:read
-tenant.sbe.edorg.application:update
-tenant.sbe.edorg.application:delete
-tenant.sbe.edorg.application:create
-tenant.sbe.edorg.application:reset-credentials
-```
+Ownership of a whole environment carries with it ownership of each ODS and ed-org within that environment. However, ownership of just an ODS or ed-org also carries privileges _up_ the hierarchy for the purpose of wayfinding. In practice all this means is that if you own and ODS then you can also see the name of the environment it's part of.
 
 ## Tenant ownership cache
 
@@ -188,9 +47,7 @@ cache = {
 };
 ```
 
-In the case of the first kind of usage of the `[privilege]: true` result (two kinds listed above the code block), it's used purely for convenience. For instance, we filter Edorgs by `sbeId` using regular ORM methods. It's only if there's something more complicated than that that we use the cache for individual IDs (e.g. ODS-scoped ownerships). The controller always uses the Edorg ID cache, but it does so via a helper that returns an empty filter in the case of `true`.
-
-Just to be clear, **_it's the responsibility of the controllers or services to actually implement these various filters which are considered external to the authorization cache._** These will almost always be one of two basic `where` clauses:
+In the case of the first kind of usage of the `[privilege]: true` result (two kinds listed above the code block), it's used purely for convenience. For instance, Applications are naturally retrieved by `sbeId` anyway. If that's all the filtering we have to do then we might as well not cache a bunch of individual IDs. In general this case will almost always be one of two basic `where` clauses:
 
 - `where sbeId = :sbeId`, or
 - `where tenantId = :tenantId`.
@@ -206,7 +63,9 @@ Memory size:
 - Say there are six copies of the 10,000 IDs, five for Application privileges and one for `edorg:read`. That would be about 1.7 MB of memory. Not a disaster.
 - In conclusion, memory size doesn't seem like a major concern.
 
-Upon receipt of a request by a tenant whose cache is not already loaded, we need to load the cache. Once that load has started, we don't want to re-start it if another request for that tenant comes in before it's done. This necessitates statefulness. The current solution is to use an in-memory JavaScript cache which supports promises. This is significantly nicer to use than one which necessitates polling, but has the downside of not really supporting multi-instance deployments. So far we think that's not really a concern because each instance can just load its own cache, and given the fairly quick load time (<500ms for TX) and fairly quick expiration, there shouldn't be any real issues.
+Upon receipt of a request by a tenant whose cache is not already loaded, we need to load the cache. Once that load has started, we don't want to re-start it if another request for that tenant comes in before it's done. This necessitates statefulness. The current solution is to use an in-memory JavaScript cache which supports promises. This is significantly nicer to use than one which necessitates polling, but has the downside of not really supporting multi-instance deployments. So far we haven't scaled horizontally and haven't needed to address it.
+
+The least-performant part of the whole thing at the moment is the way in which the front end requests the user's cache in order to get the info needed for its own authorization logic. Each privilege is requested separately. This is a refactor waiting to happen but just hasn't made it to #1 on the JIRA board yet. Maybe the global privileges are one request and then each tenant&ndash;environment is another.
 
 ## User session cache
 

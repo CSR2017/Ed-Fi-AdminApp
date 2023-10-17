@@ -1,4 +1,3 @@
-import { stdDetailed, stdShort } from '@edanalytics/utils';
 import { Expose, Type } from 'class-transformer';
 import { IsOptional, IsString, MinLength } from 'class-validator';
 import { ISbe, ISbeConfigPrivate, ISbeConfigPublic } from '../interfaces/sbe.interface';
@@ -33,43 +32,6 @@ export class GetSbeConfigPublic implements ISbeConfigPublic {
   lastSuccessfulPull?: Date;
   @Expose()
   lastFailedPull?: Date;
-
-  get lastSuccessfulConnectionSbMetaLong() {
-    return stdDetailed(this.lastSuccessfulConnectionSbMeta);
-  }
-  get lastSuccessfulConnectionSbMetaShort() {
-    return stdShort(this.lastSuccessfulConnectionSbMeta);
-  }
-  get lastFailedConnectionSbMetaLong() {
-    return stdDetailed(this.lastFailedConnectionSbMeta);
-  }
-  get lastFailedConnectionSbMetaShort() {
-    return stdShort(this.lastFailedConnectionSbMeta);
-  }
-  get lastSuccessfulConnectionAdminApiLong() {
-    return stdDetailed(this.lastSuccessfulConnectionAdminApi);
-  }
-  get lastSuccessfulConnectionAdminApiShort() {
-    return stdShort(this.lastSuccessfulConnectionAdminApi);
-  }
-  get lastFailedConnectionAdminApiLong() {
-    return stdDetailed(this.lastFailedConnectionAdminApi);
-  }
-  get lastFailedConnectionAdminApiShort() {
-    return stdShort(this.lastFailedConnectionAdminApi);
-  }
-  get lastSuccessfulPullLong() {
-    return stdDetailed(this.lastSuccessfulPull);
-  }
-  get lastSuccessfulPullShort() {
-    return stdShort(this.lastSuccessfulPull);
-  }
-  get lastFailedPullLong() {
-    return stdDetailed(this.lastFailedPull);
-  }
-  get lastFailedPullShort() {
-    return stdShort(this.lastFailedPull);
-  }
 }
 
 export class SbeConfigPrivate implements ISbeConfigPrivate {

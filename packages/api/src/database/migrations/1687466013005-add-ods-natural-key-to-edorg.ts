@@ -9,24 +9,9 @@ export class AdOdsNaturalKeyToEdorg1687466013005 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "edorg" ADD CONSTRAINT "UQ_07c5479767d3c27eb0150fee1d9" UNIQUE ("sbeId", "odsId", "educationOrganizationId")`
     );
-    const edorgs = await queryRunner.manager.getRepository(Edorg).find({
-      select: {
-        ods: {
-          dbName: true,
-        },
-        id: true,
-      },
-      relations: {
-        ods: true,
-      },
-    });
-    await queryRunner.manager.getRepository(Edorg).save(
-      edorgs.map((edorg) => ({
-        ...edorg,
-        odsDbName: edorg.ods.dbName,
-      }))
+    await queryRunner.query(
+      `UPDATE edorg SET "odsDbName" = ods."dbName" FROM ods WHERE edorg."odsId" = ods."id"`
     );
-
     await queryRunner.query('ALTER TABLE "edorg" ALTER COLUMN "odsDbName" SET NOT NULL');
   }
 

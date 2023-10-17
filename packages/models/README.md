@@ -1,7 +1,3 @@
 # models
 
-This library was generated with [Nx](https://nx.dev).
-
-## Building
-
-Run `nx build models` to build the library.
+This library contains the parts of the shared model code that are able to run client-side. In other words, precursors to the ORM-decorated derivatives that the back-end uses.
