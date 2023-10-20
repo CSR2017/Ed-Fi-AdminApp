@@ -10,6 +10,7 @@ import { BsHouseDoor, BsHouseDoorFill, BsPerson, BsPersonFill } from 'react-icon
 import { useLocation, useMatches, useNavigate, useParams } from 'react-router-dom';
 import { useMyTenants } from '../api';
 import {
+  authCacheKey,
   authorize,
   globalOwnershipAuthConfig,
   globalSbeAuthConfig,
@@ -32,6 +33,29 @@ export const Nav = () => {
   const [isResizing, setIsResizing] = useBoolean(false);
 
   const tenants = useMyTenants();
+  const queryClient = useQueryClient();
+  const globalAuthConfigs = [
+    globalTenantAuthConfig('tenant:read')!,
+    globalOwnershipAuthConfig('ownership:read')!,
+    globalUserAuthConfig('user:read')!,
+    globalSbeAuthConfig('__filtered__', 'sbe:read')!,
+  ];
+  usePrivilegeCacheForConfig(globalAuthConfigs);
+
+  const hasGlobalPrivileges = globalAuthConfigs.some((config) =>
+    authorize({
+      queryClient,
+      config,
+    })
+  )
+    ? true
+    : globalAuthConfigs.every(
+        (config) => queryClient.getQueryState(authCacheKey(config))?.status === 'success'
+      )
+    ? false
+    : // not done loading yet
+      undefined;
+
   return (
     <Box
       pb={3}
@@ -50,12 +74,22 @@ export const Nav = () => {
       maxWidth="min(40em, 80%)"
       as={Resizable}
     >
-      {tenants.data ? <NavContent tenants={tenants.data} /> : <Text px={3}>...Loading</Text>}
+      {tenants.data && hasGlobalPrivileges !== undefined ? (
+        <NavContent tenants={tenants.data} hasGlobalPrivileges={hasGlobalPrivileges} />
+      ) : (
+        <Text px={3}>...Loading</Text>
+      )}
     </Box>
   );
 };
 
-const NavContent = ({ tenants }: { tenants: Record<GetTenantDto['id'], GetTenantDto> }) => {
+const NavContent = ({
+  tenants,
+  hasGlobalPrivileges,
+}: {
+  tenants: Record<GetTenantDto['id'], GetTenantDto>;
+  hasGlobalPrivileges: boolean;
+}) => {
   const params = useParams() as { asId?: string };
 
   const defaultTenant = parseDefaultTenant(params?.asId ?? Cookies.get('defaultTenant'));
@@ -65,21 +99,7 @@ const NavContent = ({ tenants }: { tenants: Record<GetTenantDto['id'], GetTenant
   const path = useLocation().pathname;
 
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const globalAuthConfigs = [
-    globalTenantAuthConfig('tenant:read'),
-    globalOwnershipAuthConfig('ownership:read'),
-    globalUserAuthConfig('user:read'),
-    globalSbeAuthConfig('__filtered__', 'sbe:read'),
-  ];
-  usePrivilegeCacheForConfig(globalAuthConfigs);
 
-  const hasGlobalPrivileges = globalAuthConfigs.some((config) =>
-    authorize({
-      queryClient,
-      config,
-    })
-  );
   const selectedTenant = tenantId === undefined ? undefined : tenants?.[tenantId];
   const tenantsCount = Object.keys(tenants).length;
   const firstTenantId: string | undefined = Object.keys(tenants)?.[0];

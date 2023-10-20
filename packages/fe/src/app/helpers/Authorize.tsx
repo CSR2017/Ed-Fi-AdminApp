@@ -49,16 +49,9 @@ export const authorize = <
     props.config !== undefined && (!Array.isArray(props.config) || props.config.length > 0);
 
   configArray.forEach((config, i) => {
-    const thisPrivilegeCache = props.queryClient.getQueryData<boolean | SpecificIds>([
-      'authorizations',
-      'tenantId' in config.subject && config.subject?.tenantId !== undefined
-        ? String(config.subject.tenantId)
-        : undefined,
-      'sbeId' in config.subject && config.subject?.sbeId !== undefined
-        ? String(config.subject.sbeId)
-        : undefined,
-      config.privilege,
-    ]);
+    const thisPrivilegeCache = props.queryClient.getQueryData<boolean | SpecificIds>(
+      authCacheKey(config)
+    );
 
     /**
     This query data gets stored in its native format which allows react-query's diffing to work
@@ -140,3 +133,16 @@ export const AuthorizeComponent = <PrivilegeType extends PrivilegeCode>(
     return null;
   }
 };
+
+export function authCacheKey(config: AuthorizeConfig) {
+  return [
+    'authorizations',
+    'tenantId' in config.subject && config.subject?.tenantId !== undefined
+      ? String(config.subject.tenantId)
+      : undefined,
+    'sbeId' in config.subject && config.subject?.sbeId !== undefined
+      ? String(config.subject.sbeId)
+      : undefined,
+    config.privilege,
+  ];
+}
