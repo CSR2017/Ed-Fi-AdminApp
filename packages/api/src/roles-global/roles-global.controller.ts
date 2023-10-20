@@ -119,10 +119,10 @@ export class RolesGlobalController {
   })
   async remove(
     @Param('roleId', new ParseIntPipe()) roleId: number,
-    @Query('force', new ParseBoolPipe()) force: boolean,
+    @Query('force', new ParseBoolPipe({ optional: true })) force: boolean | undefined,
     @ReqUser() user: GetSessionDataDto,
     @CheckAbility() checkAbility: CheckAbilityType
   ) {
-    return this.roleService.remove(roleId, user, force, checkAbility);
+    return this.roleService.remove(roleId, user, !!force, checkAbility);
   }
 }
