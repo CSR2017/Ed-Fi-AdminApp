@@ -27,23 +27,21 @@ import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { PrivilegesInput } from './PrivilegesInput';
 
 const resolver = classValidatorResolver(PutRoleDto);
-const hasTenantImpersonation = (form: PutRoleDto) =>
-  form.privileges?.some((p) => p.startsWith('tenant.'));
+const hasTenantImpersonation = (privileges: PutRoleDto['privileges']) =>
+  privileges?.some((p) => p.startsWith('tenant.'));
 
-const hasGlobalPrivileges = (form: PutRoleDto) =>
-  form.privileges?.some(
-    (p) => p !== 'me:read' && p !== 'privilege:read' && !p.startsWith('tenant.')
-  );
+const hasGlobalPrivileges = (privileges: PutRoleDto['privileges']) =>
+  privileges?.some((p) => p !== 'me:read' && p !== 'privilege:read' && !p.startsWith('tenant.'));
 
-const hasNewTenantImpersonation = (form: PutRoleDto, existing: GetRoleDto) =>
+const hasNewTenantImpersonation = (privileges: PutRoleDto['privileges'], existing: GetRoleDto) =>
   existing.type === RoleType.UserGlobal &&
-  hasTenantImpersonation(form) &&
-  !hasTenantImpersonation({ ...existing, privileges: existing.privileges.map((p) => p.code) });
+  hasTenantImpersonation(privileges) &&
+  !hasTenantImpersonation(existing.privileges.map((p) => p.code));
 
-const hasNewGlobalPrivileges = (form: PutRoleDto, existing: GetRoleDto) =>
+const hasNewGlobalPrivileges = (privileges: PutRoleDto['privileges'], existing: GetRoleDto) =>
   existing.type === RoleType.UserGlobal &&
-  hasGlobalPrivileges(form) &&
-  !hasGlobalPrivileges({ ...existing, privileges: existing.privileges.map((p) => p.code) });
+  hasGlobalPrivileges(privileges) &&
+  !hasGlobalPrivileges(existing.privileges.map((p) => p.code));
 
 export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
   const popBanner = usePopBanner();
@@ -95,10 +93,10 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
   } catch (error) {
     // either undefined or plain string from class-validator
   }
-  const allValues = watch();
+  const newPrivileges = watch('privileges');
 
-  const tenantImpersonation = hasNewTenantImpersonation(allValues, props.role);
-  const adminPrivileges = hasNewGlobalPrivileges(allValues, props.role);
+  const tenantImpersonation = hasNewTenantImpersonation(newPrivileges, props.role);
+  const adminPrivileges = hasNewGlobalPrivileges(newPrivileges, props.role);
   const confirmBody = tenantImpersonation
     ? adminPrivileges
       ? "It looks like you're adding some new global privileges that this role didn't used to have. Are you sure you want to do that?"
@@ -120,6 +118,11 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
           .catch(noop)
       )}
     >
+      <FormControl maxW="form-width" isInvalid={!!errors.name}>
+        <FormLabel>Name</FormLabel>
+        <Input {...register('name')} placeholder="name" />
+        <FormErrorMessage>{errors.name?.message}</FormErrorMessage>
+      </FormControl>
       <FormControl maxW="form-width" isInvalid={!!errors.description}>
         <FormLabel>Description</FormLabel>
         <Input {...register('description')} placeholder="description" />
@@ -130,6 +133,7 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
       <FormControl isInvalid={typeof privilegesError === 'string'}>
         <FormLabel>Privileges</FormLabel>
         <Controller
+          rules={{ deps: [] }}
           control={control}
           name="privileges"
           render={(field) =>
