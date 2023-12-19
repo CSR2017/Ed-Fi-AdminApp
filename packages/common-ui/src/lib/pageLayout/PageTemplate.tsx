@@ -77,11 +77,11 @@ export const PageTemplate = (props: {
         </ErrorBoundary>
       </HStack>
       <ErrorBoundary
-        FallbackComponent={(arg: { error: { message: string } }) => (
+        FallbackComponent={(arg: { error: { title: string } }) => (
           <Box mr="1px">
             <Alert status="error">
               <AlertIcon />
-              {arg.error.message}
+              {arg.error.title}
             </Alert>
           </Box>
         )}

@@ -1,11 +1,11 @@
 import { Expose, Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsEmail,
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsArray,
   IsString,
   MaxLength,
   MinLength,
@@ -54,7 +54,7 @@ class ApplicationProfileDto {
   id: number;
 }
 
-class AuthStrategyDto {
+class AuthStrategyDto130 {
   @Expose()
   @IsString()
   @IsOptional()
@@ -64,7 +64,13 @@ class AuthStrategyDto {
   isInheritedFromParent: boolean;
 }
 
-export class ResourceClaimDto {
+class AuthStrategyDto131 {
+  @Expose()
+  @ValidateNested()
+  authorizationStrategies: AuthStrategyDto130[];
+}
+
+export class ResourceClaimDto131 {
   @Expose()
   @IsString()
   name: string;
@@ -81,18 +87,22 @@ export class ResourceClaimDto {
   @IsBoolean()
   delete: boolean;
   @Expose()
-  @Type(() => AuthStrategyDto)
-  @IsArray()
-  defaultAuthStrategiesForCRUD: (AuthStrategyDto | null)[];
+  @IsOptional()
+  @IsBoolean()
+  readChanges?: boolean | undefined;
   @Expose()
-  @Type(() => AuthStrategyDto)
+  @Type(() => AuthStrategyDto131)
   @IsArray()
-  authStrategyOverridesForCRUD: (AuthStrategyDto | null)[];
+  defaultAuthStrategiesForCRUD: (AuthStrategyDto131 | null)[];
+  @Expose()
+  @Type(() => AuthStrategyDto131)
+  @IsArray()
+  authStrategyOverridesForCRUD: (AuthStrategyDto131 | null)[];
 
   @Expose()
-  @Type(() => ResourceClaimDto)
+  @Type(() => ResourceClaimDto131)
   @ValidateNested({ each: true })
-  children: ResourceClaimDto[];
+  children: ResourceClaimDto131[];
 
   /*
   These are originally arrays of null or object. We want to validate
@@ -117,10 +127,10 @@ export class PostClaimsetDto {
   name: string;
 
   @Expose()
-  @Type(() => ResourceClaimDto)
+  @Type(() => ResourceClaimDto131)
   @IsNotEmpty({ message: 'Valid JSON for Resource Claims is required' })
   @ValidateNested({ each: true })
-  resourceClaims: ResourceClaimDto[];
+  resourceClaims: ResourceClaimDto131[];
 
   /*
   These are used to power the plain text JSON editor in the UI.

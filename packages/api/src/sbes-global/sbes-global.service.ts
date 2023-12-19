@@ -182,20 +182,20 @@ export class SbesGlobalService {
       };
     }
 
-    const adminApiMsg =
-      loginResult.status === 'INVALID_ADMIN_API_URL'
-        ? 'Invalid URL.'
-        : loginResult.status === 'NO_ADMIN_API_URL'
-        ? 'No URL provided.'
-        : loginResult.status === 'LOGIN_FAILED'
-        ? 'Unknown failure.'
-        : undefined;
+    const adminApiMsgs: Record<(typeof loginResult)['status'], string> = {
+      GOAWAY: 'HTTP/2 GOAWAY received.',
+      INVALID_ADMIN_API_URL: 'Invalid Admin API URL provided.',
+      LOGIN_FAILED: 'Unknown login failure.',
+      NO_ADMIN_API_KEY: 'No Admin API key provided.',
+      NO_ADMIN_API_SECRET: 'No Admin API secret provided.',
+      NO_ADMIN_API_URL: 'No Admin API URL provided.',
+    };
 
     throw new CustomHttpException(
       {
         title: 'Admin API connection unsuccessful.',
         type: 'Error',
-        message: adminApiMsg,
+        message: loginResult.message ?? adminApiMsgs[loginResult.status],
         regarding: regarding(sbe),
       },
       500

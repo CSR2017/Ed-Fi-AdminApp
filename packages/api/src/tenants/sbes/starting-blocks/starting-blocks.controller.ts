@@ -12,7 +12,6 @@ import {
   PutVendorDto,
   createEdorgCompositeNaturalKey,
   toApplicationYopassResponseDto,
-  toGetClaimsetDto,
   toPostApplicationResponseDto,
 } from '@edanalytics/models';
 import { Edorg, Sbe } from '@edanalytics/models-server';
@@ -519,9 +518,10 @@ export class StartingBlocksController {
     @Query('id') _ids: string[] | string,
     @Res() res: Response
   ) {
+    // TODO: transformation probably shouldn't happen here, but but TBD. Possibly.
     const ids = Array.isArray(_ids) ? _ids : [_ids];
-    const claimsets = toGetClaimsetDto(
-      await Promise.all(ids.map((id) => this.sbService.getClaimset(sbe, Number(id))))
+    const claimsets = await Promise.all(
+      ids.map((id) => this.sbService.getClaimsetRaw(sbe, Number(id)))
     );
     const title = claimsets.length === 1 ? claimsets[0].name : `${sbe.envLabel} claimsets`;
     const document = {
@@ -535,7 +535,7 @@ export class StartingBlocksController {
     };
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename=${title.replace(/[/\\:*?"<>|]+/g, '_')}_${Number(new Date())}.json`
+      `attachment; filename=${title.replace(/[^\w]+/g, '_')}_${Number(new Date())}.json`
     );
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(document, null, 2));

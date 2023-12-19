@@ -1,57 +1,110 @@
 import { Badge, BadgeProps, Box, Flex, IconButton, StyleProps, Text } from '@chakra-ui/react';
-import { GetClaimsetDto, ResourceClaimDto } from '@edanalytics/models';
+import { GetClaimsetDto, ResourceClaimDto131 } from '@edanalytics/models';
+import { CellContext } from '@tanstack/react-table';
 import { BsCaretRightFill } from 'react-icons/bs';
 import { SbaaTableAllInOne, useSbaaTableContext } from '../sbaaTable';
-import { CellContext, HeaderContext } from '@tanstack/react-table';
 
 const AuthStrategyBadge = (props: {
-  authDefault: string | null;
-  authOverride: string | null;
+  authDefault: (string | null)[];
+  authOverride: (string | null)[];
   hasAtAll: boolean;
 }) => {
   const { authDefault, authOverride, hasAtAll } = props;
   const badgeProps: Partial<StyleProps & BadgeProps> = hasAtAll
-    ? authOverride
+    ? authOverride.length
       ? { colorScheme: 'blue' }
-      : authDefault
+      : authDefault.length
       ? { colorScheme: 'gray', color: 'gray.600', fontStyle: 'italic' }
       : { colorScheme: 'orange' }
     : { colorScheme: 'red' };
+  const values = (
+    hasAtAll
+      ? authOverride.length
+        ? authOverride
+        : authDefault.length
+        ? authDefault
+        : ['Auth strategy unknown']
+      : ['Denied']
+  ).filter((v) => v !== null);
   return (
-    <Badge textTransform="none" {...badgeProps}>
-      {hasAtAll ? authOverride ?? authDefault ?? 'Auth strategy unknown' : 'Denied'}
-    </Badge>
+    <>
+      {values.map((str) => (
+        <Badge key={str} textTransform="none" {...badgeProps}>
+          {str}
+        </Badge>
+      ))}
+    </>
   );
 };
 
-type ResourceClaimRow = Pick<ResourceClaimDto, 'name' | 'create' | 'read' | 'update' | 'delete'> & {
+type ResourceClaimRow = Pick<
+  ResourceClaimDto131,
+  'name' | 'create' | 'read' | 'update' | 'delete'
+> & {
   id: string;
-  createDefault: string | null;
-  readDefault: string | null;
-  updateDefault: string | null;
-  deleteDefault: string | null;
-  createOverride: string | null;
-  readOverride: string | null;
-  updateOverride: string | null;
-  deleteOverride: string | null;
+  createDefault: (string | null)[];
+  readDefault: (string | null)[];
+  updateDefault: (string | null)[];
+  deleteDefault: (string | null)[];
+  readChangesDefault: (string | null)[];
+  createOverride: (string | null)[];
+  readOverride: (string | null)[];
+  updateOverride: (string | null)[];
+  deleteOverride: (string | null)[];
+  readChangesOverride: (string | null)[];
   subRows: ResourceClaimRow[];
 };
-const mapRc = (rc: ResourceClaimDto): ResourceClaimRow => {
+const mapRc = (rc: ResourceClaimDto131): ResourceClaimRow => {
   // Sometimes the length is other than 4, which is a bug. We need to just return 'unknown' in that case.
+  const correctLength = rc.readChanges === undefined ? 4 : 5;
   const defaults =
-    rc.defaultAuthStrategiesForCRUD.length === 4 ? rc.defaultAuthStrategiesForCRUD : undefined;
+    rc.defaultAuthStrategiesForCRUD.length === correctLength
+      ? rc.defaultAuthStrategiesForCRUD
+      : undefined;
   return {
     ...rc,
     id: rc.name,
-    createDefault: rc.create ? defaults?.[0]?.authStrategyName ?? null : null,
-    readDefault: rc.read ? defaults?.[1]?.authStrategyName ?? null : null,
-    updateDefault: rc.update ? defaults?.[2]?.authStrategyName ?? null : null,
-    deleteDefault: rc.delete ? defaults?.[3]?.authStrategyName ?? null : null,
-    createOverride: rc.create ? rc.authStrategyOverridesForCRUD[0]?.authStrategyName ?? null : null,
-    readOverride: rc.read ? rc.authStrategyOverridesForCRUD[1]?.authStrategyName ?? null : null,
-    updateOverride: rc.update ? rc.authStrategyOverridesForCRUD[2]?.authStrategyName ?? null : null,
-    deleteOverride: rc.delete ? rc.authStrategyOverridesForCRUD[3]?.authStrategyName ?? null : null,
-    subRows: rc.children.map(mapRc),
+    createDefault: rc.create
+      ? defaults?.[0]?.authorizationStrategies?.map((as) => as.authStrategyName) ?? []
+      : [],
+    readDefault: rc.read
+      ? defaults?.[1]?.authorizationStrategies?.map((as) => as.authStrategyName) ?? []
+      : [],
+    updateDefault: rc.update
+      ? defaults?.[2]?.authorizationStrategies?.map((as) => as.authStrategyName) ?? []
+      : [],
+    deleteDefault: rc.delete
+      ? defaults?.[3]?.authorizationStrategies?.map((as) => as.authStrategyName) ?? []
+      : [],
+    readChangesDefault: rc.readChanges
+      ? defaults?.[4]?.authorizationStrategies?.map((as) => as.authStrategyName) ?? []
+      : [],
+    createOverride: rc.create
+      ? rc.authStrategyOverridesForCRUD[0]?.authorizationStrategies?.map(
+          (as) => as.authStrategyName
+        ) ?? []
+      : [],
+    readOverride: rc.read
+      ? rc.authStrategyOverridesForCRUD[1]?.authorizationStrategies?.map(
+          (as) => as.authStrategyName
+        ) ?? []
+      : [],
+    updateOverride: rc.update
+      ? rc.authStrategyOverridesForCRUD[2]?.authorizationStrategies?.map(
+          (as) => as.authStrategyName
+        ) ?? []
+      : [],
+    deleteOverride: rc.delete
+      ? rc.authStrategyOverridesForCRUD[3]?.authorizationStrategies?.map(
+          (as) => as.authStrategyName
+        ) ?? []
+      : [],
+    readChangesOverride: rc.readChanges
+      ? rc.authStrategyOverridesForCRUD[4]?.authorizationStrategies?.map(
+          (as) => as.authStrategyName
+        ) ?? []
+      : [],
+    subRows: rc.children?.map(mapRc),
   };
 };
 const NameHeader = () => {
@@ -103,6 +156,7 @@ const NameCell = (props: CellContext<ResourceClaimRow, unknown>) => {
   );
 };
 export const ResourceClaimsTable = ({ claimset }: { claimset: GetClaimsetDto }) => {
+  const hasReadChanges = claimset.resourceClaims.some((rc) => rc.readChanges !== undefined);
   return (
     <>
       <SbaaTableAllInOne
@@ -184,6 +238,28 @@ export const ResourceClaimsTable = ({ claimset }: { claimset: GetClaimsetDto }) 
               type: 'options',
             },
           },
+          ...(hasReadChanges
+            ? ([
+                {
+                  id: 'readChanges',
+                  header: 'Read Changes',
+                  accessorFn: (rc: any) =>
+                    rc.readChanges
+                      ? rc.readChangesOverride ?? rc.readChangesDefault ?? 'Auth strategy unknown'
+                      : 'Denied',
+                  cell: ({ row: { original } }: any) => (
+                    <AuthStrategyBadge
+                      authOverride={original.readChangesOverride}
+                      authDefault={original.readChangesDefault}
+                      hasAtAll={original.readChanges}
+                    />
+                  ),
+                  meta: {
+                    type: 'options',
+                  },
+                },
+              ] as const)
+            : []),
         ]}
       />
       <Flex
@@ -199,10 +275,10 @@ export const ResourceClaimsTable = ({ claimset }: { claimset: GetClaimsetDto }) 
         gap={1}
         flexDir="column"
       >
-        <AuthStrategyBadge authDefault={'Default auth strategy'} authOverride={null} hasAtAll />
-        <AuthStrategyBadge authOverride={'Override auth strategy'} authDefault={null} hasAtAll />
-        <AuthStrategyBadge authOverride={null} authDefault={null} hasAtAll={false} />
-        <AuthStrategyBadge authOverride={null} authDefault={null} hasAtAll />
+        <AuthStrategyBadge authDefault={['Default auth strategy']} authOverride={[]} hasAtAll />
+        <AuthStrategyBadge authOverride={['Override auth strategy']} authDefault={[]} hasAtAll />
+        <AuthStrategyBadge authOverride={[]} authDefault={[]} hasAtAll={false} />
+        <AuthStrategyBadge authOverride={[]} authDefault={[]} hasAtAll />
       </Flex>
     </>
   );

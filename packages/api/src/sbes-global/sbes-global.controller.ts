@@ -207,7 +207,8 @@ export class SbesGlobalController {
           type: 'Error',
           title: 'Self-registration failed.',
           regarding: regarding(sbe),
-          data: result.data,
+          message: 'message' in result ? result.message : undefined,
+          data: 'data' in result ? result.data : undefined,
         },
         400
       );

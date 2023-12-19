@@ -1,15 +1,13 @@
-import { Badge, BadgeProps, Flex, StyleProps, Tooltip } from '@chakra-ui/react';
+import { Tooltip } from '@chakra-ui/react';
 import {
   Attribute,
   AttributeContainer,
   AttributesGrid,
   ContentSection,
   ResourceClaimsTable,
-  SbaaTableAllInOne,
 } from '@edanalytics/common-ui';
 import { useParams } from 'react-router-dom';
 import { claimsetQueries } from '../../api';
-import { GetClaimsetDto, ResourceClaimDto } from '@edanalytics/models';
 
 const ViewClaimset = () => {
   const params = useParams() as {

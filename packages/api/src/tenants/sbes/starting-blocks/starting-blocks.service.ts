@@ -1,6 +1,7 @@
 import { InvokeCommand, LambdaClient, LambdaServiceException } from '@aws-sdk/client-lambda';
 import { parse, validate } from '@aws-sdk/util-arn-parser';
 import {
+  GetClaimsetDto,
   PostApplicationDto,
   PostApplicationResponseDto,
   PostClaimsetDto,
@@ -19,9 +20,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import axios, { AxiosError } from 'axios';
 import ClientOAuth2 from 'client-oauth2';
 import crypto from 'crypto';
+import _ from 'lodash';
 import NodeCache from 'node-cache';
-import { CustomHttpException } from '../../../utils';
 import { Repository } from 'typeorm';
+import { CustomHttpException } from '../../../utils';
+import { failureBut200Response } from './admin-api-v1x-exception.filter';
 /* eslint @typescript-eslint/no-explicit-any: 0 */ // --> OFF
 
 @Injectable()
@@ -88,9 +91,25 @@ export class AdminApiService {
   }
 
   async logIntoAdminApi(sbe: Sbe) {
-    if (typeof sbe?.configPublic?.adminApiUrl !== 'string') {
+    const adminApiUrl = sbe?.configPublic?.adminApiUrl;
+    if (typeof adminApiUrl !== 'string') {
+      Logger.log('No Admin API URL configured for environment.');
       return {
         status: 'NO_ADMIN_API_URL' as const,
+      };
+    }
+    const adminApiKey = sbe?.configPublic?.adminApiKey;
+    if (typeof adminApiKey !== 'string' || adminApiKey.length === 0) {
+      Logger.log('No Admin API key configured for environment.');
+      return {
+        status: 'NO_ADMIN_API_KEY' as const,
+      };
+    }
+    const adminApiSecret = sbe?.configPrivate?.adminApiSecret;
+    if (typeof adminApiSecret !== 'string' || adminApiSecret.length === 0) {
+      Logger.log('No Admin API secret configured for environment.');
+      return {
+        status: 'NO_ADMIN_API_SECRET' as const,
       };
     }
     const url = `${sbe.configPublic.adminApiUrl.replace(/\/$/, '')}/connect/token`;
@@ -102,12 +121,15 @@ export class AdminApiService {
         status: 'INVALID_ADMIN_API_URL' as const,
       };
     }
-    const AdminApiAuth = new ClientOAuth2({
-      clientId: sbe.configPublic.adminApiKey,
-      clientSecret: sbe.configPrivate.adminApiSecret,
-      accessTokenUri: `${sbe.configPublic.adminApiUrl.replace(/\/$/, '')}/connect/token`,
-      scopes: ['edfi_admin_api/full_access'],
-    });
+    const AdminApiAuth = new ClientOAuth2(
+      {
+        clientId: adminApiKey,
+        clientSecret: adminApiSecret,
+        accessTokenUri: `${adminApiUrl.replace(/\/$/, '')}/connect/token`,
+        scopes: ['edfi_admin_api/full_access'],
+      }
+      // request
+    );
 
     try {
       await AdminApiAuth.credentials.getToken().then((v) => {
@@ -118,18 +140,21 @@ export class AdminApiService {
       };
     } catch (LoginFailed) {
       if (LoginFailed?.code === 'ERR_HTTP2_GOAWAY_SESSION') {
+        Logger.warn('ERR_HTTP2_GOAWAY_SESSION');
+        Logger.warn(LoginFailed);
         return {
           status: 'GOAWAY' as const, // TBD what this actually means
         };
       }
       Logger.warn(LoginFailed);
-      Logger.log(
-        sbe.configPublic?.adminApiUrl,
-        sbe.configPublic?.adminApiKey?.length,
-        sbe.configPrivate?.adminApiSecret?.length
-      );
       return {
         status: 'LOGIN_FAILED' as const,
+        message:
+          'body' in LoginFailed &&
+          'error' in LoginFailed.body &&
+          typeof LoginFailed.body.error === 'string'
+            ? LoginFailed.body.error
+            : 'Unknown login failure.',
       };
     }
   }
@@ -148,7 +173,15 @@ export class AdminApiService {
       .post(`${url.replace(/\/$/, '')}/connect/register`, credentials, {
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       })
-      .then(() => {
+      .then((res) => {
+        if (_.isEqual(res.data, failureBut200Response)) {
+          Logger.warn('Attempted to register Admin API but got 200 with failure response.');
+          return {
+            status: 'ERROR' as const,
+            message:
+              'Unspecified error registering Admin API (status code 200 but request body indicates failure).' as const,
+          };
+        }
         return { credentials, status: 'SUCCESS' as const };
       })
       .catch((err: AxiosError<any>) => {
@@ -178,6 +211,16 @@ export class AdminApiService {
     });
     client.interceptors.response.use(
       (value) => {
+        if (_.isEqual(value.data, failureBut200Response)) {
+          // This is nonsensical but needed because of an Admin API bug
+          throw new CustomHttpException(
+            {
+              title: 'Admin API failure',
+              type: 'Error',
+            },
+            500
+          );
+        }
         return value.data.result;
       },
       (err) => {
@@ -198,6 +241,8 @@ export class AdminApiService {
           NO_ADMIN_API_URL: 'No Admin API URL configured for environment.',
           GOAWAY: 'Admin API not accepting new connections.',
           LOGIN_FAILED: 'Admin API login failed.',
+          NO_ADMIN_API_KEY: 'Now Admin API key configured for environment.',
+          NO_ADMIN_API_SECRET: 'No Admin API secret configured for environment.',
         };
 
         if (adminApiLoginFailureMessages[adminLogin.status]) {
@@ -283,9 +328,28 @@ export class AdminApiService {
     return toGetClaimsetDto(await this.getAdminApiClient(sbe).get<any, any[]>(`v1/claimsets`));
   }
   async getClaimset(sbe: Sbe, claimsetId: number) {
-    return toGetClaimsetDto(
-      await this.getAdminApiClient(sbe).get<any, any>(`v1/claimsets/${claimsetId}`)
+    const value: GetClaimsetDto = await this.getAdminApiClient(sbe).get<any, any>(
+      `v1/claimsets/${claimsetId}`
     );
+    value.resourceClaims.forEach((rc, i) => {
+      const authStratKeys = ['defaultAuthStrategiesForCRUD', 'authStrategyOverridesForCRUD'];
+      authStratKeys.forEach((askey) => {
+        rc[askey].forEach((authStrat, j) => {
+          if (authStrat === null || 'authorizationStrategies' in authStrat) {
+            // do nothing - this is the structure we want.
+          } else if ('authStrategyName' in authStrat) {
+            // it's the 1.0.0 format, so turn it into the 1.3.1 format expected by FE
+            value.resourceClaims[i][askey][j] = {
+              authorizationStrategies: [authStrat],
+            };
+          }
+        });
+      });
+    });
+    return toGetClaimsetDto(value);
+  }
+  async getClaimsetRaw(sbe: Sbe, claimsetId: number) {
+    return this.getAdminApiClient(sbe).get<any, any>(`v1/claimsets/${claimsetId}`);
   }
   async putClaimset(sbe: Sbe, claimsetId: number, claimset: PutClaimsetDto) {
     return toGetClaimsetDto(

@@ -71,8 +71,8 @@ export const useApplicationContent = (props: { sbe: GetSbeDto }) => {
           <Stat flex="0 0 auto">
             <StatLabel>Applications</StatLabel>
             <ErrorBoundary
-              FallbackComponent={(arg: { error: { message: string } }) => (
-                <Tooltip label={arg.error.message}>
+              FallbackComponent={(arg: { error: { title: string } }) => (
+                <Tooltip label={arg.error.title}>
                   <StatNumber>
                     <Icon fontSize="xl" as={BiErrorCircle} />
                   </StatNumber>
@@ -94,10 +94,10 @@ export const useApplicationContent = (props: { sbe: GetSbeDto }) => {
             </AccordionButton>
             <AccordionPanel pb={10}>
               <ErrorBoundary
-                FallbackComponent={(arg: { error: { message: string } }) => (
+                FallbackComponent={(arg: { error: { title: string } }) => (
                   <Alert status="error">
                     <AlertIcon />
-                    {arg.error.message}
+                    {arg.error.title}
                   </Alert>
                 )}
               >

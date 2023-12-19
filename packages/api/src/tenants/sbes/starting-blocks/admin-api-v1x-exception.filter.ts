@@ -69,3 +69,9 @@ export class AdminApiV1xExceptionFilter implements ExceptionFilter {
     response.status(500).json(result);
   }
 }
+
+/** Admin API sometimes returns the below response alongside a 200 status code. It's a bug. */
+export const failureBut200Response = {
+  message:
+    'The server encountered an unexpected condition that prevented it from fulfilling the request.',
+};
