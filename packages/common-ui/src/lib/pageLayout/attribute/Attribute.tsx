@@ -48,13 +48,11 @@ export const AttributeContainer = chakraForwardRef<{ label: string } & StyleProp
   (props, ref): ReactElement => {
     const { label, children, ...styles } = props;
     return (
-      <Box p="var(--chakra-space-3)" {...styles}>
-        <Box w="fit-content" ref={ref}>
-          <FormLabel variant="view" w="fit-content" as="p">
-            {label}
-          </FormLabel>
-          {children}
-        </Box>
+      <Box p="var(--chakra-space-3)" ref={ref} {...styles}>
+        <FormLabel variant="view" w="fit-content" as="p">
+          {label}
+        </FormLabel>
+        {children}
       </Box>
     );
   }
@@ -136,35 +134,9 @@ function _Attribute(
 
   return (
     <AttributeContainer ref={ref} {...styles} label={label}>
-      <chakra.div display="inline-block" lineHeight={1}>
+      <chakra.div display="inline-block" lineHeight={1} maxWidth="100%">
         {isCopyable && resultValue !== undefined ? (
-          <Popover placement="top">
-            <PopoverTrigger>
-              <IconButton
-                title="Copy"
-                color="gray.500"
-                _hover={{
-                  color: 'unset',
-                }}
-                h="auto"
-                minW="auto"
-                pr={2}
-                pl="0.1em"
-                fontSize="md"
-                variant="unstyled"
-                aria-label="copy"
-                icon={<Icon as={BiCopy} />}
-                onClick={clip.onCopy}
-              />
-            </PopoverTrigger>
-            <PopoverContent boxShadow="lg" w="auto">
-              <PopoverArrow />
-              <PopoverBody display="flex" p={3}>
-                <Icon as={BsCheckCircle} color="green.500" />
-                &nbsp;&nbsp;Copied
-              </PopoverBody>
-            </PopoverContent>
-          </Popover>
+          <CopyButton isMasked={isMasked} value={clipValue} />
         ) : null}
         {resultValue === undefined ? (
           <span>&nbsp;-&nbsp;</span>
@@ -208,6 +180,53 @@ function _Attribute(
   );
 }
 
+export function CopyButton(
+  props: {
+    value: string;
+    isMasked?: boolean;
+  } & StyleProps
+) {
+  const { value, ...styles } = props;
+
+  const clip = useClipboard(value);
+
+  return (
+    <Popover placement="top" {...styles}>
+      <PopoverTrigger>
+        <IconButton
+          title="Copy"
+          color="gray.500"
+          _hover={{
+            color: 'unset',
+          }}
+          h="auto"
+          minW="auto"
+          pr={2}
+          pl="0.1em"
+          fontSize="md"
+          variant="unstyled"
+          aria-label="copy"
+          icon={<Icon as={BiCopy} />}
+          onClick={clip.onCopy}
+        />
+      </PopoverTrigger>
+      <PopoverContent boxShadow="lg" w="auto">
+        <PopoverArrow />
+        <PopoverBody
+          lineHeight={0.9}
+          textOverflow="ellipsis"
+          whiteSpace="nowrap"
+          overflow="hidden"
+          maxW="30em"
+          p={3}
+        >
+          <Icon as={BsCheckCircle} color="green.500" display="inline" />
+          &nbsp;&nbsp;Copied{props.isMasked ? null : <>&nbsp;&nbsp;{value}</>}
+        </PopoverBody>
+      </PopoverContent>
+    </Popover>
+  );
+}
 export const Attribute = forwardRef(_Attribute) as typeof _Attribute;
 
 export const DateValue = (props: { value: Date; defaultDateFmt?: DateFormat }) => {

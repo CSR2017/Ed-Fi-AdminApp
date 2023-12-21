@@ -1,4 +1,10 @@
-import { Attribute, AttributesGrid, ContentSection } from '@edanalytics/common-ui';
+import {
+  Attribute,
+  AttributeContainer,
+  AttributesGrid,
+  ContentSection,
+  CopyButton,
+} from '@edanalytics/common-ui';
 import { useParams } from 'react-router-dom';
 import { vendorQueries } from '../../api';
 
@@ -17,11 +23,8 @@ export const ViewVendor = () => {
   return vendor ? (
     <ContentSection>
       <AttributesGrid>
+        <Attribute label="Id" value={vendor.vendorId} isCopyable />
         <Attribute label="Company" value={vendor.company} />
-        <Attribute
-          label="Namespace"
-          value={vendor.namespacePrefixes === '' ? '-' : vendor.namespacePrefixes}
-        />
         <Attribute label="Contact" value={vendor.contactName} />
         {vendor.contactEmailAddress ? (
           <Attribute
@@ -29,8 +32,19 @@ export const ViewVendor = () => {
             value={`mailto:${vendor.contactEmailAddress}`}
             isUrl
             isUrlExternal
+            isCopyable
           />
         ) : null}
+        <AttributeContainer label="Namespace">
+          {vendor.namespacePrefixes === ''
+            ? '-'
+            : vendor.namespacePrefixes.split(/,\s*/g).map((ns) => (
+                <p key={ns}>
+                  <CopyButton value={ns} />
+                  {ns}
+                </p>
+              ))}
+        </AttributeContainer>
       </AttributesGrid>
     </ContentSection>
   ) : null;
