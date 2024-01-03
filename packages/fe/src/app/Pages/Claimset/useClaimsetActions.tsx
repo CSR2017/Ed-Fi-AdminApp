@@ -74,7 +74,7 @@ export const useClaimsetActions = ({
           ? {
               Delete: {
                 icon: BiTrash,
-                isLoading: deleteClaimset.isLoading,
+                isLoading: deleteClaimset.isPending,
                 text: 'Delete',
                 title: 'Delete claimset',
                 confirmBody: 'This will permanently delete the claimset.',

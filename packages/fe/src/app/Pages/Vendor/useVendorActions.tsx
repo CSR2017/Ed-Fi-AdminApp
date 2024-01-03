@@ -53,7 +53,7 @@ export const useVendorActions = (vendor: GetVendorDto | undefined): ActionsType 
           ? {
               Delete: {
                 icon: BiTrash,
-                isLoading: deleteVendor.isLoading,
+                isLoading: deleteVendor.isPending,
                 text: 'Delete',
                 title: 'Delete vendor',
                 confirmBody: 'This will permanently delete the vendor.',

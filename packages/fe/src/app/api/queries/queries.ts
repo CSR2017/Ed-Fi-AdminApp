@@ -38,7 +38,6 @@ import {
   SbSyncQueueDto,
   SpecificIds,
 } from '@edanalytics/models';
-import { wait } from '@edanalytics/utils';
 import {
   QueryKey,
   UseMutationResult,
@@ -56,7 +55,6 @@ import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { useAuthorize } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { apiClient, methods } from '../methods';
-import { isEqual } from 'lodash';
 
 const baseUrl = '';
 
@@ -235,7 +233,7 @@ function makeQueries<
         },
       });
       return useQuery({
-        useErrorBoundary: true,
+        throwOnError: true,
         enabled:
           (args.enabled === undefined || args.enabled) && (isAuthd || args.optional !== true),
         queryKey: queryKey({
@@ -271,7 +269,7 @@ function makeQueries<
         },
       });
       return useQuery({
-        useErrorBoundary: true,
+        throwOnError: true,
         enabled:
           (args.enabled === undefined || args.enabled) && (isAuthd || args.optional !== true),
         queryKey: queryKey({

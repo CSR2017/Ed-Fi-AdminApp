@@ -48,7 +48,7 @@ function App() {
           <MutationIndicator />
           <ErrorBoundary onReset={reset} fallbackRender={({ resetErrorBoundary, error }) => error}>
             <Routes />
-            <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
+            <ReactQueryDevtools initialIsOpen={false} position="bottom" />
           </ErrorBoundary>
         </QueryClientProvider>
       </ChakraProvider>

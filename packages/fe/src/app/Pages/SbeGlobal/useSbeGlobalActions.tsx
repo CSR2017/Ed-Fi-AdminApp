@@ -61,7 +61,7 @@ export const useSbeGlobalActions = (sbe: GetSbeDto | undefined): ActionsType => 
           ? {
               CheckConnection: {
                 icon: BiPlug,
-                isLoading: checkAdminApi.isLoading,
+                isLoading: checkAdminApi.isPending,
                 text: 'Ping Admin API',
                 title: 'Check connection to Ed-Fi Admin API',
                 onClick: async () => {
@@ -77,7 +77,7 @@ export const useSbeGlobalActions = (sbe: GetSbeDto | undefined): ActionsType => 
           ? {
               RefreshResources: {
                 icon: BiDownload,
-                isLoading: refreshResources.isLoading,
+                isLoading: refreshResources.isPending,
                 text: 'Sync with SB',
                 title: 'Sync ODSs and Ed-Orgs from Starting Blocks to SBAA.',
                 onClick: async () => {
@@ -159,7 +159,7 @@ export const useSbeGlobalActions = (sbe: GetSbeDto | undefined): ActionsType => 
           ? {
               Delete: {
                 icon: BiTrash,
-                isLoading: deleteSbe.isLoading,
+                isLoading: deleteSbe.isPending,
                 text: 'Delete',
                 title: 'Delete environment',
                 confirmBody: 'This will permanently delete the environment.',

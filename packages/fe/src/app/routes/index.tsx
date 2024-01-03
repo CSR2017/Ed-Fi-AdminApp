@@ -156,7 +156,7 @@ export const publicLayoutRoute: RouteObject = {
 
 const AuthenticatedRoute = () => {
   const me = useMe();
-  if (me.isLoading || me.data === undefined) {
+  if (me.isPending || me.data === undefined) {
     return null;
   } else if (me.data === null) {
     window.location.href = `${window.location.origin}/login?redirect=${encodeURIComponent(

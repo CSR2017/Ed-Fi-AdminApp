@@ -59,7 +59,7 @@ export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
           ? {
               Delete: {
                 icon: BiTrash,
-                isLoading: deleteRole.isLoading,
+                isLoading: deleteRole.isPending,
                 text: 'Delete',
                 title: 'Delete role',
                 confirmBody: 'This will permanently delete the role.',

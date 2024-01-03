@@ -68,7 +68,7 @@ export const useUserGlobalActions = (user: GetUserDto | undefined): ActionsType 
           ? {
               Delete: {
                 icon: BiTrash,
-                isLoading: deleteUser.isLoading,
+                isLoading: deleteUser.isPending,
                 text: 'Delete',
                 title: 'Delete user',
                 confirmBody: 'This will permanently delete the user.',

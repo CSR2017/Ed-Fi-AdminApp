@@ -20,7 +20,7 @@ export const useSbSyncQueuesActions = (): ActionsType => {
     ? {
         Queue: {
           icon: HiInboxIn,
-          isLoading: postSyncQueue.isLoading,
+          isLoading: postSyncQueue.isPending,
           text: 'Sync all environments',
           title: 'Trigger sync of all environments',
           onClick: () =>

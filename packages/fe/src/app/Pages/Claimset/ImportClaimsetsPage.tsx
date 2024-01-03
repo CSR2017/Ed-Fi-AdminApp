@@ -172,7 +172,7 @@ const ClaimsetItem = ({ maybeClaimset }: { maybeClaimset: PostClaimsetDto | unkn
           <Text>{claimset.name}</Text>{' '}
           <Button
             isDisabled={postClaimset.isSuccess}
-            isLoading={postClaimset.isLoading}
+            isLoading={postClaimset.isPending}
             variant="outline"
             colorScheme="teal"
             size="sm"

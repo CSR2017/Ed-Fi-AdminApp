@@ -8,6 +8,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "types": ["vite/client"],
+    "typeRoots": ["../../node_modules/vite/client"],
     "noEmit": false,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": false,
@@ -18,13 +19,7 @@
     "jsx": "react-jsx"
   },
   "files": [],
-  "include": [
-    "src",
-    "typings",
-    "../common-ui/src/lib/ActionsType.tsx",
-    "../common-ui/src/lib/getStandardActions.tsx",
-    "../common-ui/src/lib/PageTemplate.tsx"
-  ],
+  "include": ["src", "typings"],
   "references": [
     {
       "path": "./tsconfig.app.json"

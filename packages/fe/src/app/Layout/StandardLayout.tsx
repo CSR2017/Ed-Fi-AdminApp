@@ -64,7 +64,7 @@ export const StandardLayout = () => {
                 We found you in our database, but you don't have a role assigned yet.
               </Text>
             </LandingLayout>
-          ) : me.isLoading ? null : (
+          ) : me.isPending ? null : (
             <LandingLayoutRouteElement />
           )}
         </HStack>

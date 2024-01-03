@@ -32,7 +32,7 @@ export const SelectRole: StandardSelector<{ types: RoleType[] }> = (props) => {
         },
       ])
   );
-  return <SelectWrapper {...others} isLoading={roles.isLoading} options={options} />;
+  return <SelectWrapper {...others} isLoading={roles.isPending} options={options} />;
 };
 
 export const SelectClaimset: StandardSelector<{
@@ -54,7 +54,7 @@ export const SelectClaimset: StandardSelector<{
       },
     ])
   );
-  return <SelectWrapper {...others} options={options} isLoading={claimsets.isFetching} />;
+  return <SelectWrapper {...others} options={options} isLoading={claimsets.isPending} />;
 };
 
 export const SelectSbe: StandardSelector = (props) => {
@@ -70,7 +70,7 @@ export const SelectSbe: StandardSelector = (props) => {
       },
     ])
   );
-  return <SelectWrapper {...others} options={options} isLoading={sbes.isFetching} />;
+  return <SelectWrapper {...others} options={options} isLoading={sbes.isPending} />;
 };
 export const SelectTenant: StandardSelector = (props) => {
   const { ...others } = props;
@@ -84,7 +84,7 @@ export const SelectTenant: StandardSelector = (props) => {
       },
     ])
   );
-  return <SelectWrapper {...others} options={options} isLoading={tenants.isFetching} />;
+  return <SelectWrapper {...others} options={options} isLoading={tenants.isPending} />;
 };
 export const SelectUser: StandardSelector = (props) => {
   const { ...others } = props;
@@ -99,7 +99,7 @@ export const SelectUser: StandardSelector = (props) => {
       },
     ])
   );
-  return <SelectWrapper {...others} options={options} isLoading={users.isFetching} />;
+  return <SelectWrapper {...others} options={options} isLoading={users.isPending} />;
 };
 
 export const SelectVendor: StandardSelector = (props) => {
@@ -115,7 +115,7 @@ export const SelectVendor: StandardSelector = (props) => {
       },
     ])
   );
-  return <SelectWrapper {...others} options={options} isLoading={vendors.isFetching} />;
+  return <SelectWrapper {...others} options={options} isLoading={vendors.isPending} />;
 };
 
 export const SelectApplication: StandardSelector = (props) => {
@@ -131,7 +131,7 @@ export const SelectApplication: StandardSelector = (props) => {
       },
     ])
   );
-  return <SelectWrapper {...others} options={options} isLoading={applications.isFetching} />;
+  return <SelectWrapper {...others} options={options} isLoading={applications.isPending} />;
 };
 
 export const SelectOds: StandardSelector<{ useDbName?: boolean }> = (props) => {
@@ -147,7 +147,7 @@ export const SelectOds: StandardSelector<{ useDbName?: boolean }> = (props) => {
       },
     ])
   );
-  return <SelectWrapper {...others} options={options} isLoading={odss.isFetching} />;
+  return <SelectWrapper {...others} options={options} isLoading={odss.isPending} />;
 };
 
 export const SelectEdorg: StandardSelector<{ useEdorgId?: boolean }> = (props) => {
@@ -189,7 +189,7 @@ export const SelectEdorg: StandardSelector<{ useEdorgId?: boolean }> = (props) =
     <SelectWrapper
       {...others}
       options={options}
-      isLoading={edorgs.isFetching}
+      isLoading={edorgs.isPending}
       filterApplied={filterApplied}
       onFilterDoubleClick={() => setInclude(enumValues(EdorgType))}
       filterPane={

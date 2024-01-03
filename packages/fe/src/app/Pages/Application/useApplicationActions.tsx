@@ -119,7 +119,7 @@ export const useSingleApplicationActions = ({
         ...(canReset
           ? {
               Reset: {
-                isLoading: resetCreds.isLoading,
+                isLoading: resetCreds.isPending,
                 icon: BiShieldX,
                 text: 'Reset creds',
                 title: 'Reset application credentials.',
@@ -153,7 +153,7 @@ export const useSingleApplicationActions = ({
         ...(canDelete
           ? {
               Delete: {
-                isLoading: deleteApplication.isLoading,
+                isLoading: deleteApplication.isPending,
                 icon: BiTrash,
                 text: 'Delete',
                 title: 'Delete application',

@@ -73,7 +73,7 @@ export const useOwnershipGlobalActions = (ownership: GetOwnershipDto | undefined
           ? {
               Delete: {
                 icon: BiTrash,
-                isLoading: deleteOwnership.isLoading,
+                isLoading: deleteOwnership.isPending,
                 text: 'Delete',
                 title: 'Delete ownership',
                 confirmBody: 'This will permanently delete the ownership.',
