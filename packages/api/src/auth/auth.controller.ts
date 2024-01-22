@@ -3,8 +3,9 @@ import {
   GetSessionDataDto,
   Ids,
   PrivilegeCode,
+  isBaseTenantPrivilege,
   isGlobalPrivilege,
-  isSbePrivilege,
+  isTenantSbePrivilege,
   toGetSessionDataDto,
   toGetTenantDto,
 } from '@edanalytics/models';
@@ -128,7 +129,7 @@ export class AuthController {
       return toGetTenantDto(session?.userTenantMemberships?.map((utm) => utm.tenant) ?? []);
     }
   }
-  @Get('authorizations/:privilege/:tenantId?')
+  @Get('cache/:tenantId?/:sbeId?/')
   @Authorize({
     privilege: 'me:read',
     subject: {
@@ -136,22 +137,33 @@ export class AuthController {
     },
   })
   async privilegeCache(
-    @Param('privilege') privilege: PrivilegeCode,
     @Param('tenantId') tenantId: string | undefined,
-    @Query('sbeId') sbeId: string | undefined,
+    @Param('sbeId') sbeId: string | undefined,
     @AuthCache() cache: AuthorizationCache
   ) {
-    let result: Ids | false | undefined = false;
-    if (tenantId === undefined && isGlobalPrivilege(privilege)) {
-      result = cache?.[privilege];
-    } else if (tenantId !== undefined && !isGlobalPrivilege(privilege)) {
-      if (sbeId === undefined && !isSbePrivilege(privilege)) {
-        result = cache?.[privilege];
-      } else if (sbeId !== undefined && isSbePrivilege(privilege)) {
-        result = cache?.[privilege]?.[sbeId];
-      }
+    const result: Partial<AuthorizationCache> = {};
+    if (tenantId === undefined) {
+      Object.keys(cache).forEach((privilege: PrivilegeCode) => {
+        if (isGlobalPrivilege(privilege)) {
+          result[privilege] = cache[privilege];
+        }
+      });
     }
-    return result === true ? true : result === false || result === undefined ? false : [...result];
+    if (tenantId !== undefined && sbeId === undefined) {
+      Object.keys(cache).forEach((privilege: PrivilegeCode) => {
+        if (isBaseTenantPrivilege(privilege)) {
+          result[privilege] = cache[privilege] as any;
+        }
+      });
+    }
+    if (tenantId !== undefined && sbeId !== undefined) {
+      Object.keys(cache).forEach((privilege: PrivilegeCode) => {
+        if (isTenantSbePrivilege(privilege) && sbeId in cache[privilege]) {
+          result[privilege] = cache[privilege][sbeId];
+        }
+      });
+    }
+    return result;
   }
 
   @Post('/logout')

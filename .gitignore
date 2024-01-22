@@ -40,6 +40,7 @@ stats.html
 .DS_Store
 Thumbs.db
 db.sqlite
+.nx/cache
 
 # environment variables
 *.local.*

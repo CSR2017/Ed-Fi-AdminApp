@@ -1,7 +1,7 @@
 import {
   AuthorizationCache,
   Ids,
-  isSbePrivilege,
+  isTenantSbePrivilege,
   ITenantCache,
   PrivilegeCode,
   SpecificIds,
@@ -15,7 +15,7 @@ export const InjectFilter = createParamDecorator(
 
     let ids: Ids | undefined = undefined;
 
-    if (isSbePrivilege(privilege)) {
+    if (isTenantSbePrivilege(privilege)) {
       const sbeId = Number(request?.params?.sbeId);
       ids = cache?.[privilege]?.[sbeId] ?? undefined;
     } else {

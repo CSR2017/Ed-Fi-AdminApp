@@ -150,7 +150,8 @@ export const trueOnlyPrivileges = new Set<TenantBasePrivilege | TenantSbePrivile
   'tenant.sbe.edorg.application:create',
   'tenant.sbe.vendor:create',
 ]);
-
+export const isBaseTenantPrivilege = (str: string): str is TenantBasePrivilege =>
+  new Set(Object.values(baseResourcePrivilegesMap).flat()).has(str as any);
 export const baseResourcePrivilegesMap: Partial<Record<string, TenantBasePrivilege[]>> = {
   'tenant.user': ['tenant.user:read'],
   'tenant.user-tenant-membership': [
@@ -197,5 +198,5 @@ export type BasePrivilegeResourceType = keyof typeof baseResourcePrivilegesMap;
 export type SbePrivilegeResourceType = keyof typeof sbeResourcePrivilegesMap;
 export type PrivilegeResource = BasePrivilegeResourceType | SbePrivilegeResourceType;
 
-export const isSbePrivilege = (str: string): str is TenantSbePrivilege =>
+export const isTenantSbePrivilege = (str: string): str is TenantSbePrivilege =>
   str in sbeTenantPrivilegesMap;

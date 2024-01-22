@@ -7,7 +7,7 @@ import {
   ITenantCache,
   SpecificIds,
   TrueValue,
-  isSbePrivilege,
+  isTenantSbePrivilege,
   BasePrivilegeResourceType,
   PrivilegeResource,
   SbePrivilegeResourceType,
@@ -56,7 +56,7 @@ export function addIdTo(
   id: number | string | TrueValue,
   sbeId?: number
 ): void {
-  if (isSbePrivilege(privilege)) {
+  if (isTenantSbePrivilege(privilege)) {
     if (cache[privilege] === undefined) {
       cache[privilege] = {};
     }
@@ -333,7 +333,7 @@ export const abilityFromCache = (
           throw new Error('Attempting to construct tenant ability but no tenantID provided.');
         }
 
-        if (isSbePrivilege(privilegeCode)) {
+        if (isTenantSbePrivilege(privilegeCode)) {
           // tenant-scoped privilege whose cache is a map of sbes to the Ids type
           const privilegeCache = cache[privilegeCode];
           const sbeIds = Object.keys(privilegeCache);

@@ -32,6 +32,7 @@ export class AuthenticatedGuard implements CanActivate {
         .validateUser(request.user.username)
         .then((user) => {
           request.session.passport.user = user;
+          request.session.save();
         })
         .catch((err) => {
           Logger.error(err);

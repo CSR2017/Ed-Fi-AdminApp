@@ -7,7 +7,7 @@ import {
 } from '@edanalytics/models';
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { ReactElement } from 'react';
-import { privilegeSelector, usePrivilegeCache } from '../api';
+import { FeAuthCache, authCachArraysToSets, privilegeSelector, usePrivilegeCache } from '../api';
 
 export type AuthorizeConfig<
   PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege = PrivilegeCode
@@ -49,8 +49,11 @@ export const authorize = <
     props.config !== undefined && (!Array.isArray(props.config) || props.config.length > 0);
 
   configArray.forEach((config, i) => {
-    const thisPrivilegeCache = props.queryClient.getQueryData<boolean | SpecificIds>(
-      authCacheKey(config)
+    const thisPrivilegeCache = props.queryClient.getQueryData<FeAuthCache>(
+      authCacheKey({
+        tenantId: 'tenantId' in config.subject ? config.subject.tenantId : undefined,
+        sbeId: 'sbeId' in config.subject ? config.subject.sbeId : undefined,
+      })
     );
 
     /**
@@ -58,18 +61,19 @@ export const authorize = <
     but should be transformed (Array to Set) for more efficient usage.
     */
     const transformedCache =
-      thisPrivilegeCache === undefined ? undefined : privilegeSelector(thisPrivilegeCache);
+      thisPrivilegeCache === undefined ? undefined : authCachArraysToSets(thisPrivilegeCache);
+    const selectedValue = transformedCache?.[config.privilege] ?? false;
 
-    if (transformedCache === false || transformedCache === undefined) {
+    if (selectedValue === false) {
       isAuthorized = false;
-    } else if (transformedCache === true) {
+    } else if (selectedValue === true) {
       // no change
     } else if (config.subject.id === '__filtered__') {
       // no change
     } else if (
-      transformedCache?.has(config.subject.id) ||
-      transformedCache?.has(String(config.subject.id)) ||
-      transformedCache?.has(Number(config.subject.id))
+      selectedValue?.has(config.subject.id) ||
+      selectedValue?.has(String(config.subject.id)) ||
+      selectedValue?.has(Number(config.subject.id))
     ) {
       // no change
     } else {
@@ -134,15 +138,14 @@ export const AuthorizeComponent = <PrivilegeType extends PrivilegeCode>(
   }
 };
 
-export function authCacheKey(config: AuthorizeConfig) {
+export function authCacheKey(
+  config: { tenantId?: number | string } | { tenantId: number | string; sbeId?: number | string }
+) {
   return [
-    'authorizations',
-    'tenantId' in config.subject && config.subject?.tenantId !== undefined
-      ? String(config.subject.tenantId)
-      : undefined,
-    'sbeId' in config.subject && config.subject?.sbeId !== undefined
-      ? String(config.subject.sbeId)
-      : undefined,
-    config.privilege,
+    'auth-cache',
+    'tenant:',
+    config.tenantId !== undefined ? String(config.tenantId) : undefined,
+    'sbe:',
+    'sbeId' in config && config.sbeId !== undefined ? String(config.sbeId) : undefined,
   ];
 }

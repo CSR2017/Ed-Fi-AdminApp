@@ -12,6 +12,7 @@ import {
   GetUserDto,
   GetUserTenantMembershipDto,
   GetVendorDto,
+  Ids,
   OperationResultDto,
   PostApplicationForm,
   PostClaimsetDto,
@@ -41,6 +42,7 @@ import {
 import {
   QueryKey,
   UseMutationResult,
+  UseQueryOptions,
   UseQueryResult,
   useMutation,
   useQueries,
@@ -52,7 +54,7 @@ import { ClassConstructor } from 'class-transformer';
 import kebabCase from 'kebab-case';
 import path from 'path-browserify';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { useAuthorize } from '../../helpers';
+import { authCacheKey, useAuthorize } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { apiClient, methods } from '../methods';
 
@@ -683,6 +685,10 @@ export const useApplicationResetCredential = (args: {
     },
   });
 };
+export const privilegeSelector = (res: SpecificIds | true | false) => {
+  return Array.isArray(res) ? new Set(res) : res;
+};
+
 export function usePrivilegeCache<
   ConfigType extends {
     privilege: PrivilegeCode;
@@ -690,28 +696,48 @@ export function usePrivilegeCache<
     sbeId?: string | number;
   }
 >(config: ConfigType[]) {
+  const wholeCache = usePrivilegeCacheQueryNew(config.map((c) => ({ ...c, privilege: undefined })));
+  return wholeCache.map((cache, i) => {
+    const data = cache.data?.[config[i].privilege];
+    return {
+      ...cache,
+      data,
+    };
+  });
+}
+
+export type FeAuthCache = Partial<Record<PrivilegeCode, Ids>>;
+export const authCachArraysToSets = (res: FeAuthCache) => {
+  const d: FeAuthCache = res;
+
+  Object.keys(d).forEach((key) => {
+    const v = d[key as PrivilegeCode];
+    if (Array.isArray(v)) {
+      d[key as PrivilegeCode] = new Set(v);
+    }
+  });
+  return d;
+};
+export function usePrivilegeCacheQueryNew<
+  ConfigType extends {
+    tenantId?: string | number;
+    sbeId?: string | number;
+  }
+>(config: ConfigType[]) {
   return useQueries({
-    queries: config.map((c) => {
+    queries: config.map((c): UseQueryOptions<FeAuthCache> => {
       return {
         staleTime: 15 * 1000,
         notifyOnChangeProps: ['data' as const],
-        queryKey: [
-          'authorizations',
-          c.tenantId === undefined ? undefined : String(c.tenantId),
-          c.sbeId === undefined ? undefined : String(c.sbeId),
-          c.privilege,
-        ],
+        queryKey: authCacheKey(c),
+        select: authCachArraysToSets,
         queryFn: () =>
           apiClient.get(
-            `/auth/authorizations/${c.privilege}/${c.tenantId === undefined ? '' : c.tenantId}${
-              c.sbeId === undefined ? '' : `?sbeId=${c.sbeId}`
+            `/auth/cache/${c.tenantId === undefined ? '' : `${c.tenantId}/`}${
+              c.sbeId === undefined ? '' : `${c.sbeId}/`
             }`
           ),
-        select: privilegeSelector,
       };
     }),
   });
 }
-export const privilegeSelector = (res: any) => {
-  return (Array.isArray(res) ? new Set(res) : res) as SpecificIds | true | false;
-};
