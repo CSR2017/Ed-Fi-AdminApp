@@ -1,28 +1,37 @@
+import { useQuery } from '@tanstack/react-query';
 import { ActionsType } from '@edanalytics/common-ui';
 import { GetVendorDto } from '@edanalytics/models';
 import { BiEdit, BiPlus, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { vendorQueries } from '../../api';
-import { useAuthorize, useNavContext, vendorAuthConfig } from '../../helpers';
+import { vendorQueriesV1 } from '../../api';
+import {
+  useAuthorize,
+  useNavContext,
+  useTeamEdfiTenantNavContextLoaded,
+  vendorAuthConfig,
+} from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
 export const useVendorActions = (vendor: GetVendorDto | undefined): ActionsType => {
-  const { asId, sbeId } = useNavContext() as {
-    asId: number;
-    sbeId: number;
-  };
-
+  const { teamId, edfiTenant, edfiTenantId, asId } = useTeamEdfiTenantNavContextLoaded();
   const navigate = useNavigate();
-  const to = (id: number | string) => `/as/${asId}/sbes/${sbeId}/vendors/${id}`;
-  const deleteVendor = vendorQueries.useDelete({ sbeId, tenantId: asId });
+  const to = (id: number | string) =>
+    `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/vendors/${id}`;
+  const deleteVendor = vendorQueriesV1.delete({ edfiTenant, teamId });
   const popBanner = usePopBanner();
-  const canView = useAuthorize(vendorAuthConfig(sbeId, asId, 'tenant.sbe.vendor:read'));
+  const canView = useAuthorize(
+    vendorAuthConfig(edfiTenantId, asId, 'team.sb-environment.edfi-tenant.vendor:read')
+  );
 
-  const canEdit = useAuthorize(vendorAuthConfig(sbeId, asId, 'tenant.sbe.vendor:update'));
+  const canEdit = useAuthorize(
+    vendorAuthConfig(edfiTenantId, asId, 'team.sb-environment.edfi-tenant.vendor:update')
+  );
 
-  const canDelete = useAuthorize(vendorAuthConfig(sbeId, asId, 'tenant.sbe.vendor:delete'));
+  const canDelete = useAuthorize(
+    vendorAuthConfig(edfiTenantId, asId, 'team.sb-environment.edfi-tenant.vendor:delete')
+  );
 
   return vendor === undefined
     ? {}
@@ -53,15 +62,21 @@ export const useVendorActions = (vendor: GetVendorDto | undefined): ActionsType 
           ? {
               Delete: {
                 icon: BiTrash,
-                isLoading: deleteVendor.isPending,
+                isPending: deleteVendor.isPending,
                 text: 'Delete',
                 title: 'Delete vendor',
                 confirmBody: 'This will permanently delete the vendor.',
                 onClick: () =>
-                  deleteVendor.mutateAsync(vendor.id, {
-                    ...mutationErrCallback({ popGlobalBanner: popBanner }),
-                    onSuccess: () => navigate(`/as/${asId}/sbes/${sbeId}/vendors`),
-                  }),
+                  deleteVendor.mutateAsync(
+                    { id: vendor.id },
+                    {
+                      ...mutationErrCallback({ popGlobalBanner: popBanner }),
+                      onSuccess: () =>
+                        navigate(
+                          `/as/${asId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenantId}/vendors`
+                        ),
+                    }
+                  ),
                 confirm: true,
               },
             }
@@ -70,14 +85,13 @@ export const useVendorActions = (vendor: GetVendorDto | undefined): ActionsType 
 };
 
 export const useManyVendorActions = (): ActionsType => {
-  const { asId, sbeId } = useNavContext() as {
-    asId: number;
-    sbeId: number;
-  };
+  const { asId, edfiTenantId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
 
   const navigate = useNavigate();
-  const to = `/as/${asId}/sbes/${sbeId}/vendors/create`;
-  const canCreate = useAuthorize(vendorAuthConfig(sbeId, asId, 'tenant.sbe.vendor:create'));
+  const to = `/as/${asId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenantId}/vendors/create`;
+  const canCreate = useAuthorize(
+    vendorAuthConfig(edfiTenantId, asId, 'team.sb-environment.edfi-tenant.vendor:create')
+  );
 
   return canCreate
     ? {

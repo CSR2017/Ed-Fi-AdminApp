@@ -16,7 +16,7 @@ export const ActionBarButtons = {
   Standard: (props: ActionProps) => (
     <Button
       isDisabled={props.isDisabled}
-      isLoading={props.isLoading}
+      isLoading={props.isPending}
       leftIcon={props.icon({})}
       onClick={props.onClick}
       title={props.title}
@@ -29,7 +29,7 @@ export const ActionBarButtons = {
       {(confirmProps) => (
         <Button
           isDisabled={props.isDisabled}
-          isLoading={props.isLoading}
+          isLoading={props.isPending}
           leftIcon={props.icon({})}
           onClick={(e) => {
             e.stopPropagation();
@@ -47,7 +47,7 @@ export const ActionBarButtons = {
       as={Link}
       to={props.to}
       isDisabled={props.isDisabled}
-      isLoading={props.isLoading}
+      isLoading={props.isPending}
       leftIcon={props.icon({})}
       title={props.title}
     >
@@ -68,7 +68,7 @@ export const ActionMenuButtons = {
   Standard: (props: ActionProps) => (
     <MenuItem
       gap={2}
-      isDisabled={props.isDisabled || props.isLoading}
+      isDisabled={props.isDisabled || props.isPending}
       onClick={props.onClick}
       title={props.title}
     >
@@ -81,7 +81,7 @@ export const ActionMenuButtons = {
       {(confirmProps) => (
         <MenuItem
           gap={2}
-          isDisabled={props.isDisabled || props.isLoading}
+          isDisabled={props.isDisabled || props.isPending}
           onClick={(e) => {
             e.stopPropagation();
             confirmProps.onClick && confirmProps.onClick(e);
@@ -99,7 +99,7 @@ export const ActionMenuButtons = {
       gap={2}
       as={Link}
       to={props.to}
-      isDisabled={props.isDisabled || props.isLoading}
+      isDisabled={props.isDisabled || props.isPending}
       title={props.title}
     >
       <Icon as={props.icon} />
@@ -122,7 +122,7 @@ export const TdIconButtons = {
     <IconButton
       as={Link}
       isDisabled={props.isDisabled}
-      isLoading={props.isLoading}
+      isLoading={props.isPending}
       to={props.to}
       aria-label={props.text}
       title={props.title}
@@ -138,7 +138,7 @@ export const TdIconButtons = {
       icon={<Icon as={props.icon} />}
       onClick={props.onClick}
       isDisabled={props.isDisabled}
-      isLoading={props.isLoading}
+      isLoading={props.isPending}
     />
   ),
   Confirm: (props: ActionPropsConfirm) => (
@@ -154,7 +154,7 @@ export const TdIconButtons = {
             confirmProps.onClick && confirmProps.onClick(e);
           }}
           isDisabled={props.isDisabled}
-          isLoading={props.isLoading}
+          isLoading={props.isPending}
         />
       )}
     </ConfirmAction>

@@ -2,16 +2,20 @@ import { IOwnership } from '.';
 import { EdorgType } from '../enums/edorg-type.enum';
 import { IEntityBase } from '../utils/entity-base.interface';
 import { IOds } from './ods.interface';
-import { ISbe } from './sbe.interface';
+import { IEdfiTenant } from './edfi-tenant.interface';
 
 export interface IEdorg extends IEntityBase {
   ownerships: IOwnership[];
 
-  sbe: ISbe;
-  sbeId: number;
+  edfiTenant: IEdfiTenant;
+  edfiTenantId: number;
+
+  sbEnvironmentId: number;
+
   ods: IOds;
   odsId: number;
   odsDbName: string;
+  odsInstanceId: number | null;
 
   children: IEdorg[];
   parent?: IEdorg;

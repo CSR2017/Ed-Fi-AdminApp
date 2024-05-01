@@ -1,0 +1,281 @@
+import {
+  GetSessionDataDto,
+  Id,
+  PgBossJobState,
+  PostEdfiTenantDto,
+  PutEdfiTenantAdminApi,
+  PutEdfiTenantAdminApiRegister,
+  toGetEdfiTenantDto,
+  toOperationResultDto,
+  toSbSyncQueueDto,
+} from '@edanalytics/models';
+import {
+  EdfiTenant,
+  SbEnvironment,
+  SbSyncQueue,
+  addUserModifying,
+  regarding,
+} from '@edanalytics/models-server';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  UseInterceptors,
+} from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import {
+  ReqEdfiTenant,
+  ReqSbEnvironment,
+  SbEnvironmentEdfiTenantInterceptor,
+} from '../app/sb-environment-edfi-tenant.interceptor';
+import { Authorize } from '../auth/authorization';
+import { ReqUser } from '../auth/helpers/user.decorator';
+import { SbEnvironmentsGlobalService } from '../sb-environments-global/sb-environments-global.service';
+import { PgBossInstance, TENANT_SYNC_CHNL } from '../sb-sync/sb-sync.module';
+import { EdfiTenantsService } from '../teams/edfi-tenants/edfi-tenants.service';
+import {
+  StartingBlocksServiceV1,
+  StartingBlocksServiceV2,
+} from '../teams/edfi-tenants/starting-blocks';
+import { throwNotFound } from '../utils';
+import { CustomHttpException, ValidationHttpException } from '../utils/customExceptions';
+
+@ApiTags('EdfiTenant - Global')
+@UseInterceptors(SbEnvironmentEdfiTenantInterceptor)
+@Controller()
+export class EdfiTenantsGlobalController {
+  constructor(
+    private readonly edfiTenantService: EdfiTenantsService,
+    private readonly sbEnvironmentService: SbEnvironmentsGlobalService,
+    private readonly startingBlocksServiceV2: StartingBlocksServiceV2,
+    private readonly startingBlocksServiceV1: StartingBlocksServiceV1,
+    @InjectRepository(EdfiTenant)
+    private edfiTenantsRepository: Repository<EdfiTenant>,
+    @Inject('PgBossInstance')
+    private readonly boss: PgBossInstance,
+    @InjectRepository(SbSyncQueue) private readonly queueRepository: Repository<SbSyncQueue>
+  ) {}
+
+  @Post()
+  @Authorize({
+    privilege: 'sb-environment.edfi-tenant:create',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  async post(
+    @Param('sbEnvironmentId', new ParseIntPipe()) sbEnvironmentId: number,
+    @ReqSbEnvironment() sbEnvironment: SbEnvironment,
+    @Body() tenant: PostEdfiTenantDto
+  ) {
+    return this.edfiTenantService.create(sbEnvironment, tenant);
+  }
+
+  @Get()
+  @Authorize({
+    privilege: 'sb-environment.edfi-tenant:read',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  async findAll(@Param('sbEnvironmentId', new ParseIntPipe()) sbEnvironmentId: number) {
+    return toGetEdfiTenantDto(await this.edfiTenantsRepository.findBy({ sbEnvironmentId }));
+  }
+
+  @Get(':edfiTenantId')
+  @Authorize({
+    privilege: 'sb-environment.edfi-tenant:read',
+    subject: {
+      id: 'edfiTenantId',
+    },
+  })
+  async findOne(@Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number) {
+    return toGetEdfiTenantDto(
+      await this.edfiTenantsRepository.findOneByOrFail({ id: edfiTenantId }).catch(throwNotFound)
+    );
+  }
+
+  @Delete(':edfiTenantId')
+  @Authorize({
+    privilege: 'sb-environment.edfi-tenant:delete',
+    subject: {
+      id: 'edfiTenantId',
+    },
+  })
+  remove(
+    @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
+    @ReqEdfiTenant() edfiTenant: EdfiTenant,
+    @ReqSbEnvironment() sbEnvironment: SbEnvironment,
+    @ReqUser() user: GetSessionDataDto
+  ) {
+    return this.edfiTenantService.delete(sbEnvironment, edfiTenant);
+  }
+
+  @Put(':edfiTenantId/refresh-resources')
+  @Authorize({
+    privilege: 'sb-environment.edfi-tenant:refresh-resources',
+    subject: {
+      id: 'edfiTenantId',
+    },
+  })
+  async refreshResources(@Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number) {
+    const id = await this.boss.send(
+      TENANT_SYNC_CHNL,
+      { edfiTenantId: edfiTenantId },
+      { expireInHours: 2 }
+    );
+    const repo = this.queueRepository;
+    return new Promise((r) => {
+      let queueItem: SbSyncQueue;
+      const timer = setInterval(poll, 500);
+      const pendingState: PgBossJobState[] = ['created', 'retry', 'active'];
+      let i = 0;
+      async function poll() {
+        queueItem = await repo.findOneBy({ id });
+        if (i === 20 || !pendingState.includes(queueItem?.state)) {
+          clearInterval(timer);
+          r(toSbSyncQueueDto(queueItem));
+        }
+        i++;
+      }
+    });
+  }
+
+  @Put(':edfiTenantId/check-admin-api')
+  @Authorize({
+    privilege: 'sb-environment.edfi-tenant:read',
+    subject: {
+      id: 'edfiTenantId',
+    },
+  })
+  async checkAdminAPI(
+    @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
+    @ReqEdfiTenant() edfiTenant: EdfiTenant
+  ) {
+    return await this.edfiTenantService.pingAdminApi(edfiTenant);
+  }
+
+  @Put(':edfiTenantId/update-admin-api')
+  @Authorize({
+    privilege: 'sb-environment.edfi-tenant:update',
+    subject: {
+      id: 'edfiTenantId',
+    },
+  })
+  async updateAdminApi(
+    @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
+    @ReqSbEnvironment() sbEnvironment: SbEnvironment,
+    @ReqEdfiTenant() edfiTenant: EdfiTenant,
+    @Body() updateDto: PutEdfiTenantAdminApi,
+    @ReqUser() user: GetSessionDataDto
+  ) {
+    if (sbEnvironment.version === 'v2') {
+      await this.startingBlocksServiceV2.saveAdminApiCredentials(edfiTenant, sbEnvironment, {
+        ClientId: updateDto.adminKey,
+        ClientSecret: updateDto.adminSecret,
+      });
+      return toGetEdfiTenantDto(edfiTenant);
+    } else if (sbEnvironment.version === 'v1') {
+      await this.startingBlocksServiceV1.saveAdminApiCredentials(sbEnvironment, {
+        ClientId: updateDto.adminKey,
+        ClientSecret: updateDto.adminSecret,
+      });
+      return toGetEdfiTenantDto(edfiTenant);
+    }
+  }
+
+  @Put(':edfiTenantId/admin-api-v2-keygen')
+  @Authorize({
+    privilege: 'sb-environment.edfi-tenant:update',
+    subject: {
+      id: 'edfiTenantId',
+    },
+  })
+  async adminApiKeygen(
+    @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
+    @ReqSbEnvironment() sbEnvironment: SbEnvironment,
+    @ReqEdfiTenant() edfiTenant: EdfiTenant,
+    @Body() updateDto: Id,
+    @ReqUser() user: GetSessionDataDto
+  ) {
+    if (sbEnvironment.version === 'v2') {
+      const result = await this.startingBlocksServiceV2.regenerateAdminApiCredentials(edfiTenant);
+      switch (result.status) {
+        case 'FAILURE':
+          throw new CustomHttpException(
+            {
+              title: 'Failed to generate Admin API key for new tenant.',
+              type: 'Error',
+            },
+            500
+          );
+        case 'NO_CONFIG':
+          throw new CustomHttpException(
+            {
+              title: 'No ARN configured for tenant management.',
+              type: 'Error',
+            },
+            500
+          );
+        case 'SUCCESS':
+          return toOperationResultDto({
+            title: 'Key generated successfully.',
+            type: 'Success',
+            regarding: regarding(edfiTenant),
+          });
+      }
+    } else {
+      throw new BadRequestException('Only v2 environments support this operation.');
+    }
+  }
+  @Put(':edfiTenantId/register-admin-api')
+  @Authorize({
+    privilege: 'sb-environment.edfi-tenant:update',
+    subject: {
+      id: 'edfiTenantId',
+    },
+  })
+  async registerAdminApi(
+    @Param('sbEnvironmentId', new ParseIntPipe()) sbEnvironmentId: number,
+    @ReqSbEnvironment() sbEnvironment: SbEnvironment,
+    @ReqEdfiTenant() edfiTenant: EdfiTenant,
+    @Body() updateDto: PutEdfiTenantAdminApiRegister,
+    @ReqUser() user: GetSessionDataDto
+  ) {
+    if (sbEnvironment.version !== 'v1') {
+      throw new BadRequestException('Only v1 environments support this operation.');
+    }
+    const result = await this.sbEnvironmentService.selfRegisterAdminApi(
+      sbEnvironment,
+      addUserModifying(updateDto, user)
+    );
+    if (result.status === 'ENOTFOUND') {
+      throw new ValidationHttpException({
+        field: 'adminRegisterUrl',
+        message: 'DNS lookup failed for URL provided.',
+      });
+    } else if (result.status === 'ERROR') {
+      throw new CustomHttpException(
+        {
+          type: 'Error',
+          title: 'Self-registration failed.',
+          regarding: regarding(sbEnvironment),
+          message: 'message' in result ? result.message : undefined,
+          data: 'data' in result ? result.data : undefined,
+        },
+        400
+      );
+    } else if (result.status === 'SUCCESS') {
+      return toGetEdfiTenantDto(edfiTenant);
+    }
+  }
+}

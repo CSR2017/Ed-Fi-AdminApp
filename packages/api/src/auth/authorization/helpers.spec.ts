@@ -1,161 +1,216 @@
 import 'reflect-metadata';
+import { ITeamCache, PrivilegeCode, edorgCompositeKey } from '@edanalytics/models';
 import { Edorg } from '@edanalytics/models-server';
 import {
   addIdTo,
   cacheAccordingToPrivileges,
   cacheEdorgPrivilegesDownward,
   cacheEdorgPrivilegesUpward,
+  initializeEdfiTenantPrivilegeCache,
   initializeOdsPrivilegeCache,
-  initializeSbePrivilegeCache,
 } from './helpers';
-import { ITenantCache, PrivilegeCode, createEdorgCompositeNaturalKey } from '@edanalytics/models';
 describe('helper: addIdTo', () => {
-  const cache: ITenantCache = {};
+  const cache: ITeamCache = {};
 
   it('should accommodate empty initial state', () => {
-    addIdTo(cache, 'tenant.sbe:read', 1);
+    addIdTo({
+      cache,
+      privilege: 'team.sb-environment.edfi-tenant:read',
+      id: 1,
+      sbEnvironmentId: 1,
+    });
     expect(cache).toEqual({
-      'tenant.sbe:read': new Set([1]),
+      'team.sb-environment.edfi-tenant:read': { 1: new Set([1]) },
     });
   });
   it('should accommodate Set initial state', () => {
-    addIdTo(cache, 'tenant.sbe:read', true);
+    addIdTo({
+      cache,
+      privilege: 'team.sb-environment.edfi-tenant:read',
+      id: true,
+      sbEnvironmentId: 1,
+    });
     expect(cache).toEqual({
-      'tenant.sbe:read': true,
+      'team.sb-environment.edfi-tenant:read': { 1: true },
     });
   });
-  it('should manage SBE privileges', () => {
-    addIdTo(cache, 'tenant.sbe.edorg:read', 2, 1);
+  it('should manage EdfiTenant privileges', () => {
+    addIdTo({
+      cache,
+      privilege: 'team.sb-environment.edfi-tenant.ods.edorg:read',
+      id: 2,
+      edfiTenantId: 1,
+    });
     expect(cache).toEqual({
-      'tenant.sbe:read': true,
-      'tenant.sbe.edorg:read': {
+      'team.sb-environment.edfi-tenant:read': { 1: true },
+      'team.sb-environment.edfi-tenant.ods.edorg:read': {
         '1': new Set([2]),
       },
     });
   });
-  it('should add ID to SBE privilege', () => {
-    addIdTo(cache, 'tenant.sbe.edorg:read', 3, 1);
+  it('should add ID to EdfiTenant privilege', () => {
+    addIdTo({
+      cache,
+      privilege: 'team.sb-environment.edfi-tenant.ods.edorg:read',
+      id: 3,
+      edfiTenantId: 1,
+    });
     expect(cache).toEqual({
-      'tenant.sbe:read': true,
-      'tenant.sbe.edorg:read': {
+      'team.sb-environment.edfi-tenant:read': { 1: true },
+      'team.sb-environment.edfi-tenant.ods.edorg:read': {
         '1': new Set([2, 3]),
       },
     });
   });
 });
 
-describe('initializeSbePrivilegeCache', () => {
-  it('should apply privilege sbe-wide', () => {
-    const sbeId = 3;
-    const ods = { id: 15, sbeId: 1 };
-    const correctCurrentCacheValue: ITenantCache = {
-      'tenant.sbe.ods:read': {
-        /** Wholly owned SBE `sbeId` */
-        [sbeId]: true,
-        /** Individual ODS owned in SBE `ods.sbeId` */
-        [ods.sbeId]: new Set([ods.id]),
+describe('initializeEdfiTenantPrivilegeCache', () => {
+  it('should apply privilege edfi-tenant-wide', () => {
+    const edfiTenantId = 3;
+    const ods = { id: 15, edfiTenantId: 1 };
+    const correctCurrentCacheValue: ITeamCache = {
+      'team.sb-environment.edfi-tenant.ods:read': {
+        /** Wholly owned EdfiTenant `edfiTenantId` */
+        [edfiTenantId]: true,
+        /** Individual ODS owned in EdfiTenant `ods.edfiTenantId` */
+        [ods.edfiTenantId]: new Set([ods.id]),
       },
     };
-    const cache: ITenantCache = {};
-    initializeSbePrivilegeCache(cache, new Set(['tenant.sbe.ods:read']), sbeId);
-    cacheAccordingToPrivileges(
+    const cache: ITeamCache = {};
+    initializeEdfiTenantPrivilegeCache(
       cache,
-      new Set(['tenant.sbe.ods:read']),
-      'tenant.sbe.ods',
-      ods.id,
-      ods.sbeId
+      new Set(['team.sb-environment.edfi-tenant.ods:read']),
+      edfiTenantId
     );
+    cacheAccordingToPrivileges({
+      cache,
+      privileges: new Set(['team.sb-environment.edfi-tenant.ods:read']),
+      resource: 'team.sb-environment.edfi-tenant.ods',
+      id: ods.id,
+      edfiTenantId: ods.edfiTenantId,
+    });
     expect(cache).toEqual(correctCurrentCacheValue);
   });
   it('should overwrite existing lesser privileges', () => {
-    const sbeId = 3;
-    const ods = { id: 15, sbeId: 1 };
-    const correctCurrentCacheValue: ITenantCache = {
-      'tenant.sbe.ods:read': {
-        /** Wholly owned SBE `sbeId` */
-        [sbeId]: true,
-        /** Individual ODS owned in SBE `ods.sbeId` */
-        [ods.sbeId]: new Set([ods.id]),
+    const edfiTenantId = 3;
+    const ods = { id: 15, edfiTenantId: 1 };
+    const correctCurrentCacheValue: ITeamCache = {
+      'team.sb-environment.edfi-tenant.ods:read': {
+        /** Wholly owned EdfiTenant `edfiTenantId` */
+        [edfiTenantId]: true,
+        /** Individual ODS owned in EdfiTenant `ods.edfiTenantId` */
+        [ods.edfiTenantId]: new Set([ods.id]),
       },
     };
-    const cache: ITenantCache = {
-      'tenant.sbe.ods:read': {
-        [sbeId]: new Set(),
+    const cache: ITeamCache = {
+      'team.sb-environment.edfi-tenant.ods:read': {
+        [edfiTenantId]: new Set(),
       },
     };
-    initializeSbePrivilegeCache(cache, new Set(['tenant.sbe.ods:read']), sbeId);
-    cacheAccordingToPrivileges(
+    initializeEdfiTenantPrivilegeCache(
       cache,
-      new Set(['tenant.sbe.ods:read']),
-      'tenant.sbe.ods',
-      ods.id,
-      ods.sbeId
+      new Set(['team.sb-environment.edfi-tenant.ods:read']),
+      edfiTenantId
     );
+    cacheAccordingToPrivileges({
+      cache,
+      privileges: new Set(['team.sb-environment.edfi-tenant.ods:read']),
+      resource: 'team.sb-environment.edfi-tenant.ods',
+      id: ods.id,
+      edfiTenantId: ods.edfiTenantId,
+    });
     expect(cache).toEqual(correctCurrentCacheValue);
   });
 });
 describe('initializeOdsPrivilegeCache', () => {
   it('should add empty set', () => {
-    const sbeId = 3;
-    const ods = { sbeId: 1 };
-    const correctCurrentCacheValue: ITenantCache = {
-      'tenant.sbe.edorg:read': {
-        /** Wholly owned SBE `sbeId` */
-        [sbeId]: true,
-        /** Individual ODS owned in SBE `ods.sbeId` */
-        [ods.sbeId]: new Set([]),
+    const edfiTenantId = 3;
+    const ods = { edfiTenantId: 1 };
+    const correctCurrentCacheValue: ITeamCache = {
+      'team.sb-environment.edfi-tenant.ods.edorg:read': {
+        /** Wholly owned EdfiTenant `edfiTenantId` */
+        [edfiTenantId]: true,
+        /** Individual ODS owned in EdfiTenant `ods.edfiTenantId` */
+        [ods.edfiTenantId]: new Set([]),
       },
     };
-    const cache: ITenantCache = {};
-    initializeSbePrivilegeCache(cache, new Set(['tenant.sbe.edorg:read']), sbeId);
-    initializeOdsPrivilegeCache(cache, new Set(['tenant.sbe.edorg:read']), ods.sbeId);
+    const cache: ITeamCache = {};
+    initializeEdfiTenantPrivilegeCache(
+      cache,
+      new Set(['team.sb-environment.edfi-tenant.ods.edorg:read']),
+      edfiTenantId
+    );
+    initializeOdsPrivilegeCache(
+      cache,
+      new Set(['team.sb-environment.edfi-tenant.ods.edorg:read']),
+      ods.edfiTenantId
+    );
     expect(cache).toEqual(correctCurrentCacheValue);
   });
   it('should not overwrite greater existing privilege', () => {
-    const sbeId = 1;
-    const ods = { sbeId: 1 };
-    const correctCurrentCacheValue: ITenantCache = {
-      'tenant.sbe.edorg:read': {
-        /** Wholly owned SBE `sbeId` */
-        [sbeId]: true,
+    const edfiTenantId = 1;
+    const ods = { edfiTenantId: 1 };
+    const correctCurrentCacheValue: ITeamCache = {
+      'team.sb-environment.edfi-tenant.ods.edorg:read': {
+        /** Wholly owned EdfiTenant `edfiTenantId` */
+        [edfiTenantId]: true,
       },
     };
-    const cache: ITenantCache = {};
-    initializeSbePrivilegeCache(cache, new Set(['tenant.sbe.edorg:read']), sbeId);
-    initializeOdsPrivilegeCache(cache, new Set(['tenant.sbe.edorg:read']), ods.sbeId);
+    const cache: ITeamCache = {};
+    initializeEdfiTenantPrivilegeCache(
+      cache,
+      new Set(['team.sb-environment.edfi-tenant.ods.edorg:read']),
+      edfiTenantId
+    );
+    initializeOdsPrivilegeCache(
+      cache,
+      new Set(['team.sb-environment.edfi-tenant.ods.edorg:read']),
+      ods.edfiTenantId
+    );
     expect(cache).toEqual(correctCurrentCacheValue);
   });
 });
 
 describe('helpers', () => {
-  const cache: ITenantCache = {};
-  type PartialEdorg = Pick<Edorg, 'id' | 'educationOrganizationId' | 'sbeId' | 'odsId'> & {
+  const cache: ITeamCache = {};
+  type PartialEdorg = Pick<
+    Edorg,
+    'id' | 'educationOrganizationId' | 'edfiTenantId' | 'odsId' | 'odsDbName' | 'odsInstanceId'
+  > & {
     children: PartialEdorg[];
   };
   const edorgTree__value: PartialEdorg = {
     id: 0,
     educationOrganizationId: 100,
-    sbeId: 0,
+    edfiTenantId: 0,
     odsId: 0,
+    odsDbName: 'ods_db',
+    odsInstanceId: null,
     children: [
       {
         id: 1,
         educationOrganizationId: 101,
-        sbeId: 0,
+        edfiTenantId: 0,
         odsId: 0,
+        odsDbName: 'ods_db',
+        odsInstanceId: null,
         children: [],
       },
       {
         id: 2,
         educationOrganizationId: 102,
-        sbeId: 0,
+        edfiTenantId: 0,
         odsId: 0,
+        odsDbName: 'ods_db',
+        odsInstanceId: null,
         children: [
           {
             id: 3,
             educationOrganizationId: 103,
-            sbeId: 0,
+            edfiTenantId: 0,
             odsId: 0,
+            odsDbName: 'ods_db',
+            odsInstanceId: null,
             children: [],
           },
         ],
@@ -175,7 +230,7 @@ describe('helpers', () => {
    * - Inherit read-only privileges upward to:
    *   - edorg 0
    *   - ods 0
-   *   - sbe 0
+   *   - edfiTenant 0
    *     - all vendors
    *     - all claimsets
    * - Have no access to edorg1
@@ -184,39 +239,39 @@ describe('helpers', () => {
   edorgOwnershipPrivileges.set(
     2,
     new Set([
-      'tenant.sbe.edorg:read',
-      'tenant.sbe.edorg.application:read',
-      'tenant.sbe.edorg.application:delete',
-      'tenant.sbe.vendor:read',
-      'tenant.sbe.claimset:read',
-      'tenant.sbe:read',
-      'tenant.sbe.ods:read',
+      'team.sb-environment.edfi-tenant.ods.edorg:read',
+      'team.sb-environment.edfi-tenant.ods.edorg.application:read',
+      'team.sb-environment.edfi-tenant.ods.edorg.application:delete',
+      'team.sb-environment.edfi-tenant.vendor:read',
+      'team.sb-environment.edfi-tenant.claimset:read',
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.ods:read',
+      'team.sb-environment:read',
     ])
   );
-
-  let correctCurrentCacheValue: ITenantCache = {
-    'tenant.sbe.edorg:read': { '0': new Set([2, 3]) },
-    'tenant.sbe.edorg.application:read': {
+  let correctCurrentCacheValue: ITeamCache = {
+    'team.sb-environment.edfi-tenant.ods.edorg:read': { '0': new Set([2, 3]) },
+    'team.sb-environment.edfi-tenant.ods.edorg.application:read': {
       '0': new Set([
-        createEdorgCompositeNaturalKey({
-          educationOrganizationId: 102,
-          odsDbName: '',
+        edorgCompositeKey({
+          edorg: 102,
+          ods: 'ods_db',
         }),
-        createEdorgCompositeNaturalKey({
-          educationOrganizationId: 103,
-          odsDbName: '',
+        edorgCompositeKey({
+          edorg: 103,
+          ods: 'ods_db',
         }),
       ]),
     },
-    'tenant.sbe.edorg.application:delete': {
+    'team.sb-environment.edfi-tenant.ods.edorg.application:delete': {
       '0': new Set([
-        createEdorgCompositeNaturalKey({
-          educationOrganizationId: 102,
-          odsDbName: '',
+        edorgCompositeKey({
+          edorg: 102,
+          ods: 'ods_db',
         }),
-        createEdorgCompositeNaturalKey({
-          educationOrganizationId: 103,
-          odsDbName: '',
+        edorgCompositeKey({
+          edorg: 103,
+          ods: 'ods_db',
         }),
       ]),
     },
@@ -231,86 +286,89 @@ describe('helpers', () => {
     expect(cache).toEqual(correctCurrentCacheValue);
   });
   it('cacheEdorgPrivilegesUpward - should error on missing minimum privileges', () => {
-    cacheEdorgPrivilegesUpward(cache, ownedEdorg, edorgOwnershipPrivileges.get(2), ownedAncestors);
+    cacheEdorgPrivilegesUpward({
+      cache,
+      edorg: ownedEdorg,
+      ownedPrivileges: edorgOwnershipPrivileges.get(2)!,
+      ancestors: ownedAncestors,
+      edfiTenant: { sbEnvironmentId: 1 },
+    });
 
     correctCurrentCacheValue = {
       ...correctCurrentCacheValue,
-      'tenant.sbe:read': new Set([0]),
-      'tenant.sbe.claimset:read': { '0': true },
-      'tenant.sbe.vendor:read': { '0': true },
-      'tenant.sbe.ods:read': { '0': new Set([0]) },
-      'tenant.sbe.edorg:read': { '0': new Set([2, 3, 0]) }, // add 0.
+      'team.sb-environment:read': new Set([1]),
+      'team.sb-environment.edfi-tenant:read': { 1: new Set([0]) },
+      'team.sb-environment.edfi-tenant.claimset:read': { '0': true },
+      'team.sb-environment.edfi-tenant.vendor:read': { '0': true },
+      'team.sb-environment.edfi-tenant.ods:read': { '0': new Set([0]) },
+      'team.sb-environment.edfi-tenant.ods.edorg:read': { '0': new Set([2, 3, 0]) }, // add 0.
     };
 
     expect(() =>
-      cacheEdorgPrivilegesUpward(
+      cacheEdorgPrivilegesUpward({
         cache,
-        ownedEdorg,
-        new Set([
-          'tenant.sbe.edorg:read',
-          // MISSING 'tenant.sbe.vendor:read',
-          'tenant.sbe.claimset:read',
-          'tenant.sbe:read',
-          'tenant.sbe.ods:read',
+        edorg: ownedEdorg,
+        ownedPrivileges: new Set([
+          'team.sb-environment.edfi-tenant.ods.edorg:read',
+          // MISSING 'team.sb-environment.edfi-tenant.vendor:read',
+          'team.sb-environment.edfi-tenant.claimset:read',
+          'team.sb-environment.edfi-tenant:read',
+          // 'team.sb-environment:read',
+          'team.sb-environment.edfi-tenant.ods:read',
         ]),
-        ownedAncestors
-      )
-    ).toThrow('Resource ownership lacks required permission tenant.sbe.vendor:read.');
+        ancestors: ownedAncestors,
+        edfiTenant: { sbEnvironmentId: 1 },
+      })
+    ).toThrow();
     expect(cache).toEqual(correctCurrentCacheValue);
   });
 
-  const cacheAccordingToPrivilegesCache: ITenantCache = {};
+  const cacheAccordingToPrivilegesCache: ITeamCache = {};
   const cacheAccordingToPrivilegesPrivileges = new Set<PrivilegeCode>([
     'me:read',
-    'tenant.role:read',
-    'tenant.sbe:read',
-    'tenant.sbe.edorg.application:read',
-    'tenant.sbe.edorg.application:delete',
-    'tenant.sbe.claimset:create',
+    'team.role:read',
+    'team.sb-environment.edfi-tenant:read',
+    'team.sb-environment.edfi-tenant.ods.edorg.application:read',
+    'team.sb-environment.edfi-tenant.ods.edorg.application:delete',
+    'team.sb-environment.edfi-tenant.claimset:create',
   ]);
 
   it('cacheAccordingToPrivileges - should add nothing if no relevant privileges', () => {
-    cacheAccordingToPrivileges(
-      cacheAccordingToPrivilegesCache,
-      cacheAccordingToPrivilegesPrivileges,
-      'tenant.sbe.vendor',
-      true,
-      1
-    );
+    cacheAccordingToPrivileges({
+      cache: cacheAccordingToPrivilegesCache,
+      privileges: cacheAccordingToPrivilegesPrivileges,
+      resource: 'team.sb-environment.edfi-tenant.vendor',
+      id: true,
+      edfiTenantId: 1,
+    });
     expect(cacheAccordingToPrivilegesCache).toEqual({});
   });
   it('cacheAccordingToPrivileges - should add multiple privileges if present', () => {
-    cacheAccordingToPrivileges(
-      cacheAccordingToPrivilegesCache,
-      cacheAccordingToPrivilegesPrivileges,
-      'tenant.sbe.edorg.application',
-      true,
-      1
-    );
+    cacheAccordingToPrivileges({
+      cache: cacheAccordingToPrivilegesCache,
+      privileges: cacheAccordingToPrivilegesPrivileges,
+      resource: 'team.sb-environment.edfi-tenant.ods.edorg.application',
+      id: true,
+      edfiTenantId: 1,
+    });
     expect(cacheAccordingToPrivilegesCache).toEqual({
-      'tenant.sbe.edorg.application:read': {
+      'team.sb-environment.edfi-tenant.ods.edorg.application:read': {
         '1': true,
       },
-      'tenant.sbe.edorg.application:delete': {
+      'team.sb-environment.edfi-tenant.ods.edorg.application:delete': {
         '1': true,
       },
     });
   });
   it('cacheAccordingToPrivileges - should not add invalid resources', () => {
-    cacheAccordingToPrivileges(
-      cacheAccordingToPrivilegesCache,
-      cacheAccordingToPrivilegesPrivileges,
-      'tenant.sbe.edorg.application_blahblah',
-      true,
-      1
-    );
-    expect(cacheAccordingToPrivilegesCache).toEqual({
-      'tenant.sbe.edorg.application:read': {
-        '1': true,
-      },
-      'tenant.sbe.edorg.application:delete': {
-        '1': true,
-      },
-    });
+    expect(() =>
+      cacheAccordingToPrivileges({
+        cache: cacheAccordingToPrivilegesCache,
+        privileges: cacheAccordingToPrivilegesPrivileges,
+        resource: 'team.sb-environment.edfi-tenant.ods.edorg.application_blahblah',
+        id: true,
+        edfiTenantId: 1,
+      })
+    ).toThrow();
   });
 });

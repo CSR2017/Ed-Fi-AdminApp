@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import {
   Button,
   ButtonGroup,
@@ -6,6 +7,7 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  Link,
   Text,
   chakra,
 } from '@chakra-ui/react';
@@ -13,11 +15,16 @@ import { GetUserDto, PutUserDto, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { tenantQueries, userQueries } from '../../api';
+import { roleQueries, teamQueries, userQueries } from '../../api';
 import { SelectRole } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
+import { useRef } from 'react';
+import { hasNewTeamImpersonation, hasNewGlobalPrivileges } from '../RoleGlobal/EditRoleGlobal';
+import { ConfirmAction } from '@edanalytics/common-ui';
+import { RoleGlobalLink } from '../../routes/role-global.routes';
+import { queryFromEntity } from '../../api/queries/builder';
 
 const resolver = classValidatorResolver(PutUserDto);
 
@@ -25,16 +32,15 @@ export const EditUserGlobal = (props: { user: GetUserDto }) => {
   const popBanner = usePopBanner();
 
   const { user } = props;
-  const tenants = tenantQueries.useAll({});
+  const roles = useQuery(roleQueries.getAll({}));
 
   const navigate = useNavigate();
   const params = useParams() as {
     userId: string;
   };
   const goToView = () => navigate(`/users/${params.userId}`);
-  const putUser = userQueries.usePut({
-    callback: goToView,
-  });
+  const putUser = userQueries.put({});
+
   const userFormDefaults: Partial<PutUserDto> = new PutUserDto();
   userFormDefaults.id = user.id;
   userFormDefaults.roleId = user.roleId;
@@ -47,28 +53,67 @@ export const EditUserGlobal = (props: { user: GetUserDto }) => {
     register,
     handleSubmit,
     setError,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver,
     defaultValues: userFormDefaults,
   });
 
+  const newRoleId = watch('roleId');
+  const newPrivileges = newRoleId !== undefined ? roles.data?.[newRoleId]?.privilegeIds : undefined;
+  const oldPrivileges =
+    user.roleId !== undefined ? roles.data?.[user.roleId]?.privilegeIds : undefined;
+
+  const newTeamImpersonation =
+    newPrivileges && hasNewTeamImpersonation(newPrivileges, oldPrivileges ?? []);
+  const adminPrivileges =
+    newPrivileges && hasNewGlobalPrivileges(newPrivileges, oldPrivileges ?? []);
+  const confirmMessage = newTeamImpersonation
+    ? adminPrivileges
+      ? 'team impersonation ability and global privileges'
+      : 'team impersonation ability'
+    : adminPrivileges
+    ? 'global privileges'
+    : null;
+  const confirmBody =
+    confirmMessage === null ? null : (
+      <Text>
+        You're about to give this user new {confirmMessage}. Are you sure you want to do that?
+        <br />
+        <br />
+        See the{' '}
+        {newRoleId !== undefined && roles.data?.[newRoleId] ? (
+          <RoleGlobalLink id={newRoleId} query={roles} />
+        ) : null}{' '}
+        role to check the details.
+      </Text>
+    );
+
+  const formRef = useRef<HTMLFormElement>(null);
+
   return (
     <chakra.form
       maxW="form-width"
+      ref={formRef}
       onSubmit={handleSubmit((data) => {
         const validatedData = data as PutUserDto;
         return putUser
           .mutateAsync(
             {
-              id: validatedData.id,
-              roleId: validatedData.roleId,
-              isActive: validatedData.isActive,
-              username: validatedData.username,
-              givenName: validatedData.givenName === '' ? null : validatedData.givenName,
-              familyName: validatedData.familyName === '' ? null : validatedData.familyName,
+              entity: {
+                id: validatedData.id,
+                roleId: validatedData.roleId,
+                isActive: validatedData.isActive,
+                username: validatedData.username,
+                givenName: validatedData.givenName === '' ? null : validatedData.givenName,
+                familyName: validatedData.familyName === '' ? null : validatedData.familyName,
+              },
             },
-            mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError })
+            {
+              ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
+              onSuccess: goToView,
+            }
           )
           .catch(noop);
       })}
@@ -99,9 +144,33 @@ export const EditUserGlobal = (props: { user: GetUserDto }) => {
         <FormErrorMessage>{errors.roleId?.message}</FormErrorMessage>
       </FormControl>
       <ButtonGroup>
-        <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
-          Save
-        </Button>
+        <ConfirmAction
+          action={() => {
+            formRef.current?.dispatchEvent(
+              new Event('submit', { bubbles: true, cancelable: true })
+            );
+          }}
+          skipConfirmation={confirmBody === null}
+          headerText="Add new admin privileges?"
+          bodyText={confirmBody ?? ''}
+          yesButtonText="Yes, save"
+          noButtonText="No, cancel"
+        >
+          {(props) => (
+            <Button
+              mt={4}
+              colorScheme="teal"
+              isLoading={isSubmitting}
+              type="submit"
+              onClick={(e) => {
+                e.preventDefault();
+                props.onClick && props.onClick(e);
+              }}
+            >
+              Save
+            </Button>
+          )}
+        </ConfirmAction>
         <Button
           mt={4}
           colorScheme="teal"

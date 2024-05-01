@@ -1,12 +1,12 @@
 import {
   AuthorizationCache,
   Ids,
-  isTenantSbePrivilege,
-  ITenantCache,
+  isCachedByEdfiTenant,
+  isCachedBySbEnvironment,
   PrivilegeCode,
   SpecificIds,
 } from '@edanalytics/models';
-import { createParamDecorator, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 export const InjectFilter = createParamDecorator(
   (privilege: PrivilegeCode, ctx: ExecutionContext) => {
@@ -15,9 +15,12 @@ export const InjectFilter = createParamDecorator(
 
     let ids: Ids | undefined = undefined;
 
-    if (isTenantSbePrivilege(privilege)) {
-      const sbeId = Number(request?.params?.sbeId);
-      ids = cache?.[privilege]?.[sbeId] ?? undefined;
+    if (isCachedByEdfiTenant(privilege)) {
+      const edfiTenantId = Number(request?.params?.edfiTenantId);
+      ids = cache?.[privilege]?.[edfiTenantId] ?? undefined;
+    } else if (isCachedBySbEnvironment(privilege)) {
+      const sbEnvironmentId = Number(request?.params?.sbEnvironmentId);
+      ids = cache?.[privilege]?.[sbEnvironmentId] ?? undefined;
     } else {
       ids = cache?.[privilege] ?? undefined;
     }

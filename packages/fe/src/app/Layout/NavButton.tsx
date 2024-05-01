@@ -20,6 +20,7 @@ export interface INavButtonProps {
   childItems?: INavButtonProps[];
   depth?: number;
   isActive?: boolean;
+  rightElement?: JSX.Element;
 }
 
 // TODO: The "resource explorer"-style tree component should probably be its own nice abstraction, with navigation links just implementing the interface. With the expectation of that eventually happening, not much effort has been put into making the existing setup very elegant.
@@ -29,7 +30,11 @@ export interface INavButtonProps {
  */
 export const NavButton = (props: INavButtonProps) => {
   const isActive = props.isActive && !props.childItems?.some((child) => child.isActive);
-  const { isOpen: isExpandedState, onToggle: toggleIsExpanded, onOpen: expand } = useDisclosure();
+  const {
+    isOpen: isExpandedState,
+    onToggle: toggleIsExpanded,
+    onOpen: expand,
+  } = useDisclosure({ defaultIsOpen: true });
   const hasChildren = props?.childItems?.length;
   const checkisChildExpanded = (items: INavButtonProps[]): boolean =>
     items.some((item) => item.isActive || checkisChildExpanded(item.childItems || []));
@@ -111,6 +116,9 @@ export const NavButton = (props: INavButtonProps) => {
                 minW="20px"
                 size="xs"
                 className={isExpandedState ? 'opened' : undefined}
+                _hover={{
+                  bg: 'gray.200',
+                }}
                 css={{
                   '&.opened': {
                     transition: '0.5s',
@@ -125,6 +133,11 @@ export const NavButton = (props: INavButtonProps) => {
             </Box>
           ) : undefined}
           {button}
+          {props.rightElement ? (
+            <Box pos="relative" h="20px" zIndex={2}>
+              {props.rightElement}
+            </Box>
+          ) : null}
         </HStack>
         <Collapse in={isExpandedState} animateOpacity>
           <Box fontSize="1em">

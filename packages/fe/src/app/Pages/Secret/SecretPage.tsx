@@ -13,7 +13,7 @@ import {
   useBoolean,
 } from '@chakra-ui/react';
 import { ConfirmAction, JsonSecret, SecretValue } from '@edanalytics/common-ui';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { BsInfoCircle } from 'react-icons/bs';
 import { useLocation } from 'react-router-dom';
 import { getMessage } from './yopass';
@@ -30,7 +30,7 @@ https://gbes-infinite-campus.mth-dev-61a.eaedfi.edanalytics.org/
 
 const SecretPage = () => {
   const { hash } = useLocation();
-  const [hashMark, uuid, key] = hash.split('/');
+  const [_hashMark, uuid, key] = hash.split('/');
   const [secret, setSecret] = useState<string | null>(null);
   let secretJson: null | JsonSecret = null;
   if (secret !== null) {
@@ -50,24 +50,8 @@ const SecretPage = () => {
       // that's fine, it's just old format pre-JSON.
     }
   }
-  const [show, setShow] = useBoolean(false);
   const [isError, setIsError] = useBoolean(false);
 
-  useEffect(() => {
-    const func = async () => {
-      if (uuid && key && show && !secret) {
-        try {
-          const secret = await getMessage(uuid, key);
-          setSecret(secret.data.toString());
-        } catch (error) {
-          if (error === 404) {
-            setIsError.on();
-          }
-        }
-      }
-    };
-    func();
-  }, [uuid, key, show]);
   return (
     <VStack p={10} bg="background-bg">
       <Box w="100%" maxW="50em">
@@ -79,9 +63,18 @@ const SecretPage = () => {
           bodyText="The link will only work once. After that, the credentials are deleted and you will have to reset them in order to get another link. This is for extra security."
           yesButtonText="Yes, retrieve them."
           noButtonText="No, not right now."
-          isDisabled={show || isError}
-          action={() => {
-            setShow.on();
+          isDisabled={!!secret || isError}
+          action={async () => {
+            if (uuid && key && !secret) {
+              try {
+                const secret = await getMessage(uuid, key);
+                setSecret(secret.data.toString());
+              } catch (error) {
+                if (error === 404) {
+                  setIsError.on();
+                }
+              }
+            }
           }}
         >
           {(confirmRenderProps) => (
@@ -95,14 +88,14 @@ const SecretPage = () => {
               boxShadow="lg"
               bg="foreground-bg"
               css={
-                show
+                secret
                   ? {}
                   : {
                       cursor: 'pointer',
                     }
               }
               _hover={
-                show
+                secret
                   ? undefined
                   : {
                       background: 'gray.50',
@@ -110,7 +103,7 @@ const SecretPage = () => {
               }
               pos="relative"
             >
-              {show ? null : (
+              {secret ? null : (
                 <Box pos="absolute" left="50%" top="50%">
                   <Text
                     fontWeight="medium"
@@ -147,13 +140,13 @@ const SecretPage = () => {
                     </Tooltip>{' '}
                   </AlertDescription>
                 </Alert>
-              ) : show && secretJson ? (
+              ) : secret && secretJson ? (
                 <SecretValue secret={secretJson} />
               ) : (
                 <chakra.pre
                   fontSize="lg"
                   css={
-                    show
+                    secret
                       ? {}
                       : {
                           userSelect: 'none',
@@ -162,7 +155,7 @@ const SecretPage = () => {
                         }
                   }
                 >
-                  {show ? secret : placeholder}
+                  {secret ? secret : placeholder}
                 </chakra.pre>
               )}
             </Box>

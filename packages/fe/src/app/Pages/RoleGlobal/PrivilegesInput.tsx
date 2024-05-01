@@ -10,15 +10,15 @@ import {
 } from '@chakra-ui/react';
 import {
   DependencyErrors,
-  GetPrivilegeDto,
+  IPrivilege,
   PrivilegeCode,
-  privilegeCodes,
+  PRIVILEGE_CODES,
   privilegeDependencies,
 } from '@edanalytics/models';
 import { BsCheckAll, BsXLg } from 'react-icons/bs';
 import { PrivilegeNest, nestPrivileges } from './nest-privileges';
 
-const privilegeCodesSet = new Set(privilegeCodes);
+const privilegeCodesSet = new Set(PRIVILEGE_CODES);
 const isDeepTrue = (children: PrivilegeNest, value: Set<PrivilegeCode>) => {
   let accumulator: boolean | null | undefined = undefined;
   (Object.keys(children) as PrivilegeCode[]).forEach((k) => {
@@ -32,7 +32,7 @@ const _isDeepTrue = (
   value: Set<PrivilegeCode>,
   acc: boolean | null | undefined
 ) => {
-  if (privilegeCodesSet.has(p)) {
+  if (privilegeCodesSet.has(p as PrivilegeCode)) {
     const thisPrivilege = value.has(p as any);
     if (acc === undefined) {
       acc = thisPrivilege;
@@ -91,7 +91,7 @@ const PrivilegeGroup = (props: {
       <Box ml="2em">
         {Object.entries(children).map(([str, childs]) => {
           if (Object.keys(childs || {}).length === 0) {
-            if (privilegeCodesSet.has(str)) {
+            if (privilegeCodesSet.has(str as PrivilegeCode)) {
               const p = str as PrivilegeCode;
               return (
                 <SinglePrivilege error={props.error} key={p} code={p} set={set} value={value} />
@@ -131,10 +131,7 @@ const SinglePrivilege = (props: {
   const errMsg = props.error?.[props.code];
   const isChecked = props.value.has(props.code);
   return (
-    <FormControl
-      isDisabled={props.code === 'me:read' || props.code === 'privilege:read'}
-      isInvalid={!!errMsg}
-    >
+    <FormControl isDisabled={props.code === 'me:read'} isInvalid={!!errMsg}>
       <Checkbox isChecked={isChecked} onChange={(e) => props.set([props.code], e.target.checked)}>
         <HStack my={1} alignContent="baseline" display="flex" flexDir="row" flexWrap="wrap">
           <Tag key={props.code} colorScheme="orange" display="flex" w="max-content">
@@ -189,7 +186,7 @@ export const PrivilegesInput = (props: {
   error: DependencyErrors | undefined;
   value: PrivilegeCode[];
   onChange: (newValue: PrivilegeCode[]) => void;
-  privileges: GetPrivilegeDto[];
+  privileges: IPrivilege[];
 }) => {
   const valueSet = new Set(props.value);
   const privileges = props.privileges;
@@ -204,7 +201,6 @@ export const PrivilegesInput = (props: {
       privileges.forEach((p) => newValue.delete(p));
     }
     newValue.add('me:read');
-    newValue.add('privilege:read');
     props.onChange([...newValue.values()]);
   };
   return (

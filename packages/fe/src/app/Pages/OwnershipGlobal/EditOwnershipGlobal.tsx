@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import {
   Button,
   ButtonGroup,
@@ -12,7 +13,7 @@ import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { ownershipQueries, tenantQueries } from '../../api';
+import { ownershipQueries, teamQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers';
 import { SelectRole } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
@@ -21,7 +22,7 @@ const resolver = classValidatorResolver(PutOwnershipDto);
 
 export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
   const { ownership } = props;
-  const tenants = tenantQueries.useAll({});
+  const teams = useQuery(teamQueries.getAll({}));
   const popBanner = usePopBanner();
 
   const navigate = useNavigate();
@@ -29,9 +30,8 @@ export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
     ownershipId: string;
   };
   const goToView = () => navigate(`/ownerships/${params.ownershipId}`);
-  const putOwnership = ownershipQueries.usePut({
-    callback: goToView,
-  });
+  const putOwnership = ownershipQueries.put({});
+
   const ownershipFormDefaults: Partial<PutOwnershipDto> = new PutOwnershipDto();
   ownershipFormDefaults.id = ownership?.id;
   ownershipFormDefaults.roleId = ownership?.roleId ?? undefined;
@@ -52,24 +52,29 @@ export const EditOwnershipGlobal = (props: { ownership: GetOwnershipDto }) => {
         return putOwnership
           .mutateAsync(
             {
-              id: validatedData.id,
-              roleId: validatedData.roleId,
+              entity: {
+                id: validatedData.id,
+                roleId: validatedData.roleId,
+              },
             },
-            mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError })
+            {
+              ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
+              onSuccess: goToView,
+            }
           )
           .catch(noop);
       })}
     >
-      <FormLabel as="p">Tenant</FormLabel>
-      <Text>{getRelationDisplayName(ownership.tenantId, tenants)}</Text>
+      <FormLabel as="p">Team</FormLabel>
+      <Text>{getRelationDisplayName(ownership.teamId, teams)}</Text>
       <FormLabel as="p">Resource</FormLabel>
       <Text>
         {ownership.edorg
           ? ownership.edorg.displayName
           : ownership.ods
           ? ownership.ods.displayName
-          : ownership.sbe
-          ? ownership.sbe.displayName
+          : ownership.edfiTenant
+          ? ownership.edfiTenant.displayName
           : '-'}
       </Text>
       <FormControl w="form-width" isInvalid={!!errors.roleId}>

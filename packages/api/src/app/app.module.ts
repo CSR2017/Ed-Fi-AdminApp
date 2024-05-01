@@ -1,4 +1,3 @@
-import { Edorg, Ods, Ownership, Sbe, User } from '@edanalytics/models-server';
 import { Module } from '@nestjs/common';
 import { APP_GUARD, RouterModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,32 +7,35 @@ import { AuthCacheGuard } from '../auth/authorization/authorization-cache.guard'
 import { AuthorizedGuard } from '../auth/authorization/authorized.guard';
 import { AuthenticatedGuard } from '../auth/login/authenticated.guard';
 import typeormConfig from '../database/typeorm.config';
+import { EdfiTenantsGlobalModule } from '../edfi-tenants-global/edfi-tenants-global.module';
+import { EdorgsGlobalModule } from '../edfi-tenants-global/edorgs-global/edorgs-global.module';
+import { OdssGlobalModule } from '../edfi-tenants-global/odss-global/odss-global.module';
 import { OwnershipsGlobalModule } from '../ownerships-global/ownerships-global.module';
-import { PrivilegesModule } from '../privileges/privileges.module';
 import { RolesGlobalModule } from '../roles-global/roles-global.module';
-import { EdorgsGlobalModule } from '../sbes-global/edorgs-global/edorgs-global.module';
-import { OdssGlobalModule } from '../sbes-global/odss-global/odss-global.module';
-import { SbesGlobalModule } from '../sbes-global/sbes-global.module';
-import { TenantsGlobalModule } from '../tenants/tenants-global.module';
-import { OwnershipsModule } from '../tenants/ownerships/ownerships.module';
-import { RolesModule } from '../tenants/roles/roles.module';
-import { EdorgsModule } from '../tenants/sbes/edorgs/edorgs.module';
-import { OdssModule } from '../tenants/sbes/odss/odss.module';
-import { SbesModule } from '../tenants/sbes/sbes.module';
-import { StartingBlocksModule } from '../tenants/sbes/starting-blocks/starting-blocks.module';
-import { UserTenantMembershipsModule } from '../tenants/user-tenant-memberships/user-tenant-memberships.module';
-import { UsersModule } from '../tenants/users/users.module';
-import { UserTenantMembershipsGlobalModule } from '../user-tenant-memberships-global/user-tenant-memberships-global.module';
+import { SbEnvironmentsGlobalModule } from '../sb-environments-global/sb-environments-global.module';
+import { SbSyncModule } from '../sb-sync/sb-sync.module';
+import { EdfiTenantsModule } from '../teams/edfi-tenants/edfi-tenants.module';
+import { EdorgsModule } from '../teams/edfi-tenants/edorgs/edorgs.module';
+import { OdssModule } from '../teams/edfi-tenants/odss/odss.module';
+import { AdminApiModuleV1 } from '../teams/edfi-tenants/starting-blocks/v1/admin-api.v1.module';
+import { AdminApiModuleV2 } from '../teams/edfi-tenants/starting-blocks/v2/admin-api.v2.module';
+import { OwnershipsModule } from '../teams/ownerships/ownerships.module';
+import { RolesModule } from '../teams/roles/roles.module';
+import { SbEnvironmentsModule } from '../teams/sb-environments/sb-environments.module';
+import { TeamsGlobalModule } from '../teams/teams-global.module';
+import { UserTeamMembershipsModule } from '../teams/user-team-memberships/user-team-memberships.module';
+import { UsersModule } from '../teams/users/users.module';
+import { UserTeamMembershipsGlobalModule } from '../user-team-memberships-global/user-team-memberships-global.module';
 import { UsersGlobalModule } from '../users-global/users-global.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CacheModule } from './cache.module';
 import { routes } from './routes';
-import { SbSyncModule } from '../sb-sync/sb-sync.module';
+import { SbEnvironmentEdfiTenantInterceptor } from './sb-environment-edfi-tenant.interceptor';
+import { ServicesModule } from './services.module';
+import { PgBossModule } from '../sb-sync/pg-boss.module';
 
 @Module({
   imports: [
-    CacheModule,
     TypeOrmModule.forRootAsync({
       useFactory: async () => {
         return {
@@ -43,23 +45,26 @@ import { SbSyncModule } from '../sb-sync/sb-sync.module';
         };
       },
     }),
-    TypeOrmModule.forFeature([User, Sbe, Ods, Edorg, Ownership]),
     RouterModule.register(routes),
+    PgBossModule,
+    ServicesModule,
     AuthModule,
     UsersModule,
-    UserTenantMembershipsModule,
+    UserTeamMembershipsModule,
     OwnershipsModule,
-    SbesModule,
+    EdfiTenantsModule,
     OdssModule,
     EdorgsModule,
-    StartingBlocksModule,
+    AdminApiModuleV1,
+    AdminApiModuleV2,
     RolesModule,
-    PrivilegesModule,
-    SbesGlobalModule,
+    EdfiTenantsGlobalModule,
+    SbEnvironmentsGlobalModule,
+    SbEnvironmentsModule,
     OwnershipsGlobalModule,
-    TenantsGlobalModule,
+    TeamsGlobalModule,
     UsersGlobalModule,
-    UserTenantMembershipsGlobalModule,
+    UserTeamMembershipsGlobalModule,
     RolesGlobalModule,
     OdssGlobalModule,
     EdorgsGlobalModule,
@@ -67,6 +72,7 @@ import { SbSyncModule } from '../sb-sync/sb-sync.module';
   ],
   controllers: [AppController],
   providers: [
+    SbEnvironmentEdfiTenantInterceptor,
     AppService,
     {
       provide: APP_GUARD,
@@ -81,5 +87,6 @@ import { SbSyncModule } from '../sb-sync/sb-sync.module';
       useClass: AuthorizedGuard,
     },
   ],
+  exports: [SbEnvironmentEdfiTenantInterceptor],
 })
 export class AppModule {}

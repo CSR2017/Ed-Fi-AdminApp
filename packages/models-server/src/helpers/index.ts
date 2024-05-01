@@ -1,25 +1,25 @@
 import {
   GetUserDto,
   GetOdsDto,
-  GetSbeDto,
+  GetEdfiTenantDto,
   GetEdorgDto,
-  GetUserTenantMembershipDto,
-  GetTenantDto,
-  GetPrivilegeDto,
+  GetUserTeamMembershipDto,
+  GetTeamDto,
   GetRoleDto,
   GetOwnershipDto,
   entityNamesMap,
+  GetSbEnvironmentDto,
 } from '@edanalytics/models';
 import {
   Edorg,
   Ods,
   Ownership,
-  Privilege,
   Role,
-  Sbe,
-  Tenant,
+  EdfiTenant,
+  Team,
   User,
-  UserTenantMembership,
+  UserTeamMembership,
+  SbEnvironment,
 } from '../entities';
 
 /**
@@ -56,18 +56,18 @@ export const regarding = (
   entity:
     | Ods
     | GetOdsDto
-    | Sbe
-    | GetSbeDto
+    | EdfiTenant
+    | GetEdfiTenantDto
+    | SbEnvironment
+    | GetSbEnvironmentDto
     | Edorg
     | GetEdorgDto
-    | UserTenantMembership
-    | GetUserTenantMembershipDto
+    | UserTeamMembership
+    | GetUserTeamMembershipDto
     | User
     | GetUserDto
-    | Tenant
-    | GetTenantDto
-    | Privilege
-    | GetPrivilegeDto
+    | Team
+    | GetTeamDto
     | Role
     | GetRoleDto
     | Ownership

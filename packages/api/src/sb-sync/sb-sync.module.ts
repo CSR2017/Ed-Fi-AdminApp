@@ -1,46 +1,27 @@
-import { SbSyncQueue, Sbe } from '@edanalytics/models-server';
+import { SbSyncQueue, EdfiTenant, SbEnvironment } from '@edanalytics/models-server';
 import { Injectable, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SbSyncConsumer } from './sb-sync.consumer';
 
 import config from 'config';
 import PgBoss from 'pg-boss';
 import { AuthModule } from '../auth/auth.module';
-import {
-  AdminApiService,
-  StartingBlocksService,
-} from '../tenants/sbes/starting-blocks/starting-blocks.service';
+import { AdminApiServiceV1 } from '../teams/edfi-tenants/starting-blocks/v1/admin-api.v1.service';
 import { SbSyncController } from './sb-sync.controller';
+import { SbSyncConsumer } from './sb-sync.consumer';
+import {
+  StartingBlocksServiceV1,
+  StartingBlocksServiceV2,
+} from '../teams/edfi-tenants/starting-blocks';
+import { MetadataService } from '../teams/edfi-tenants/starting-blocks/metadata.service';
 
 @Injectable()
 export class PgBossInstance extends PgBoss {}
 
 export const SYNC_SCHEDULER_CHNL = 'sbe-sync-scheduler';
-export const SYNC_CHNL = 'sbe-sync';
+export const ENV_SYNC_CHNL = 'sbe-sync';
+export const TENANT_SYNC_CHNL = 'edfi-tenant-sync';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Sbe, SbSyncQueue]), AuthModule],
   controllers: [SbSyncController],
-  providers: [
-    SbSyncConsumer,
-    AdminApiService,
-    StartingBlocksService,
-    {
-      provide: 'PgBossInstance',
-      useFactory: async () => {
-        const boss = new PgBossInstance({
-          connectionString: await config.DB_CONNECTION_STRING,
-        });
-        await boss.start();
-        return boss;
-      },
-    },
-  ],
-  exports: [
-    {
-      provide: 'PgBossInstance',
-      useExisting: 'PgBossInstance',
-    },
-  ],
 })
 export class SbSyncModule {}

@@ -78,6 +78,14 @@ const FilterValueLabel = ({ column }: { column: Column<any, unknown> }) => {
   }
   return <>{String(value)}</>;
 };
+const ColumnLabel = ({ column }: { column: Column<any, unknown> }) => (
+  <Text as="span" fontWeight="bold">
+    {typeof column.columnDef.header === 'function'
+      ? column.columnDef.header({ table: null as any, column, header: null as any })
+      : column.columnDef.header}
+    :&nbsp;
+  </Text>
+);
 
 export const ColumnFilter = ({ column }: { column: Column<any, unknown> }) => {
   return (
@@ -96,12 +104,7 @@ export const ColumnFilter = ({ column }: { column: Column<any, unknown> }) => {
           >
             <PopoverTrigger>
               <Box as="button">
-                <Text as="span" fontWeight="bold">
-                  {typeof column.columnDef.header === 'function'
-                    ? column.columnDef.header({ table: null as any, column, header: null as any })
-                    : column.columnDef.header}
-                  :&nbsp;
-                </Text>
+                <ColumnLabel column={column} />
                 <Text
                   visibility={column.getFilterValue() === undefined ? 'hidden' : 'visible'}
                   as="span"
@@ -267,6 +270,7 @@ export const DateFilter = ({
     <>
       <PopoverBody w="auto" minW="15em" display="block">
         <Stack fontSize="sm" minW="24em">
+          <ColumnLabel column={column} />
           <RadioGroup value={type} onChange={radioOnChange}>
             <Box mb={4}>
               <Radio value="between">Between</Radio>
@@ -383,6 +387,7 @@ export const NumberFilter = ({
     <>
       <PopoverBody w="auto" minW="15em" display="block">
         <Stack fontSize="sm" minW="24em">
+          <ColumnLabel column={column} />
           <RadioGroup value={type} onChange={radioOnChange}>
             <Box mb={4}>
               <Radio value="between">Between</Radio>
@@ -555,6 +560,7 @@ export const DurationFilter = ({
   return (
     <>
       <PopoverBody w="auto" minW="15em" display="block">
+        <ColumnLabel column={column} />
         <ButtonGroup display="flex" isAttached size="sm" mt={1} mb={3}>
           <Button
             flexGrow={1}
@@ -714,14 +720,12 @@ export const OptionsFilter = ({
 
   const isDisabled = filter === undefined;
 
-  const sortedUniqueValues = React.useMemo(
-    () => Array.from(column.getFacetedUniqueValues().keys()).sort(),
-    [column.getFacetedUniqueValues()]
-  );
+  const sortedUniqueValues = Array.from(column.getFacetedUniqueValues().keys()).sort();
 
   return (
     <>
       <PopoverBody w="auto" py={6} minW="17em" display="block">
+        <ColumnLabel column={column} />
         <VirtualizedSelect
           size="sm"
           chakraStyles={{

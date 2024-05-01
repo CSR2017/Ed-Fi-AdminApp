@@ -23,6 +23,7 @@ export class Seeding1697203599392 implements MigrationInterface {
         (7, 'Tenant viewer', 'Tenant viewer', '"UserTenant"'),
         (8, 'Standard tenant access', 'Tenant user', '"UserTenant"')`
       );
+      await queryRunner.query(`SELECT setval('"role_id_seq"', 8)`);
       const allPrivileges = (await queryRunner.query('SELECT * FROM "privilege"')).map(
         (p) => p.code
       );

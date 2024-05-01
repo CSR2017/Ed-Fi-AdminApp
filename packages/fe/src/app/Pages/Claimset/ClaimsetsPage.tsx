@@ -1,10 +1,11 @@
-import { SbaaTableAllInOne, PageTemplate, PageActions } from '@edanalytics/common-ui';
-import { claimsetQueries } from '../../api';
-import { useNavContext } from '../../helpers';
-import { NameCell } from './NameCell';
-import { useManyClaimsetActions } from './useClaimsetActions';
+import { PageActions, PageTemplate, SbaaTableAllInOne } from '@edanalytics/common-ui';
+import { useQuery } from '@tanstack/react-query';
 import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
 import { useState } from 'react';
+import { claimsetQueriesV1 } from '../../api';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
+import { NameCell } from './NameCell';
+import { useManyClaimsetActions } from './useClaimsetActions';
 
 export const ClaimsetsPage = () => {
   const [selectedRows, setSelectedRows] = useState<RowSelectionState>({});
@@ -23,14 +24,13 @@ export const ClaimsetsPageContent = ({
   selectedRows: RowSelectionState;
   setSelectedRows: OnChangeFn<RowSelectionState>;
 }) => {
-  const navContext = useNavContext();
-  const sbeId = navContext.sbeId!;
-  const asId = navContext.asId!;
-
-  const claimsets = claimsetQueries.useAll({
-    tenantId: asId,
-    sbeId: sbeId,
-  });
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const claimsets = useQuery(
+    claimsetQueriesV1.getAll({
+      teamId,
+      edfiTenant,
+    })
+  );
 
   return (
     <SbaaTableAllInOne

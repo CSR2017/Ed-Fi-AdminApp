@@ -3,12 +3,18 @@ import { BiDotsVerticalRounded } from 'react-icons/bi';
 import { ActionsType } from './ActionsType';
 import { ActionMenuButton, TdIconButton } from './getStandardActions';
 
-export const TableRowActions = (props: {
-  actions: ActionsType;
-  show?: number | undefined | true;
-}) => {
-  const { show, actions } = props;
-  const hidden = Object.entries(actions);
+/**
+ * Split actions into some to be visible and some to be buried in menu, based on config for target number to show.
+ *
+ * - Actions marked as "irrelevant" are pushed to the end so that if any are buried it's those ones.
+ * - Actions marked as "pending" are guaranteed to be visible, but with the least possible disturbance to the sorting that would otherwise be used.
+ *   - If they're already among the visible bunch, then no change.
+ *   - If they're among the hidden bunch, then they're moved to the end of the visible bunch, resulting in more than the target being temporarily shown.
+ */
+export const splitActions = (actions: ActionsType, show?: number | undefined | true) => {
+  const hidden = Object.entries(actions).sort(([ak, a], [bk, b]) =>
+    a.isIrrelevant ? 1 : b.isIrrelevant ? -1 : 0
+  );
   const visible = hidden.splice(
     0,
     // show all
@@ -24,6 +30,21 @@ export const TableRowActions = (props: {
       : // show custom number
         show
   );
+  hidden.forEach(([_, a], i) => {
+    if (a.isPending) {
+      visible.push(...hidden.splice(i, 1));
+    }
+  });
+  return { hidden, visible };
+};
+
+export const TableRowActions = (props: {
+  actions: ActionsType;
+  show?: number | undefined | true;
+}) => {
+  const { show, actions } = props;
+  const { hidden, visible } = splitActions(actions, show);
+
   return (
     <ButtonGroup
       className="row-hover"

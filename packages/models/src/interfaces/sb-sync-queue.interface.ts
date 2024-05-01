@@ -8,23 +8,15 @@ export type PgBossJobState =
   | 'failed';
 export interface ISbSyncQueue {
   id: string;
-  name: string;
-  priority: number;
-  data: object;
+  type: 'SbEnvironment' | 'EdfiTenant';
+  name: string | 'resource no longer exists';
+  sbEnvironmentId: number | null;
+  edfiTenantId: number | null;
+  dataText: string;
+  data: { sbEnvironmentId: number } | { edfiTenantId: number };
   state: PgBossJobState;
-  retrylimit: number;
-  retrycount: number;
-  retrydelay: number;
-  retrybackoff: boolean;
-  startafter: Date;
-  startedon: Date;
-  singletonkey: string;
-  singletonon: Date | null;
-  expirein: Date;
   createdon: Date;
-  completedon: Date | null;
-  keepuntil: Date;
-  on_complete: boolean;
+  completedon: Date;
   output: object;
-  archivedon: Date | null;
+  hasChanges: boolean | null | undefined;
 }

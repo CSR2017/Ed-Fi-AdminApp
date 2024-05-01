@@ -12,15 +12,16 @@ import {
   chakra,
 } from '@chakra-ui/react';
 import { GetClaimsetDto, PutClaimsetDto } from '@edanalytics/models';
+import { flattenFieldErrors } from '@edanalytics/utils';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
+import { BsInfoCircle } from 'react-icons/bs';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { claimsetQueries } from '../../api';
+import { claimsetQueriesV1 } from '../../api';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
-import { BsInfoCircle } from 'react-icons/bs';
-import { flattenFieldErrors } from '@edanalytics/utils';
 
 const resolver = classValidatorResolver(PutClaimsetDto);
 
@@ -29,17 +30,18 @@ export const EditClaimset = (props: { claimset: GetClaimsetDto }) => {
 
   const navigate = useNavigate();
   const params = useParams() as {
-    asId: string;
-    sbeId: string;
     claimsetId: string;
   };
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
   const goToView = () =>
-    navigate(`/as/${params.asId}/sbes/${params.sbeId}/claimsets/${params.claimsetId}`);
-  const putClaimset = claimsetQueries.usePut({
-    callback: goToView,
-    sbeId: params.sbeId,
-    tenantId: params.asId,
+    navigate(
+      `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/claimsets/${params.claimsetId}`
+    );
+  const putClaimset = claimsetQueriesV1.put({
+    edfiTenant,
+    teamId: teamId,
   });
+
   const {
     register,
     setError,
@@ -55,8 +57,11 @@ export const EditClaimset = (props: { claimset: GetClaimsetDto }) => {
       onSubmit={handleSubmit((data) =>
         putClaimset
           .mutateAsync(
-            data,
-            mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError })
+            { entity: data },
+            {
+              ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
+              onSuccess: goToView,
+            }
           )
           .catch(noop)
       )}

@@ -25,6 +25,8 @@ export const mutationErrCallback = ({
   popGlobalBanner?: (banner: StatusResponse) => void;
 }) => ({
   onError: (err: any) => {
+    console.log(err);
+
     if (setFormError && isFormValidationError(err)) {
       Object.entries(err.data.errors).forEach(([field, error]) => {
         setFormError(field, error as any);

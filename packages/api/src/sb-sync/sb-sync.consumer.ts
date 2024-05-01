@@ -1,31 +1,46 @@
-import { GetUserDto, SbMetaEdorg, SbMetaOds, toOperationResultDto } from '@edanalytics/models';
-import { Edorg, Ods, Sbe, addUserCreating, regarding } from '@edanalytics/models-server';
-import { Inject, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
-import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { isSbV2MetaEnv } from '@edanalytics/models';
+import { EdfiTenant, SbEnvironment, regarding } from '@edanalytics/models-server';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import config from 'config';
-import _ from 'lodash';
 import PgBoss from 'pg-boss';
-import { DeepPartial, EntityManager, In, Repository } from 'typeorm';
-import { CacheService } from '../app/cache.module';
-import { AuthService } from '../auth/auth.service';
-import { StartingBlocksService } from '../tenants/sbes/starting-blocks/starting-blocks.service';
+import { Repository } from 'typeorm';
+import {
+  StartingBlocksServiceV1,
+  StartingBlocksServiceV2,
+} from '../teams/edfi-tenants/starting-blocks';
+import { MetadataService } from '../teams/edfi-tenants/starting-blocks/metadata.service';
 import { CustomHttpException } from '../utils/customExceptions';
-import { PgBossInstance, SYNC_CHNL, SYNC_SCHEDULER_CHNL } from './sb-sync.module';
+import {
+  ENV_SYNC_CHNL,
+  PgBossInstance,
+  SYNC_SCHEDULER_CHNL,
+  TENANT_SYNC_CHNL,
+} from './sb-sync.module';
 
 @Injectable()
 export class SbSyncConsumer implements OnModuleInit {
   constructor(
-    @InjectRepository(Sbe)
-    private sbesRepository: Repository<Sbe>,
+    @InjectRepository(SbEnvironment)
+    private sbEnvironmentsRepository: Repository<SbEnvironment>,
+    @InjectRepository(EdfiTenant)
+    private edfiTenantsRepository: Repository<EdfiTenant>,
     @Inject('PgBossInstance')
     private readonly boss: PgBossInstance,
-    @InjectEntityManager()
-    private readonly entityManager: EntityManager,
-    private readonly sbService: StartingBlocksService,
-    @Inject(AuthService) private readonly authService: AuthService,
-    @Inject(CacheService) private cacheManager: CacheService
+    private readonly sbServiceV1: StartingBlocksServiceV1,
+    private readonly sbServiceV2: StartingBlocksServiceV2,
+    private readonly metadataService: MetadataService
   ) {}
-
+  public async onModuleDestroy() {
+    await this.boss.stop();
+  }
   public async onModuleInit() {
     this.boss.on('error', (error) => Logger.error(error));
 
@@ -34,263 +49,128 @@ export class SbSyncConsumer implements OnModuleInit {
     });
 
     await this.boss.work(SYNC_SCHEDULER_CHNL, async () => {
-      const sbes = await this.getEligibleSbes();
-      Logger.log(`Starting sync for ${sbes.length} environments.`);
+      const sbEnvironments = await this.sbEnvironmentsRepository
+        .createQueryBuilder()
+        .select()
+        .where(`"configPublic"->>'sbEnvironmentMetaArn' is not null`)
+        .getMany();
+
+      Logger.log(`Starting sync for ${sbEnvironments.length} environments.`);
       await Promise.all(
-        sbes.map((sbe) =>
+        sbEnvironments.map((sbEnvironment) =>
           this.boss.send(
-            SYNC_CHNL,
-            { sbeId: sbe.id },
-            { singletonKey: String(sbe.id), expireInHours: 1 }
+            ENV_SYNC_CHNL,
+            { sbEnvironmentId: sbEnvironment.id },
+            { singletonKey: String(sbEnvironment.id), expireInHours: 1 }
           )
         )
       );
     });
 
-    await this.boss.work(SYNC_CHNL, async (job: PgBoss.Job<{ sbeId: number }>) => {
-      return this.refreshResources(job.data.sbeId, undefined);
+    await this.boss.work(ENV_SYNC_CHNL, async (job: PgBoss.Job<{ sbEnvironmentId: number }>) => {
+      return this.refreshSbEnvironment(job.data.sbEnvironmentId);
+    });
+    await this.boss.work(TENANT_SYNC_CHNL, async (job: PgBoss.Job<{ edfiTenantId: number }>) => {
+      return this.refreshEdfiTenant(job.data.edfiTenantId);
     });
   }
 
-  public async getEligibleSbes() {
-    return this.sbesRepository.find();
-  }
+  async refreshSbEnvironment(sbEnvironmentId: number) {
+    const sbEnvironment = await this.sbEnvironmentsRepository
+      .createQueryBuilder()
+      .select()
+      .where(`"configPublic"->>'sbEnvironmentMetaArn' is not null and id = :id`, {
+        id: sbEnvironmentId,
+      })
+      .getOne();
+    if (sbEnvironment === null)
+      throw new BadRequestException(`No syncable environment found with id ${sbEnvironmentId}`);
 
-  // TODO this piece is coupled to Starting Blocks but could be replaced with anything which retrieves the set of ODS's and Ed-Orgs
-  async refreshResources(sbeId: number, user: GetUserDto | undefined) {
-    type SbMetaEdorgFlat = SbMetaEdorg & {
-      dbname: SbMetaOds['dbname'];
-      parent?: SbMetaEdorg['educationorganizationid'];
-    };
-    const sbOdss: SbMetaOds[] = [];
-    const sbEdorgs: SbMetaEdorgFlat[] = [];
-    let sbe: Sbe;
-
-    try {
-      sbe = await this.sbesRepository.findOneByOrFail({ id: sbeId });
-    } catch (notFound) {
-      throw new NotFoundException(`SBE ${sbeId} not found`);
-    }
-
-    const sbMeta = await this.sbService.getSbMeta(sbe);
-    if (sbMeta.status === 'INVALID_ARN') {
+    const sbMeta = await this.metadataService.getMetadata(sbEnvironment);
+    if (sbMeta.status === 'NO_CONFIG') {
       throw new CustomHttpException(
         {
           type: 'Error',
           title: 'Metadata retrieval failed.',
-          message: 'Invalid ARN for metadata lambda function.',
-          regarding: regarding(sbe),
+          message: 'Bad config for metadata lambda function.',
+          regarding: regarding(sbEnvironment),
         },
         500
       );
-    } else if (sbMeta.status === 'FAILURE') {
+    } else if (sbMeta.status !== 'SUCCESS') {
       throw new CustomHttpException(
         {
           type: 'Error',
           title: 'Matadata retrieval failed.',
           message: sbMeta.error,
-          regarding: regarding(sbe),
+          regarding: regarding(sbEnvironment),
         },
         500
       );
-    } else if (sbMeta.status === 'SUCCESS') {
-      Logger.verbose('Metadata retrieval succeeded.');
-      const sbMetaValue = sbMeta.data;
-      try {
-        sbOdss.push(...(sbMetaValue.odss ?? []));
-        sbMetaValue.odss?.forEach((ods) => {
-          const pushEdOrgs = (
-            edorg: SbMetaEdorg,
-            parent?: SbMetaEdorg['educationorganizationid']
-          ) => {
-            const edorgFlat = {
-              ...edorg,
-              dbname: ods.dbname,
-              parent,
-            };
-            sbEdorgs.push(edorgFlat);
-            edorg.edorgs?.forEach((childEdorg) =>
-              pushEdOrgs(childEdorg, edorgFlat.educationorganizationid)
-            );
-          };
-          ods.edorgs?.forEach((edorg) => pushEdOrgs(edorg));
-        });
+    }
+    let result: Awaited<
+      ReturnType<
+        | StartingBlocksServiceV1['syncEnvironmentEverything']
+        | StartingBlocksServiceV2['syncEnvironmentEverything']
+      >
+    >;
+    if (isSbV2MetaEnv(sbMeta.data)) {
+      result = await this.sbServiceV2.syncEnvironmentEverything(sbEnvironment, sbMeta.data);
+    } else {
+      result = await this.sbServiceV1.syncEnvironmentEverything(sbEnvironment, sbMeta.data);
+    }
+    if (result.status !== 'SUCCESS') {
+      throw result;
+    } else {
+      return result.data;
+    }
+  }
 
-        return await this.entityManager
-          .transaction(async (em) => {
-            const odsRepo = em.getRepository(Ods);
-            const edorgRepo = em.getRepository(Edorg);
-
-            const existingOdss = await odsRepo.find({
-              where: {
-                sbeId,
-              },
-            });
-
-            /** Initially all ODSs, present ones dynamically removed */
-            const odsIdsToDelete = new Set(existingOdss.map((o) => o.id));
-            /** Map of dbname to Ods entity */
-            const odsMap = Object.fromEntries(existingOdss.map((o) => [o.dbName, o]));
-            const newOdss = sbOdss.flatMap((sbOds) => {
-              if (sbOds.dbname in odsMap) {
-                const id = odsMap[sbOds.dbname].id;
-                if (id === undefined) {
-                  Logger.error('ODS id-dbName map failed');
-                }
-                odsIdsToDelete.delete(id);
-                return [];
-              } else {
-                return [
-                  addUserCreating(
-                    odsRepo.create({
-                      sbeId,
-                      dbName: sbOds.dbname,
-                    }),
-                    user
-                  ),
-                ];
-              }
-            });
-
-            (await odsRepo.save(newOdss)).forEach((ods) => {
-              odsMap[ods.dbName] = ods;
-            });
-
-            await odsRepo.delete({
-              id: In([...odsIdsToDelete.values()]),
-            });
-
-            const existingEdorgs = await edorgRepo.find({
-              where: {
-                sbeId,
-              },
-            });
-
-            /**
-             * get edorg entity given ods ID and edorg educationorganizationid
-             */
-            const odsEdorgMap = Object.fromEntries(
-              Object.values(odsMap).map((ods) => [ods.id, new Map<number, Edorg>()])
-            );
-
-            existingEdorgs.forEach((edorg) => {
-              odsEdorgMap[edorg.odsId].set(edorg.educationOrganizationId, edorg);
-            });
-            const edorgsToSave: DeepPartial<Edorg>[] = [];
-
-            sbEdorgs.forEach((sbeEdorg) => {
-              const partialEdorgEntity: Partial<Edorg> = {
-                sbeId,
-                odsId: odsMap[sbeEdorg.dbname].id,
-                odsDbName: sbeEdorg.dbname,
-                educationOrganizationId: sbeEdorg.educationorganizationid,
-                discriminator: sbeEdorg.discriminator,
-                nameOfInstitution: sbeEdorg.nameofinstitution,
-                shortNameOfInstitution: sbeEdorg.shortnameofinstitution,
-              };
-              if (
-                !odsEdorgMap[partialEdorgEntity.odsId]?.has(
-                  partialEdorgEntity.educationOrganizationId
-                )
-              ) {
-                edorgsToSave.push(edorgRepo.create(addUserCreating(partialEdorgEntity, user)));
-              }
-            });
-            const newEdorgs = await edorgRepo.save(edorgsToSave);
-            newEdorgs.forEach((edorg) => {
-              odsEdorgMap[edorg.odsId].set(edorg.educationOrganizationId, edorg);
-            });
-
-            const edorgsToDelete: Set<number> = new Set(existingEdorgs.map((e) => e.id));
-            const edorgsToUpdate: Edorg[] = [];
-
-            sbEdorgs.forEach((sbEdorg) => {
-              const existing = odsEdorgMap[odsMap[sbEdorg.dbname].id].get(
-                sbEdorg.educationorganizationid
-              );
-              const parent: Edorg | undefined = odsEdorgMap[odsMap[sbEdorg.dbname].id].get(
-                sbEdorg.parent
-              );
-              const correctValues: DeepPartial<Edorg> = {
-                ...(parent ? { parentId: parent.id } : {}),
-                discriminator: sbEdorg.discriminator,
-                nameOfInstitution: sbEdorg.nameofinstitution,
-                shortNameOfInstitution: sbEdorg.shortnameofinstitution,
-              };
-              if (!_.isMatch(existing, correctValues)) {
-                edorgsToUpdate.push(
-                  Object.assign(
-                    existing,
-                    correctValues,
-                    // TypeORM has to update the closure table using `parent` entity rather than `parentId` for some reason
-                    parent ? { parentId: undefined, parent } : {}
-                  )
-                );
-              }
-              edorgsToDelete.delete(existing.id);
-            });
-
-            await edorgRepo.save(edorgsToUpdate, { chunk: 100 });
-            await edorgRepo.delete({
-              id: In([...edorgsToDelete]),
-            });
-            // TODO now that the sync is managed by a queue, we should pull the sync log using a ViewEntity rather than storing the timestamps on the Sbe
-            await this.sbesRepository.save({
-              ...sbe,
-              envLabel: sbMetaValue.envlabel,
-              configPublic: {
-                ...sbe.configPublic,
-                lastSuccessfulPull: new Date(),
-                edfiHostname: sbMetaValue.domainName,
-              },
-            });
-
-            if (newEdorgs.length || edorgsToDelete.size || newOdss.length || odsIdsToDelete.size) {
-              const activeCacheKeys = this.cacheManager.keys();
-              const reloadCaches = async () => {
-                const start = Number(new Date());
-                const logger = setInterval(() => {
-                  Logger.log(`Rebuilding tenant caches. ${Number(new Date()) - start}ms elapsed.`);
-                }, 2000);
-                for (let i = 0; i < activeCacheKeys.length; i++) {
-                  const key = activeCacheKeys[i];
-                  await this.authService.reloadTenantOwnershipCache(Number(key));
-                }
-                clearInterval(logger);
-              };
-              reloadCaches();
-            }
-
-            return toOperationResultDto({
-              title: `Sync succeeded`,
-              type: 'Success',
-              message: `${sbEdorgs.length} total Ed-Orgs (${newEdorgs.length} added, ${edorgsToDelete.size} deleted), ${sbOdss.length} total ODS's. (${newOdss.length} added, ${odsIdsToDelete.size} deleted).`,
-              regarding: regarding(sbe),
-            });
-          })
-          .catch(async (err) => {
-            // Log the failure on the Sbe entity...
-            await this.sbesRepository.save({
-              ...sbe,
-              configPublic: {
-                ...sbe.configPublic,
-                lastFailedPull: new Date(),
-              },
-            });
-            // ...but then continue the Exception
-            throw err;
-          });
-      } catch (TransformationErr) {
-        Logger.log(TransformationErr);
-        throw new CustomHttpException(
-          {
-            type: 'Error',
-            title: 'Unexpected error in transformation and sync.',
-            regarding: regarding(sbe),
-          },
-          500
-        );
-      }
+  async refreshEdfiTenant(edfiTenantId: number) {
+    const edfiTenant = await this.edfiTenantsRepository.findOne({
+      where: {
+        id: edfiTenantId,
+      },
+      relations: ['sbEnvironment'],
+    });
+    const sbEnvironment = edfiTenant.sbEnvironment;
+    const sbMeta = await this.metadataService.getMetadata(sbEnvironment);
+    if (sbMeta.status === 'NO_CONFIG') {
+      throw new CustomHttpException(
+        {
+          type: 'Error',
+          title: 'Metadata retrieval failed.',
+          message: 'Bad config for metadata lambda function.',
+          regarding: regarding(sbEnvironment),
+        },
+        500
+      );
+    } else if (sbMeta.status !== 'SUCCESS') {
+      throw new CustomHttpException(
+        {
+          type: 'Error',
+          title: 'Matadata retrieval failed.',
+          message: sbMeta.error,
+          regarding: regarding(sbEnvironment),
+        },
+        500
+      );
+    }
+    let result: Awaited<
+      ReturnType<
+        | StartingBlocksServiceV1['syncTenantResourceTree']
+        | StartingBlocksServiceV2['syncTenantResourceTree']
+      >
+    >;
+    if (isSbV2MetaEnv(sbMeta.data)) {
+      result = await this.sbServiceV2.syncTenantResourceTree(edfiTenant);
+    } else {
+      result = await this.sbServiceV1.syncTenantResourceTree(edfiTenant, sbMeta.data);
+    }
+    if (result.status !== 'SUCCESS') {
+      throw result;
+    } else {
+      return result.data;
     }
   }
 }

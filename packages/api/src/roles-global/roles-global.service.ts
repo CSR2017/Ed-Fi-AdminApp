@@ -1,12 +1,5 @@
-import { GetUserDto, PostRoleDto, PutRoleDto } from '@edanalytics/models';
-import {
-  Ownership,
-  Privilege,
-  Role,
-  User,
-  UserTenantMembership,
-  regarding,
-} from '@edanalytics/models-server';
+import { GetUserDto, PRIVILEGES, PostRoleDto, PutRoleDto } from '@edanalytics/models';
+import { Ownership, Role, User, UserTeamMembership, regarding } from '@edanalytics/models-server';
 import { joinStrsNice } from '@edanalytics/utils';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
@@ -23,29 +16,24 @@ export class RolesGlobalService {
     private rolesRepository: Repository<Role>,
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
-    @InjectRepository(Privilege)
-    private privilegesRepository: Repository<Privilege>,
-    @InjectRepository(UserTenantMembership)
-    private utmRepository: Repository<UserTenantMembership>,
+    @InjectRepository(UserTeamMembership)
+    private utmRepository: Repository<UserTeamMembership>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     @InjectRepository(Ownership)
     private ownershipsRepository: Repository<Ownership>
   ) {}
   async create(createRoleDto: PostRoleDto) {
-    const uniqueReqPrivileges = _.uniq(createRoleDto.privileges);
-    const validPrivileges = await this.privilegesRepository.findBy({
-      code: In(createRoleDto.privileges),
-    });
-    if (validPrivileges.length !== uniqueReqPrivileges.length) {
+    const uniqueReqPrivileges = _.uniq(createRoleDto.privilegeIds);
+    if (uniqueReqPrivileges.some((code) => !PRIVILEGES[code])) {
       throw new BadRequestException('Invalid privileges');
     }
     return this.rolesRepository.save({
-      tenantId: createRoleDto.tenantId,
+      teamId: createRoleDto.teamId,
       type: createRoleDto.type,
       name: createRoleDto.name,
       description: createRoleDto.description,
-      privileges: validPrivileges,
+      privilegeIds: uniqueReqPrivileges,
     });
   }
 
@@ -55,18 +43,15 @@ export class RolesGlobalService {
 
   async update(id: number, updateRoleDto: PutRoleDto) {
     const old = await this.findOne(id);
-    const uniqueReqPrivileges = _.uniq(updateRoleDto.privileges);
-    const newPrivileges = await this.privilegesRepository.findBy({
-      code: In(updateRoleDto.privileges),
-    });
-    if (newPrivileges.length !== uniqueReqPrivileges.length) {
+    const uniqueReqPrivileges = _.uniq(updateRoleDto.privilegeIds);
+    if (uniqueReqPrivileges.some((code) => !PRIVILEGES[code])) {
       throw new BadRequestException('Invalid privileges');
     }
     return this.rolesRepository.save({
       ...old,
       name: updateRoleDto.name,
       description: updateRoleDto.description,
-      privileges: newPrivileges,
+      privilegeIds: uniqueReqPrivileges,
     });
   }
 
@@ -112,13 +97,13 @@ export class RolesGlobalService {
       if (
         memberships.length &&
         !checkAbility({
-          privilege: 'user-tenant-membership:update',
+          privilege: 'user-team-membership:update',
           subject: {
             id: '__filtered__',
           },
         })
       ) {
-        unauthorizedFks.push('tenant memberships');
+        unauthorizedFks.push('team memberships');
       }
       if (
         ownerships.length &&

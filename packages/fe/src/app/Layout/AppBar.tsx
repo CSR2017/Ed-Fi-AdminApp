@@ -9,23 +9,21 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
-  StackDivider,
   Text,
 } from '@chakra-ui/react';
-import { useAtomValue } from 'jotai';
+import { BsQuestionLg } from 'react-icons/bs';
 import { RxCaretDown } from 'react-icons/rx';
 import { Link as RouterLink } from 'react-router-dom';
 import logoUrl from '../../assets/logo-sb.svg';
-import { apiClient, useMe, useMyTenants } from '../api';
-import { asTenantIdAtom } from './Nav';
-import { BsQuestionLg } from 'react-icons/bs';
+import { apiClient, useMe, useMyTeams } from '../api';
+import { useAsId } from './Nav';
 
 export const AppBar = () => {
   const me = useMe();
 
-  const asId = useAtomValue(asTenantIdAtom);
-  const tenants = useMyTenants();
-  const tenant = asId === undefined ? undefined : tenants.data?.[asId];
+  const asId = useAsId();
+  const teams = useMyTeams();
+  const team = asId === undefined ? undefined : teams.data?.[asId];
 
   return (
     <HStack
@@ -53,7 +51,7 @@ export const AppBar = () => {
           fontSize="lg"
           color="gray.600"
         >
-          {tenant?.displayName ?? 'Global scope'}
+          {team?.displayName ?? 'Global scope'}
         </Text>
       </HStack>
       <HStack>

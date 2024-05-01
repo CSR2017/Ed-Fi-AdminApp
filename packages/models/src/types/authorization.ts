@@ -1,11 +1,13 @@
+import { IEdfiTenant, ISbEnvironment } from '../interfaces';
 import {
   BasePrivilege,
-  PrivilegeCode,
-  TenantBasePrivilege,
-  TenantSbePrivilege,
+  TeamBasePrivilege,
+  TeamEdfiTenantPrivilege,
+  TeamSbEnvironmentPrivilege,
 } from './privilege.type';
+import { PrivilegeCode } from './privileges';
 
-export type AuthorizationCache = Partial<Record<BasePrivilege, TrueValue>> & ITenantCache;
+export type AuthorizationCache = Partial<Record<BasePrivilege, TrueValue>> & ITeamCache;
 
 export type TrueValue = true;
 export type SpecificIds = Set<number | string>;
@@ -17,19 +19,22 @@ export const isAll = (ids: Ids): ids is TrueValue => typeof ids === 'boolean' &&
 
 TODO The code around privileges and authorization rule helpers is an ungainly mixture of TS utilities, non-DRY object maps, and function overloads. There's probably a way to make it much better, but watch out for the usability. We've abandoned a couple DRYer refactors already because of what they did to intellisense.
 
-  a) separately type both SBE-nested and non-SBE-nested privilege strings, to power the overloads
-  b) type the "child segment" of those "full" strings (e.g. edorg.application:read is the child segment of tenant.sbe.edorg.application:read)
+  a) separately type both EdfiTenant-nested and non-EdfiTenant-nested privilege strings, to power the overloads
+  b) type the "child segment" of those "full" strings (e.g. edorg.application:read is the child segment of team.sb-environment.edfi-tenant.ods.edorg.application:read)
   c) map the full strings onto the child segment
-  d) map the full strings onto the parent segment (e.g. tenant.sbe)
-  e) type the "resource segment" of the both the SBE-nested and non-SBE-nested full privilege strings (e.g. tenant.ownership for tenant.ownership:read, or edorg.application for tenant.sbe.edorg.application)
+  d) map the full strings onto the parent segment (e.g. team.sb-environment.edfi-tenant)
+  e) type the "resource segment" of the both the EdfiTenant-nested and non-EdfiTenant-nested full privilege strings (e.g. team.ownership for team.ownership:read, or edorg.application for team.sb-environment.edfi-tenant.ods.edorg.application)
   f) map the "resource segment" strings onto arrays of all associated privileges
   g) provide good typing hints. Sometimes you can find a more DRY way of getting a type, but it loses the nice intellisense compared to explicit string unions.
-  h) support the different overloads for SBE vs non-SBE privileges passed into the helpers.
+  h) support the different overloads for EdfiTenant vs non-EdfiTenant privileges passed into the helpers.
   i) specify `true` as the sole possible value where appropriate (i.e. for `create` privileges)
 
 */
 
-export type SbeSubEntityPrivilege =
+// TODO replace most of this file with codegen and/or dynamic functions
+
+/** @deprecated to be replaced with codegen */
+export type EdfiTenantSubEntityPrivilege =
   | 'vendor:read'
   | 'vendor:update'
   | 'vendor:delete'
@@ -46,22 +51,27 @@ export type SbeSubEntityPrivilege =
   | 'edorg.application:create'
   | 'edorg.application:reset-credentials';
 
+/** @deprecated to be replaced with codegen */
 export const globalPrivilegesMap: Record<BasePrivilege, true> = {
   'me:read': true,
   'ownership:read': true,
   'ownership:update': true,
   'ownership:delete': true,
   'ownership:create': true,
-  'sbe:read': true,
   'ods:read': true,
   'edorg:read': true,
-  'sbe:update': true,
-  'sbe:delete': true,
-  'sbe:create': true,
-  'sbe:refresh-resources': true,
+  'sb-environment.edfi-tenant:read': true,
+  'sb-environment.edfi-tenant:update': true,
+  'sb-environment.edfi-tenant:delete': true,
+  'sb-environment.edfi-tenant:create': true,
+  'sb-environment.edfi-tenant:refresh-resources': true,
+  'sb-environment:read': true,
+  'sb-environment:update': true,
+  'sb-environment:delete': true,
+  'sb-environment:create': true,
+  'sb-environment:refresh-resources': true,
   'sb-sync-queue:read': true,
   'sb-sync-queue:archive': true,
-  'privilege:read': true,
   'user:read': true,
   'user:update': true,
   'user:delete': true,
@@ -70,39 +80,21 @@ export const globalPrivilegesMap: Record<BasePrivilege, true> = {
   'role:update': true,
   'role:delete': true,
   'role:create': true,
-  'tenant:read': true,
-  'tenant:update': true,
-  'tenant:delete': true,
-  'tenant:create': true,
-  'user-tenant-membership:read': true,
-  'user-tenant-membership:update': true,
-  'user-tenant-membership:delete': true,
-  'user-tenant-membership:create': true,
+  'team:read': true,
+  'team:update': true,
+  'team:delete': true,
+  'team:create': true,
+  'user-team-membership:read': true,
+  'user-team-membership:update': true,
+  'user-team-membership:delete': true,
+  'user-team-membership:create': true,
 };
-
+/** @deprecated to be replaced with codegen */
 export const isGlobalPrivilege = (privilege: PrivilegeCode): privilege is BasePrivilege =>
   privilege in globalPrivilegesMap;
 
-export const sbeTenantPrivilegesMap: Record<TenantSbePrivilege, SbeSubEntityPrivilege> = {
-  'tenant.sbe.vendor:read': 'vendor:read',
-  'tenant.sbe.vendor:update': 'vendor:update',
-  'tenant.sbe.vendor:delete': 'vendor:delete',
-  'tenant.sbe.vendor:create': 'vendor:create',
-  'tenant.sbe.claimset:read': 'claimset:read',
-  'tenant.sbe.claimset:update': 'claimset:update',
-  'tenant.sbe.claimset:delete': 'claimset:delete',
-  'tenant.sbe.claimset:create': 'claimset:create',
-  'tenant.sbe.ods:read': 'ods:read',
-  'tenant.sbe.edorg:read': 'edorg:read',
-  'tenant.sbe.edorg.application:read': 'edorg.application:read',
-  'tenant.sbe.edorg.application:update': 'edorg.application:update',
-  'tenant.sbe.edorg.application:delete': 'edorg.application:delete',
-  'tenant.sbe.edorg.application:create': 'edorg.application:create',
-  'tenant.sbe.edorg.application:reset-credentials': 'edorg.application:reset-credentials',
-};
-
 /**
- * Structure of the tenant resource ownership cache. Each privilege is mapped
+ * Structure of the team resource ownership cache. Each privilege is mapped
  * to the set of all IDs of that resource which are valid for use with that privilege.
  *
  * __IMPORTANT: Applications use the ID of their Edorg, rather than their own ID.__
@@ -112,90 +104,127 @@ export const sbeTenantPrivilegesMap: Record<TenantSbePrivilege, SbeSubEntityPriv
  * make it possible to entirely avoid having to query the Admin API during cache
  * building.
  */
-export interface ITenantCache
+export interface ITeamCache
   extends Partial<
-    Record<TenantBasePrivilege, Ids> & Record<TenantSbePrivilege, Record<number, Ids>>
+    Record<TeamBasePrivilege, Ids> & Record<TeamEdfiTenantPrivilege, Record<IEdfiTenant['id'], Ids>>
   > {
-  'tenant.ownership:read'?: Ids;
-  'tenant.role:read'?: Ids;
-  'tenant.role:update'?: Ids;
-  'tenant.role:delete'?: Ids;
-  'tenant.role:create'?: TrueValue;
-  'tenant.user:read'?: Ids;
-  'tenant.user-tenant-membership:read'?: Ids;
-  'tenant.user-tenant-membership:update'?: Ids;
-  'tenant.user-tenant-membership:delete'?: Ids;
-  'tenant.user-tenant-membership:create'?: TrueValue;
-  'tenant.sbe:read'?: Ids;
-  'tenant.sbe.vendor:read'?: Record<number, Ids>;
-  'tenant.sbe.vendor:update'?: Record<number, Ids>;
-  'tenant.sbe.vendor:delete'?: Record<number, Ids>;
-  'tenant.sbe.vendor:create'?: Record<number, TrueValue>;
-  'tenant.sbe.claimset:read'?: Record<number, Ids>;
-  'tenant.sbe.claimset:update'?: Record<number, Ids>;
-  'tenant.sbe.claimset:delete'?: Record<number, Ids>;
-  'tenant.sbe.claimset:create'?: Record<number, TrueValue>;
-  'tenant.sbe.ods:read'?: Record<number, Ids>;
-  'tenant.sbe.edorg:read'?: Record<number, Ids>;
-  'tenant.sbe.edorg.application:read'?: Record<number, Ids>;
-  'tenant.sbe.edorg.application:update'?: Record<number, Ids>;
-  'tenant.sbe.edorg.application:delete'?: Record<number, Ids>;
-  'tenant.sbe.edorg.application:create'?: Record<number, TrueValue>;
-  'tenant.sbe.edorg.application:reset-credentials'?: Record<number, Ids>;
+  'team.ownership:read'?: Ids;
+  'team.role:read'?: Ids;
+  'team.role:update'?: Ids;
+  'team.role:delete'?: Ids;
+  'team.role:create'?: TrueValue;
+  'team.user:read'?: Ids;
+  'team.user-team-membership:read'?: Ids;
+  'team.user-team-membership:update'?: Ids;
+  'team.user-team-membership:delete'?: Ids;
+  'team.user-team-membership:create'?: TrueValue;
+  'team.sb-environment:read'?: Ids;
+  'team.sb-environment:create-tenant'?: Ids;
+  'team.sb-environment:delete-tenant'?: Ids;
+  // 'team.sb-environment:refresh-resources'?: Ids;
+  'team.sb-environment.edfi-tenant:read'?: Record<ISbEnvironment['id'], Ids>; // these ones are a little unique in being cached per-SbEnv
+  // 'team.sb-environment.edfi-tenant:refresh-resources'?: Record<ISbEnvironment['id'], Ids>; // these ones are a little unique in being cached per-SbEnv
+  'team.sb-environment.edfi-tenant.vendor:read'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.vendor:update'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.vendor:delete'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.vendor:create'?: Record<IEdfiTenant['id'], TrueValue>;
+  'team.sb-environment.edfi-tenant.claimset:read'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.claimset:update'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.claimset:delete'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.claimset:create'?: Record<IEdfiTenant['id'], TrueValue>;
+  'team.sb-environment.edfi-tenant.ods:read'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.ods.edorg:read'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.ods.edorg.application:read'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.ods.edorg.application:update'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.ods.edorg.application:delete'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.ods.edorg.application:create'?: Record<
+    IEdfiTenant['id'],
+    TrueValue
+  >;
+  'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials'?: Record<
+    IEdfiTenant['id'],
+    Ids
+  >;
 }
 
-export const trueOnlyPrivileges = new Set<TenantBasePrivilege | TenantSbePrivilege>([
-  'tenant.role:create',
-  'tenant.sbe.claimset:create',
-  'tenant.sbe.vendor:create',
+export const trueOnlyPrivileges = new Set<
+  TeamBasePrivilege | TeamEdfiTenantPrivilege | TeamSbEnvironmentPrivilege
+>([
+  'team.role:create',
+  'team.sb-environment.edfi-tenant.claimset:create',
+  'team.sb-environment.edfi-tenant.vendor:create',
 ]);
-export const isBaseTenantPrivilege = (str: string): str is TenantBasePrivilege =>
-  new Set(Object.values(baseResourcePrivilegesMap).flat()).has(str as any);
-export const baseResourcePrivilegesMap: Partial<Record<string, TenantBasePrivilege[]>> = {
-  'tenant.user': ['tenant.user:read'],
-  'tenant.user-tenant-membership': [
-    'tenant.user-tenant-membership:read',
-    'tenant.user-tenant-membership:update',
-    'tenant.user-tenant-membership:delete',
-    'tenant.user-tenant-membership:create',
+export const isBaseTeamPrivilege = (str: string): str is TeamBasePrivilege =>
+  new Set(Object.values(baseTeamResourcePrivilegesMap).flat()).has(str as any);
+// TODO eventually this can be a dynamic version of the above: /^team\.[a-z-]+:/.test(str);
+/** @deprecated to be replaced with codegen */
+export const baseTeamResourcePrivilegesMap: Record<string, TeamBasePrivilege[]> = {
+  'team.user': ['team.user:read'],
+  'team.user-team-membership': [
+    'team.user-team-membership:read',
+    'team.user-team-membership:update',
+    'team.user-team-membership:delete',
+    'team.user-team-membership:create',
   ],
-  'tenant.role': [
-    'tenant.role:read',
-    'tenant.role:update',
-    'tenant.role:delete',
-    'tenant.role:create',
-  ],
-  'tenant.ownership': ['tenant.ownership:read'],
-  'tenant.sbe': ['tenant.sbe:read', 'tenant.sbe:refresh-resources'],
-};
-
-export const sbeResourcePrivilegesMap: Partial<Record<string, TenantSbePrivilege[]>> = {
-  'tenant.sbe.vendor': [
-    'tenant.sbe.vendor:read',
-    'tenant.sbe.vendor:update',
-    'tenant.sbe.vendor:delete',
-    'tenant.sbe.vendor:create',
-  ],
-  'tenant.sbe.claimset': [
-    'tenant.sbe.claimset:read',
-    'tenant.sbe.claimset:update',
-    'tenant.sbe.claimset:delete',
-    'tenant.sbe.claimset:create',
-  ],
-  'tenant.sbe.ods': ['tenant.sbe.ods:read'],
-  'tenant.sbe.edorg': ['tenant.sbe.edorg:read'],
-  'tenant.sbe.edorg.application': [
-    'tenant.sbe.edorg.application:read',
-    'tenant.sbe.edorg.application:update',
-    'tenant.sbe.edorg.application:delete',
-    'tenant.sbe.edorg.application:create',
-    'tenant.sbe.edorg.application:reset-credentials',
+  'team.role': ['team.role:read', 'team.role:update', 'team.role:delete', 'team.role:create'],
+  'team.ownership': ['team.ownership:read'],
+  'team.sb-environment': [
+    'team.sb-environment:read',
+    'team.sb-environment:create-tenant',
+    'team.sb-environment:delete-tenant',
   ],
 };
+/** @deprecated to be replaced with codegen */
+export const sbEnvironmentResourcePrivilegesMap: Partial<
+  Record<string, TeamSbEnvironmentPrivilege[]>
+> = {
+  'team.sb-environment.edfi-tenant': ['team.sb-environment.edfi-tenant:read'],
+};
 
-export type BasePrivilegeResourceType = keyof typeof baseResourcePrivilegesMap;
-export type SbePrivilegeResourceType = keyof typeof sbeResourcePrivilegesMap;
-export type PrivilegeResource = BasePrivilegeResourceType | SbePrivilegeResourceType;
+/** @deprecated to be replaced with codegen */
+export const edfiTenantResourcePrivilegesMap: Partial<Record<string, TeamEdfiTenantPrivilege[]>> = {
+  'team.sb-environment.edfi-tenant': [
+    'team.sb-environment.edfi-tenant:create-ods',
+    'team.sb-environment.edfi-tenant:delete-ods',
+  ],
+  'team.sb-environment.edfi-tenant.vendor': [
+    'team.sb-environment.edfi-tenant.vendor:read',
+    'team.sb-environment.edfi-tenant.vendor:update',
+    'team.sb-environment.edfi-tenant.vendor:delete',
+    'team.sb-environment.edfi-tenant.vendor:create',
+  ],
+  'team.sb-environment.edfi-tenant.claimset': [
+    'team.sb-environment.edfi-tenant.claimset:read',
+    'team.sb-environment.edfi-tenant.claimset:update',
+    'team.sb-environment.edfi-tenant.claimset:delete',
+    'team.sb-environment.edfi-tenant.claimset:create',
+  ],
+  'team.sb-environment.edfi-tenant.ods': [
+    'team.sb-environment.edfi-tenant.ods:read',
+    'team.sb-environment.edfi-tenant.ods:create-edorg',
+    'team.sb-environment.edfi-tenant.ods:delete-edorg',
+  ],
+  'team.sb-environment.edfi-tenant.ods.edorg': ['team.sb-environment.edfi-tenant.ods.edorg:read'],
+  'team.sb-environment.edfi-tenant.ods.edorg.application': [
+    'team.sb-environment.edfi-tenant.ods.edorg.application:read',
+    'team.sb-environment.edfi-tenant.ods.edorg.application:update',
+    'team.sb-environment.edfi-tenant.ods.edorg.application:delete',
+    'team.sb-environment.edfi-tenant.ods.edorg.application:create',
+    'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials',
+  ],
+};
 
-export const isTenantSbePrivilege = (str: string): str is TenantSbePrivilege =>
-  str in sbeTenantPrivilegesMap;
+/** @deprecated to be replaced with codegen */
+export type BasePrivilegeResourceType = keyof typeof baseTeamResourcePrivilegesMap;
+/** @deprecated to be replaced with codegen */
+export type EdfiTenantPrivilegeResourceType = keyof typeof edfiTenantResourcePrivilegesMap;
+/** @deprecated to be replaced with codegen */
+export type PrivilegeResource = BasePrivilegeResourceType | EdfiTenantPrivilegeResourceType;
+
+/** Privileges that are cached in a Dict keyed by edfiTenantId */
+export const isCachedByEdfiTenant = (str: string): str is TeamEdfiTenantPrivilege =>
+  str.startsWith('team.sb-environment.edfi-tenant') && !isCachedBySbEnvironment(str);
+
+/** Privileges that are cached in a Dict keyed by sbEnvironmentId */
+export const isCachedBySbEnvironment = (str: string): str is TeamSbEnvironmentPrivilege =>
+  str === 'team.sb-environment.edfi-tenant:read';

@@ -3,8 +3,14 @@ import {
   PostOwnershipDto,
   PutOwnershipDto,
   toGetOwnershipDto,
+  toGetOwnershipViewDto,
 } from '@edanalytics/models';
-import { Ownership, addUserCreating, addUserModifying } from '@edanalytics/models-server';
+import {
+  Ownership,
+  OwnershipView,
+  addUserCreating,
+  addUserModifying,
+} from '@edanalytics/models-server';
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -20,7 +26,9 @@ export class OwnershipsGlobalController {
   constructor(
     private readonly ownershipService: OwnershipsGlobalService,
     @InjectRepository(Ownership)
-    private ownershipsRepository: Repository<Ownership>
+    private ownershipsRepository: Repository<Ownership>,
+    @InjectRepository(OwnershipView)
+    private ownershipsViewRepository: Repository<OwnershipView>
   ) {}
 
   @Post()
@@ -44,7 +52,7 @@ export class OwnershipsGlobalController {
     },
   })
   async findAll() {
-    return toGetOwnershipDto(await this.ownershipsRepository.find());
+    return toGetOwnershipViewDto(await this.ownershipsViewRepository.find());
   }
 
   @Get(':ownershipId')

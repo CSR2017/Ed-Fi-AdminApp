@@ -1,4 +1,4 @@
-import { PostApplicationResponseDto } from '@edanalytics/models';
+import { PostApplicationResponseDto, PostApplicationResponseDtoBase } from '@edanalytics/models';
 import axios, { AxiosResponse } from 'axios';
 import config from 'config';
 import { webcrypto } from 'crypto';
@@ -31,7 +31,7 @@ const randomInt = (min: number, max: number): number => {
 
 const backendDomain = config.YOPASS_URL;
 
-export const postYopassSecret = async (body: PostApplicationResponseDto & { url: string }) => {
+export const postYopassSecret = async (body: PostApplicationResponseDtoBase & { url: string }) => {
   const pwd = randomString();
   const yopassBody = {
     expiration: 7 * 24 * 60 * 60,

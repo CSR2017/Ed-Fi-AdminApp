@@ -8,7 +8,7 @@ import { DtoPutBase, PutDto } from '../utils/put-base.dto';
 
 export class GetUserDto
   extends DtoGetBase__User
-  implements GetDto<IUser, 'userTenantMemberships' | 'role'>
+  implements GetDto<IUser, 'userTeamMemberships' | 'role'>
 {
   @Expose()
   username: string;
@@ -40,7 +40,7 @@ export const toGetUserDto = makeSerializer(GetUserDto);
 export class PutUserDto
   extends DtoPutBase
   implements
-    PutDto<IUser, 'fullName' | 'userTenantMemberships' | 'role' | 'givenName' | 'familyName'>
+    PutDto<IUser, 'fullName' | 'userTeamMemberships' | 'role' | 'givenName' | 'familyName'>
 {
   @Expose()
   @MinLength(2)
@@ -69,7 +69,7 @@ export class PutUserDto
 export class PostUserDto
   extends DtoPostBase
   implements
-    PostDto<IUser, 'fullName' | 'userTenantMemberships' | 'role' | 'givenName' | 'familyName'>
+    PostDto<IUser, 'fullName' | 'userTeamMemberships' | 'role' | 'givenName' | 'familyName'>
 {
   @Expose()
   @MinLength(2)

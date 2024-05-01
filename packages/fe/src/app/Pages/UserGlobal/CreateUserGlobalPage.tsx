@@ -18,8 +18,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { userQueries } from '../../api';
-import { useNavToParent } from '../../helpers';
-import { SelectRole } from '../../helpers';
+import { SelectRole, useNavToParent } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
 const resolver = classValidatorResolver(PostUserDto);
@@ -31,9 +30,8 @@ export const CreateUser = () => {
   const navigate = useNavigate();
   const goToView = (id: string | number) => navigate(`/users/${id}`);
   const parentPath = useNavToParent();
-  const postUser = userQueries.usePost({
-    callback: (result) => goToView(result.id),
-  });
+  const postUser = userQueries.post({});
+
   const {
     register,
     handleSubmit,
@@ -48,12 +46,16 @@ export const CreateUser = () => {
         <form
           onSubmit={handleSubmit((data) =>
             postUser
-              .mutateAsync(data, {
-                ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
-                onSuccess: () => {
-                  queryClient.invalidateQueries({ queryKey: ['me', 'users'] });
-                },
-              })
+              .mutateAsync(
+                { entity: data },
+                {
+                  ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
+                  onSuccess: (result) => {
+                    queryClient.invalidateQueries({ queryKey: ['me', 'users'] });
+                    goToView(result.id);
+                  },
+                }
+              )
               .catch(noop)
           )}
         >

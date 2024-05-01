@@ -1,14 +1,15 @@
 import { HStack } from '@chakra-ui/react';
 import {
   PageActions,
-  SbaaTableAllInOne,
   PageTemplate,
+  SbaaTableAllInOne,
   TableRowActions,
   ValueAsDate,
 } from '@edanalytics/common-ui';
 import { GetUserDto } from '@edanalytics/models';
+import { useQuery } from '@tanstack/react-query';
 import { CellContext } from '@tanstack/react-table';
-import { roleQueries, tenantQueries, userQueries } from '../../api';
+import { roleQueries, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { UserGlobalLink } from '../../routes';
 import { RoleGlobalLink } from '../../routes/role-global.routes';
@@ -16,7 +17,7 @@ import { useMultipleUserGlobalActions } from './useMultipleUserGlobalActions';
 import { useUserGlobalActions } from './useUserGlobalActions';
 
 const NameCell = (info: CellContext<GetUserDto, unknown>) => {
-  const users = userQueries.useAll({});
+  const users = useQuery(userQueries.getAll({}));
   const actions = useUserGlobalActions(info.row.original);
   return (
     <HStack justify="space-between">
@@ -27,8 +28,8 @@ const NameCell = (info: CellContext<GetUserDto, unknown>) => {
 };
 
 export const UsersGlobalPage = () => {
-  const users = userQueries.useAll({});
-  const roles = roleQueries.useAll({});
+  const users = useQuery(userQueries.getAll({}));
+  const roles = useQuery(roleQueries.getAll({}));
   const actions = useMultipleUserGlobalActions();
   return (
     <PageTemplate title="Users" actions={<PageActions actions={actions} />}>

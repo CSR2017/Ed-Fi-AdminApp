@@ -1,18 +1,17 @@
 import { Expose } from 'class-transformer';
 import { IsNumber, IsOptional } from 'class-validator';
-import { IRole, ITenant, IUser } from '../interfaces';
-import { IUserTenantMembership } from '../interfaces/user-tenant-membership.interface';
+import { IRole, ITeam, IUser, IUserTeamMembership } from '../interfaces';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
 import { makeSerializer } from '../utils/make-serializer';
 import { DtoPostBase, PostDto } from '../utils/post-base.dto';
 import { DtoPutBase, PutDto } from '../utils/put-base.dto';
 
-export class GetUserTenantMembershipDto
+export class GetUserTeamMembershipDto
   extends DtoGetBase
-  implements GetDto<IUserTenantMembership, 'tenant' | 'user' | 'role'>
+  implements GetDto<IUserTeamMembership, 'team' | 'user' | 'role'>
 {
   @Expose()
-  tenantId: ITenant['id'];
+  teamId: ITeam['id'];
   @Expose()
   userId: IUser['id'];
   @Expose()
@@ -22,11 +21,11 @@ export class GetUserTenantMembershipDto
     return 'Membership';
   }
 }
-export const toGetUserTenantMembershipDto = makeSerializer(GetUserTenantMembershipDto);
+export const toGetUserTeamMembershipDto = makeSerializer(GetUserTeamMembershipDto);
 
-export class PutUserTenantMembershipDto
+export class PutUserTeamMembershipDto
   extends DtoPutBase
-  implements PutDto<IUserTenantMembership, 'tenant' | 'user' | 'role' | 'tenantId' | 'userId'>
+  implements PutDto<IUserTeamMembership, 'team' | 'user' | 'role' | 'teamId' | 'userId'>
 {
   @IsNumber()
   @IsOptional()
@@ -34,13 +33,13 @@ export class PutUserTenantMembershipDto
   roleId: IRole['id'];
 }
 
-export class PostUserTenantMembershipDto
+export class PostUserTeamMembershipDto
   extends DtoPostBase
-  implements PostDto<IUserTenantMembership, 'tenant' | 'user' | 'role'>
+  implements PostDto<IUserTeamMembership, 'team' | 'user' | 'role'>
 {
   @IsNumber()
   @Expose()
-  tenantId: ITenant['id'];
+  teamId: ITeam['id'];
   @IsNumber()
   @Expose()
   userId: IUser['id'];

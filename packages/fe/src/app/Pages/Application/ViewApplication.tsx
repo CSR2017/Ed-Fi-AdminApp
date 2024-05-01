@@ -4,46 +4,44 @@ import {
   AttributesGrid,
   ContentSection,
 } from '@edanalytics/common-ui';
-import {
-  GetApplicationDto,
-  GetEdorgDto,
-  createEdorgCompositeNaturalKey,
-} from '@edanalytics/models';
+import { GetApplicationDto, GetEdorgDto, edorgCompositeKey } from '@edanalytics/models';
 import { useParams } from 'react-router-dom';
-import { claimsetQueries, edorgQueries, sbeQueries, vendorQueries } from '../../api';
-import { ClaimsetLink, EdorgLink, VendorLink } from '../../routes';
+import { claimsetQueriesV1, edorgQueries, edfiTenantQueries, vendorQueriesV1 } from '../../api';
+import { ClaimsetLinkV1, EdorgLink, VendorLinkV1 } from '../../routes';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
+import { useQuery } from '@tanstack/react-query';
 
 export const ViewApplication = ({ application }: { application: GetApplicationDto }) => {
   const params = useParams() as {
-    asId: string;
-    sbeId: string;
     applicationId: string;
   };
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
 
-  const sbe = sbeQueries.useOne({
-    tenantId: params.asId,
-    id: params.sbeId,
-  });
-
-  const edorgs = edorgQueries.useAll({
-    tenantId: params.asId,
-    sbeId: params.sbeId,
-  });
-  const vendors = vendorQueries.useAll({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-  });
-  const claimsets = claimsetQueries.useAll({
-    tenantId: params.asId,
-    sbeId: params.sbeId,
-  });
+  const edorgs = useQuery(
+    edorgQueries.getAll({
+      teamId,
+      edfiTenant,
+    })
+  );
+  const vendors = useQuery(
+    vendorQueriesV1.getAll({
+      edfiTenant,
+      teamId,
+    })
+  );
+  const claimsets = useQuery(
+    claimsetQueriesV1.getAll({
+      teamId,
+      edfiTenant,
+    })
+  );
   const edorgsByEdorgId = {
     ...edorgs,
     data: Object.values(edorgs.data ?? {}).reduce<Record<string, GetEdorgDto>>((map, edorg) => {
       map[
-        createEdorgCompositeNaturalKey({
-          educationOrganizationId: edorg.educationOrganizationId,
-          odsDbName: edorg.odsDbName,
+        edorgCompositeKey({
+          edorg: edorg.educationOrganizationId,
+          ods: edorg.odsDbName,
         })
       ] = edorg;
       return map;
@@ -55,8 +53,8 @@ export const ViewApplication = ({ application }: { application: GetApplicationDt
   };
 
   const url =
-    application && sbe.data?.configPublic?.edfiHostname
-      ? GetApplicationDto.apiUrl(sbe.data?.configPublic?.edfiHostname, application.applicationName)
+    application && edfiTenant.sbEnvironment.domain
+      ? GetApplicationDto.apiUrl(edfiTenant.sbEnvironment.domain, application.applicationName)
       : undefined;
 
   return application ? (
@@ -64,20 +62,19 @@ export const ViewApplication = ({ application }: { application: GetApplicationDt
       <AttributesGrid>
         <Attribute isCopyable label="Application name" value={application.displayName} />
         <AttributeContainer label="Vendor">
-          <VendorLink id={application?.vendorId} query={vendors} />
+          <VendorLinkV1 id={application?.vendorId} query={vendors} />
         </AttributeContainer>
         <AttributeContainer label="Claimset">
-          <ClaimsetLink id={application.claimSetName} query={claimsetsByName} />
+          <ClaimsetLinkV1 id={application.claimSetName} query={claimsetsByName} />
         </AttributeContainer>
-        <Attribute label="URL" value={url} isUrl isUrlExternal isCopyable />
         <AttributeContainer label="Ed-org">
           {application._educationOrganizationIds?.length
             ? application._educationOrganizationIds.map((edorgId) => (
                 <p key={edorgId}>
                   <EdorgLink
-                    id={createEdorgCompositeNaturalKey({
-                      educationOrganizationId: edorgId,
-                      odsDbName: 'EdFi_Ods_' + application.odsInstanceName,
+                    id={edorgCompositeKey({
+                      edorg: edorgId,
+                      ods: 'EdFi_Ods_' + application.odsInstanceName,
                     })}
                     query={edorgsByEdorgId}
                   />
@@ -85,6 +82,7 @@ export const ViewApplication = ({ application }: { application: GetApplicationDt
               ))
             : '-'}
         </AttributeContainer>
+        <Attribute label="URL" value={url} isUrl isUrlExternal isCopyable />
       </AttributesGrid>
     </ContentSection>
   ) : null;

@@ -5,12 +5,15 @@ import {
   QueryClientProvider,
   useIsFetching,
   useIsMutating,
+  useQueryClient,
   useQueryErrorResetBoundary,
 } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ErrorBoundary } from 'react-error-boundary';
 import { FeedbackBannerProvider } from './Layout/FeedbackBanner';
 import { Routes } from './routes';
+import { useEffect } from 'react';
+import { useMe } from './api';
 
 // Create a client
 export const queryClient = new QueryClient({
@@ -25,6 +28,12 @@ export const queryClient = new QueryClient({
 const MutationIndicator = () => {
   const isMutating = !!useIsMutating();
   const isFetching = !!(useIsFetching() - useIsFetching({ queryKey: ['authorizations'] }));
+  const queryClient = useQueryClient();
+  const me = useMe();
+  useEffect(() => {
+    // The most common real-world trigger is probably CUD on team memberships or the global role. So refetch all auth caches.
+    queryClient.invalidateQueries({ queryKey: ['auth-cache'] });
+  }, [me.data, queryClient]);
 
   return (
     <Box
@@ -42,17 +51,17 @@ const MutationIndicator = () => {
 function App() {
   const { reset } = useQueryErrorResetBoundary();
   return (
-    <FeedbackBannerProvider>
-      <ChakraProvider theme={theme}>
-        <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <FeedbackBannerProvider>
+        <ChakraProvider theme={theme}>
           <MutationIndicator />
           <ErrorBoundary onReset={reset} fallbackRender={({ resetErrorBoundary, error }) => error}>
             <Routes />
-            <ReactQueryDevtools initialIsOpen={false} position="bottom" />
           </ErrorBoundary>
-        </QueryClientProvider>
-      </ChakraProvider>
-    </FeedbackBannerProvider>
+        </ChakraProvider>
+      </FeedbackBannerProvider>
+      <ReactQueryDevtools initialIsOpen={false} position="bottom" />
+    </QueryClientProvider>
   );
 }
 

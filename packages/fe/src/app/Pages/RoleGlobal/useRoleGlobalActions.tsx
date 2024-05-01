@@ -14,7 +14,8 @@ import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 export const useRoleGlobalActions = (role: GetRoleDto | undefined): ActionsType => {
   const navigate = useNavigate();
   const to = (id: number | string) => `/roles/${id}`;
-  const deleteRole = roleQueries.useDelete({});
+  const deleteRole = roleQueries.delete({});
+  const deleteRoleForce = roleQueries.deleteForce({});
   const popBanner = usePopBanner();
   const queryClient = useQueryClient();
 
@@ -56,69 +57,54 @@ export const useRoleGlobalActions = (role: GetRoleDto | undefined): ActionsType 
                 title: 'Delete role',
                 confirmBody: 'This will permanently delete the role.',
                 onClick: () =>
-                  deleteRole.mutateAsync(role.id, {
-                    onError: (err: unknown) => {
-                      if (isExplicitStatusResponse(err) && err.type === 'RequiresForceDelete') {
-                        popBanner((props) => ({
-                          type: err.type,
-                          message: (
-                            <>
-                              {err.message?.toString() ??
-                                'This role is referenced by other entities.'}
-                              <Button
-                                ml={4}
-                                size="sm"
-                                h="auto"
-                                py={1}
-                                colorScheme="red"
-                                variant="outline"
-                                onClick={() => {
-                                  deleteRole.mutateAsync(
-                                    { id: role.id, force: true },
-                                    {
-                                      onSuccess: () => {
-                                        queryClient.invalidateQueries({
-                                          queryKey: queryKey({
-                                            resourceName: 'UserTenantMembership',
-                                            id: false,
-                                          }),
-                                        });
-                                        queryClient.invalidateQueries({
-                                          queryKey: queryKey({
-                                            resourceName: 'User',
-                                            id: false,
-                                          }),
-                                        });
-                                        queryClient.invalidateQueries({
-                                          queryKey: queryKey({
-                                            resourceName: 'Ownership',
-                                            id: false,
-                                          }),
-                                        });
-                                        popBanner({
-                                          type: 'Success',
-                                          title: 'Role deleted',
-                                        });
-                                        navigate(`/roles`);
-                                      },
-                                      ...mutationErrCallback({ popGlobalBanner: popBanner }),
-                                      onSettled: props.onDelete,
-                                    }
-                                  );
-                                }}
-                              >
-                                Use force delete
-                              </Button>
-                            </>
-                          ),
-                          title: 'Force delete required',
-                        }));
-                        return undefined;
-                      }
-                      mutationErrCallback({ popGlobalBanner: popBanner }).onError(err);
-                    },
-                    onSuccess: () => navigate(`/roles`),
-                  }),
+                  deleteRole.mutateAsync(
+                    { id: role.id },
+                    {
+                      onError: (err: unknown) => {
+                        if (isExplicitStatusResponse(err) && err.type === 'RequiresForceDelete') {
+                          popBanner((props) => ({
+                            type: err.type,
+                            message: (
+                              <>
+                                {err.message?.toString() ??
+                                  'This role is referenced by other entities.'}
+                                <Button
+                                  ml={4}
+                                  size="sm"
+                                  h="auto"
+                                  py={1}
+                                  colorScheme="red"
+                                  variant="outline"
+                                  onClick={() => {
+                                    deleteRoleForce.mutateAsync(
+                                      { id: role.id, pathParams: {} },
+                                      {
+                                        onSuccess: () => {
+                                          popBanner({
+                                            type: 'Success',
+                                            title: 'Role deleted',
+                                          });
+                                          navigate(`/roles`);
+                                        },
+                                        ...mutationErrCallback({ popGlobalBanner: popBanner }),
+                                        onSettled: props.onDelete,
+                                      }
+                                    );
+                                  }}
+                                >
+                                  Use force delete
+                                </Button>
+                              </>
+                            ),
+                            title: 'Force delete required',
+                          }));
+                          return undefined;
+                        }
+                        mutationErrCallback({ popGlobalBanner: popBanner }).onError(err);
+                      },
+                      onSuccess: () => navigate(`/roles`),
+                    }
+                  ),
                 confirm: true,
               },
             }

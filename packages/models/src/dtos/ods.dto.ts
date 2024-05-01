@@ -1,41 +1,85 @@
 import { Expose } from 'class-transformer';
-import { IEdorg } from '../interfaces';
 import { IOds } from '../interfaces/ods.interface';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
 import { makeSerializer } from '../utils/make-serializer';
 import { DtoPostBase, PostDto } from '../utils/post-base.dto';
 import { DtoPutBase, PutDto } from '../utils/put-base.dto';
+import { MinLength, MaxLength, Matches } from 'class-validator';
 
-export class GetOdsDto extends DtoGetBase implements GetDto<IOds, 'ownerships' | 'sbe' | 'edorgs'> {
+export class OdsTemplateOptionDto {
   @Expose()
-  sbeId: number;
+  id: string;
+  @Expose()
+  displayName: string;
+}
+export const toOdsTemplateOptionDto = makeSerializer(OdsTemplateOptionDto);
+
+export class GetOdsDto
+  extends DtoGetBase
+  implements GetDto<IOds, 'ownerships' | 'edfiTenant' | 'edorgs'>
+{
+  @Expose()
+  edfiTenantId: number;
+
+  @Expose()
+  sbEnvironmentId: number;
 
   @Expose()
   dbName: string;
 
+  @Expose()
+  odsInstanceId: number | null;
+
+  @Expose()
+  odsInstanceName: string | null;
+
   override get displayName() {
-    return this.dbName;
+    return this.odsInstanceName ?? this.dbName;
   }
 }
 export const toGetOdsDto = makeSerializer(GetOdsDto);
 
-export class PutOdsDto extends DtoPutBase implements PutDto<IOds, 'ownerships' | 'sbe' | 'edorgs'> {
+export class PutOdsDto
+  extends DtoPutBase
+  implements
+    PutDto<
+      IOds,
+      | 'ownerships'
+      | 'edfiTenant'
+      | 'edorgs'
+      | 'dbName'
+      | 'odsInstanceId'
+      | 'sbEnvironmentId'
+      | 'odsInstanceName'
+    >
+{
   @Expose()
-  sbeId: number;
+  edfiTenantId: number;
   @Expose()
-  dbName: string;
-  @Expose()
-  edorgs?: IEdorg[] | undefined;
+  name: string;
 }
 
 export class PostOdsDto
   extends DtoPostBase
-  implements PostDto<IOds, 'ownerships' | 'sbe' | 'edorgs'>
+  implements
+    PostDto<
+      IOds,
+      | 'ownerships'
+      | 'edfiTenant'
+      | 'edorgs'
+      | 'dbName'
+      | 'odsInstanceId'
+      | 'sbEnvironmentId'
+      | 'edfiTenantId'
+      | 'odsInstanceName'
+    >
 {
   @Expose()
-  sbeId: number;
+  @MinLength(3)
+  @MaxLength(29)
+  @Matches(/^[a-z0-9]+$/, { message: 'Name must only contain numbers and lowercase letters.' })
+  name: string;
+
   @Expose()
-  dbName: string;
-  @Expose()
-  edorgs?: IEdorg[] | undefined;
+  templateName: string;
 }

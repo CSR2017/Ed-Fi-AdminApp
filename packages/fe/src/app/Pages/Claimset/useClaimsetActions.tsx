@@ -1,35 +1,40 @@
 import { ActionsType } from '@edanalytics/common-ui';
 import { GetClaimsetDto } from '@edanalytics/models';
+import { RowSelectionState } from '@tanstack/react-table';
 import { BiEdit, BiExport, BiImport, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { claimsetQueries } from '../../api';
-import { claimsetAuthConfig, useAuthorize, useNavContext } from '../../helpers';
+import { claimsetQueriesV1 } from '../../api';
+import { claimsetAuthConfig, useAuthorize, useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
-import { RowSelectionState } from '@tanstack/react-table';
 
 export const useClaimsetActions = ({
   claimset,
 }: {
   claimset: GetClaimsetDto | undefined;
 }): ActionsType => {
-  const navContext = useNavContext();
-  const sbeId = navContext.sbeId!;
-  const asId = navContext.asId!;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
 
   const navigate = useNavigate();
-  const to = (id: number | string) => `/as/${asId}/sbes/${sbeId}/claimsets/${id}`;
-  const deleteClaimset = claimsetQueries.useDelete({ sbeId, tenantId: asId });
+  const to = (id: number | string) =>
+    `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/claimsets/${id}`;
+  const deleteClaimset = claimsetQueriesV1.delete({ edfiTenant, teamId: teamId });
   const popBanner = usePopBanner();
 
-  const canView = useAuthorize(claimsetAuthConfig(sbeId, asId, 'tenant.sbe.claimset:read'));
+  const canView = useAuthorize(
+    claimsetAuthConfig(edfiTenant.id, teamId, 'team.sb-environment.edfi-tenant.claimset:read')
+  );
   const canEdit =
-    useAuthorize(claimsetAuthConfig(sbeId, asId, 'tenant.sbe.claimset:update')) &&
+    useAuthorize(
+      claimsetAuthConfig(edfiTenant.id, teamId, 'team.sb-environment.edfi-tenant.claimset:update')
+    ) &&
     claimset &&
     !claimset.isSystemReserved;
   const canDelete =
-    useAuthorize(claimsetAuthConfig(sbeId, asId, 'tenant.sbe.claimset:delete')) &&
+    useAuthorize(
+      claimsetAuthConfig(edfiTenant.id, teamId, 'team.sb-environment.edfi-tenant.claimset:delete')
+    ) &&
     claimset &&
     !claimset.isSystemReserved;
 
@@ -50,9 +55,9 @@ export const useClaimsetActions = ({
                 title: 'Export ' + claimset.displayName,
                 onClick: () => {
                   window.open(
-                    `${
-                      import.meta.env.VITE_API_URL
-                    }/api/tenants/${asId}/sbes/${sbeId}/claimsets/export?id=${claimset.id}`,
+                    `${import.meta.env.VITE_API_URL}/api/teams/${teamId}/edfi-tenants/${
+                      edfiTenant.id
+                    }/admin-api/v1/claimsets/export?id=${claimset.id}`,
                     '_blank'
                   );
                 },
@@ -74,15 +79,21 @@ export const useClaimsetActions = ({
           ? {
               Delete: {
                 icon: BiTrash,
-                isLoading: deleteClaimset.isPending,
+                isPending: deleteClaimset.isPending,
                 text: 'Delete',
                 title: 'Delete claimset',
                 confirmBody: 'This will permanently delete the claimset.',
                 onClick: () =>
-                  deleteClaimset.mutateAsync(claimset.id, {
-                    ...mutationErrCallback({ popGlobalBanner: popBanner }),
-                    onSuccess: () => navigate(`/as/${asId}/sbes/${sbeId}/claimsets`),
-                  }),
+                  deleteClaimset.mutateAsync(
+                    { id: claimset.id },
+                    {
+                      ...mutationErrCallback({ popGlobalBanner: popBanner }),
+                      onSuccess: () =>
+                        navigate(
+                          `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/claimsets`
+                        ),
+                    }
+                  ),
                 confirm: true,
               },
             }
@@ -96,16 +107,17 @@ export const useManyClaimsetActions = ({
 }: {
   selectionState: RowSelectionState;
 }): ActionsType => {
-  const { asId, sbeId } = useNavContext() as {
-    asId: number;
-    sbeId: number;
-  };
+  const { teamId, edfiTenant, sbEnvironment } = useTeamEdfiTenantNavContextLoaded();
 
   const navigate = useNavigate();
-  const toCreate = `/as/${asId}/sbes/${sbeId}/claimsets/create`;
-  const toImport = `/as/${asId}/sbes/${sbeId}/claimsets/import`;
-  const canCreate = useAuthorize(claimsetAuthConfig(sbeId, asId, 'tenant.sbe.claimset:create'));
-  const canRead = useAuthorize(claimsetAuthConfig(sbeId, asId, 'tenant.sbe.claimset:read'));
+  const toCreate = `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/claimsets/create`;
+  const toImport = `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/claimsets/import`;
+  const canCreate = useAuthorize(
+    claimsetAuthConfig(edfiTenant.id, teamId, 'team.sb-environment.edfi-tenant.claimset:create')
+  );
+  const canRead = useAuthorize(
+    claimsetAuthConfig(edfiTenant.id, teamId, 'team.sb-environment.edfi-tenant.claimset:read')
+  );
 
   return {
     ...(canCreate
@@ -134,11 +146,9 @@ export const useManyClaimsetActions = ({
             title: 'Export selected claimsets',
             onClick: () => {
               window.open(
-                `${
-                  import.meta.env.VITE_API_URL
-                }/api/tenants/${asId}/sbes/${sbeId}/claimsets/export?id=${Object.keys(
-                  selectionState
-                ).join('&id=')}`,
+                `${import.meta.env.VITE_API_URL}/api/teams/${teamId}/edfi-tenants/${
+                  edfiTenant.id
+                }/admin-api/v1/claimsets/export?id=${Object.keys(selectionState).join('&id=')}`,
                 '_blank'
               );
             },

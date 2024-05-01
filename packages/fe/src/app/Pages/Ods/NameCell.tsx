@@ -1,24 +1,26 @@
 import { HStack } from '@chakra-ui/react';
 import { TableRowActions } from '@edanalytics/common-ui';
 import { GetOdsDto } from '@edanalytics/models';
+import { useQuery } from '@tanstack/react-query';
 import { CellContext } from '@tanstack/react-table';
 import { odsQueries } from '../../api/queries/queries';
-import { useNavContext } from '../../helpers';
-import { useReadTenantEntity } from '../../helpers/useStandardRowActionsNew';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
+import { useReadTeamEntity } from '../../helpers/useStandardRowActionsNew';
 import { OdsLink, odsRoute } from '../../routes';
 
 export const NameCell = (info: CellContext<GetOdsDto, unknown>) => {
-  const navContext = useNavContext();
-  const sbeId = navContext.sbeId!;
-  const asId = navContext.asId!;
-  const entities = odsQueries.useAll({
-    sbeId: sbeId,
-    tenantId: asId,
-  });
-  const View = useReadTenantEntity({
+  const { teamId, edfiTenant, asId, edfiTenantId, sbEnvironmentId } =
+    useTeamEdfiTenantNavContextLoaded();
+  const entities = useQuery(
+    odsQueries.getAll({
+      edfiTenant,
+      teamId,
+    })
+  );
+  const View = useReadTeamEntity({
     entity: info.row.original,
-    params: { asId, sbeId, odsId: info.row.original.id },
-    privilege: 'tenant.sbe.ods:read',
+    params: { asId, edfiTenantId, sbEnvironmentId, odsId: info.row.original.id },
+    privilege: 'team.sb-environment.edfi-tenant.ods:read',
     route: odsRoute,
   });
   const actions = {

@@ -32,9 +32,9 @@ export class AuthorizedGuard implements CanActivate {
     if (request.isAuthenticated()) {
       const authorizationCache: AuthorizationCache = request['authorizationCache'];
 
-      const tenantIdStr = request.params?.tenantId;
+      const teamIdStr = request.params?.teamId;
       try {
-        const ability = abilityFromCache(authorizationCache, tenantIdStr);
+        const ability = abilityFromCache(authorizationCache, teamIdStr);
 
         request['abilities'] = ability;
 
@@ -54,27 +54,40 @@ export class AuthorizedGuard implements CanActivate {
             const privilege = authorizeRule.privilege;
             const subjectTemplate = authorizeRule.subject;
 
-            let subjectTenant = {};
-            if ('tenantId' in subjectTemplate) {
-              const value = request.params[subjectTemplate.tenantId];
+            let subjectTeam = {};
+            if ('teamId' in subjectTemplate) {
+              const value = request.params[subjectTemplate.teamId];
               if (value === undefined) {
-                throw new Error(
-                  'Attempting to authorize by tenant but no tenantId found in request.'
-                );
+                throw new Error('Attempting to authorize by team but no teamId found in request.');
               }
-              subjectTenant = {
-                tenantId: value,
+              subjectTeam = {
+                teamId: value,
               };
             }
 
-            let subjectSbe = {};
-            if ('sbeId' in subjectTemplate) {
-              const value = request.params[subjectTemplate.sbeId];
+            let subjectSbEnvironment = {};
+            if ('sbEnvironmentId' in subjectTemplate) {
+              const value = request.params[subjectTemplate.sbEnvironmentId];
               if (value === undefined) {
-                throw new Error('Attempting to authorize by sbe but no sbeId found in request.');
+                throw new Error(
+                  'Attempting to authorize by sbEnvironment but no sbEnvironmentId found in request.'
+                );
               }
-              subjectSbe = {
-                sbeId: value,
+              subjectSbEnvironment = {
+                sbEnvironmentId: value,
+              };
+            }
+
+            let subjectEdfiTenant = {};
+            if ('edfiTenantId' in subjectTemplate) {
+              const value = request.params[subjectTemplate.edfiTenantId];
+              if (value === undefined) {
+                throw new Error(
+                  'Attempting to authorize by edfiTenant but no edfiTenantId found in request.'
+                );
+              }
+              subjectEdfiTenant = {
+                edfiTenantId: value,
               };
             }
 
@@ -89,8 +102,9 @@ export class AuthorizedGuard implements CanActivate {
               subjectId = value;
             }
             const subjectObject: AuthorizeMetadata['subject'] = {
-              ...subjectTenant,
-              ...subjectSbe,
+              ...subjectTeam,
+              ...subjectEdfiTenant,
+              ...subjectSbEnvironment,
               id: subjectId,
             };
             subject(privilege, subjectObject);

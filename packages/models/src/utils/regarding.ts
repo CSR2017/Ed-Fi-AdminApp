@@ -1,30 +1,31 @@
 import {
   GetOdsDto,
-  GetSbeDto,
+  GetEdfiTenantDto,
   GetEdorgDto,
-  GetUserTenantMembershipDto,
+  GetUserTeamMembershipDto,
   GetUserDto,
-  GetTenantDto,
-  GetPrivilegeDto,
+  GetTeamDto,
   GetRoleDto,
   GetOwnershipDto,
+  GetSbEnvironmentDto,
 } from '../dtos';
 
 export const entityNamesMap = {
   Ods: 'ODS',
   GetOdsDto: 'ODS',
-  Sbe: 'Environment',
-  GetSbeDto: 'Environment',
+  EdfiTenant: 'EdFi Tenant',
+  GetEdfiTenantDto: 'EdFi Tenant',
+  SbEnvironment: 'Environment',
+  GetSbEnvironmentDto: 'Environment',
   Edorg: 'Ed-Org',
   GetEdorgDto: 'Ed-Org',
-  UserTenantMembership: 'Tenant membership',
-  GetUserTenantMembershipDto: 'Tenant membership',
+  UserTeamMembership: 'Team membership',
+  GetUserTeamMembershipDto: 'Team membership',
   User: 'User',
   GetUserDto: 'User',
-  Tenant: 'Tenant',
-  GetTenantDto: 'Tenant',
+  Team: 'Team',
+  GetTeamDto: 'Team',
   Privilege: 'Privilege',
-  GetPrivilegeDto: 'Privilege',
   Role: 'Role',
   GetRoleDto: 'Role',
   Ownership: 'Resource ownership',
@@ -34,12 +35,12 @@ export const entityNamesMap = {
 export const regarding = (
   entity:
     | GetOdsDto
-    | GetSbeDto
+    | GetEdfiTenantDto
+    | GetSbEnvironmentDto
     | GetEdorgDto
-    | GetUserTenantMembershipDto
+    | GetUserTeamMembershipDto
     | GetUserDto
-    | GetTenantDto
-    | GetPrivilegeDto
+    | GetTeamDto
     | GetRoleDto
     | GetOwnershipDto
 ) => {

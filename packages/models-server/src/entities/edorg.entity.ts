@@ -1,4 +1,4 @@
-import { EdorgType, IEdorg, IOds, IOwnership, ISbe } from '@edanalytics/models';
+import { EdorgType, IEdorg, IOds, IOwnership, IEdfiTenant } from '@edanalytics/models';
 import {
   Column,
   Entity,
@@ -11,9 +11,25 @@ import {
 } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 
+/**
+ * The Edorg entity represents an education organization, such as a school, district, or service center.
+ *
+ * ### Composite key problem
+ *
+ * SBAA uses a meaningless auto-increment as the primary key, even though business logic with Admin API
+ * or other external systems generally uses a composite natural key. This inconsistency is not wonderful,
+ * but aside from any unintended bugs should not actually cause problems. The problems with the natural
+ * key are: a) it's not the same between versions so using it wouldn't really eliminate the
+ * inconsistency, and b) it's only unique within an EdFi Tenant, so we'd need to concatenate it with
+ * two more identifiers as well, and it would get prohibitively long. ODSs and EdFi Tenants face the
+ * same problem, and what we'd end up with is all three entities having largely-redundant keys.
+ *
+ * Overall the situation is the same one faced by any independent system that integrates with other
+ * external ones and for which the external natural keys aren't quite sufficient.
+ */
 @Entity()
 @Tree('closure-table')
-@Unique(['sbeId', 'odsId', 'educationOrganizationId'])
+@Unique(['edfiTenantId', 'odsId', 'educationOrganizationId'])
 export class Edorg extends EntityBase implements IEdorg {
   @OneToMany('Ownership', (ownership: IOwnership) => ownership.edorg)
   ownerships: IOwnership[];
@@ -27,11 +43,17 @@ export class Edorg extends EntityBase implements IEdorg {
   @Column()
   odsDbName: string;
 
-  @ManyToOne('Sbe', (sbe: ISbe) => sbe.edorgs, { onDelete: 'CASCADE' })
-  sbe: ISbe;
+  @Column({ nullable: true })
+  odsInstanceId: number | null;
+
+  @ManyToOne('EdfiTenant', (edfiTenant: IEdfiTenant) => edfiTenant.edorgs, { onDelete: 'CASCADE' })
+  edfiTenant: IEdfiTenant;
 
   @Column()
-  sbeId: number;
+  edfiTenantId: number;
+
+  @Column()
+  sbEnvironmentId: number;
 
   @TreeChildren()
   children: IEdorg[];
@@ -42,7 +64,10 @@ export class Edorg extends EntityBase implements IEdorg {
   @Column({ nullable: true })
   parentId?: number | undefined;
 
-  @Column()
+  @Column({
+    comment:
+      'Pre-v7/v2, this reliably included the Ods name. In v7/v2 it is no longer alone sufficient as a natural key, and must be combined with an ODS identifier.',
+  })
   educationOrganizationId: number;
 
   @Column()

@@ -1,5 +1,13 @@
-import { ITenantCache, PrivilegeCode, upwardInheritancePrivileges } from '@edanalytics/models';
-import { Edorg, Ods, Ownership, Sbe, User, UserTenantMembership } from '@edanalytics/models-server';
+import { ITeamCache, PrivilegeCode, upwardInheritancePrivileges } from '@edanalytics/models';
+import {
+  Edorg,
+  Ods,
+  Ownership,
+  EdfiTenant,
+  User,
+  UserTeamMembership,
+  SbEnvironment,
+} from '@edanalytics/models-server';
 import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, In, IsNull, Not, Repository, TreeRepository } from 'typeorm';
@@ -9,7 +17,8 @@ import {
   cacheEdorgPrivilegesDownward,
   cacheEdorgPrivilegesUpward,
   initializeOdsPrivilegeCache,
-  initializeSbePrivilegeCache,
+  initializeEdfiTenantPrivilegeCache,
+  initializeSbEnvironmentPrivilegeCache,
 } from './authorization/helpers';
 
 @Injectable()
@@ -18,16 +27,16 @@ export class AuthService {
   constructor(
     @InjectRepository(Ods)
     private odssRepository: Repository<Ods>,
-    @InjectRepository(Sbe)
-    private sbesRepository: Repository<Sbe>,
+    @InjectRepository(EdfiTenant)
+    private edfiTenantsRepository: Repository<EdfiTenant>,
     @InjectRepository(Edorg)
     private edorgsRepository: Repository<Edorg>,
     @InjectRepository(Ownership)
     private ownershipsRepository: Repository<Ownership>,
     @InjectRepository(User)
     private usersRepo: Repository<User>,
-    @InjectRepository(UserTenantMembership)
-    private utmRepo: Repository<UserTenantMembership>,
+    @InjectRepository(UserTeamMembership)
+    private utmRepo: Repository<UserTeamMembership>,
     @InjectEntityManager()
     private entityManager: EntityManager,
     @Inject(CacheService) private cacheManager: CacheService
@@ -35,32 +44,32 @@ export class AuthService {
     this.edorgsTreeRepository = this.entityManager.getTreeRepository(Edorg);
   }
 
-  /** Get union of user's global role privileges and tenant role privileges.
+  /** Get union of user's global role privileges and team role privileges.
    *
-   * _Note that a global role may contain tenant-type privileges which apply
-   * to any tenant context the user chooses to assume, as if they were assigned
-   * a role within that tenant that granted those privileges locally._
+   * _Note that a global role may contain team-type privileges which apply
+   * to any team context the user chooses to assume, as if they were assigned
+   * a role within that team that granted those privileges locally._
    */
   async getUserPrivileges(
     userId: number,
-    /** Optionally look up a tenant membership, if one exists, whose privileges will be added to the Set */
-    tenantId?: number
+    /** Optionally look up a team membership, if one exists, whose privileges will be added to the Set */
+    teamId?: number
   ) {
     const privileges = new Set<PrivilegeCode>();
 
-    if (tenantId !== undefined) {
-      // We don't want to error out if there's no membership, because a user can still be granted tenant-level privileges globally.
+    if (teamId !== undefined) {
+      // We don't want to error out if there's no membership, because a user can still be granted team-level privileges globally.
       const membership = await this.utmRepo.findOne({
         where: {
           userId,
-          tenantId,
+          teamId,
         },
-        relations: ['role', 'role.privileges'],
+        relations: ['role'],
       });
 
-      membership?.role?.privileges?.forEach(({ code }) => {
-        // tenant roles *shouldn't* have any non-tenant privileges, but just in case, we don't want to add any global privileges based on a tenant role.
-        if (code.startsWith('tenant.')) {
+      membership?.role?.privilegeIds?.forEach((code) => {
+        // team roles *shouldn't* have any non-team privileges, but just in case, we don't want to add any global privileges based on a team role.
+        if (code.startsWith('team.')) {
           privileges.add(code);
         }
       });
@@ -70,10 +79,10 @@ export class AuthService {
         id: userId,
         isActive: true,
       },
-      relations: ['role', 'role.privileges'],
+      relations: ['role'],
     });
 
-    user.role?.privileges?.forEach(({ code }) => {
+    user.role?.privilegeIds?.forEach((code) => {
       privileges.add(code);
     });
     return privileges;
@@ -88,16 +97,16 @@ export class AuthService {
     });
     if (user === null) return null;
 
-    const tenantMemberships = await this.utmRepo.find({
+    const teamMemberships = await this.utmRepo.find({
       where: {
         userId: user.id,
         roleId: Not(IsNull()),
       },
-      relations: ['role', 'tenant'],
+      relations: ['role', 'team'],
     });
 
-    if (tenantMemberships.length) {
-      user.userTenantMemberships = tenantMemberships;
+    if (teamMemberships.length) {
+      user.userTeamMemberships = teamMemberships;
     }
 
     return user;
@@ -112,14 +121,22 @@ export class AuthService {
     }
   }
 
-  async constructTenantOwnerships(tenantId: number) {
+  async constructTeamOwnerships(teamId: number) {
     const start = new Date();
-    if (typeof tenantId !== 'number') throw new UnauthorizedException();
+    if (typeof teamId !== 'number') throw new UnauthorizedException();
     const ownerships = await this.ownershipsRepository.find({
       where: {
-        tenantId,
+        teamId,
       },
-      relations: ['sbe', 'ods', 'edorg', 'role', 'role.privileges'],
+      relations: [
+        'sbEnvironment',
+        'sbEnvironment.edfiTenants',
+        'edfiTenant',
+        'edfiTenant.sbEnvironment',
+        'ods',
+        'edorg',
+        'role',
+      ],
     });
 
     /** Map of all Edorgs needed during execution.
@@ -132,26 +149,40 @@ export class AuthService {
      * Just a data bucket used for dynamic programming; carries no access control meaning itself.
      * */
     const allOdss = new Map<number, Ods>();
-    /** Map of all Sbes needed during execution.
+    /** Map of all EdfiTenants needed during execution.
      *
      * Just a data bucket used for dynamic programming; carries no access control meaning itself.
      * */
-    const allSbes = new Map<number, Sbe>();
+    const allEdfiTenants = new Map<number, EdfiTenant>();
+    /** Map of all SbEnvironments needed during execution.
+     *
+     * Just a data bucket used for dynamic programming; carries no access control meaning itself.
+     * */
+    const allSbEnvironments = new Map<number, SbEnvironment>();
 
     const ownedOdss: Ownership[] = [];
     const ownedEdorgs: Ownership[] = [];
 
     /**
-     * Repository of the privileges this tenant has on each relevant Sbe
+     * Repository of the privileges this team has on each relevant SbEnvironment
      *
      * These variables are used dynamically. As the authorization builder
      * works its way up and down the resource hierarchy, it adds new items
      * or new privileges to existing items as prescribed by the app's
      * inheritance rules.
      */
-    const sbePrivileges = new Map<number, Set<PrivilegeCode>>();
+    const sbEnvironmentPrivileges = new Map<number, Set<PrivilegeCode>>();
     /**
-     * Repository of the privileges this tenant has on each relevant ODS
+     * Repository of the privileges this team has on each relevant EdfiTenant
+     *
+     * These variables are used dynamically. As the authorization builder
+     * works its way up and down the resource hierarchy, it adds new items
+     * or new privileges to existing items as prescribed by the app's
+     * inheritance rules.
+     */
+    const edfiTenantPrivileges = new Map<number, Set<PrivilegeCode>>();
+    /**
+     * Repository of the privileges this team has on each relevant ODS
      *
      * These variables are used dynamically. As the authorization builder
      * works its way up and down the resource hierarchy, it adds new items
@@ -160,7 +191,7 @@ export class AuthService {
      */
     const odsPrivileges = new Map<number, Set<PrivilegeCode>>();
     /**
-     * Repository of the privileges this tenant has on each relevant Ed-Org
+     * Repository of the privileges this team has on each relevant Ed-Org
      *
      * These variables are used dynamically. As the authorization builder
      * works its way up and down the resource hierarchy, it adds new items
@@ -169,57 +200,58 @@ export class AuthService {
      */
     const edorgPrivileges = new Map<number, Set<PrivilegeCode>>();
 
-    ownerships.forEach((o) => {
-      if (o.sbe) {
-        sbePrivileges.set(o.sbe.id, new Set(o.role?.privileges.map((p) => p.code) ?? []));
-        allSbes.set(o.sbe.id, o.sbe);
-      } else if (o.ods) {
-        odsPrivileges.set(o.ods.id, new Set(o.role?.privileges.map((p) => p.code) ?? []));
-        ownedOdss.push(o);
-        allOdss.set(o.ods.id, o.ods);
-      } else if (o.edorg) {
-        edorgPrivileges.set(o.edorg.id, new Set(o.role?.privileges.map((p) => p.code) ?? []));
-        ownedEdorgs.push(o);
-        allEdorgs.set(o.edorg.id, o.edorg);
-      }
-    });
+    ownerships
+      .filter((o) => o.role?.privilegeIds.length)
+      .forEach((o) => {
+        if (o.sbEnvironment) {
+          sbEnvironmentPrivileges.set(o.sbEnvironment.id, new Set(o.role.privilegeIds ?? []));
+          allSbEnvironments.set(o.sbEnvironment.id, o.sbEnvironment);
+          o.sbEnvironment.edfiTenants.forEach((edfiTenant) => {
+            /*
+            the way SbEnvironment ownerships get applied to EdfiTenant privileges
+            is by just adding to the list of owned EdfiTenants, rather than by
+            having their own redundant auth derivation and caching logic. The only
+            privileges they cache directly are the
+            `team.sb-environment.edfi-tenant:<action>` ones (read and refresh-resources).
+            */
+            edfiTenantPrivileges.set(edfiTenant.id, new Set(o.role.privilegeIds ?? []));
+            allEdfiTenants.set(edfiTenant.id, edfiTenant);
+          });
+        } else if (o.edfiTenant) {
+          if (!edfiTenantPrivileges.has(o.edfiTenant.id)) {
+            edfiTenantPrivileges.set(o.edfiTenant.id, new Set());
+          }
+          edfiTenantPrivileges.set(
+            o.edfiTenant.id,
+            new Set([...edfiTenantPrivileges.get(o.edfiTenant.id), ...o.role.privilegeIds])
+          );
+          allEdfiTenants.set(o.edfiTenant.id, o.edfiTenant);
+          allSbEnvironments.set(o.edfiTenant.sbEnvironmentId, o.edfiTenant.sbEnvironment);
+        } else if (o.ods) {
+          odsPrivileges.set(o.ods.id, new Set(o.role?.privilegeIds ?? []));
+          ownedOdss.push(o);
+          allOdss.set(o.ods.id, o.ods);
+        } else if (o.edorg) {
+          edorgPrivileges.set(o.edorg.id, new Set(o.role?.privilegeIds ?? []));
+          ownedEdorgs.push(o);
+          allEdorgs.set(o.edorg.id, o.edorg);
+        }
+      });
 
-    const cache: ITenantCache = {
-      'tenant.ownership:read': true,
-      'tenant.role:read': true,
-      'tenant.role:create': true,
-      'tenant.role:update': true,
-      'tenant.role:delete': true,
-      'tenant.user:read': true,
-      'tenant.user-tenant-membership:read': true,
-      'tenant.user-tenant-membership:update': true,
-      'tenant.user-tenant-membership:delete': true,
-      'tenant.user-tenant-membership:create': true,
-      /*
+    const cache: ITeamCache = {
+      'team.ownership:read': true,
+      'team.role:read': true,
+      'team.role:create': true,
+      'team.role:update': true,
+      'team.role:delete': true,
+      'team.user:read': true,
+      'team.user-team-membership:read': true,
+      'team.user-team-membership:update': true,
+      'team.user-team-membership:delete': true,
+      'team.user-team-membership:create': true,
 
-      Suppose the tenant has no Sbes. Why would we bother including the
-      privilege with an empty Set (as you see below) instead of just not
-      including it at all?
-
-      We implement the following pattern: if user/tenant has a privilege
-      "in theory" - regardless of whether there exists any data on which
-      they could use it - then we include it in the cache. This is
-      because they should be able to access the relevant page, and see
-      that nothing is there. Otherwise if, for example, a tenant's ODS
-      didn't have any Ed-Orgs populated in it yet, they wouldn't get the
-      Ed-Org page at all.
-
-      So in practical terms the reasons for the following line are:
-      - In the front-end it constitutes the difference between displaying
-      an empty page and displaying no page/nav-item, and
-      - In the API it's the difference between denying a request and
-      returning an empty payload.
-
-      _Not_ because it makes any difference for what data can
-      ultimately be retrieved.
-
-      */
-      'tenant.sbe:read': new Set(),
+      // See various notes about "empty privileges"
+      'team.sb-environment:read': new Set(),
     };
 
     /*
@@ -230,8 +262,8 @@ export class AuthService {
 
     */
 
-    const sbePrivilegesEntries = [...sbePrivileges.entries()];
-    const [allEdorgsRaw, allOdssRaw] = await Promise.all([
+    const allEdfiTenantIds = [...allEdfiTenants.keys()];
+    const [allEdorgsRaw, allOdssRaw, allEdfiTenantsRaw] = await Promise.all([
       this.edorgsRepository
         .createQueryBuilder('edorg')
         .leftJoin(
@@ -253,20 +285,35 @@ export class AuthService {
         .where(
           `descendants.id_ancestor IS NOT NULL OR
            ancestors.id_descendant IS NOT NULL OR
-           edorg.sbeId = ANY (:sbes) OR
+           --edorg.edfiTenantId = ANY (:edfiTenants) OR
            edorg.odsId = ANY (:odss)`,
           {
-            sbes: sbePrivilegesEntries.map(([sbeId, privileges]) => sbeId),
-            odss: ownedOdss.map((o) => o.ods.id).filter((id) => typeof id === 'number'),
+            // edfiTenants: allEdfiTenantIds, // TODO it may be easy enough to remove this because edfiTenant privileges are just a blanket `true` anyway.
+            odss: ownedOdss.map((o) => o.ods.id),
           }
         )
         .getMany(),
       this.odssRepository.findBy([
+        // {
+        //   edfiTenantId: In(
+        //     allEdfiTenantIds // TODO same possibility as above
+        //   ),
+        // },
         {
-          sbeId: In(sbePrivilegesEntries.map(([sbeId, privileges]) => sbeId)),
+          id: In(ownedEdorgs.map((o) => o.edorg.odsId)),
         },
+      ]),
+      this.edfiTenantsRepository.findBy([
+        // {
+        //   edfiTenantId: In(
+        //     allEdfiTenantIds // TODO same possibility as above
+        //   ),
+        // },
         {
-          id: In(ownedEdorgs.map((o) => o.edorg.odsId).filter((id) => typeof id === 'number')),
+          id: In([
+            ...ownedEdorgs.map((o) => o.edorg.edfiTenantId),
+            ...ownedOdss.map((o) => o.ods.edfiTenantId),
+          ]),
         },
       ]),
     ]);
@@ -282,31 +329,70 @@ export class AuthService {
       allEdorgs.set(edorg.id, edorg);
     });
 
-    const odssPerSbe = Object.fromEntries(
-      sbePrivilegesEntries.map(([sbeId, privileges]) => [sbeId, [] as Ods[]])
+    const odssPerEdfiTenant = Object.fromEntries(
+      allEdfiTenantIds.map((edfiTenantId) => [edfiTenantId, [] as Ods[]])
     );
     allOdssRaw.forEach((ods) => {
-      if (!(ods.sbeId in odssPerSbe)) {
-        odssPerSbe[ods.sbeId] = [];
+      if (!(ods.edfiTenantId in odssPerEdfiTenant)) {
+        odssPerEdfiTenant[ods.edfiTenantId] = [];
       }
-      odssPerSbe[ods.sbeId].push(ods);
+      odssPerEdfiTenant[ods.edfiTenantId].push(ods);
       allOdss.set(ods.id, ods);
     });
 
-    sbePrivilegesEntries.forEach(([sbeId, myPrivileges]) => {
-      cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe', sbeId);
-      initializeSbePrivilegeCache(cache, myPrivileges, sbeId);
+    allEdfiTenantsRaw.forEach((edfiTenant) => {
+      allEdfiTenants.set(edfiTenant.id, edfiTenant);
+    });
+
+    const sbEnvironmentPrivilegesEntries = [...sbEnvironmentPrivileges.entries()];
+    sbEnvironmentPrivilegesEntries.forEach(([sbEnvironmentId, myPrivileges]) => {
+      const sbEnvironment = allSbEnvironments.get(sbEnvironmentId);
+      cacheAccordingToPrivileges({
+        cache,
+        privileges: myPrivileges,
+        resource: 'team.sb-environment',
+        id: sbEnvironmentId,
+      });
+      initializeSbEnvironmentPrivilegeCache(cache, myPrivileges, sbEnvironment);
+    });
+
+    const edfiTenantPrivilegesEntries = [...edfiTenantPrivileges.entries()];
+    edfiTenantPrivilegesEntries.forEach(([edfiTenantId, myPrivileges]) => {
+      cacheAccordingToPrivileges({
+        cache,
+        privileges: myPrivileges,
+        resource: 'team.sb-environment.edfi-tenant',
+        id: edfiTenantId,
+        sbEnvironmentId: allEdfiTenants.get(edfiTenantId).sbEnvironmentId,
+      });
+      initializeEdfiTenantPrivilegeCache(cache, myPrivileges, edfiTenantId);
+
+      const upwardPrivileges = new Set(
+        [...myPrivileges].filter((p) => upwardInheritancePrivileges.has(p))
+      );
+      cacheAccordingToPrivileges({
+        cache,
+        privileges: upwardPrivileges,
+        resource: 'team.sb-environment',
+        id: allEdfiTenants.get(edfiTenantId).sbEnvironmentId,
+      });
     });
 
     const odsPrivilegesEntries = [...odsPrivileges.entries()];
     odsPrivilegesEntries.forEach(([odsId, myPrivileges]) => {
       const ods = allOdss.get(odsId);
 
-      cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.ods', ods.id, ods.sbeId);
-      initializeOdsPrivilegeCache(cache, myPrivileges, ods.sbeId);
+      cacheAccordingToPrivileges({
+        cache,
+        privileges: myPrivileges,
+        resource: 'team.sb-environment.edfi-tenant.ods',
+        id: ods.id,
+        edfiTenantId: ods.edfiTenantId,
+      });
+      initializeOdsPrivilegeCache(cache, myPrivileges, ods.edfiTenantId);
 
       /*
-        Apply downward-inheriting privileges to root Ed-Orgs within this ODS. SBE-level privileges
+        Apply downward-inheriting privileges to root Ed-Orgs within this ODS. EdfiTenant-level privileges
         don't need to be applied downward like these ODS ones because they're already reflected in
         the blanket `true` privilege cache. But ODS-level ones must be applied downward so they can
         be reflected in individual Ed-org or ODS IDs showing up in the cache.
@@ -376,11 +462,12 @@ export class AuthService {
     for (const edorgId in ownedEdorgs) {
       const ownership = ownedEdorgs[edorgId];
       const edorg = ownership.edorg!;
+      const edfiTenant = allEdfiTenants.get(edorg.edfiTenantId);
       const ancestors = [...(ancestorMap.get(edorg.id) ?? [])];
 
       const ownedPrivileges = new Set(ownership.role.privileges.map((p) => p.code) ?? []);
 
-      cacheEdorgPrivilegesUpward(cache, edorg, ownedPrivileges, ancestors);
+      cacheEdorgPrivilegesUpward({ cache, edorg, edfiTenant, ownedPrivileges, ancestors });
     }
 
     for (const odsId in ownedOdss) {
@@ -392,48 +479,72 @@ export class AuthService {
         [...ownedPrivileges].filter((p) => upwardInheritancePrivileges.has(p))
       );
 
-      cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe', ods.sbeId);
-      cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe.claimset', true, ods.sbeId);
-      cacheAccordingToPrivileges(cache, appliedPrivileges, 'tenant.sbe.vendor', true, ods.sbeId);
+      cacheAccordingToPrivileges({
+        cache,
+        privileges: appliedPrivileges,
+        resource: 'team.sb-environment',
+        id: allEdfiTenants.get(ods.edfiTenantId).sbEnvironmentId,
+      });
+      cacheAccordingToPrivileges({
+        cache,
+        privileges: appliedPrivileges,
+        resource: 'team.sb-environment.edfi-tenant',
+        sbEnvironmentId: ods.sbEnvironmentId,
+        id: ods.edfiTenantId,
+      });
+      cacheAccordingToPrivileges({
+        cache,
+        privileges: appliedPrivileges,
+        resource: 'team.sb-environment.edfi-tenant.claimset',
+        id: true,
+        edfiTenantId: ods.edfiTenantId,
+      });
+      cacheAccordingToPrivileges({
+        cache,
+        privileges: appliedPrivileges,
+        resource: 'team.sb-environment.edfi-tenant.vendor',
+        id: true,
+        edfiTenantId: ods.edfiTenantId,
+      });
     }
 
     const end = new Date();
     Logger.verbose(
-      `Tenant ${tenantId} ownership object cached in ${(
+      `Team ${teamId} ownership object cached in ${(
         Number(end) - Number(start)
       ).toLocaleString()}ms`
     );
     return cache;
   }
 
-  clearTenantOwnershipCache(tenantId: number) {
-    this.cacheManager.del(String(tenantId));
+  clearTeamOwnershipCache(teamId: number) {
+    this.cacheManager.del(String(teamId));
   }
 
-  async reloadTenantOwnershipCache(
-    tenantId: number,
+  async reloadTeamOwnershipCache(
+    teamId: number,
     /** Load the cache even if it's currently expired, meaning it hasn't been used in 1hr */
     evenIfInactive = true
   ) {
-    const existingValue: ITenantCache | undefined = this.cacheManager.get(String(tenantId));
+    const existingValue: ITeamCache | undefined = this.cacheManager.get(String(teamId));
 
     if (existingValue || evenIfInactive) {
-      this.clearTenantOwnershipCache(tenantId);
-      const newCache = this.constructTenantOwnerships(tenantId);
-      this.cacheManager.set(String(tenantId), newCache, 10 * 60 /* seconds */);
+      this.clearTeamOwnershipCache(teamId);
+      const newCache = this.constructTeamOwnerships(teamId);
+      this.cacheManager.set(String(teamId), newCache, 30); //10 * 60 /* seconds */);
       return await newCache;
     } else {
       return null;
     }
   }
 
-  async getTenantOwnershipCache(tenantId: number) {
-    const cachedValue = this.cacheManager.get(String(tenantId));
+  async getTeamOwnershipCache(teamId: number) {
+    const cachedValue = this.cacheManager.get(String(teamId));
     if (cachedValue !== undefined) {
       return await cachedValue;
     } else {
-      const newCache = this.constructTenantOwnerships(tenantId);
-      this.cacheManager.set(String(tenantId), newCache, 10 * 60 /* seconds */);
+      const newCache = this.constructTeamOwnerships(teamId);
+      this.cacheManager.set(String(teamId), newCache, 30); //10 * 60 /* seconds */);
       return await newCache;
     }
   }

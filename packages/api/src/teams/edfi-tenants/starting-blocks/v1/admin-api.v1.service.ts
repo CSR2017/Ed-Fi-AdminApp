@@ -1,0 +1,349 @@
+import {
+  GetClaimsetDto,
+  ISbEnvironmentConfigPrivateV1,
+  PostApplicationDto,
+  PostApplicationResponseDto,
+  PostClaimsetDto,
+  PostVendorDto,
+  PutApplicationDto,
+  PutClaimsetDto,
+  PutVendorDto,
+  toGetApplicationDto,
+  toGetClaimsetDto,
+  toGetVendorDto,
+} from '@edanalytics/models';
+import { EdfiTenant } from '@edanalytics/models-server';
+import { Injectable, Logger } from '@nestjs/common';
+import axios, { AxiosError } from 'axios';
+import crypto from 'crypto';
+import _ from 'lodash';
+import NodeCache from 'node-cache';
+import { CustomHttpException } from '../../../../utils';
+import { failureBut200Response } from './admin-api-v1x-exception.filter';
+/**
+ * This service is used to interact with the Admin API. Each method is a single
+ * API call (plus login if token is expired).
+ *
+ * Each call uses the `getAdminApiClient` method, which throws explicit HTTP 500s
+ * and doesn't leak any internal exceptions. So any Axios errors (e.g. 404) or
+ * other non-Nest exceptions encountered externally can be assumed to have arisen
+ * in the actual call of interest.
+ */
+@Injectable()
+export class AdminApiServiceV1 {
+  adminApiTokens: NodeCache;
+
+  constructor() {
+    this.adminApiTokens = new NodeCache({ checkperiod: 60 });
+  }
+
+  async logIntoAdminApi(edfiTenant: EdfiTenant) {
+    const configPublic = edfiTenant.sbEnvironment.configPublic;
+    const configPrivate = edfiTenant.sbEnvironment.configPrivate;
+    const v1Config =
+      'version' in configPublic && configPublic.version === 'v1' ? configPublic.values : undefined;
+    const v1ConfigPrivate =
+      'version' in configPublic && configPublic.version === 'v1'
+        ? (configPrivate as ISbEnvironmentConfigPrivateV1)
+        : undefined;
+
+    const adminApiUrl = v1Config?.adminApiUrl;
+    if (typeof adminApiUrl !== 'string') {
+      Logger.log('No Admin API URL configured for environment.');
+      return {
+        status: 'NO_ADMIN_API_URL' as const,
+      };
+    }
+    const adminApiKey = v1Config?.adminApiKey;
+    if (typeof adminApiKey !== 'string' || adminApiKey.length === 0) {
+      Logger.log('No Admin API key configured for environment.');
+      return {
+        status: 'NO_ADMIN_API_KEY' as const,
+      };
+    }
+    const adminApiSecret = v1ConfigPrivate?.adminApiSecret;
+    if (typeof adminApiSecret !== 'string' || adminApiSecret.length === 0) {
+      Logger.log('No Admin API secret configured for environment.');
+      return {
+        status: 'NO_ADMIN_API_SECRET' as const,
+      };
+    }
+    const url = `${v1Config?.adminApiUrl.replace(/\/$/, '')}/connect/token`;
+    try {
+      new URL(url);
+    } catch (InvalidUrl) {
+      Logger.log(InvalidUrl);
+      return {
+        status: 'INVALID_ADMIN_API_URL' as const,
+      };
+    }
+
+    const accessTokenUri = `${adminApiUrl.replace(/\/$/, '')}/connect/token`;
+    const reqBody = new URLSearchParams();
+    reqBody.set('client_id', adminApiKey);
+    reqBody.set('client_secret', adminApiSecret);
+    reqBody.set('grant_type', 'client_credentials');
+    reqBody.set('scope', 'edfi_admin_api/full_access');
+
+    const options = {
+      method: 'POST',
+      url: accessTokenUri,
+      headers: {
+        Accept: 'application/json',
+      },
+      data: reqBody,
+    };
+
+    try {
+      await axios.request(options).then((v) => {
+        this.adminApiTokens.set(edfiTenant.id, v.data.access_token, Number(v.data.expires_in) - 60);
+      });
+      return {
+        status: 'SUCCESS' as const,
+      };
+    } catch (LoginFailed) {
+      if (LoginFailed?.code === 'ERR_HTTP2_GOAWAY_SESSION') {
+        Logger.warn('ERR_HTTP2_GOAWAY_SESSION');
+        Logger.warn(LoginFailed);
+        return {
+          status: 'GOAWAY' as const, // TBD what this actually means
+        };
+      }
+      Logger.warn(LoginFailed);
+      return {
+        status: 'LOGIN_FAILED' as const,
+        message:
+          'body' in LoginFailed &&
+          'error' in LoginFailed.body &&
+          typeof LoginFailed.body.error === 'string'
+            ? LoginFailed.body.error
+            : 'Unknown login failure.',
+      };
+    }
+  }
+
+  async selfRegisterAdminApi(url: string) {
+    const ClientId = crypto.randomBytes(12).toString('hex');
+    const ClientSecret = crypto.randomBytes(36).toString('hex');
+    const DisplayName = `SBAA ${Number(new Date())}ms`;
+    const credentials = {
+      ClientId,
+      ClientSecret,
+      DisplayName,
+    };
+
+    return axios
+      .post(`${url.replace(/\/$/, '')}/connect/register`, credentials, {
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      })
+      .then((res) => {
+        if (_.isEqual(res.data, failureBut200Response)) {
+          Logger.warn('Attempted to register Admin API but got 200 with failure response.');
+          return {
+            status: 'ERROR' as const,
+            message:
+              'Unspecified error registering Admin API (status code 200 but request body indicates failure).' as const,
+          };
+        }
+        return { credentials, status: 'SUCCESS' as const };
+      })
+      .catch((err: AxiosError<any>) => {
+        if (err.response?.data?.errors) {
+          Logger.warn(JSON.stringify(err.response.data.errors));
+          return {
+            status: 'ERROR' as const,
+            data: err.response.data as object,
+          };
+        } else if (err?.code === 'ENOTFOUND') {
+          Logger.warn('Attempted to register Admin API but ENOTFOUND: ' + url);
+          return {
+            status: 'ENOTFOUND' as const,
+          };
+        } else {
+          Logger.warn(err);
+          return {
+            status: 'ERROR' as const,
+          };
+        }
+      });
+  }
+
+  private getAdminApiClient(edfiTenant: EdfiTenant) {
+    const configPublic = edfiTenant.sbEnvironment.configPublic;
+    const v1Config =
+      'version' in configPublic && configPublic.version === 'v1' ? configPublic.values : undefined;
+
+    const client = axios.create({
+      baseURL: v1Config?.adminApiUrl,
+    });
+    client.interceptors.response.use(
+      (value) => {
+        if (_.isEqual(value.data, failureBut200Response)) {
+          // This is nonsensical but needed because of an Admin API bug
+          throw new CustomHttpException(
+            {
+              title: 'Admin API failure',
+              type: 'Error',
+            },
+            500
+          );
+        }
+        return value.data.result;
+      },
+      (err: AxiosError) => {
+        if (err.status === 401) {
+          this.adminApiTokens.del(edfiTenant.id);
+        }
+        Logger.error(err);
+        throw err;
+      }
+    );
+    client.interceptors.request.use(async (config) => {
+      let token: undefined | string = this.adminApiTokens.get(edfiTenant.id);
+      if (token === undefined) {
+        const adminLogin = await this.logIntoAdminApi(edfiTenant);
+
+        const adminApiLoginFailureMessages: Record<
+          Exclude<(typeof adminLogin)['status'], 'SUCCESS'>,
+          string
+        > = {
+          INVALID_ADMIN_API_URL: 'Invalid Admin API URL configured for environment.',
+          NO_ADMIN_API_URL: 'No Admin API URL configured for environment.',
+          GOAWAY: 'Admin API not accepting new connections.',
+          LOGIN_FAILED: 'Admin API login failed.',
+          NO_ADMIN_API_KEY: 'Now Admin API key configured for environment.',
+          NO_ADMIN_API_SECRET: 'No Admin API secret configured for environment.',
+        };
+
+        if (adminApiLoginFailureMessages[adminLogin.status]) {
+          throw new CustomHttpException(
+            {
+              title: adminApiLoginFailureMessages[adminLogin.status],
+              type: 'Error',
+            },
+            500
+          );
+        }
+        token = this.adminApiTokens.get(edfiTenant.id);
+      }
+      config.headers.Authorization = `Bearer ${token}`;
+      return config;
+    });
+    return client;
+  }
+
+  async getVendors(edfiTenant: EdfiTenant) {
+    return toGetVendorDto(await this.getAdminApiClient(edfiTenant).get<any, any[]>(`v1/vendors`));
+  }
+  async getVendor(edfiTenant: EdfiTenant, vendorId: number) {
+    return toGetVendorDto(
+      await this.getAdminApiClient(edfiTenant).get<any, any>(`v1/vendors/${vendorId}`)
+    );
+  }
+  async putVendor(edfiTenant: EdfiTenant, vendorId: number, vendor: PutVendorDto) {
+    vendor.vendorId = vendorId;
+    return toGetVendorDto(
+      await this.getAdminApiClient(edfiTenant).put<any, any>(`v1/vendors/${vendorId}`, vendor)
+    );
+  }
+  async postVendor(edfiTenant: EdfiTenant, vendor: PostVendorDto) {
+    return toGetVendorDto(
+      await this.getAdminApiClient(edfiTenant).post<any, any>(`v1/vendors`, vendor)
+    );
+  }
+  async deleteVendor(edfiTenant: EdfiTenant, vendorId: number) {
+    await this.getAdminApiClient(edfiTenant).delete<any, any>(`v1/vendors/${vendorId}`);
+    return undefined;
+  }
+  async getVendorApplications(edfiTenant: EdfiTenant, vendorId: number) {
+    return toGetApplicationDto(
+      await this.getAdminApiClient(edfiTenant).get<any, any[]>(
+        `v1/vendors/${vendorId}/applications`
+      )
+    );
+  }
+
+  async getApplications(edfiTenant: EdfiTenant) {
+    return toGetApplicationDto(
+      await this.getAdminApiClient(edfiTenant).get<any, any[]>(`v1/applications`)
+    );
+  }
+  async getApplication(edfiTenant: EdfiTenant, applicationId: number) {
+    return toGetApplicationDto(
+      await this.getAdminApiClient(edfiTenant).get<any, any>(`v1/applications/${applicationId}`)
+    );
+  }
+  async putApplication(
+    edfiTenant: EdfiTenant,
+    applicationId: number,
+    application: PutApplicationDto
+  ) {
+    return toGetApplicationDto(
+      await this.getAdminApiClient(edfiTenant).put<any, any>(
+        `v1/applications/${applicationId}`,
+        application
+      )
+    );
+  }
+  async postApplication(edfiTenant: EdfiTenant, application: PostApplicationDto) {
+    return this.getAdminApiClient(edfiTenant).post<any, PostApplicationResponseDto>(
+      `v1/applications`,
+      application
+    );
+  }
+  async deleteApplication(edfiTenant: EdfiTenant, applicationId: number) {
+    return this.getAdminApiClient(edfiTenant)
+      .delete<any, any>(`v1/applications/${applicationId}`)
+      .then(() => undefined);
+  }
+  async resetApplicationCredentials(edfiTenant: EdfiTenant, applicationId: number) {
+    return this.getAdminApiClient(edfiTenant).put<any, any>(
+      `v1/applications/${applicationId}/reset-credential`
+    );
+  }
+
+  async getClaimsets(edfiTenant: EdfiTenant) {
+    return toGetClaimsetDto(
+      await this.getAdminApiClient(edfiTenant).get<any, any[]>(`v1/claimsets`)
+    );
+  }
+  async getClaimset(edfiTenant: EdfiTenant, claimsetId: number) {
+    const value: GetClaimsetDto = await this.getAdminApiClient(edfiTenant).get<any, any>(
+      `v1/claimsets/${claimsetId}`
+    );
+    value.resourceClaims.forEach((rc, i) => {
+      const authStratKeys = ['defaultAuthStrategiesForCRUD', 'authStrategyOverridesForCRUD'];
+      authStratKeys.forEach((askey) => {
+        rc[askey].forEach((authStrat, j) => {
+          if (authStrat === null || 'authorizationStrategies' in authStrat) {
+            // do nothing - this is the structure we want.
+          } else if ('authStrategyName' in authStrat) {
+            // it's the 1.0.0 format, so turn it into the 1.3.1 format expected by FE
+            value.resourceClaims[i][askey][j] = {
+              authorizationStrategies: [authStrat],
+            };
+          }
+        });
+      });
+    });
+    return toGetClaimsetDto(value);
+  }
+  async getClaimsetRaw(edfiTenant: EdfiTenant, claimsetId: number) {
+    return this.getAdminApiClient(edfiTenant).get<any, any>(`v1/claimsets/${claimsetId}`);
+  }
+  async putClaimset(edfiTenant: EdfiTenant, claimsetId: number, claimset: PutClaimsetDto) {
+    return toGetClaimsetDto(
+      await this.getAdminApiClient(edfiTenant).put<any, any>(`v1/claimsets/${claimsetId}`, claimset)
+    );
+  }
+  async postClaimset(edfiTenant: EdfiTenant, claimset: PostClaimsetDto) {
+    return toGetClaimsetDto(
+      await this.getAdminApiClient(edfiTenant).post<any, any>(`v1/claimsets`, claimset)
+    );
+  }
+  async deleteClaimset(edfiTenant: EdfiTenant, claimsetId: number) {
+    return this.getAdminApiClient(edfiTenant)
+      .delete<any, any>(`v1/claimsets/${claimsetId}`)
+      .then(() => undefined);
+  }
+}

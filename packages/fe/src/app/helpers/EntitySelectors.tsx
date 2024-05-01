@@ -1,37 +1,52 @@
 import { Checkbox, Text } from '@chakra-ui/react';
-import { EdorgType, EdorgTypeShort, RoleType } from '@edanalytics/models';
+import { EdorgType, EdorgTypeShort, RoleType, edorgCategories } from '@edanalytics/models';
 import { enumValues } from '@edanalytics/utils';
+import { useQuery } from '@tanstack/react-query';
 import uniq from 'lodash/uniq';
 import { useMemo, useState } from 'react';
 import {
-  applicationQueries,
-  claimsetQueries,
+  applicationQueriesV1,
+  applicationQueriesV2,
+  claimsetQueriesV1,
+  claimsetQueriesV2,
+  edfiTenantQueries,
+  edfiTenantQueriesGlobal,
   edorgQueries,
   odsQueries,
+  odsTemplateQueries,
   roleQueries,
-  sbeQueries,
-  tenantQueries,
+  sbEnvironmentQueries,
+  teamQueries,
   userQueries,
-  vendorQueries,
+  vendorQueriesV1,
+  vendorQueriesV2,
 } from '../api';
 import { SelectWrapper, StandardSelector } from './StandardSelector';
-import { useNavContext, useSbeNavContext, useTenantSbeNavContext } from './navContext';
+import {
+  useEdfiTenantNavContextLoaded,
+  useNavContext,
+  useSbEnvironmentNavContext,
+  useTeamEdfiTenantNavContextLoaded,
+  useTeamSbEnvironmentNavContext,
+} from './navContext';
 
 export const SelectRole: StandardSelector<{ types: RoleType[] }> = (props) => {
-  const { types, ...others } = props;
-  const { tenantId } = useNavContext();
-  const roles = roleQueries.useAll({ tenantId });
-  const options = Object.fromEntries(
-    Object.values(roles.data ?? {})
-      .filter((role) => types.includes(role.type))
-      .map((role) => [
-        role.id,
-        {
-          value: role.id,
-          label: role.displayName,
-        },
-      ])
-  );
+  const { types, options: externalOptions, ...others } = props;
+  const { teamId } = useNavContext();
+  const roles = useQuery(roleQueries.getAll({ teamId }));
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      Object.values(roles.data ?? {})
+        .filter((role) => types.includes(role.type))
+        .map((role) => [
+          role.id,
+          {
+            value: role.id,
+            label: role.displayName,
+          },
+        ])
+    );
   return <SelectWrapper {...others} isLoading={roles.isPending} options={options} />;
 };
 
@@ -39,121 +54,257 @@ export const SelectClaimset: StandardSelector<{
   useName?: boolean | undefined;
   noReserved?: boolean | undefined;
 }> = (props) => {
-  const { useName, noReserved, ...others } = props;
-  const { tenantId, sbeId } = useTenantSbeNavContext();
-  const claimsets = claimsetQueries.useAll({ tenantId, sbeId });
+  const { useName, noReserved, options: externalOptions, ...others } = props;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const claimsets = useQuery(claimsetQueriesV1.getAll({ teamId, edfiTenant }));
   const claimsetsArr = props.noReserved
     ? Object.values(claimsets.data ?? {}).filter((claimset) => !claimset.isSystemReserved)
     : Object.values(claimsets.data ?? {});
-  const options = Object.fromEntries(
-    claimsetsArr.map((claimset) => [
-      props.useName ? claimset.name : claimset.id,
-      {
-        value: props.useName ? claimset.name : claimset.id,
-        label: claimset.displayName,
-      },
-    ])
-  );
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      claimsetsArr.map((claimset) => [
+        props.useName ? claimset.name : claimset.id,
+        {
+          value: props.useName ? claimset.name : claimset.id,
+          label: claimset.displayName,
+        },
+      ])
+    );
   return <SelectWrapper {...others} options={options} isLoading={claimsets.isPending} />;
 };
 
-export const SelectSbe: StandardSelector = (props) => {
-  const { ...others } = props;
-  const { tenantId } = useNavContext();
-  const sbes = sbeQueries.useAll({ tenantId });
-  const options = Object.fromEntries(
-    Object.values(sbes.data ?? {}).map((sbe) => [
-      sbe.id,
-      {
-        value: sbe.id,
-        label: sbe.displayName,
-      },
-    ])
-  );
-  return <SelectWrapper {...others} options={options} isLoading={sbes.isPending} />;
+export const SelectClaimsetV2: StandardSelector<{
+  useName?: boolean | undefined;
+  noReserved?: boolean | undefined;
+}> = (props) => {
+  const { useName, noReserved, options: externalOptions, ...others } = props;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const claimsets = useQuery(claimsetQueriesV2.getAll({ teamId, edfiTenant }));
+  const claimsetsArr = props.noReserved
+    ? Object.values(claimsets.data ?? {}).filter((claimset) => !claimset._isSystemReserved)
+    : Object.values(claimsets.data ?? {});
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      claimsetsArr.map((claimset) => [
+        props.useName ? claimset.name : claimset.id,
+        {
+          value: props.useName ? claimset.name : claimset.id,
+          label: claimset.displayName,
+        },
+      ])
+    );
+
+  return <SelectWrapper {...others} options={options} isLoading={claimsets.isPending} />;
 };
-export const SelectTenant: StandardSelector = (props) => {
-  const { ...others } = props;
-  const tenants = tenantQueries.useAll({});
-  const options = Object.fromEntries(
-    Object.values(tenants.data ?? {}).map((tenant) => [
-      tenant.id,
-      {
-        value: tenant.id,
-        label: tenant.displayName,
-      },
-    ])
+
+export const SelectSbEnvironment: StandardSelector = (props) => {
+  const { options: externalOptions, ...others } = props;
+  const { teamId } = useNavContext();
+  const sbEnvironments = useQuery(sbEnvironmentQueries.getAll({ teamId }));
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      Object.values(sbEnvironments.data ?? {}).map((sbEnvironment) => [
+        sbEnvironment.id,
+        {
+          value: sbEnvironment.id,
+          label: sbEnvironment.displayName,
+        },
+      ])
+    );
+  return <SelectWrapper {...others} options={options} isLoading={sbEnvironments.isPending} />;
+};
+export const SelectEdfiTenant: StandardSelector = (props) => {
+  const { options: externalOptions, ...others } = props;
+  const { teamId, sbEnvironmentId } = useSbEnvironmentNavContext();
+  const edfiTenants = useQuery(
+    teamId === undefined
+      ? edfiTenantQueriesGlobal.getAll({ sbEnvironmentId })
+      : edfiTenantQueries.getAll({ teamId, sbEnvironmentId })
   );
-  return <SelectWrapper {...others} options={options} isLoading={tenants.isPending} />;
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      Object.values(edfiTenants.data ?? {}).map((edfiTenant) => [
+        edfiTenant.id,
+        {
+          value: edfiTenant.id,
+          label: edfiTenant.displayName,
+        },
+      ])
+    );
+  return <SelectWrapper {...others} options={options} isLoading={edfiTenants.isPending} />;
+};
+export const SelectOdsTemplate: StandardSelector = (props) => {
+  const { options: externalOptions, ...others } = props;
+  const { teamId, sbEnvironmentId } = useTeamSbEnvironmentNavContext();
+  const templates = useQuery(odsTemplateQueries.getAll({ sbEnvironmentId, teamId }));
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      Object.values(templates.data ?? {}).map((template) => [
+        template.id,
+        {
+          value: template.id,
+          label: template.displayName,
+        },
+      ])
+    );
+  return <SelectWrapper {...others} options={options} isLoading={templates.isPending} />;
+};
+export const SelectTeam: StandardSelector = (props) => {
+  const { options: externalOptions, ...others } = props;
+  const teams = useQuery(teamQueries.getAll({}));
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      Object.values(teams.data ?? {}).map((team) => [
+        team.id,
+        {
+          value: team.id,
+          label: team.displayName,
+        },
+      ])
+    );
+  return <SelectWrapper {...others} options={options} isLoading={teams.isPending} />;
 };
 export const SelectUser: StandardSelector = (props) => {
-  const { ...others } = props;
-  const { tenantId } = useNavContext();
-  const users = userQueries.useAll({ tenantId });
-  const options = Object.fromEntries(
-    Object.values(users.data ?? {}).map((user) => [
-      user.id,
-      {
-        value: user.id,
-        label: user.displayName,
-      },
-    ])
-  );
+  const { options: externalOptions, ...others } = props;
+  const { teamId } = useNavContext();
+  const users = useQuery(userQueries.getAll({ teamId }));
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      Object.values(users.data ?? {}).map((user) => [
+        user.id,
+        {
+          value: user.id,
+          label: user.displayName,
+        },
+      ])
+    );
   return <SelectWrapper {...others} options={options} isLoading={users.isPending} />;
 };
 
 export const SelectVendor: StandardSelector = (props) => {
-  const { ...others } = props;
-  const { tenantId, sbeId } = useTenantSbeNavContext();
-  const vendors = vendorQueries.useAll({ tenantId, sbeId });
-  const options = Object.fromEntries(
-    Object.values(vendors.data ?? {}).map((vendor) => [
-      vendor.id,
-      {
-        value: vendor.id,
-        label: vendor.displayName,
-      },
-    ])
-  );
+  const { options: externalOptions, ...others } = props;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const vendors = useQuery(vendorQueriesV1.getAll({ teamId, edfiTenant }));
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      Object.values(vendors.data ?? {}).map((vendor) => [
+        vendor.id,
+        {
+          value: vendor.id,
+          label: vendor.displayName,
+        },
+      ])
+    );
+  return <SelectWrapper {...others} options={options} isLoading={vendors.isPending} />;
+};
+export const SelectVendorV2: StandardSelector = (props) => {
+  const { options: externalOptions, ...others } = props;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const vendors = useQuery(vendorQueriesV2.getAll({ teamId, edfiTenant }));
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      Object.values(vendors.data ?? {}).map((vendor) => [
+        vendor.id,
+        {
+          value: vendor.id,
+          label: vendor.displayName,
+        },
+      ])
+    );
   return <SelectWrapper {...others} options={options} isLoading={vendors.isPending} />;
 };
 
 export const SelectApplication: StandardSelector = (props) => {
-  const { ...others } = props;
-  const { tenantId, sbeId } = useTenantSbeNavContext();
-  const applications = applicationQueries.useAll({ tenantId, sbeId });
-  const options = Object.fromEntries(
-    Object.values(applications.data ?? {}).map((application) => [
-      application.id,
-      {
-        value: application.id,
-        label: application.displayName,
-      },
-    ])
-  );
+  const { options: externalOptions, ...others } = props;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const applications = useQuery(applicationQueriesV1.getAll({ teamId, edfiTenant }));
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      Object.values(applications.data ?? {}).map((application) => [
+        application.id,
+        {
+          value: application.id,
+          label: application.displayName,
+        },
+      ])
+    );
   return <SelectWrapper {...others} options={options} isLoading={applications.isPending} />;
 };
 
-export const SelectOds: StandardSelector<{ useDbName?: boolean }> = (props) => {
-  const { useDbName, ...others } = props;
-  const { tenantId, sbeId } = useSbeNavContext();
-  const odss = odsQueries.useAll({ tenantId, sbeId });
-  const options = Object.fromEntries(
-    Object.values(odss.data ?? {}).map((ods) => [
-      useDbName ? ods.dbName : ods.id,
-      {
-        value: useDbName ? ods.dbName : ods.id,
-        label: ods.displayName,
-      },
-    ])
-  );
+export const SelectApplicationV2: StandardSelector = (props) => {
+  const { options: externalOptions, ...others } = props;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const applications = useQuery(applicationQueriesV2.getAll({ teamId, edfiTenant }));
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      Object.values(applications.data ?? {}).map((application) => [
+        application.id,
+        {
+          value: application.id,
+          label: application.displayName,
+        },
+      ])
+    );
+  return <SelectWrapper {...others} options={options} isLoading={applications.isPending} />;
+};
+
+export const SelectOds: StandardSelector<{
+  useDbName?: boolean;
+  useInstanceId?: boolean;
+  useInstanceName?: boolean;
+}> = (props) => {
+  const { useDbName, useInstanceId, useInstanceName, options: externalOptions, ...others } = props;
+  const { teamId, edfiTenant } = useEdfiTenantNavContextLoaded();
+  const odss = useQuery(odsQueries.getAll({ teamId, edfiTenant }));
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      Object.values(odss.data ?? {}).map((ods) => [
+        useDbName
+          ? ods.dbName
+          : useInstanceId
+          ? ods.odsInstanceId
+          : useInstanceName
+          ? ods.odsInstanceName
+          : ods.id,
+        {
+          value: useDbName
+            ? ods.dbName
+            : useInstanceId
+            ? ods.odsInstanceId
+            : useInstanceName
+            ? ods.odsInstanceName
+            : ods.id,
+          label: ods.displayName,
+        },
+      ])
+    );
   return <SelectWrapper {...others} options={options} isLoading={odss.isPending} />;
 };
 
-export const SelectEdorg: StandardSelector<{ useEdorgId?: boolean }> = (props) => {
-  const { useEdorgId, ...others } = props;
-  const { tenantId, sbeId } = useSbeNavContext();
-  const edorgs = edorgQueries.useAll({ tenantId, sbeId });
+export const SelectEdorgCategory: StandardSelector = (props) => {
+  const { options: externalOptions, ...others } = props;
+  const options = Object.fromEntries(
+    edorgCategories.map((catName) => [catName, { label: catName, value: catName }])
+  );
+  return <SelectWrapper {...others} options={options} />;
+};
+
+export const SelectEdorg: StandardSelector<{ useEdorgId?: boolean }, true> = (props) => {
+  const { useEdorgId, options: externalOptions, ...others } = props;
+  const { teamId, edfiTenant } = useEdfiTenantNavContextLoaded();
+  const edorgs = useQuery(edorgQueries.getAll({ teamId, edfiTenant }));
   const discriminators = useMemo(
     () => uniq(Object.values(edorgs.data ?? {}).map((edorg) => edorg.discriminator)),
     [edorgs]
@@ -162,24 +313,20 @@ export const SelectEdorg: StandardSelector<{ useEdorgId?: boolean }> = (props) =
   const options = useMemo(
     () =>
       Object.fromEntries(
-        Object.values(edorgs.data ?? {})
-          .map((edorg) =>
-            include.includes(edorg.discriminator)
-              ? [
-                  [
-                    useEdorgId ? edorg.educationOrganizationId : edorg.id,
-                    {
-                      value: useEdorgId ? edorg.educationOrganizationId : edorg.id,
-                      label: edorg.displayName,
-                      subLabel: `${edorg.educationOrganizationId} ${edorg.discriminatorShort}`,
-                    },
-                  ],
-                ]
-              : []
-          )
-          .flat(1)
+        (externalOptions
+          ? Object.entries(externalOptions)
+          : Object.values(edorgs.data ?? {}).map((edorg) => [
+              useEdorgId ? edorg.educationOrganizationId : edorg.id,
+              {
+                value: useEdorgId ? edorg.educationOrganizationId : edorg.id,
+                label: edorg.displayName,
+                subLabel: `${edorg.educationOrganizationId} ${edorg.discriminatorShort}`,
+                discriminator: edorg.discriminator,
+              },
+            ])
+        ).filter(([key, value]) => include.includes((value as any).discriminator))
       ),
-    [edorgs]
+    [edorgs, externalOptions, include, useEdorgId]
   );
   const filterApplied = useMemo(
     () => !discriminators.every((d) => include.includes(d)),

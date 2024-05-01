@@ -1,87 +1,41 @@
-import {
-  AttributeContainer,
-  AttributesGrid,
-  ContentSection,
-  DataTable,
-} from '@edanalytics/common-ui';
-import { useMemo } from 'react';
+import { AttributeContainer, AttributesGrid, ContentSection } from '@edanalytics/common-ui';
+import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import { edorgQueries, odsQueries, sbeQueries } from '../../api';
-import { AuthorizeComponent, getRelationDisplayName } from '../../helpers';
-import { EdorgLink, SbeLink } from '../../routes';
-import { NameCell } from '../Edorg/NameCell';
-import { SbeSyncDateOverlay } from '../Sbe/SbeSyncDate';
+import { edfiTenantQueries, odsQueries } from '../../api';
+import { queryFromEntity } from '../../api/queries/builder';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
+import { EdfiTenantLink, SbEnvironmentLink } from '../../routes';
 
 export const ViewOds = () => {
   const params = useParams() as {
-    asId: string;
-    sbeId: string;
     odsId: string;
   };
-  const ods = odsQueries.useOne({
-    id: params.odsId,
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-  }).data;
-  const sbes = sbeQueries.useAll({
-    tenantId: params.asId,
-  });
-  const edorgs = edorgQueries.useAll({
-    optional: true,
-    tenantId: params.asId,
-    sbeId: params.sbeId,
-  });
-
-  const filteredEdorgs = useMemo(
-    () => Object.values(edorgs?.data || {}).filter((edorg) => edorg.odsId === Number(params.odsId)),
-    [params, edorgs]
+  const { teamId, edfiTenant, sbEnvironmentId, sbEnvironment } =
+    useTeamEdfiTenantNavContextLoaded();
+  const ods = useQuery(
+    odsQueries.getOne({
+      id: params.odsId,
+      edfiTenant,
+      teamId,
+    })
+  ).data;
+  const edfiTenants = useQuery(
+    edfiTenantQueries.getAll({
+      teamId,
+      sbEnvironmentId,
+    })
   );
 
   return ods ? (
-    <>
-      <ContentSection>
-        <AttributesGrid>
-          <AttributeContainer label="Environment">
-            <SbeLink id={ods.sbeId} query={sbes} />
-          </AttributeContainer>
-        </AttributesGrid>
-      </ContentSection>
-      <AuthorizeComponent
-        config={{
-          privilege: 'tenant.sbe.edorg:read',
-          subject: {
-            id: '__filtered__',
-            sbeId: Number(params.sbeId),
-            tenantId: Number(params.asId),
-          },
-        }}
-      >
-        <ContentSection heading="Ed-Orgs">
-          <SbeSyncDateOverlay />
-          <DataTable
-            queryKeyPrefix={`edorg`}
-            data={filteredEdorgs}
-            columns={[
-              {
-                accessorKey: 'displayName',
-                cell: NameCell,
-                header: 'Name',
-              },
-              {
-                id: 'parent',
-                accessorFn: (info) => getRelationDisplayName(info.parentId, edorgs),
-                header: 'Parent Ed-Org',
-                cell: (info) => <EdorgLink query={edorgs} id={info.row.original.parentId} />,
-              },
-              {
-                id: 'discriminator',
-                accessorFn: (info) => info.discriminator,
-                header: 'Type',
-              },
-            ]}
-          />
-        </ContentSection>
-      </AuthorizeComponent>
-    </>
+    <ContentSection>
+      <AttributesGrid>
+        <AttributeContainer label="Environment">
+          <SbEnvironmentLink id={ods.sbEnvironmentId} query={queryFromEntity(sbEnvironment)} />
+        </AttributeContainer>
+        <AttributeContainer label="Tenant">
+          <EdfiTenantLink id={ods.edfiTenantId} query={edfiTenants} />
+        </AttributeContainer>
+      </AttributesGrid>
+    </ContentSection>
   ) : null;
 };

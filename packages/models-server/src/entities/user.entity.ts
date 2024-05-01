@@ -1,4 +1,4 @@
-import { IRole, IUser, IUserConfig, IUserTenantMembership } from '@edanalytics/models';
+import { IRole, IUser, IUserConfig, IUserTeamMembership } from '@edanalytics/models';
 import { Type } from 'class-transformer';
 import {
   Column,
@@ -37,7 +37,7 @@ export class User implements IUser {
   @Column({ nullable: true })
   modifiedById: IUser['id'];
 
-  @Column()
+  @Column({ type: 'citext' })
   username: string;
 
   @Column({ nullable: true })
@@ -53,10 +53,10 @@ export class User implements IUser {
   roleId?: IRole['id'];
 
   @OneToMany(
-    'UserTenantMembership',
-    (userTenantMembership: IUserTenantMembership) => userTenantMembership.user
+    'UserTeamMembership',
+    (userTeamMembership: IUserTeamMembership) => userTeamMembership.user
   )
-  userTenantMemberships: IUserTenantMembership[];
+  userTeamMemberships: IUserTeamMembership[];
 
   @Column()
   isActive: boolean;

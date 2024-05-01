@@ -3,27 +3,31 @@ import omit from 'lodash/omit';
 import { useParams } from 'react-router-dom';
 import { edorgQueries } from '../../api';
 import { ViewEdorg } from './ViewEdorg';
-import { SbeSyncDateOverlay } from '../Sbe/SbeSyncDate';
+import { useQuery } from '@tanstack/react-query';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
+import { SbEnvironmentSyncDateOverlay } from '../SbEnvironment/SbEnvironmentSyncDate';
+import { useEdorgActions } from './useEdorgActions';
 
 export const EdorgPage = () => {
   const params = useParams() as {
-    asId: string;
-    sbeId: string;
     edorgId: string;
   };
-  const edorg = edorgQueries.useOne({
-    id: params.edorgId,
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-  }).data;
-  const actions = {};
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const edorg = useQuery(
+    edorgQueries.getOne({
+      id: params.edorgId,
+      edfiTenant,
+      teamId,
+    })
+  ).data;
+  const actions = useEdorgActions(edorg ?? { id: Number(params.edorgId) });
 
   return (
     <PageTemplate
       title={edorg?.displayName || 'Edorg'}
       actions={<PageActions actions={omit(actions, 'View')} />}
     >
-      <SbeSyncDateOverlay />
+      <SbEnvironmentSyncDateOverlay />
       {edorg ? <ViewEdorg /> : null}
     </PageTemplate>
   );

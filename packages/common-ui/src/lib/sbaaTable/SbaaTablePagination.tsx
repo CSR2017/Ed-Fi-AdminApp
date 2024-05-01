@@ -10,7 +10,8 @@ export const SbaaTablePagination: DivComponent = (props) => {
   if (!table) {
     return null as any;
   }
-  return table.getPrePaginationRowModel().rows.length > Math.min(...pageSizes) ? (
+  return table.getPageCount() > 1 ||
+    table.getPrePaginationRowModel().rows.length > Math.min(...pageSizes) ? (
     <HStack justify="center" p={4} {...rest}>
       <ButtonGroup size="sm" variant="outline">
         <IconButton

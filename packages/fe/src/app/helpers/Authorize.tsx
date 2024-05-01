@@ -2,27 +2,30 @@ import {
   BasePrivilege,
   PrivilegeCode,
   SpecificIds,
-  TenantBasePrivilege,
-  TenantSbePrivilege,
+  TeamBasePrivilege,
+  TeamEdfiTenantPrivilege,
+  TeamSbEnvironmentPrivilege,
 } from '@edanalytics/models';
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { ReactElement } from 'react';
 import { FeAuthCache, authCachArraysToSets, privilegeSelector, usePrivilegeCache } from '../api';
 
 export type AuthorizeConfig<
-  PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege = PrivilegeCode
+  PrivilegeType extends
+    | BasePrivilege
+    | TeamBasePrivilege
+    | TeamEdfiTenantPrivilege
+    | TeamSbEnvironmentPrivilege = PrivilegeCode
 > = {
   privilege: PrivilegeType;
-  subject: (PrivilegeType extends BasePrivilege ? object : { tenantId: number }) &
-    (PrivilegeType extends TenantSbePrivilege ? { sbeId: number } : object) & {
+  subject: (PrivilegeType extends BasePrivilege ? object : { teamId: number }) &
+    (PrivilegeType extends TeamSbEnvironmentPrivilege ? { sbEnvironmentId: number } : object) &
+    (PrivilegeType extends TeamEdfiTenantPrivilege ? { edfiTenantId: number } : object) & {
       id: string | number | '__filtered__';
     };
 };
 
-export type AuthorizeParameters<
-  PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege,
-  ValueType
-> = {
+export type AuthorizeParameters<PrivilegeType extends PrivilegeCode, ValueType> = {
   value: ValueType;
   config:
     | undefined
@@ -30,9 +33,7 @@ export type AuthorizeParameters<
     | (AuthorizeConfig<PrivilegeType> | undefined)[];
 };
 
-export const authorize = <
-  PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege
->(props: {
+export const authorize = <PrivilegeType extends PrivilegeCode>(props: {
   queryClient: QueryClient;
   config:
     | undefined
@@ -51,8 +52,10 @@ export const authorize = <
   configArray.forEach((config, i) => {
     const thisPrivilegeCache = props.queryClient.getQueryData<FeAuthCache>(
       authCacheKey({
-        tenantId: 'tenantId' in config.subject ? config.subject.tenantId : undefined,
-        sbeId: 'sbeId' in config.subject ? config.subject.sbeId : undefined,
+        teamId: 'teamId' in config.subject ? config.subject.teamId : undefined,
+        sbEnvironmentId:
+          'sbEnvironmentId' in config.subject ? config.subject.sbEnvironmentId : undefined,
+        edfiTenantId: 'edfiTenantId' in config.subject ? config.subject.edfiTenantId : undefined,
       })
     );
 
@@ -83,16 +86,12 @@ export const authorize = <
   return isAuthorized;
 };
 
-export type AuthorizeComponentProps<
-  PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege
-> = {
+export type AuthorizeComponentProps<PrivilegeType extends PrivilegeCode> = {
   children?: ReactElement;
   config: undefined | AuthorizeConfig<PrivilegeType> | AuthorizeConfig<PrivilegeType>[];
 };
 
-export const usePrivilegeCacheForConfig = <
-  PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege
->(
+export const usePrivilegeCacheForConfig = <PrivilegeType extends PrivilegeCode>(
   config:
     | undefined
     | AuthorizeConfig<PrivilegeType>
@@ -106,15 +105,15 @@ export const usePrivilegeCacheForConfig = <
   return usePrivilegeCache(
     configArray.map((config) => ({
       privilege: config.privilege,
-      tenantId: 'tenantId' in config.subject ? config.subject.tenantId : undefined,
-      sbeId: 'sbeId' in config.subject ? config.subject.sbeId : undefined,
+      teamId: 'teamId' in config.subject ? config.subject.teamId : undefined,
+      edfiTenantId: 'edfiTenantId' in config.subject ? config.subject.edfiTenantId : undefined,
+      sbEnvironmentId:
+        'sbEnvironmentId' in config.subject ? config.subject.sbEnvironmentId : undefined,
     }))
   );
 };
 
-export const useAuthorize = <
-  PrivilegeType extends BasePrivilege | TenantBasePrivilege | TenantSbePrivilege
->(
+export const useAuthorize = <PrivilegeType extends PrivilegeCode>(
   config:
     | undefined
     | AuthorizeConfig<PrivilegeType>
@@ -139,13 +138,21 @@ export const AuthorizeComponent = <PrivilegeType extends PrivilegeCode>(
 };
 
 export function authCacheKey(
-  config: { tenantId?: number | string } | { tenantId: number | string; sbeId?: number | string }
+  config:
+    | { teamId?: number | string }
+    | { teamId: number | string; edfiTenantId?: number | string; sbEnvironmentId?: number | string }
 ) {
   return [
     'auth-cache',
-    'tenant:',
-    config.tenantId !== undefined ? String(config.tenantId) : undefined,
-    'sbe:',
-    'sbeId' in config && config.sbeId !== undefined ? String(config.sbeId) : undefined,
+    'team:',
+    config.teamId !== undefined ? String(config.teamId) : undefined,
+    'sb-environment:',
+    'sbEnvironmentId' in config && config.sbEnvironmentId !== undefined
+      ? String(config.sbEnvironmentId)
+      : undefined,
+    'edfi-tenant:',
+    'edfiTenantId' in config && config.edfiTenantId !== undefined
+      ? String(config.edfiTenantId)
+      : undefined,
   ];
 }

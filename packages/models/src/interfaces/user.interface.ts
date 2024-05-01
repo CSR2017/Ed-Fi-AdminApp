@@ -1,7 +1,6 @@
 import { IRole } from '.';
-import { GlobalRole } from '../enums/global-role.enum';
 import { IEntityBase } from '../utils/entity-base.interface';
-import { IUserTenantMembership } from './user-tenant-membership.interface';
+import { IUserTeamMembership } from './user-team-membership.interface';
 
 export interface IUserConfig {
   confirmDeletion?: boolean;
@@ -15,7 +14,7 @@ export interface IUser extends Omit<IEntityBase, 'createdBy' | 'createdById'> {
   role?: IRole;
   config?: IUserConfig;
   isActive: boolean;
-  userTenantMemberships: IUserTenantMembership[];
+  userTeamMemberships: IUserTeamMembership[];
 
   // make these optional
   createdBy?: IUser | undefined;

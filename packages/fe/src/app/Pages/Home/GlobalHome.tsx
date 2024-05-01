@@ -10,17 +10,16 @@ import {
   SimpleGrid,
   Text,
 } from '@chakra-ui/react';
+import { PageTemplate } from '@edanalytics/common-ui';
 import { GetSessionDataDtoUtm } from '@edanalytics/models';
-import { useAtomValue } from 'jotai';
 import { Link as RouterLink } from 'react-router-dom';
 import { LandingContent } from '../../Layout/Landing';
-import { asTenantIdAtom } from '../../Layout/Nav';
+import { useAsId } from '../../Layout/Nav';
 import { useMe } from '../../api';
-import { TenantHome } from './TenantHome';
-import { PageTemplate } from '@edanalytics/common-ui';
+import { TeamHome } from './TeamHome';
 
 export const GlobalHome = () => {
-  const asId = useAtomValue(asTenantIdAtom);
+  const asId = useAsId();
   const me = useMe();
   if (me.data === null) {
     return <LandingContent />;
@@ -28,15 +27,15 @@ export const GlobalHome = () => {
     if (asId === undefined) {
       return <GlobalHomeComponent />;
     } else {
-      return <TenantHome />;
+      return <TeamHome />;
     }
   }
 };
 const GlobalHomeComponent = () => {
   const me = useMe();
-  const utms = me.data?.userTenantMemberships ?? [];
+  const utms = me.data?.userTeamMemberships ?? [];
   return utms.length ? (
-    <PageTemplate customContentBox title="Your tenants">
+    <PageTemplate customPageContentCard title="Your teams">
       <SimpleGrid w="fit-content" columns={3} spacing={4}>
         {utms.map((utm) => (
           <UtmCard key={utm.id} utm={utm} />
@@ -44,7 +43,7 @@ const GlobalHomeComponent = () => {
       </SimpleGrid>
     </PageTemplate>
   ) : (
-    <EmptyState />
+    <NoUtmCards />
   );
 };
 
@@ -53,7 +52,7 @@ const UtmCard = ({ utm }: { utm: GetSessionDataDtoUtm }) => {
     <Card maxW="xs" variant="elevated">
       <CardHeader pb={0}>
         <Heading color="gray.600" size="md">
-          {utm.tenant.displayName}
+          {utm.team.displayName}
         </Heading>
       </CardHeader>
       <CardBody>
@@ -63,14 +62,54 @@ const UtmCard = ({ utm }: { utm: GetSessionDataDtoUtm }) => {
         <Text>Member since {utm.createdShort}.</Text>
       </CardBody>
       <CardFooter>
-        <Link as={RouterLink} to={`/as/${utm.tenant.id}`} color="blue.500">
-          Enter tenant &rarr;
+        <Link as={RouterLink} to={`/as/${utm.team.id}`} color="blue.500">
+          Enter team &rarr;
         </Link>
       </CardFooter>
     </Card>
   );
 };
 
-const EmptyState = () => (
-  <Box>Well, not much to see here. Content when no tenant memberships exist TBD.</Box>
-);
+const NoUtmCards = () => {
+  const me = useMe();
+
+  if (!me.data) {
+    return null;
+  }
+
+  const cantDoAnything = me.data.role?.privilegeIds.length === 1; // just `me:read`
+  const preferredName = me.data.givenName && me.data.givenName !== '' ? me.data.givenName : null;
+  return (
+    <>
+      <Heading whiteSpace="nowrap" color="gray.700" size="page-heading" fontSize="2xl" mb="1.5rem">
+        Welcome{preferredName ? ' ' + preferredName + ',' : ''}
+      </Heading>
+      {cantDoAnything ? (
+        <Text fontSize="larger">
+          It looks like we haven't set you up to be able to do much yet. If you're confused
+          <br /> by that please see our{' '}
+          <Link
+            fontWeight="semibold"
+            color="blue.500"
+            target="_blank"
+            href="https://docs.startingblocks.org/StartingBlocks%20Admin%20App/getting-started/"
+          >
+            help page
+          </Link>{' '}
+          or get in{' '}
+          <Link
+            fontWeight="semibold"
+            color="blue.500"
+            target="_blank"
+            href="https://support.startingblocks.org/support/tickets/new"
+          >
+            contact
+          </Link>
+          .
+        </Text>
+      ) : (
+        <Text fontSize="larger">Choose an item on the left to get started.</Text>
+      )}
+    </>
+  );
+};

@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { HStack } from '@chakra-ui/react';
 import {
   PageActions,
@@ -9,18 +10,21 @@ import {
 import { GetRoleDto, RoleType } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
 import { useParams } from 'react-router-dom';
-import { roleQueries, useMyTenants, userQueries } from '../../api';
+import { roleQueries, useMyTeams, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { UserGlobalLink } from '../../routes';
 import { RoleGlobalLink } from '../../routes/role-global.routes';
 import { useMultipleRoleGlobalActions } from './useMultipleRoleGlobalActions';
 import { useRoleGlobalActions } from './useRoleGlobalActions';
+import { useAuthorize } from '../../helpers';
 
 const NameCell = (info: CellContext<GetRoleDto, unknown>) => {
   const params = useParams() as { asId: string };
-  const entities = roleQueries.useAll({
-    tenantId: params.asId,
-  });
+  const entities = useQuery(
+    roleQueries.getAll({
+      teamId: params.asId,
+    })
+  );
   const actions = useRoleGlobalActions(info.row.original);
   return (
     <HStack justify="space-between">
@@ -32,11 +36,21 @@ const NameCell = (info: CellContext<GetRoleDto, unknown>) => {
 
 export const RolesGlobalPage = () => {
   const params = useParams();
-  const roles = roleQueries.useAll({
-    tenantId: params.asId,
+  const roles = useQuery(
+    roleQueries.getAll({
+      teamId: params.asId,
+    })
+  );
+  const users = useQuery({
+    ...userQueries.getAll({ teamId: params.asId }),
+    enabled: useAuthorize({
+      privilege: 'user:read',
+      subject: {
+        id: '__filtered__',
+      },
+    }),
   });
-  const users = userQueries.useAll({ tenantId: params.asId, optional: true });
-  const tenants = useMyTenants();
+  const teams = useMyTeams();
   const actions = useMultipleRoleGlobalActions();
   return (
     <PageTemplate title="Roles" justifyActionsLeft actions={<PageActions actions={actions} />}>
@@ -60,8 +74,8 @@ export const RolesGlobalPage = () => {
           {
             id: 'owned-by',
             accessorFn: (info) =>
-              typeof info.tenantId === 'number'
-                ? getRelationDisplayName(info.tenantId, tenants)
+              typeof info.teamId === 'number'
+                ? getRelationDisplayName(info.teamId, teams)
                 : 'Public',
             header: 'Owned by',
             filterFn: 'equalsString',

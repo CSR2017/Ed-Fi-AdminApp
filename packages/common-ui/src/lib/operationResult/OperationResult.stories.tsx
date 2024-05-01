@@ -23,18 +23,7 @@ export default meta;
 
 export const Standard: StoryObj<typeof ToastApp> = {
   args: {
-    id: 0,
     title: 'Sync failed',
-    messages: ['SB Meta: retrieval succeeded.', 'Admin API: Invalid token.'],
-    statuses: [
-      {
-        name: 'Admin API',
-        success: false,
-      },
-      {
-        name: 'SB Meta',
-        success: true,
-      },
-    ],
+    message: 'SB Meta: retrieval succeeded.',
   },
 };

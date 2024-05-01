@@ -1,71 +1,67 @@
 import {
+  AddEdorgDtoV2,
   ApplicationYopassResponseDto,
+  EnvNavDto,
   GetApplicationDto,
   GetClaimsetDto,
+  GetEdfiTenantDto,
   GetEdorgDto,
   GetOdsDto,
   GetOwnershipDto,
-  GetPrivilegeDto,
+  GetOwnershipViewDto,
   GetRoleDto,
-  GetSbeDto,
-  GetTenantDto,
+  GetSbEnvironmentDto,
+  GetTeamDto,
   GetUserDto,
-  GetUserTenantMembershipDto,
+  GetUserTeamMembershipDto,
   GetVendorDto,
+  Id,
   Ids,
+  OdsTemplateOptionDto,
   OperationResultDto,
   PostApplicationForm,
   PostClaimsetDto,
+  PostEdfiTenantDto,
   PostOdsDto,
   PostOwnershipDto,
   PostRoleDto,
-  PostSbeDto,
-  PostTenantDto,
+  PostSbEnvironmentDto,
+  PostSbEnvironmentResponseDto,
+  PostTeamDto,
   PostUserDto,
-  PostUserTenantMembershipDto,
+  PostUserTeamMembershipDto,
   PostVendorDto,
   PrivilegeCode,
   PutApplicationForm,
   PutClaimsetDto,
-  PutOdsDto,
+  PutEdfiTenantAdminApi,
+  PutEdfiTenantAdminApiRegister,
   PutOwnershipDto,
-  PutSbeAdminApi,
-  PutSbeAdminApiRegister,
-  PutSbeMeta,
-  PutTenantDto,
+  PutRoleDto,
+  PutSbEnvironmentDto,
+  PutSbEnvironmentMeta,
+  PutTeamDto,
   PutUserDto,
-  PutUserTenantMembershipDto,
+  PutUserTeamMembershipDto,
   PutVendorDto,
   SbSyncQueueDto,
   SpecificIds,
 } from '@edanalytics/models';
-import {
-  QueryKey,
-  UseMutationResult,
-  UseQueryOptions,
-  UseQueryResult,
-  useMutation,
-  useQueries,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
-import { AxiosResponse } from 'axios';
-import { ClassConstructor } from 'class-transformer';
+import { QueryKey, UseQueryOptions, useQueries } from '@tanstack/react-query';
 import kebabCase from 'kebab-case';
 import path from 'path-browserify';
-import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { authCacheKey, useAuthorize } from '../../helpers';
-import { mutationErrCallback } from '../../helpers/mutationErrCallback';
-import { apiClient, methods } from '../methods';
+import { authCacheKey } from '../../helpers';
+import { apiClient } from '../methods';
+import { EntityQueryBuilder, queryKeyNew, standardPath } from './builder';
 
 const baseUrl = '';
 
 /**
- * Add optional tenant to query key.
+ * Add optional team to query key.
  *
- * Goes at the end, which means it's easier to refresh by Sbe/Ods
- * than by tenant (i.e., easier to refresh upon resource updates
- * than upon tenant ownership updates).
+ * Goes at the end, which means it's easier to refresh by EdfiTenant/Ods
+ * than by team (i.e., easier to refresh upon resource updates
+ * than upon team ownership updates).
  *
  * Standard key schema lists all resource hierarchy levels each in
  * the format of `[names, nameId]`. The target resource uses that
@@ -75,616 +71,395 @@ const baseUrl = '';
  *
  * ```
  * // Example using education organizations:
- * ['sbes', 3, 'edorgs', 6, 'detail']
+ * ['edfi-tenants', 3, 'edorgs', 6, 'detail']
  *
- * // To refetch Sbe 3 without refetching its EdOrgs, use these keys:
- * ['sbes', 3, 'list']
- * ['sbes', 3, 'detail']
+ * // To refetch EdfiTenant 3 without refetching its EdOrgs, use these keys:
+ * ['edfi-tenants', 3, 'list']
+ * ['edfi-tenants', 3, 'detail']
  *
  * // Or if you do want to refetch its children:
- * ['sbes', 3]
+ * ['edfi-tenants', 3]
  * ```
  */
-export const tenantKey = (key: QueryKey, tenantId?: number | string) =>
-  tenantId === undefined ? key : [...key, 'tenant', Number(tenantId)];
+export const teamKey = (key: QueryKey, teamId?: number | string) =>
+  teamId === undefined ? key : [...key, 'team', Number(teamId)];
 
-/** Construct react-query query key in standard format.
+/**
+ *
+ * Construct react-query query key in standard format.
  *
  * @return {string[]} query key
  *
- * @example
- * `["sbes", "3", "edorgs", "6", "detail"]` // EdOrg 6 of Sbe 3
- * `["sbes", "3", "edorgs", "list"]` // All EdOrgs of Sbe 3
- * `["sbes", "3", "detail"]` // Sbe 3
- * `["sbes", "list"]` // All-Sbe query
- * `["sbes"]` // All Sbes both in single- and many-item queries
+ * @deprecated Use `queryKeyNew()` instead.
  *
- * `["sbes", "3", "edorgs", "6", "detail", "tenants", "9"]` // EdOrg 6 of Sbe 3, in Tenant 9 context
- * `["sbes", "3", "edorgs", "list", "tenants", "9"]` // All EdOrgs of Sbe 3, in Tenant 9 context
- * `["sbes", "3", "detail", "tenants", "9"]` // Sbe 3, in Tenant 9 context
- * `["sbes", "tenants", "9"]` // All Sbes, in Tenant 9 context
+ * @example
+ * `["edfi-tenants", "3", "edorgs", "6", "detail"]` // EdOrg 6 of EdfiTenant 3
+ * `["edfi-tenants", "3", "edorgs", "list"]` // All EdOrgs of EdfiTenant 3
+ * `["edfi-tenants", "3", "detail"]` // EdfiTenant 3
+ * `["edfi-tenants", "list"]` // All-EdfiTenant query
+ * `["edfi-tenants"]` // All EdfiTenants both in single- and many-item queries
+ *
+ * `["edfi-tenants", "3", "edorgs", "6", "detail", "teams", "9"]` // EdOrg 6 of EdfiTenant 3, in Team 9 context
+ * `["edfi-tenants", "3", "edorgs", "list", "teams", "9"]` // All EdOrgs of EdfiTenant 3, in Team 9 context
+ * `["edfi-tenants", "3", "detail", "teams", "9"]` // EdfiTenant 3, in Team 9 context
+ * `["edfi-tenants", "teams", "9"]` // All EdfiTenants, in Team 9 context
  */
 export const queryKey = (params: {
   /** CamelCase or camelCase */
   resourceName: string;
-  tenantId?: number | string;
-  sbeId?: number | string;
+  teamId?: number | string;
+  edfiTenantId?: number | string;
   /** if `undefined`, uses "list" option. If `false`, omits to yield a partial (wildcard) key */
   id?: number | string | false;
 }) => {
   const kebabCaseName = kebabCase(params.resourceName).slice(1);
-  const tenantKey = params.tenantId === undefined ? [] : ['tenants', String(params.tenantId)];
-  const sbeKey = params.sbeId === undefined ? [] : ['sbes', String(params.sbeId)];
+  const teamKey = params.teamId === undefined ? [] : ['teams', String(params.teamId)];
+  const edfiTenantKey =
+    params.edfiTenantId === undefined ? [] : ['edfi-tenants', String(params.edfiTenantId)];
   const idKey =
     params.id === undefined ? ['list'] : params.id === false ? [] : ['detail', String(params.id)];
 
-  return [...sbeKey, kebabCaseName + 's', ...idKey, ...tenantKey];
+  return [...edfiTenantKey, kebabCaseName + 's', ...idKey, ...teamKey];
 };
 
-export const tenantUrl = (url: string, tenantId?: number | string | undefined) =>
-  tenantId === undefined
-    ? path.join(baseUrl, url)
-    : path.join(baseUrl, 'tenants', String(tenantId), url);
+export const teamUrl = (url: string, teamId?: number | string | undefined) =>
+  teamId === undefined ? path.join(baseUrl, url) : path.join(baseUrl, 'teams', String(teamId), url);
 
-export enum TenantOptions {
+export enum TeamOptions {
   Never,
   Optional,
   Required,
 }
 
-type SbeParamsType<IncludeSbe extends boolean> = IncludeSbe extends true
-  ? { sbeId: number | string }
+export type EdfiTenantParamsType<IncludeEdfiTenant extends boolean> = IncludeEdfiTenant extends true
+  ? { edfiTenantId: number | string }
   : object;
 
-function makeQueries<
-  GetType extends Record<IdType, any>,
-  PutType extends Record<IdType, any>,
-  PostType extends object,
-  IdType extends string,
-  IncludeSbe extends boolean,
-  SbeParams extends SbeParamsType<IncludeSbe>,
-  IncludeTenant extends TenantOptions,
-  TenantParams extends IncludeTenant extends TenantOptions.Never
-    ? object
-    : IncludeTenant extends TenantOptions.Optional
-    ? { tenantId?: string | number | undefined }
-    : { tenantId: string | number }
->(args: {
-  name: string;
-  getDto: ClassConstructor<GetType>;
-  putDto: ClassConstructor<PutType>;
-  postDto: ClassConstructor<PostType>;
-  authorizeById: boolean;
-  includeSbe?: IncludeSbe;
-  includeTenant?: IncludeTenant;
-  idPropertyKey?: GetType extends { id: number | string } ? undefined : IdType;
-}): {
-  useOne: (
-    args: {
-      id: number | string;
-      enabled?: boolean;
-      optional?: boolean | undefined;
-    } & SbeParams &
-      TenantParams
-  ) => UseQueryResult<GetType, unknown>;
-  useAll: (
-    args: {
-      enabled?: boolean;
-      optional?: boolean | undefined;
-    } & SbeParams &
-      TenantParams
-  ) => UseQueryResult<Record<string | number, GetType>, unknown>;
-  usePut: (
-    args: {
-      callback?: ((result: GetType) => void) | undefined;
-    } & SbeParams &
-      TenantParams
-  ) => UseMutationResult<GetType, unknown, PutType, unknown>;
-  usePost: (
-    args: {
-      callback?: ((result: GetType) => void) | undefined;
-    } & SbeParams &
-      TenantParams
-  ) => UseMutationResult<GetType, unknown, PostType, unknown>;
-  useDelete: (
-    args: {
-      callback?: () => void;
-    } & SbeParams &
-      TenantParams
-  ) => UseMutationResult<
-    AxiosResponse<unknown, any>,
-    unknown,
-    string | number | { id: string | number; force?: boolean },
-    unknown
-  >;
-};
-
-function makeQueries<
-  GetType extends Record<IdType, any>,
-  PutType extends Record<IdType, any>,
-  PostType extends object,
-  IdType extends string
->(args: {
-  name: string;
-  getDto: ClassConstructor<GetType>;
-  putDto: ClassConstructor<PutType>;
-  postDto: ClassConstructor<PostType>;
-  authorizeById: boolean;
-  includeSbe?: boolean;
-  idPropertyKey?: GetType extends { id: number | string } ? undefined : IdType;
-}) {
-  const { name, getDto, putDto, postDto, includeSbe, idPropertyKey, authorizeById } = args;
-  const kebabCaseName = kebabCase(name).slice(1);
-  return {
-    useOne: (args: {
-      id: number | string;
-      tenantId?: number | string;
-      sbeId?: number | string;
-      enabled?: boolean;
-      optional?: boolean | undefined;
-    }) => {
-      const privilegeCode = `${args.tenantId === undefined ? '' : 'tenant.'}${
-        args.sbeId === undefined ? '' : 'sbe.'
-      }${kebabCaseName === 'application' ? '.edorg' : ''}${kebabCaseName}:read` as PrivilegeCode;
-      const isAuthd = useAuthorize({
-        privilege: privilegeCode,
-        subject: {
-          id: authorizeById ? args.id : '__filtered__',
-          sbeId: args.sbeId === undefined ? undefined : Number(args.sbeId),
-          tenantId: args.tenantId === undefined ? undefined : Number(args.tenantId),
-        },
-      });
-      return useQuery({
-        throwOnError: true,
-        enabled:
-          (args.enabled === undefined || args.enabled) && (isAuthd || args.optional !== true),
-        queryKey: queryKey({
-          resourceName: name,
-          tenantId: args.tenantId,
-          sbeId: args.sbeId,
-          id: args.id,
-        }),
-        queryFn: async () => {
-          const url = tenantUrl(
-            `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${args.id}`,
-            args.tenantId
-          );
-          return await methods.getOne(url, getDto);
-        },
-      });
-    },
-    useAll: (args: {
-      tenantId?: number | string;
-      sbeId?: number | string;
-      enabled?: boolean;
-      optional?: boolean | undefined;
-    }) => {
-      const privilegeCode = `${args.tenantId === undefined ? '' : 'tenant.'}${
-        args.sbeId === undefined ? '' : 'sbe.'
-      }${kebabCaseName === 'application' ? 'edorg.' : ''}${kebabCaseName}:read` as PrivilegeCode;
-      const isAuthd = useAuthorize({
-        privilege: privilegeCode,
-        subject: {
-          id: '__filtered__',
-          sbeId: args.sbeId === undefined ? undefined : Number(args.sbeId),
-          tenantId: args.tenantId === undefined ? undefined : Number(args.tenantId),
-        },
-      });
-      return useQuery({
-        throwOnError: true,
-        enabled:
-          (args.enabled === undefined || args.enabled) && (isAuthd || args.optional !== true),
-        queryKey: queryKey({
-          resourceName: name,
-          tenantId: args.tenantId,
-          sbeId: args.sbeId,
-        }),
-        queryFn: async () => {
-          const url = tenantUrl(
-            `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s`,
-            args.tenantId
-          );
-          return await methods.getManyMap(
-            url,
-            getDto,
-            undefined,
-            idPropertyKey ?? ('id' as keyof GetType)
-          );
-        },
-      });
-    },
-    usePut: (args: {
-      tenantId?: number | string;
-      sbeId?: number | string;
-      callback?: (result: GetType) => void;
-    }) => {
-      const tenantId = args.tenantId === undefined ? undefined : String(args.tenantId);
-      const sbeId = args.sbeId === undefined ? undefined : String(args.sbeId);
-      const queryClient = useQueryClient();
-      return useMutation({
-        mutationFn: (entity: PutType) =>
-          methods.put(
-            tenantUrl(
-              `${includeSbe ? `sbes/${sbeId}` : ''}/${kebabCaseName}s/${
-                entity[(idPropertyKey ?? 'id') as keyof PutType]
-              }`,
-              tenantId
-            ),
-            putDto,
-            getDto,
-            entity
-          ),
-        onSuccess: (newEntity) => {
-          const listKey = tenantKey(
-            [...(includeSbe ? ['sbes', sbeId] : []), `${kebabCaseName}s`, 'list'],
-            tenantId
-          );
-          queryClient.invalidateQueries({
-            queryKey: queryKey({
-              resourceName: name,
-              tenantId,
-              sbeId,
-              id: newEntity[(idPropertyKey ?? 'id') as keyof GetType],
-            }),
-          });
-          queryClient.invalidateQueries({
-            queryKey: queryKey({
-              resourceName: name,
-              tenantId,
-              sbeId,
-            }),
-          });
-          args.callback && args.callback(newEntity);
-        },
-      });
-    },
-    usePost: (args: {
-      tenantId?: number | string;
-      sbeId?: number | string;
-      callback?: (result: GetType) => void;
-    }) => {
-      const queryClient = useQueryClient();
-      return useMutation({
-        mutationFn: (entity: PostType) =>
-          methods.post(
-            tenantUrl(`${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s`, args.tenantId),
-            postDto,
-            getDto,
-            entity
-          ),
-        onSuccess: (newEntity) => {
-          queryClient.invalidateQueries({
-            queryKey: queryKey({
-              resourceName: name,
-              tenantId: args.tenantId,
-              sbeId: args.sbeId,
-            }),
-          });
-          args.callback && args.callback(newEntity);
-        },
-      });
-    },
-    useDelete: (args: {
-      tenantId?: number | string;
-      sbeId?: number | string;
-      callback?: () => void;
-    }) => {
-      const queryClient = useQueryClient();
-      return useMutation({
-        mutationFn: (arg: string | number | { id: string | number; force?: boolean }) => {
-          const id = typeof arg === 'object' ? arg.id : arg;
-          const force = typeof arg === 'object' ? arg.force : false;
-          return methods.delete(
-            tenantUrl(
-              `${includeSbe ? `sbes/${args.sbeId}` : ''}/${kebabCaseName}s/${id}${
-                force ? '?force=true' : ''
-              }`,
-              args.tenantId
-            )
-          );
-        },
-        onSuccess: () => {
-          queryClient.invalidateQueries({
-            queryKey: queryKey({
-              resourceName: name,
-              tenantId: args.tenantId,
-              sbeId: args.sbeId,
-            }),
-          });
-        },
-      });
-    },
-  };
-}
-
-export const edorgQueries = makeQueries({
+export const edorgQueries = new EntityQueryBuilder({
   name: 'Edorg',
-  authorizeById: true,
-  getDto: GetEdorgDto,
-  putDto: class Nothing {},
-  postDto: class Nothing {},
-  includeSbe: true,
-  includeTenant: TenantOptions.Optional,
-});
+  includeEdfiTenant: true,
+  includeTeam: TeamOptions.Optional,
+})
+  .getOne('getOne', { ResDto: GetEdorgDto })
+  .getAll('getAll', { ResDto: GetEdorgDto })
+  .post('post', { ReqDto: AddEdorgDtoV2, ResDto: class Nothing {} })
+  .delete('delete')
+  .build();
 
-export const odsQueries = makeQueries({
+export const odsQueries = new EntityQueryBuilder({
   name: 'Ods',
-  authorizeById: true,
-  getDto: GetOdsDto,
-  putDto: PutOdsDto,
-  postDto: PostOdsDto,
-  includeSbe: true,
-  includeTenant: TenantOptions.Optional,
-});
+  includeEdfiTenant: true,
+  includeTeam: TeamOptions.Optional,
+})
+  .getOne('getOne', { ResDto: GetOdsDto })
+  .getAll('getAll', { ResDto: GetOdsDto })
+  .post('post', {
+    ReqDto: PostOdsDto,
+    ResDto: GetOdsDto,
+    keysToInvalidate: (params) => [
+      params.standard,
+      queryKey({
+        resourceName: 'Edorg',
+        edfiTenantId: params.edfiTenant.id,
+        id: false,
+      }),
+    ],
+  })
+  .delete('delete', {
+    keysToInvalidate: (params) => [
+      params.standard,
+      queryKey({
+        resourceName: 'Edorg',
+        edfiTenantId: params.edfiTenant.id,
+        id: false,
+      }),
+    ],
+  })
+  .build();
 
-export const ownershipQueries = makeQueries({
+export const ownershipQueries = new EntityQueryBuilder({
   name: 'Ownership',
-  authorizeById: false,
-  getDto: GetOwnershipDto,
-  putDto: PutOwnershipDto,
-  postDto: PostOwnershipDto,
-  includeSbe: false,
-  includeTenant: TenantOptions.Optional,
-});
+  includeEdfiTenant: false,
+  includeTeam: TeamOptions.Optional,
+})
+  .getOne('getOne', { ResDto: GetOwnershipDto })
+  .getAll('getAll', { ResDto: GetOwnershipViewDto })
+  .put('put', { ReqDto: PutOwnershipDto, ResDto: GetOwnershipDto })
+  .post('post', { ReqDto: PostOwnershipDto, ResDto: GetOwnershipDto })
+  .delete('delete')
+  .build();
 
-// TODO make it possible to only create some of the verbs (this one is read-only)
-export const privilegeQueries = makeQueries({
-  name: 'Privilege',
-  authorizeById: false,
-  getDto: GetPrivilegeDto,
-  putDto: GetPrivilegeDto,
-  postDto: GetPrivilegeDto,
-  includeSbe: false,
-  includeTenant: TenantOptions.Never,
-});
-
-export const roleQueries = makeQueries({
+export const roleQueries = new EntityQueryBuilder({
   name: 'Role',
-  authorizeById: false,
-  getDto: GetRoleDto,
-  putDto: class Nothing {},
-  postDto: PostRoleDto,
-  includeSbe: false,
-  includeTenant: TenantOptions.Optional,
-});
+  includeEdfiTenant: false,
+  includeTeam: TeamOptions.Optional,
+})
+  .getOne('getOne', { ResDto: GetRoleDto })
+  .getAll('getAll', { ResDto: GetRoleDto })
+  .put('put', { ReqDto: PutRoleDto, ResDto: GetRoleDto })
+  .post('post', { ReqDto: PostRoleDto, ResDto: GetRoleDto })
+  .delete('delete', {
+    keysToInvalidate: (params) => [
+      params.standard,
+      queryKey({
+        resourceName: 'UserTeamMembership',
+        id: false,
+      }),
+      queryKey({
+        resourceName: 'User',
+        id: false,
+      }),
+      queryKey({
+        resourceName: 'Ownership',
+        id: false,
+      }),
+    ],
+  })
+  .delete(
+    'deleteForce',
+    {
+      keysToInvalidate: (params) => [
+        params.standard,
+        queryKey({
+          resourceName: 'UserTeamMembership',
+          id: false,
+        }),
+        queryKey({
+          resourceName: 'User',
+          id: false,
+        }),
+        queryKey({
+          resourceName: 'Ownership',
+          id: false,
+        }),
+      ],
+    },
+    (base) => `${baseUrl}/roles/${base.id}?force=true`
+  )
+  .build();
 
-export const sbeQueries = makeQueries({
-  name: 'Sbe',
-  authorizeById: true,
-  getDto: GetSbeDto,
-  putDto: class Nothing {},
-  postDto: PostSbeDto,
-  includeSbe: false,
-  includeTenant: TenantOptions.Optional,
-});
+export const sbEnvironmentQueriesGlobal = new EntityQueryBuilder({
+  name: 'SbEnvironment',
+  includeEdfiTenant: false,
+  includeTeam: TeamOptions.Optional,
+})
+  .getOne('getOne', { ResDto: GetSbEnvironmentDto })
+  .getAll('getAll', { ResDto: GetSbEnvironmentDto })
+  .put('put', { ReqDto: PutSbEnvironmentDto, ResDto: GetSbEnvironmentDto })
+  .put(
+    'registerMeta',
+    { ReqDto: PutSbEnvironmentMeta, ResDto: GetSbEnvironmentDto },
+    (base) => `${baseUrl}/sb-environments/${base.entity.id}/meta-arn`
+  )
+  .post('post', { ReqDto: PostSbEnvironmentDto, ResDto: PostSbEnvironmentResponseDto })
+  .delete('delete')
+  .put(
+    'refreshResources',
+    {
+      ReqDto: Id,
+      ResDto: SbSyncQueueDto,
+      keysToInvalidate: (params) => [
+        ['sb-sync-queues'],
+        queryKeyNew({
+          ...params.standardQueryKeyParams,
+          pathOverride: undefined,
+        }),
+      ],
+    },
+    (base) => `${baseUrl}/sb-environments/${base.entity.id}/refresh-resources`
+  )
+  .put(
+    'reloadTenants',
+    { ReqDto: Id, ResDto: OperationResultDto },
+    (base) => `${baseUrl}/sb-environments/${base.entity.id}/reload-tenants`
+  )
+  .build();
 
-export const tenantQueries = makeQueries({
-  name: 'Tenant',
-  authorizeById: false,
-  getDto: GetTenantDto,
-  putDto: PutTenantDto,
-  postDto: PostTenantDto,
-  includeSbe: false,
-  includeTenant: TenantOptions.Never,
-});
+export const sbEnvironmentQueries = new EntityQueryBuilder({
+  name: 'SbEnvironment',
+  includeEdfiTenant: false,
+  includeTeam: TeamOptions.Optional,
+})
+  .getOne('getOne', { ResDto: GetSbEnvironmentDto })
+  .getAll('getAll', { ResDto: GetSbEnvironmentDto })
+  .put('put', { ReqDto: PutSbEnvironmentDto, ResDto: GetSbEnvironmentDto })
+  .put('registerMeta', { ReqDto: PutSbEnvironmentMeta, ResDto: GetSbEnvironmentDto })
+  .post('post', { ReqDto: PostSbEnvironmentDto, ResDto: PostSbEnvironmentResponseDto })
+  .delete('delete')
+  .build();
 
-export const userQueries = makeQueries({
+export const odsTemplateQueries = new EntityQueryBuilder({
+  name: 'OdsTemplate',
+  includeEdfiTenant: false,
+  includeTeam: TeamOptions.Required,
+  includeSbEnvironment: true,
+})
+  .getAll('getAll', { ResDto: OdsTemplateOptionDto })
+  .build();
+
+export const edfiTenantQueriesGlobal = new EntityQueryBuilder({
+  name: 'EdfiTenant',
+  includeEdfiTenant: false,
+  includeTeam: TeamOptions.Never,
+  includeSbEnvironment: true,
+})
+  .getOne('getOne', { ResDto: GetEdfiTenantDto })
+  .getAll('getAll', { ResDto: GetEdfiTenantDto })
+  .post('post', { ReqDto: PostEdfiTenantDto, ResDto: GetEdfiTenantDto })
+  .put(
+    'v2Keygen',
+    { ReqDto: Id, ResDto: OperationResultDto },
+    (base) =>
+      `${baseUrl}/sb-environments/${base.sbEnvironmentId}/edfi-tenants/${base.entity.id}/admin-api-v2-keygen`
+  )
+  .put(
+    'registerApiManual',
+    { ReqDto: PutEdfiTenantAdminApi, ResDto: GetEdfiTenantDto },
+    (base) =>
+      `${baseUrl}/sb-environments/${base.sbEnvironmentId}/edfi-tenants/${base.entity.id}/update-admin-api`
+  )
+  .put(
+    'registerApiAuto',
+    { ReqDto: PutEdfiTenantAdminApiRegister, ResDto: GetEdfiTenantDto },
+    (base) =>
+      `${baseUrl}/sb-environments/${base.sbEnvironmentId}/edfi-tenants/${base.entity.id}/register-admin-api`
+  )
+  .put(
+    'refreshResources',
+    { ReqDto: Id, ResDto: SbSyncQueueDto, keysToInvalidate: (params) => [['sb-sync-queues']] },
+    (base) =>
+      `${baseUrl}/sb-environments/${base.sbEnvironmentId}/edfi-tenants/${base.entity.id}/refresh-resources`
+  )
+  .put(
+    'checkConnection',
+    { ReqDto: Id, ResDto: OperationResultDto },
+    (base) =>
+      `${baseUrl}/sb-environments/${base.sbEnvironmentId}/edfi-tenants/${base.entity.id}/check-admin-api`
+  )
+  .delete('delete')
+  .build();
+
+export const edfiTenantQueries = new EntityQueryBuilder({
+  name: 'EdfiTenant',
+  includeEdfiTenant: false,
+  includeTeam: TeamOptions.Required,
+  includeSbEnvironment: true,
+})
+  .getOne('getOne', { ResDto: GetEdfiTenantDto })
+  .getAll('getAll', { ResDto: GetEdfiTenantDto })
+  .post('post', { ReqDto: PostEdfiTenantDto, ResDto: GetEdfiTenantDto })
+  .delete('delete')
+  .build();
+
+export const teamQueries = new EntityQueryBuilder({
+  name: 'Team',
+  includeEdfiTenant: false,
+  includeTeam: TeamOptions.Never,
+})
+  .getOne('getOne', { ResDto: GetTeamDto })
+  .getAll('getAll', { ResDto: GetTeamDto })
+  .put('put', { ReqDto: PutTeamDto, ResDto: GetTeamDto })
+  .post('post', { ReqDto: PostTeamDto, ResDto: GetTeamDto })
+  .getAll(
+    'navSearchList',
+    { ResDto: EnvNavDto },
+    (base, extras: { teamId: number }) => `${baseUrl}/teams/${extras.teamId}/env-nav`
+  )
+  .delete('delete')
+  .build();
+
+export const userQueries = new EntityQueryBuilder({
   name: 'User',
-  authorizeById: false,
-  getDto: GetUserDto,
-  putDto: PutUserDto,
-  postDto: PostUserDto,
-  includeSbe: false,
-  includeTenant: TenantOptions.Optional,
-});
+  includeEdfiTenant: false,
+  includeTeam: TeamOptions.Optional,
+})
+  .getOne('getOne', { ResDto: GetUserDto })
+  .getAll('getAll', { ResDto: GetUserDto })
+  .put('put', { ReqDto: PutUserDto, ResDto: GetUserDto })
+  .post('post', { ReqDto: PostUserDto, ResDto: GetUserDto })
+  .delete('delete')
+  .build();
 
-export const userTenantMembershipQueries = makeQueries({
-  name: 'UserTenantMembership',
-  authorizeById: false,
-  getDto: GetUserTenantMembershipDto,
-  putDto: PutUserTenantMembershipDto,
-  postDto: PostUserTenantMembershipDto,
-  includeSbe: false,
-  includeTenant: TenantOptions.Optional,
-});
+export const userTeamMembershipQueries = new EntityQueryBuilder({
+  name: 'UserTeamMembership',
+  includeEdfiTenant: false,
+  includeTeam: TeamOptions.Optional,
+})
+  .getOne('getOne', { ResDto: GetUserTeamMembershipDto })
+  .getAll('getAll', { ResDto: GetUserTeamMembershipDto })
+  .put('put', { ReqDto: PutUserTeamMembershipDto, ResDto: GetUserTeamMembershipDto })
+  .post('post', { ReqDto: PostUserTeamMembershipDto, ResDto: GetUserTeamMembershipDto })
+  .delete('delete')
+  .build();
 
-export const vendorQueries = makeQueries({
+export const vendorQueriesV1 = new EntityQueryBuilder({
   name: 'Vendor',
-  authorizeById: false,
-  getDto: GetVendorDto,
-  putDto: PutVendorDto,
-  postDto: PostVendorDto,
-  includeSbe: true,
-  includeTenant: TenantOptions.Required,
-});
+  adminApi: true,
+  includeEdfiTenant: true,
+  includeTeam: TeamOptions.Required,
+})
+  .getOne('getOne', { ResDto: GetVendorDto })
+  .getAll('getAll', { ResDto: GetVendorDto })
+  .put('put', { ResDto: GetVendorDto, ReqDto: PutVendorDto })
+  .post('post', { ResDto: GetVendorDto, ReqDto: PostVendorDto })
+  .delete('delete')
+  .build();
 
-export const applicationQueries = makeQueries({
+export const applicationQueriesV1 = new EntityQueryBuilder({
   name: 'Application',
-  authorizeById: true,
-  getDto: GetApplicationDto,
-  putDto: PutApplicationForm,
-  postDto: PostApplicationForm,
-  includeSbe: true,
-  includeTenant: TenantOptions.Required,
-});
+  adminApi: true,
+  includeEdfiTenant: true,
+  includeTeam: TeamOptions.Required,
+})
+  .getOne('getOne', { ResDto: GetApplicationDto })
+  .getAll('getAll', { ResDto: GetApplicationDto })
+  .put('put', {
+    ResDto: GetApplicationDto,
+    ReqDto: PutApplicationForm,
+    keysToInvalidate: (params) => [
+      params.standard,
+      queryKeyNew({
+        ...params.standardQueryKeyParams,
+        kebabCaseName: 'claimset',
+        id: false,
+      }),
+    ],
+  })
+  .put('resetCredential', { ResDto: ApplicationYopassResponseDto, ReqDto: Id }, (base) =>
+    standardPath({
+      edfiTenant: base.edfiTenant,
+      teamId: base.teamId,
+      kebabCaseName: 'application',
+      adminApi: true,
+      id: `${base.entity.id}/reset-credential`,
+    })
+  )
+  .post('post', { ResDto: ApplicationYopassResponseDto, ReqDto: PostApplicationForm })
+  .delete('delete')
+  .build();
 
-export const claimsetQueries = makeQueries({
+export const claimsetQueriesV1 = new EntityQueryBuilder({
   name: 'Claimset',
-  authorizeById: false,
-  getDto: GetClaimsetDto,
-  putDto: PutClaimsetDto,
-  postDto: PostClaimsetDto,
-  includeSbe: true,
-  includeTenant: TenantOptions.Required,
-});
+  adminApi: true,
+  includeEdfiTenant: true,
+  includeTeam: TeamOptions.Required,
+})
+  .getOne('getOne', { ResDto: GetClaimsetDto })
+  .getAll('getAll', { ResDto: GetClaimsetDto })
+  .put('put', { ResDto: GetClaimsetDto, ReqDto: PutClaimsetDto })
+  .post('post', { ResDto: GetClaimsetDto, ReqDto: PostClaimsetDto })
+  .delete('delete')
+  .build();
 
-export const sbSyncQueueQueries = makeQueries({
+export const sbSyncQueueQueries = new EntityQueryBuilder({
   name: 'SbSyncQueue',
-  authorizeById: false,
-  getDto: SbSyncQueueDto,
-  putDto: class Nothing {},
-  postDto: class Nothing {},
-  includeSbe: false,
-  includeTenant: TenantOptions.Never,
-});
+  includeSbEnvironment: false,
+  includeEdfiTenant: false,
+  includeTeam: TeamOptions.Never,
+})
+  .getOne('getOne', { ResDto: SbSyncQueueDto })
+  .build();
 
-export const usePostSbSyncQueue = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () =>
-      methods.post(`${baseUrl}/sb-sync-queues`, class Nothing {}, OperationResultDto, {}),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKey({ resourceName: 'SbSyncQueue' }),
-      });
-    },
-  });
-};
-
-export const useSbeEditSbMeta = (callback?: () => void) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (sbe: PutSbeMeta) =>
-      methods.put(`${baseUrl}/sbes/${sbe.id}/sbe-meta`, PutSbeMeta, GetSbeDto, sbe),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKey({ resourceName: 'Sbe', id: data.id }),
-      });
-      callback && callback();
-    },
-  });
-};
-export const useSbeEditAdminApi = (callback?: () => void) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (sbe: PutSbeAdminApi) =>
-      methods.put(`${baseUrl}/sbes/${sbe.id}/admin-api`, PutSbeAdminApi, GetSbeDto, sbe),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKey({ resourceName: 'Sbe', id: data.id }),
-      });
-      callback && callback();
-    },
-  });
-};
-export const useSbeRegisterAdminApi = (callback?: () => void) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (sbe: PutSbeAdminApi) =>
-      methods.put(
-        `${baseUrl}/sbes/${sbe.id}/register-admin-api`,
-        PutSbeAdminApiRegister,
-        GetSbeDto,
-        sbe
-      ),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKey({ resourceName: 'Sbe', id: data.id }),
-      });
-      callback && callback();
-    },
-  });
-};
-export const useSbeCheckAdminAPI = (callback?: () => void) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (sbe: GetSbeDto) =>
-      methods.put(
-        `${baseUrl}/sbes/${sbe.id}/check-admin-api`,
-        class Nothing {},
-        OperationResultDto,
-        {}
-      ),
-    onSuccess: (res, original) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKey({ resourceName: 'Sbe', id: original.id }),
-      });
-      callback && callback();
-    },
-  });
-};
-
-export const useSbeRefreshResources = (callback?: () => void) => {
-  const queryClient = useQueryClient();
-  const popBanner = usePopBanner();
-  return useMutation({
-    mutationFn: (sbe: GetSbeDto) =>
-      methods.put(
-        `${baseUrl}/sbes/${sbe.id}/refresh-resources`,
-        class Nothing {},
-        SbSyncQueueDto,
-        {}
-      ),
-    onSuccess: (resp, prior) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKey({ resourceName: 'Sbe', id: prior.id }),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKey({ resourceName: 'SbSyncQueue' }),
-      });
-      callback && callback();
-    },
-    ...mutationErrCallback({ popGlobalBanner: popBanner }),
-  });
-};
-
-export const useApplicationPost = (args: {
-  tenantId?: number | string;
-  sbeId?: number | string;
-  callback?: (response: ApplicationYopassResponseDto) => void;
-}) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (entity: PostApplicationForm) =>
-      methods.post(
-        tenantUrl(`sbes/${args.sbeId}/applications`, args.tenantId),
-        PostApplicationForm,
-        ApplicationYopassResponseDto,
-        entity
-      ),
-    onSuccess: (newEntity) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKey({
-          resourceName: 'Application',
-          tenantId: args.tenantId,
-          sbeId: args.sbeId,
-        }),
-      });
-      // refetch because of the "applications count" field on claimsets
-      queryClient.invalidateQueries({
-        queryKey: queryKey({
-          resourceName: 'Claimset',
-          tenantId: args.tenantId,
-          sbeId: args.sbeId,
-        }),
-      });
-      args.callback && args.callback(newEntity);
-    },
-  });
-};
-
-export const useApplicationResetCredential = (args: {
-  tenantId?: number | string;
-  sbeId?: number | string;
-  callback?: (response: ApplicationYopassResponseDto) => void;
-}) => {
-  return useMutation({
-    mutationFn: (entity: GetApplicationDto) =>
-      methods.put(
-        tenantUrl(
-          `sbes/${args.sbeId}/applications/${entity.applicationId}/reset-credential`,
-          args.tenantId
-        ),
-        class Nothing {},
-        ApplicationYopassResponseDto,
-        {}
-      ),
-    onSuccess: (newEntity) => {
-      args.callback && args.callback(newEntity);
-    },
-  });
-};
 export const privilegeSelector = (res: SpecificIds | true | false) => {
   return Array.isArray(res) ? new Set(res) : res;
 };
@@ -692,8 +467,9 @@ export const privilegeSelector = (res: SpecificIds | true | false) => {
 export function usePrivilegeCache<
   ConfigType extends {
     privilege: PrivilegeCode;
-    tenantId?: string | number;
-    sbeId?: string | number;
+    teamId?: string | number;
+    edfiTenantId?: string | number;
+    sbEnvironmentId?: string | number;
   }
 >(config: ConfigType[]) {
   const wholeCache = usePrivilegeCacheQueryNew(config.map((c) => ({ ...c, privilege: undefined })));
@@ -720,23 +496,34 @@ export const authCachArraysToSets = (res: FeAuthCache) => {
 };
 export function usePrivilegeCacheQueryNew<
   ConfigType extends {
-    tenantId?: string | number;
-    sbeId?: string | number;
+    teamId?: string | number;
+    edfiTenantId?: string | number;
+    sbEnvironmentId?: string | number;
   }
 >(config: ConfigType[]) {
   return useQueries({
     queries: config.map((c): UseQueryOptions<FeAuthCache> => {
       return {
-        staleTime: 15 * 1000,
+        staleTime: 90 * 1000,
         notifyOnChangeProps: ['data' as const],
         queryKey: authCacheKey(c),
         select: authCachArraysToSets,
-        queryFn: () =>
-          apiClient.get(
-            `/auth/cache/${c.tenantId === undefined ? '' : `${c.tenantId}/`}${
-              c.sbeId === undefined ? '' : `${c.sbeId}/`
+        queryFn: () => {
+          const queryParams = new URLSearchParams();
+          if (c.edfiTenantId !== undefined) {
+            queryParams.set('edfiTenantId', String(c.edfiTenantId));
+          }
+          if (c.sbEnvironmentId !== undefined) {
+            queryParams.set('sbEnvironmentId', String(c.sbEnvironmentId));
+          }
+          const query = queryParams.toString();
+
+          return apiClient.get(
+            `/auth/cache${c.teamId !== undefined ? `/${c.teamId}` : ''}${
+              query === '' ? '' : `?${query}`
             }`
-          ),
+          );
+        },
       };
     }),
   });

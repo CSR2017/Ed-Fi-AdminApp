@@ -4,7 +4,7 @@ import { Outlet, RouteObject, RouterProvider, createBrowserRouter } from 'react-
 import { ErrorFallback } from '../Layout/Fallback404';
 import { PublicAppLayout } from '../Layout/PublicAppLayout';
 import { StandardLayout } from '../Layout/StandardLayout';
-import { TenantHome } from '../Pages/Home/TenantHome';
+import { TeamHome } from '../Pages/Home/TeamHome';
 import { useSearchParamsObject } from '../helpers/useSearch';
 import { accountRouteGlobal } from './account.routes';
 import {
@@ -15,6 +15,7 @@ import {
   applicationsRoute,
 } from './application.routes';
 import {
+  claimsetCopyRoute,
   claimsetCreateRoute,
   claimsetImportRoute,
   claimsetIndexRoute,
@@ -22,8 +23,14 @@ import {
   claimsetsIndexRoute,
   claimsetsRoute,
 } from './claimset.routes';
-import { edorgIndexRoute, edorgRoute, edorgsIndexRoute, edorgsRoute } from './edorg.routes';
-import { odsIndexRoute, odsRoute, odssIndexRoute, odssRoute } from './ods.routes';
+import {
+  edorgCreateRoute,
+  edorgIndexRoute,
+  edorgRoute,
+  edorgsIndexRoute,
+  edorgsRoute,
+} from './edorg.routes';
+import { odsCreateRoute, odsIndexRoute, odsRoute, odssIndexRoute, odssRoute } from './ods.routes';
 import {
   ownershipGlobalCreateRoute,
   ownershipGlobalIndexRoute,
@@ -46,21 +53,40 @@ import {
 } from './role-global.routes';
 import { roleIndexRoute, roleRoute, rolesIndexRoute, rolesRoute } from './role.routes';
 import {
-  sbeGlobalCreateRoute,
-  sbeGlobalIndexRoute,
-  sbeGlobalRoute,
-  sbesGlobalIndexRoute,
-  sbesGlobalRoute,
-} from './sbe-global.routes';
-import { sbeIndexRoute, sbeRoute, sbesIndexRoute, sbesRoute } from './sbe.routes';
+  edfiTenantGlobalCreateRoute,
+  edfiTenantGlobalIndexRoute,
+  edfiTenantGlobalRoute,
+  edfiTenantsGlobalIndexRoute,
+  edfiTenantsGlobalRoute,
+} from './edfi-tenant-global.routes';
+import {
+  edfiTenantCreateRoute,
+  edfiTenantIndexRoute,
+  edfiTenantRoute,
+  edfiTenantsIndexRoute,
+  edfiTenantsRoute,
+} from './edfi-tenant.routes';
+import {
+  sbEnvironmentGlobalCreateRoute,
+  sbEnvironmentGlobalIndexRoute,
+  sbEnvironmentGlobalRoute,
+  sbEnvironmentsGlobalIndexRoute,
+  sbEnvironmentsGlobalRoute,
+} from './sb-environment-global.routes';
+import {
+  sbEnvironmentIndexRoute,
+  sbEnvironmentRoute,
+  sbEnvironmentsIndexRoute,
+  sbEnvironmentsRoute,
+} from './sb-environment.routes';
 import { secretRoute } from './secret.routes';
 import {
-  tenantCreateRoute,
-  tenantIndexRoute,
-  tenantRoute,
-  tenantsIndexRoute,
-  tenantsRoute,
-} from './tenant.routes';
+  teamCreateRoute,
+  teamIndexRoute,
+  teamRoute,
+  teamsIndexRoute,
+  teamsRoute,
+} from './team.routes';
 import { userIndexRoute, userRoute, usersIndexRoute, usersRoute } from './user.routes';
 import {
   vendorIndexRoute,
@@ -101,9 +127,11 @@ export * from './ods.routes';
 export * from './ownership-global.routes';
 export * from './ownership.routes';
 export * from './role.routes';
-export * from './sbe-global.routes';
-export * from './sbe.routes';
-export * from './tenant.routes';
+export * from './edfi-tenant-global.routes';
+export * from './edfi-tenant.routes';
+export * from './sb-environment-global.routes';
+export * from './sb-environment.routes';
+export * from './team.routes';
 export * from './utm-global.routes';
 export * from './user.routes';
 export * from './user-global.routes';
@@ -140,7 +168,7 @@ export const loginRoute: RouteObject = {
 };
 export const asRoute: RouteObject = {
   path: '/as/:asId',
-  element: <TenantHome />,
+  element: <TeamHome />,
 };
 
 export const landingLayoutRoute: RouteObject = {
@@ -176,11 +204,17 @@ export const authenticatedRoutes: RouteObject = {
     sbSyncQueueRoute,
     sbSyncQueueIndexRoute,
 
-    sbesGlobalRoute,
-    sbesGlobalIndexRoute,
-    sbeGlobalCreateRoute,
-    sbeGlobalRoute,
-    sbeGlobalIndexRoute,
+    sbEnvironmentsGlobalRoute,
+    sbEnvironmentsGlobalIndexRoute,
+    sbEnvironmentGlobalCreateRoute,
+    sbEnvironmentGlobalRoute,
+    sbEnvironmentGlobalIndexRoute,
+
+    edfiTenantsGlobalRoute,
+    edfiTenantsGlobalIndexRoute,
+    edfiTenantGlobalCreateRoute,
+    edfiTenantGlobalRoute,
+    edfiTenantGlobalIndexRoute,
 
     rolesGlobalRoute,
     rolesGlobalIndexRoute,
@@ -206,26 +240,33 @@ export const authenticatedRoutes: RouteObject = {
     utmGlobalIndexRoute,
     utmGlobalCreateRoute,
 
-    sbesRoute,
-    sbesIndexRoute,
-    sbeRoute,
-    sbeIndexRoute,
+    edfiTenantsRoute,
+    edfiTenantsIndexRoute,
+    edfiTenantRoute,
+    edfiTenantIndexRoute,
+    edfiTenantCreateRoute,
+
+    sbEnvironmentsRoute,
+    sbEnvironmentsIndexRoute,
+    sbEnvironmentRoute,
+    sbEnvironmentIndexRoute,
 
     odssRoute,
     odssIndexRoute,
     odsRoute,
     odsIndexRoute,
+    odsCreateRoute,
 
     rolesRoute,
     rolesIndexRoute,
     roleRoute,
     roleIndexRoute,
 
-    tenantsRoute,
-    tenantsIndexRoute,
-    tenantRoute,
-    tenantIndexRoute,
-    tenantCreateRoute,
+    teamsRoute,
+    teamsIndexRoute,
+    teamRoute,
+    teamIndexRoute,
+    teamCreateRoute,
 
     usersRoute,
     usersIndexRoute,
@@ -238,6 +279,7 @@ export const authenticatedRoutes: RouteObject = {
     ownershipIndexRoute,
 
     edorgsRoute,
+    edorgCreateRoute,
     edorgsIndexRoute,
     edorgRoute,
     edorgIndexRoute,
@@ -247,6 +289,7 @@ export const authenticatedRoutes: RouteObject = {
     claimsetRoute,
     claimsetIndexRoute,
     claimsetCreateRoute,
+    claimsetCopyRoute,
     claimsetImportRoute,
 
     applicationsRoute,

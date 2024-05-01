@@ -1,12 +1,13 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { Box, Link } from '@chakra-ui/react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import sortBy from 'lodash/sortBy';
 import {
   BsBuildings,
   BsBuildingsFill,
   BsClipboard,
   BsClipboardFill,
-  BsFolder,
-  BsFolderFill,
+  BsHdd,
+  BsHddFill,
   BsInboxes,
   BsInboxesFill,
   BsPeople,
@@ -16,28 +17,58 @@ import {
   BsPersonVcard,
   BsPersonVcardFill,
 } from 'react-icons/bs';
-import { useMatches } from 'react-router-dom';
-import { sbeQueries } from '../api';
-import { arrayElemIf, authorize, usePrivilegeCacheForConfig } from '../helpers';
+import { Link as RouterLink, useMatches } from 'react-router-dom';
+import { sbEnvironmentQueries } from '../api';
+import { arrayElemIf, authorize, useAuthorize, usePrivilegeCacheForConfig } from '../helpers';
 import { INavButtonProps, NavButton } from './NavButton';
+import { UniversalNavLinks } from './UniversalNavLinks';
 
-export const isMatch = (activeRoute: string, item: INavButtonProps) => {
-  const nextChar = activeRoute.charAt(item.route.length);
-  return activeRoute.startsWith(item.route) && (nextChar === '/' || nextChar === '');
+export const findDeepestMatch = (
+  matches: { pathname: string }[],
+  flatRoutes: INavButtonProps[]
+) => {
+  let deepestMatch: string | null = null;
+
+  flatRoutes.forEach((item) => {
+    if (
+      matches.some(
+        (m) =>
+          (deepestMatch === null || item.route.length > deepestMatch.length) &&
+          m.pathname.startsWith(item.route)
+      )
+    ) {
+      deepestMatch = item.route;
+    }
+  });
+  return deepestMatch;
 };
 
-export const tagMatch = (items: INavButtonProps[], match: string | null): INavButtonProps[] =>
-  match === null
+export const isMatch = (deepestMatch: string, item: INavButtonProps) => deepestMatch === item.route;
+
+export const tagMatch = (
+  items: INavButtonProps[],
+  deepestMatch: string | null
+): INavButtonProps[] =>
+  deepestMatch === null
     ? items
     : items.map((item) => ({
         ...item,
-        isActive: isMatch(match, item),
-        childItems: tagMatch(item.childItems || [], match),
+        isActive: isMatch(deepestMatch, item),
+        childItems: tagMatch(item.childItems || [], deepestMatch),
       }));
 
 export const GlobalNav = (props: object) => {
   const queryClient = useQueryClient();
-  const sbes = sbeQueries.useAll({ optional: true });
+  const sbEnvironmentsIsAuthorized = useAuthorize({
+    privilege: 'sb-environment:read',
+    subject: {
+      id: '__filtered__',
+    },
+  });
+  const sbEnvironments = useQuery({
+    ...sbEnvironmentQueries.getAll({}),
+    enabled: sbEnvironmentsIsAuthorized,
+  });
 
   usePrivilegeCacheForConfig([
     {
@@ -47,7 +78,7 @@ export const GlobalNav = (props: object) => {
       },
     },
     {
-      privilege: 'tenant:read',
+      privilege: 'team:read',
       subject: {
         id: '__filtered__',
       },
@@ -65,13 +96,13 @@ export const GlobalNav = (props: object) => {
       },
     },
     {
-      privilege: 'user-tenant-membership:read',
+      privilege: 'user-team-membership:read',
       subject: {
         id: '__filtered__',
       },
     },
     {
-      privilege: 'sbe:read',
+      privilege: 'sb-environment.edfi-tenant:read',
       subject: {
         id: '__filtered__',
       },
@@ -83,20 +114,35 @@ export const GlobalNav = (props: object) => {
       },
     },
   ]);
-  const items: INavButtonProps[] = [
+  const globalItems: INavButtonProps[] = [
     ...arrayElemIf(
       authorize({
         queryClient,
         config: {
-          privilege: 'tenant:read',
+          privilege: 'sb-environment:read',
           subject: { id: '__filtered__' },
         },
       }),
       {
-        route: `/tenants`,
+        route: `/sb-environments`,
+        icon: BsHdd,
+        activeIcon: BsHddFill,
+        text: 'Environments',
+      }
+    ),
+    ...arrayElemIf(
+      authorize({
+        queryClient,
+        config: {
+          privilege: 'team:read',
+          subject: { id: '__filtered__' },
+        },
+      }),
+      {
+        route: `/teams`,
         icon: BsBuildings,
         activeIcon: BsBuildingsFill,
-        text: 'Tenants',
+        text: 'Teams',
       }
     ),
     ...arrayElemIf(
@@ -118,15 +164,15 @@ export const GlobalNav = (props: object) => {
       authorize({
         queryClient,
         config: {
-          privilege: 'user-tenant-membership:read',
+          privilege: 'user-team-membership:read',
           subject: { id: '__filtered__' },
         },
       }),
       {
-        route: `/user-tenant-memberships`,
+        route: `/user-team-memberships`,
         icon: BsPersonBadge,
         activeIcon: BsPersonBadgeFill,
-        text: 'Tenant Memberships',
+        text: 'Team memberships',
       }
     ),
     ...arrayElemIf(
@@ -171,70 +217,66 @@ export const GlobalNav = (props: object) => {
         route: `/sb-sync-queues`,
         icon: BsInboxes,
         activeIcon: BsInboxesFill,
-        text: 'SB Sync Queue',
-      }
-    ),
-    ...arrayElemIf(
-      authorize({
-        queryClient,
-        config: {
-          privilege: 'sbe:read',
-          subject: { id: '__filtered__' },
-        },
-      }),
-      {
-        route: `/sbes`,
-        icon: BsFolder,
-        activeIcon: BsFolderFill,
-        text: 'Environments',
-        childItems: sortBy(Object.values(sbes.data || {}), (sbe) =>
-          sbe.displayName.toLocaleLowerCase()
-        )
-          .map((sbe) =>
-            arrayElemIf(
-              authorize({
-                queryClient,
-                config: {
-                  privilege: 'sbe:read',
-                  subject: { id: sbe.id },
-                },
-              }),
-              {
-                route: `/sbes/${sbe.id}`,
-                icon: BsFolder,
-                activeIcon: BsFolderFill,
-                text: sbe.displayName,
-              }
-            )
-          )
-          .flat(),
+        text: 'Sync queue',
       }
     ),
   ];
+
+  const environmentItems = sortBy(Object.values(sbEnvironments.data || {}), (sbEnvironment) =>
+    sbEnvironment.displayName.toLocaleLowerCase()
+  )
+    .map((sbEnvironment) =>
+      arrayElemIf(
+        authorize({
+          queryClient,
+          config: {
+            privilege: 'sb-environment:read',
+            subject: { id: sbEnvironment.id },
+          },
+        }),
+        {
+          route: `/sb-environments/${sbEnvironment.id}`,
+          icon: BsHdd,
+          activeIcon: BsHddFill,
+          text: sbEnvironment.displayName,
+        }
+      )
+    )
+    .flat();
 
   const flatten = (item: INavButtonProps): INavButtonProps[] => [
     item,
-    ...(item.childItems ?? []).flatMap((ci) => flatten(ci)),
+    ...(item.childItems ?? []).flatMap(flatten),
   ];
-  const flatItems = items.flatMap((item) => flatten(item));
+  const flatItems = [...globalItems, ...environmentItems].flatMap(flatten);
 
-  let deepestMatch: string | null = null;
-  const currentMatches = useMatches();
+  const deepestMatch: string | null = findDeepestMatch(useMatches(), flatItems);
 
-  currentMatches.forEach((m) => {
-    if (
-      flatItems.some((item) => isMatch(m.pathname, item)) &&
-      m.pathname.length > (deepestMatch ?? '').length
-    ) {
-      deepestMatch = m.pathname;
-    }
-  });
-
-  return items.length ? (
-    <>
-      {tagMatch(items, deepestMatch).map((item) => (
+  return (
+    <Box overflowY="auto" flex="1 1 0%">
+      <UniversalNavLinks />
+      {tagMatch(globalItems, deepestMatch).map((item) => (
         <NavButton key={item.text + item.route} {...item} />
       ))}
-    </>
-  ) : null;
+      {environmentItems.length ? (
+        <>
+          <Link
+            to="/sb-environments"
+            as={RouterLink}
+            display={'block'}
+            px={3}
+            mt={4}
+            mb={2}
+            color="gray.600"
+            fontWeight="600"
+          >
+            Environments
+          </Link>
+          {tagMatch(environmentItems, deepestMatch).map((item) => (
+            <NavButton key={item.text + item.route} {...item} />
+          ))}
+        </>
+      ) : null}
+    </Box>
+  );
 };

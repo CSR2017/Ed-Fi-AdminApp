@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { PageActions, PageTemplate } from '@edanalytics/common-ui';
 import omit from 'lodash/omit';
 import { useParams } from 'react-router-dom';
@@ -11,9 +12,11 @@ export const UserGlobalPage = () => {
   const params = useParams() as {
     userId: string;
   };
-  const user = userQueries.useOne({
-    id: params.userId,
-  }).data;
+  const user = useQuery(
+    userQueries.getOne({
+      id: params.userId,
+    })
+  ).data;
   const { edit } = useSearchParamsObject() as { edit?: boolean };
   const actions = useUserGlobalActions(user);
 

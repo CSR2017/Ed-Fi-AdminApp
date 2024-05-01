@@ -1,4 +1,18 @@
-import { Alert, AlertIcon, Box, HStack, Heading, Text, chakra } from '@chakra-ui/react';
+import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
+  Box,
+  BoxProps,
+  ChakraComponent,
+  HStack,
+  Heading,
+  Text,
+  chakra,
+} from '@chakra-ui/react';
+import { standardizeError } from '@edanalytics/models';
+import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ActionGroup } from '..';
@@ -6,7 +20,7 @@ import { ActionGroup } from '..';
 /**
  * Standard page template
  *
- * There is a CSS class to de-radius the upper right corner of any children with the `.content-card` class whenever the page actions are not empty.
+ * There is a CSS class to de-radius the upper right corner of any children with the `.page-content-card` class whenever the page actions are not empty.
  */
 export const PageTemplate = (props: {
   title?: ReactNode;
@@ -17,8 +31,9 @@ export const PageTemplate = (props: {
   constrainWidth?: boolean;
   justifyActionsLeft?: boolean;
   actions?: ReactNode;
-  customContentBox?: boolean;
+  customPageContentCard?: boolean;
 }) => {
+  const { reset } = useQueryErrorResetBoundary();
   return (
     <Box
       mx="-0.5rem"
@@ -26,8 +41,11 @@ export const PageTemplate = (props: {
       minW="100%"
       px="0.5rem"
       css={{
-        '&:has(.page-actions .chakra-button) .content-card': {
+        '&:has(.page-actions .chakra-button)>div.page-content-card': {
           borderTopRightRadius: '0',
+        },
+        '&:has(.page-actions .chakra-button)>div.page-content-card ~ div.page-content-card': {
+          borderTopRightRadius: 'var(--chakra-radii-md)',
         },
       }}
     >
@@ -36,7 +54,8 @@ export const PageTemplate = (props: {
           {props.title ?? <>&nbsp;</>}
         </Heading>
         <ErrorBoundary
-          FallbackComponent={(arg: { error: { message: string } }) => (
+          onReset={reset}
+          FallbackComponent={() => (
             <Text as="i" color="gray.500" fontSize="sm">
               Unable to show actions
             </Text>
@@ -77,37 +96,53 @@ export const PageTemplate = (props: {
         </ErrorBoundary>
       </HStack>
       <ErrorBoundary
-        FallbackComponent={(arg: { error: { title: string } }) => (
-          <Box mr="1px">
-            <Alert status="error">
-              <AlertIcon />
-              {arg.error.title}
-            </Alert>
-          </Box>
-        )}
+        onReset={reset}
+        FallbackComponent={(arg) => {
+          const error = standardizeError(arg.error);
+          return (
+            <Box mr="1px">
+              <Alert status="error">
+                <AlertIcon />
+                <HStack flexGrow={1} alignItems="baseline">
+                  <AlertTitle>{error.title}</AlertTitle>
+                  <AlertDescription>{error.message || null}</AlertDescription>
+                </HStack>
+              </Alert>
+            </Box>
+          );
+        }}
       >
-        {props.customContentBox ? (
+        {props.customPageContentCard ? (
           props.children
         ) : (
-          <PageContentPane className="content-card">{props.children}</PageContentPane>
+          <PageContentCard className="page-content-card">{props.children}</PageContentCard>
         )}
       </ErrorBoundary>
     </Box>
   );
 };
 
-export const PageContentPane = chakra('div', {
-  baseStyle: {
-    boxShadow: 'lg',
-    border: '1px solid',
-    borderColor: 'gray.200',
-    borderRadius: 'md',
-    bg: 'foreground-bg',
-    minW: '100%',
-    w: 'fit-content',
-    p: '1.5em',
-    '& .content-section:not(:last-child)': {
-      mb: 10,
-    },
-  },
-});
+type DivComponent = ChakraComponent<'div', object>;
+
+export const PageContentCard = ((props: BoxProps) => (
+  <chakra.div
+    {...{
+      mb: 6,
+      boxShadow: 'lg',
+      border: '1px solid',
+      borderColor: 'gray.200',
+      borderRadius: 'md',
+      bg: 'foreground-bg',
+      minW: '100%',
+      w: 'fit-content',
+      p: '1.5em',
+      className: 'page-content-card',
+      ...props,
+    }}
+    css={{
+      '& .content-section:not(:last-child)': {
+        'margin-bottom': 'var(--chakra-space-10)',
+      },
+    }}
+  />
+)) as DivComponent;

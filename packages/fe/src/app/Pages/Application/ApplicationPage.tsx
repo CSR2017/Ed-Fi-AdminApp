@@ -1,17 +1,18 @@
-import { Attribute, PageActions, PageContentPane, PageTemplate } from '@edanalytics/common-ui';
+import { Attribute, PageActions, PageContentCard, PageTemplate } from '@edanalytics/common-ui';
 import omit from 'lodash/omit';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useLocation, useParams } from 'react-router-dom';
-import { applicationQueries, claimsetQueries } from '../../api';
+import { applicationQueriesV1, claimsetQueriesV1 } from '../../api';
 
 import { Heading, ScaleFade, Text } from '@chakra-ui/react';
+import { GetClaimsetDto } from '@edanalytics/models';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { useNavContext } from '../../helpers';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { useSearchParamsObject } from '../../helpers/useSearch';
 import { EditApplication } from './EditApplication';
 import { ViewApplication } from './ViewApplication';
 import { useSingleApplicationActions } from './useApplicationActions';
-import { GetClaimsetDto } from '@edanalytics/models';
 
 export const ApplicationPage = () => {
   const credsLink: unknown = useLocation().state;
@@ -43,14 +44,14 @@ export const ApplicationPage = () => {
         </ErrorBoundary>
       }
       actions={<ApplicationPageActions />}
-      customContentBox
+      customPageContentCard
     >
-      <PageContentPane className="content-card">
+      <PageContentCard>
         <ApplicationPageContent />
-      </PageContentPane>
+      </PageContentCard>
       {url ? (
         <ScaleFade in={showUrl} unmountOnExit>
-          <PageContentPane borderColor="teal.200" bg="teal.50" mt={4}>
+          <PageContentCard borderColor="teal.200" bg="teal.50" mt={4}>
             <Heading mb={4} whiteSpace="nowrap" color="gray.700" size="md">
               Key and secret created
             </Heading>
@@ -74,7 +75,7 @@ export const ApplicationPage = () => {
               isUrl
               isUrlExternal
             />
-          </PageContentPane>
+          </PageContentCard>
         </ScaleFade>
       ) : null}
     </PageTemplate>
@@ -82,42 +83,43 @@ export const ApplicationPage = () => {
 };
 
 export const ApplicationPageTitle = () => {
-  const navContext = useNavContext();
-  const asId = navContext.asId!;
-  const sbeId = navContext.sbeId!;
-
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
   const params = useParams() as {
     applicationId: string;
   };
 
-  const application = applicationQueries.useOne({
-    id: params.applicationId,
-    sbeId: sbeId,
-    tenantId: asId,
-  }).data;
+  const application = useQuery(
+    applicationQueriesV1.getOne({
+      id: params.applicationId,
+      edfiTenant: edfiTenant,
+      teamId: teamId,
+    })
+  ).data;
 
   return <>{application?.displayName || 'Application'}</>;
 };
 
 export const ApplicationPageContent = () => {
-  const navContext = useNavContext();
-  const asId = navContext.asId!;
-  const sbeId = navContext.sbeId!;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
   const params = useParams() as {
-    sbeId: string;
+    edfiTenantId: string;
     asId: string;
     applicationId: string;
   };
 
-  const application = applicationQueries.useOne({
-    id: params.applicationId,
-    sbeId: sbeId,
-    tenantId: asId,
-  }).data;
-  const claimsets = claimsetQueries.useAll({
-    sbeId: sbeId,
-    tenantId: asId,
-  });
+  const application = useQuery(
+    applicationQueriesV1.getOne({
+      id: params.applicationId,
+      edfiTenant: edfiTenant,
+      teamId: teamId,
+    })
+  ).data;
+  const claimsets = useQuery(
+    claimsetQueriesV1.getAll({
+      edfiTenant: edfiTenant,
+      teamId: teamId,
+    })
+  );
   const claimsetsByName = Object.values(claimsets.data ?? {}).reduce<
     Record<string, GetClaimsetDto>
   >((map, claimset) => {
@@ -141,25 +143,23 @@ export const ApplicationPageContent = () => {
 };
 
 export const ApplicationPageActions = () => {
-  const navContext = useNavContext();
-  const asId = navContext.asId!;
-  const sbeId = navContext.sbeId!;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
   const params = useParams() as {
-    sbeId: string;
-    asId: string;
     applicationId: string;
   };
 
-  const application = applicationQueries.useOne({
-    id: params.applicationId,
-    sbeId: sbeId,
-    tenantId: asId,
-  }).data;
+  const application = useQuery(
+    applicationQueriesV1.getOne({
+      id: params.applicationId,
+      edfiTenant: edfiTenant,
+      teamId: teamId,
+    })
+  ).data;
 
   const actions = useSingleApplicationActions({
     application,
-    sbeId: sbeId,
-    tenantId: asId,
+    edfiTenant: edfiTenant,
+    teamId: teamId,
   });
 
   return <PageActions actions={omit(actions, 'View')} />;

@@ -17,29 +17,31 @@ import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useQueryClient } from '@tanstack/react-query';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
-import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { vendorQueries } from '../../api';
-import { useNavToParent } from '../../helpers';
-import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { BsInfoCircle } from 'react-icons/bs';
+import { useNavigate } from 'react-router-dom';
+import { usePopBanner } from '../../Layout/FeedbackBanner';
+import { vendorQueriesV1 } from '../../api';
+import { useNavToParent, useTeamEdfiTenantNavContextLoaded } from '../../helpers';
+import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
 const resolver = classValidatorResolver(PostVendorDto);
 
 export const CreateVendor = () => {
-  const params = useParams() as { asId: string; sbeId: string };
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
   const popBanner = usePopBanner();
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const goToView = (id: string | number) =>
-    navigate(`/as/${params.asId}/sbes/${params.sbeId}/vendors/${id}`);
+    navigate(
+      `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/vendors/${id}`
+    );
   const parentPath = useNavToParent();
-  const postVendor = vendorQueries.usePost({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-    callback: (result) => goToView(result.id),
+  const postVendor = vendorQueriesV1.post({
+    edfiTenant,
+    teamId,
   });
+
   const {
     register,
     handleSubmit,
@@ -54,12 +56,16 @@ export const CreateVendor = () => {
         <form
           onSubmit={handleSubmit((data) =>
             postVendor
-              .mutateAsync(data, {
-                ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
-                onSuccess: () => {
-                  queryClient.invalidateQueries({ queryKey: ['me', 'vendors'] });
-                },
-              })
+              .mutateAsync(
+                { entity: data },
+                {
+                  ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
+                  onSuccess: (result) => {
+                    queryClient.invalidateQueries({ queryKey: ['me', 'vendors'] });
+                    goToView(result.id);
+                  },
+                }
+              )
               .catch(noop)
           )}
         >

@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import {
   Attribute,
   AttributeContainer,
@@ -5,28 +6,42 @@ import {
   ContentSection,
 } from '@edanalytics/common-ui';
 import { useParams } from 'react-router-dom';
-import { edorgQueries, odsQueries, sbeQueries } from '../../api';
-import { EdorgLink, OdsLink, SbeLink } from '../../routes';
+import { edorgQueries, odsQueries, edfiTenantQueries } from '../../api';
+import { EdorgLink, OdsLink, EdfiTenantLink, SbEnvironmentLink } from '../../routes';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
+import { queryFromEntity } from '../../api/queries/builder';
 
 export const ViewEdorg = () => {
   const params = useParams() as {
-    asId: string;
-    sbeId: string;
     edorgId: string;
   };
-  const edorg = edorgQueries.useOne({
-    id: params.edorgId,
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-  }).data;
-  const edorgs = edorgQueries.useAll({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-  });
-  const odss = odsQueries.useAll({ tenantId: params.asId, sbeId: params.sbeId, optional: true });
-  const sbes = sbeQueries.useAll({
-    tenantId: params.asId,
-  });
+  const { teamId, edfiTenant, sbEnvironmentId, sbEnvironment } =
+    useTeamEdfiTenantNavContextLoaded();
+  const edorg = useQuery(
+    edorgQueries.getOne({
+      id: params.edorgId,
+      edfiTenant,
+      teamId,
+    })
+  ).data;
+  const edorgs = useQuery(
+    edorgQueries.getAll({
+      edfiTenant,
+      teamId,
+    })
+  );
+  const odss = useQuery(
+    odsQueries.getAll({
+      edfiTenant,
+      teamId,
+    })
+  );
+  const edfiTenants = useQuery(
+    edfiTenantQueries.getAll({
+      teamId,
+      sbEnvironmentId,
+    })
+  );
 
   return edorg ? (
     <ContentSection>
@@ -42,7 +57,10 @@ export const ViewEdorg = () => {
           <OdsLink id={edorg.odsId} query={odss} />
         </AttributeContainer>
         <AttributeContainer label="Environment">
-          <SbeLink id={edorg.sbeId} query={sbes} />
+          <SbEnvironmentLink id={edorg.sbEnvironmentId} query={queryFromEntity(sbEnvironment)} />
+        </AttributeContainer>
+        <AttributeContainer label="Tenant">
+          <EdfiTenantLink id={edorg.edfiTenantId} query={edfiTenants} />
         </AttributeContainer>
       </AttributesGrid>
     </ContentSection>

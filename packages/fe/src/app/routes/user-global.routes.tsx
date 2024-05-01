@@ -1,20 +1,22 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetUserDto } from '@edanalytics/models';
-import { UseQueryResult } from '@tanstack/react-query';
+import { UseQueryResult, useQuery } from '@tanstack/react-query';
 import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { CreateUser } from '../Pages/UserGlobal/CreateUserGlobalPage';
 import { UserGlobalPage } from '../Pages/UserGlobal/UserGlobalPage';
 import { UsersGlobalPage } from '../Pages/UserGlobal/UsersGlobalPage';
 import { userQueries } from '../api';
-import { getRelationDisplayName } from '../helpers';
+import { getRelationDisplayName, useAuthorize } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const UserGlobalBreadcrumb = () => {
   const params = useParams() as { userId: string; asId: string };
-  const user = userQueries.useOne({
-    id: params.userId,
-    tenantId: params.asId,
-  });
+  const user = useQuery(
+    userQueries.getOne({
+      id: params.userId,
+      teamId: params.asId,
+    })
+  );
   return user.data?.displayName ?? params.userId;
 };
 
@@ -46,17 +48,25 @@ export const UserGlobalLink = (props: {
   /**@deprecated unneeded and no longer used. */
   query?: UseQueryResult<Record<string | number, GetUserDto>, unknown>;
 }) => {
-  const users = userQueries.useAll({ optional: true });
+  const users = useQuery({
+    ...userQueries.getAll({}),
+    enabled: useAuthorize({
+      privilege: 'user:read',
+      subject: {
+        id: '__filtered__',
+      },
+    }),
+  });
   const user = getEntityFromQuery(props.id, users);
   return user ? (
     <Link as="span">
       <RouterLink title="Go to user" to={`/users/${user.id}`}>
-        {getRelationDisplayName(user.id, users)}
+        {getRelationDisplayName(props.id, users)}
       </RouterLink>
     </Link>
   ) : typeof props.id === 'number' ? (
-    <Text title="User may have been deleted." as="i" color="gray.500">
-      not found
+    <Text title="User may have been deleted, or you lack access." as="i" color="gray.500">
+      can't find &#8220;{props.id}&#8221;
     </Text>
   ) : null;
 };

@@ -1,0 +1,29 @@
+import { ActionsType } from '@edanalytics/common-ui';
+import { BiPlus } from 'react-icons/bi';
+import { useNavigate } from 'react-router-dom';
+import {
+  globalEdfiTenantAuthConfig,
+  useAuthorize,
+  useSbEnvironmentNavContextLoaded,
+} from '../../helpers';
+
+export const useEdfiTenantsGlobalActions = (): ActionsType => {
+  const { sbEnvironmentId, sbEnvironment } = useSbEnvironmentNavContextLoaded();
+  const navigate = useNavigate();
+
+  const canCreate = useAuthorize(
+    globalEdfiTenantAuthConfig('__filtered__', 'sb-environment.edfi-tenant:create')
+  );
+
+  return canCreate && sbEnvironment.version === 'v2'
+    ? {
+        Create: {
+          icon: BiPlus,
+          text: 'Create',
+          title: 'Create new tenant.',
+          to: `/sb-environments/${sbEnvironmentId}/edfi-tenants/create`,
+          onClick: () => navigate(`/sb-environments/${sbEnvironmentId}/edfi-tenants/create`),
+        },
+      }
+    : {};
+};

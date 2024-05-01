@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { Attribute, AttributesGrid, ContentSection } from '@edanalytics/common-ui';
 import { useParams } from 'react-router-dom';
 import { ownershipQueries } from '../../api';
@@ -5,13 +6,15 @@ import { ownershipQueries } from '../../api';
 export const ViewOwnership = () => {
   const params = useParams() as {
     asId: string;
-    sbeId: string;
+    edfiTenantId: string;
     ownershipId: string;
   };
-  const ownership = ownershipQueries.useOne({
-    id: params.ownershipId,
-    tenantId: params.asId,
-  }).data;
+  const ownership = useQuery(
+    ownershipQueries.getOne({
+      id: params.ownershipId,
+      teamId: params.asId,
+    })
+  ).data;
 
   return ownership ? (
     <ContentSection>

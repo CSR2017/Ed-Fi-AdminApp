@@ -31,3 +31,23 @@ export class OperationResultDto {
 export const toOperationResultDto = makeSerializer<OperationResultDto, StatusResponse>(
   OperationResultDto
 );
+
+export type GenericHttpError = {
+  message: string;
+  statusCode: number;
+};
+
+// TODO standardize errors across the app
+/** Transform various errors into standard `OperationResultDto` */
+export const standardizeError = (
+  error: GenericHttpError | OperationResultDto | Error
+): OperationResultDto => {
+  return 'name' in error
+    ? // Base JS error
+      { title: error.name, type: 'Error' }
+    : 'statusCode' in error
+    ? // Generic HTTP error
+      { title: error.message, type: 'Error' }
+    : // Already OperationResultDto
+      error;
+};

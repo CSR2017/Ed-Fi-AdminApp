@@ -2,23 +2,11 @@ import { ChevronDownIcon } from '@chakra-ui/icons';
 import { Button, Menu, MenuButton, MenuList, Portal } from '@chakra-ui/react';
 import { ActionsType } from './ActionsType';
 import { ActionBarButton, ActionMenuButton } from './getStandardActions';
+import { splitActions } from '.';
 
 export const PageActions = (props: { actions: ActionsType; show?: number | undefined | true }) => {
   const { show, actions } = props;
-  const hidden = Object.entries(actions);
-  const visible = hidden.splice(
-    0,
-    // show all
-    show === true
-      ? hidden.length
-      : // show 4 by default, including "more" menu
-      show === undefined
-      ? hidden.length === 4
-        ? 4
-        : 3
-      : // show defined number
-        show
-  );
+  const { hidden, visible } = splitActions(actions, show);
   return (
     <>
       {visible.map(([key, actionProps]) => (

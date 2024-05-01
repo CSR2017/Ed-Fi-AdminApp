@@ -44,7 +44,7 @@ export const LandingLayout = (props: { children: ReactNode }) => {
       <Divider borderColor="gray.500" w="40%" />
       <Box flex="0.6 1 0%">{props.children}</Box>
       <Box fontSize="sm" color="gray.600" textAlign="center">
-        ©2023 Education Analytics, Inc. All Rights Reserved
+        ©2023-{new Date().getFullYear()} Education Analytics, Inc. All Rights Reserved
         <br />
         <Link
           href="https://support.startingblocks.org/support/tickets/new"

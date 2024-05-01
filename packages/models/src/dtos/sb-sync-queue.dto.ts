@@ -1,89 +1,39 @@
-import { stdDetailed, stdDiffSeconds, stdDuration } from '@edanalytics/utils';
 import { Expose, Type } from 'class-transformer';
 import { ISbSyncQueue, PgBossJobState } from '../interfaces';
 import { makeSerializer } from '../utils/make-serializer';
-import dayjs from 'dayjs';
 
 export class SbSyncQueueDto implements ISbSyncQueue {
   @Expose()
   id: string;
-
   @Expose()
-  name: string;
-
+  type: 'SbEnvironment' | 'EdfiTenant';
   @Expose()
-  priority: number;
-
+  name: string | 'resource no longer exists';
   @Expose()
-  data: object;
-
+  sbEnvironmentId: number | null;
+  @Expose()
+  edfiTenantId: number | null;
+  @Expose()
+  dataText: string;
+  @Expose()
+  data:
+    | { sbEnvironmentId: number; edfiTenantId?: undefined }
+    | { sbEnvironmentId?: undefined; edfiTenantId: number };
   @Expose()
   state: PgBossJobState;
-
-  @Expose()
-  retrylimit: number;
-
-  @Expose()
-  retrycount: number;
-
-  @Expose()
-  retrydelay: number;
-
-  @Expose()
-  retrybackoff: boolean;
-
-  @Expose()
-  @Type(() => Date)
-  startafter: Date;
-
-  @Expose()
-  @Type(() => Date)
-  startedon: Date;
-
-  @Expose()
-  singletonkey: string;
-
-  @Expose()
-  singletonon: Date | null;
-
-  @Expose()
-  @Type(() => Date)
-  expirein: Date;
-
   @Expose()
   @Type(() => Date)
   createdon: Date;
-
   @Expose()
   @Type(() => Date)
-  completedon: Date | null;
-
-  @Expose()
-  @Type(() => Date)
-  keepuntil: Date;
-
-  @Expose()
-  on_complete: boolean;
-
+  completedon: Date;
   @Expose()
   output: object;
-
   @Expose()
-  @Type(() => Date)
-  archivedon: Date | null;
-
-  get sbeId() {
-    return (this.data as any)?.sbeId as number;
-  }
+  hasChanges: boolean | null | undefined;
 
   get displayName() {
-    return `${this.name} - SBE ${this.sbeId}`;
-  }
-
-  get durationDetailed() {
-    return this.createdon && this.completedon
-      ? stdDuration(dayjs(this.completedon).diff(this.createdon, 'second'))
-      : undefined;
+    return this.name;
   }
 
   get completedOnNumber() {
@@ -92,17 +42,47 @@ export class SbSyncQueueDto implements ISbSyncQueue {
   get createdOnNumber() {
     return this.createdon ? Number(this.createdon) : undefined;
   }
+
+  get durationNumber() {
+    return this.completedOnNumber !== undefined && this.createdOnNumber !== undefined
+      ? this.completedOnNumber - this.createdOnNumber
+      : undefined;
+  }
 }
 export const toSbSyncQueueDto = makeSerializer<
   SbSyncQueueDto,
-  Omit<
-    SbSyncQueueDto,
-    | 'createdOnNumber'
-    | 'completedOnNumber'
-    | 'completedDetailed'
-    | 'createdDetailed'
-    | 'durationDetailed'
-    | 'sbeId'
-    | 'displayName'
-  >
+  Omit<SbSyncQueueDto, 'createdOnNumber' | 'completedOnNumber' | 'displayName' | 'durationNumber'>
 >(SbSyncQueueDto);
+
+export class SyncQueuePaginatedResults {
+  @Expose()
+  @Type(() => SbSyncQueueDto)
+  data: SbSyncQueueDto[];
+  @Expose()
+  rowCount: number;
+}
+export const toSyncQueuePaginatedResults = makeSerializer(SyncQueuePaginatedResults);
+export class SbSyncQueueFacetedValuesDto {
+  /** unique */
+  @Expose()
+  type: ('SbEnvironment' | 'EdfiTenant')[];
+  /** unique */
+  @Expose()
+  dataText: (string | 'resource no longer exists')[];
+  /** unique */
+  @Expose()
+  state: PgBossJobState[];
+  /** unique */
+  @Expose()
+  hasChanges: (boolean | null | undefined)[];
+
+  /** min/max */
+  @Expose()
+  @Type(() => Date)
+  createdon: [Date | null, Date | null];
+  /** min/max */
+  @Expose()
+  @Type(() => Date)
+  completedon: [Date | null, Date | null];
+}
+export const toSbSyncQueueFacetedValuesDto = makeSerializer(SbSyncQueueFacetedValuesDto);

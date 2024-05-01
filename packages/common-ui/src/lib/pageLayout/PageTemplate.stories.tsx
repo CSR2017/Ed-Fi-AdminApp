@@ -1,10 +1,17 @@
-import { BiEdit, BiTrash } from 'react-icons/bi';
+import { BiAlarm, BiEdit, BiTrash } from 'react-icons/bi';
 import { PageTemplate } from './PageTemplate';
 import { Box } from '@chakra-ui/react';
 import { Meta } from '@storybook/react';
-import { PageActions, Attribute, AttributesGrid, ContentSection } from '..';
+import {
+  PageActions,
+  Attribute,
+  AttributesGrid,
+  ContentSection,
+  PageContentCard,
+  PageSectionActions,
+} from '..';
 import { faker } from '@faker-js/faker';
-import { Standard } from '../dataTable/index.stories';
+import { Standard } from '../sbaaTable/SbaaTable.stories';
 const ExampleActions = () => (
   <PageActions
     show={2}
@@ -148,7 +155,7 @@ export const WithAttributesGrid = () => (
 export const WithCustomSection = () => (
   <PageTemplate title="Page Title">
     <ContentSection heading="My table">
-      <Standard />
+      <Standard enableRowSelection />
     </ContentSection>
     <ContentSection heading="Another section">
       <AttributesGrid>{generateAttributes(5)}</AttributesGrid>
@@ -164,5 +171,40 @@ export const NoSectionHeadings = () => (
     <ContentSection>
       <AttributesGrid>{generateAttributes(3)}</AttributesGrid>
     </ContentSection>
+  </PageTemplate>
+);
+
+const actions = {
+  Bah: {
+    confirm: true,
+    icon: BiTrash,
+    text: 'Delete',
+    title: 'Delete the thingy',
+    onClick: () => undefined,
+  },
+  Bah2: {
+    icon: BiAlarm,
+    text: 'Blub',
+    title: 'Blub the thingy',
+    onClick: () => undefined,
+  },
+};
+export const SectionActions = () => (
+  <PageTemplate
+    title="Page Title"
+    customPageContentCard
+    actions={<PageActions actions={actions} />}
+  >
+    <PageContentCard className="content-section">
+      <ContentSection heading="Content section">
+        <AttributesGrid>{generateAttributes(5)}</AttributesGrid>
+      </ContentSection>
+    </PageContentCard>
+    <PageContentCard>
+      <PageSectionActions actions={actions} />
+      <ContentSection heading="Other content section">
+        <AttributesGrid>{generateAttributes(3)}</AttributesGrid>
+      </ContentSection>
+    </PageContentCard>
   </PageTemplate>
 );

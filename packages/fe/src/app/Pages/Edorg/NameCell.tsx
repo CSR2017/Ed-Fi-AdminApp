@@ -1,29 +1,34 @@
 import { HStack } from '@chakra-ui/react';
 import { TableRowActions } from '@edanalytics/common-ui';
 import { GetEdorgDto } from '@edanalytics/models';
+import { useQuery } from '@tanstack/react-query';
 import { CellContext } from '@tanstack/react-table';
 import { edorgQueries } from '../../api';
 
-import { useNavContext } from '../../helpers';
-import { useReadTenantEntity } from '../../helpers/useStandardRowActionsNew';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
+import { useReadTeamEntity } from '../../helpers/useStandardRowActionsNew';
 import { EdorgLink, edorgIndexRoute } from '../../routes';
+import { useEdorgActions } from './useEdorgActions';
 
 export const NameCell = (info: CellContext<GetEdorgDto, unknown>) => {
-  const { asId, sbeId } = useNavContext() as { sbeId: number; asId: number };
+  const { teamId, edfiTenant, edfiTenantId, sbEnvironmentId } = useTeamEdfiTenantNavContextLoaded();
 
-  const entities = edorgQueries.useAll({
-    tenantId: asId,
-    sbeId: sbeId,
-  });
+  const entities = useQuery(
+    edorgQueries.getAll({
+      teamId,
+      edfiTenant,
+    })
+  );
 
-  const View = useReadTenantEntity({
+  const View = useReadTeamEntity({
     entity: info.row.original,
-    params: { sbeId, asId, edorgId: info.row.original.id },
-    privilege: 'tenant.sbe.edorg:read',
+    params: { edfiTenantId, sbEnvironmentId, asId: teamId, edorgId: info.row.original.id },
+    privilege: 'team.sb-environment.edfi-tenant.ods.edorg:read',
     route: edorgIndexRoute,
   });
   const actions = {
     ...(View ? { View } : undefined),
+    ...useEdorgActions(info.row.original),
   };
   return (
     <HStack justify="space-between">

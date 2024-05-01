@@ -6,14 +6,19 @@ import { makeSerializer } from '../utils/make-serializer';
 
 export class GetEdorgDto
   extends DtoGetBase
-  implements GetDto<IEdorg, 'ownerships' | 'ods' | 'parent' | 'children' | 'sbe'>
+  implements GetDto<IEdorg, 'ownerships' | 'ods' | 'parent' | 'children' | 'edfiTenant'>
 {
   @Expose()
-  sbeId: number;
+  sbEnvironmentId: number;
+
+  @Expose()
+  edfiTenantId: number;
   @Expose()
   odsId: number;
   @Expose()
   odsDbName: string;
+  @Expose()
+  odsInstanceId: number | null;
 
   @Expose()
   parentId?: number;

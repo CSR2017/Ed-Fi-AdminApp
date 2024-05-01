@@ -1,20 +1,71 @@
-import { BasePrivilege, TenantBasePrivilege, TenantSbePrivilege } from '@edanalytics/models';
+import {
+  BasePrivilege,
+  TeamBasePrivilege,
+  TeamEdfiTenantPrivilege,
+  TeamSbEnvironmentPrivilege,
+} from '@edanalytics/models';
 import { AuthorizeConfig } from '.';
 
-export const tenantRoleAuthConfig = (
-  roleId: number | '__filtered__' | undefined,
-  tenantId: number | string | undefined,
-  privilege: Extract<
-    TenantBasePrivilege,
-    'tenant.role:read' | 'tenant.role:create' | 'tenant.role:update' | 'tenant.role:delete'
-  >
+export const teamBaseAuthConfig = (
+  id: number | '__filtered__' | undefined,
+  teamId: number | string | undefined,
+  privilege: TeamBasePrivilege
 ): AuthorizeConfig | undefined =>
-  roleId === undefined || tenantId === undefined
+  id === undefined || teamId === undefined
     ? undefined
     : {
         privilege,
         subject: {
-          tenantId: Number(tenantId),
+          teamId: Number(teamId),
+          id: id,
+        },
+      };
+export const teamSbEnvironmentAuthConfig = (
+  id: number | '__filtered__' | undefined,
+  sbEnvironmentId: number | undefined,
+  teamId: number | string | undefined,
+  privilege: TeamSbEnvironmentPrivilege
+): AuthorizeConfig | undefined =>
+  id === undefined || teamId === undefined || sbEnvironmentId === undefined
+    ? undefined
+    : {
+        privilege,
+        subject: {
+          teamId: Number(teamId),
+          sbEnvironmentId: sbEnvironmentId,
+          id: id,
+        },
+      };
+export const teamEdfiTenantAuthConfig = (
+  id: number | '__filtered__' | undefined,
+  edfiTenantId: number | undefined,
+  teamId: number | string | undefined,
+  privilege: TeamEdfiTenantPrivilege
+): AuthorizeConfig | undefined =>
+  id === undefined || teamId === undefined || edfiTenantId === undefined
+    ? undefined
+    : {
+        privilege,
+        subject: {
+          teamId: Number(teamId),
+          edfiTenantId: edfiTenantId,
+          id: id,
+        },
+      };
+export const teamRoleAuthConfig = (
+  roleId: number | '__filtered__' | undefined,
+  teamId: number | string | undefined,
+  privilege: Extract<
+    TeamBasePrivilege,
+    'team.role:read' | 'team.role:create' | 'team.role:update' | 'team.role:delete'
+  >
+): AuthorizeConfig | undefined =>
+  roleId === undefined || teamId === undefined
+    ? undefined
+    : {
+        privilege,
+        subject: {
+          teamId: Number(teamId),
           id: roleId,
         },
       };
@@ -38,7 +89,7 @@ export const globalOwnershipAuthConfig = (
     id: '__filtered__',
   },
 });
-export const globalTenantAuthConfig = (privilege: BasePrivilege): AuthorizeConfig | undefined => ({
+export const globalTeamAuthConfig = (privilege: BasePrivilege): AuthorizeConfig | undefined => ({
   privilege,
   subject: {
     id: '__filtered__',
@@ -46,124 +97,136 @@ export const globalTenantAuthConfig = (privilege: BasePrivilege): AuthorizeConfi
 });
 
 export const utmAuthConfig = (
-  tenantId: number | undefined,
-  privilege: TenantBasePrivilege
+  teamId: number | undefined,
+  privilege: TeamBasePrivilege
 ): AuthorizeConfig | undefined =>
-  tenantId === undefined
+  teamId === undefined
     ? undefined
     : {
         privilege,
         subject: {
-          tenantId: tenantId,
+          teamId: teamId,
           id: '__filtered__',
         },
       };
 
 export const ownershipAuthConfig = (
-  tenantId: number | undefined,
-  privilege: TenantBasePrivilege
+  teamId: number | undefined,
+  privilege: TeamBasePrivilege
 ): AuthorizeConfig | undefined =>
-  tenantId === undefined
+  teamId === undefined
     ? undefined
     : {
         privilege,
         subject: {
-          tenantId: tenantId,
+          teamId: teamId,
           id: '__filtered__',
         },
       };
 
 export const applicationAuthConfig = (
   edorgId: string | undefined,
-  sbeId: number | undefined,
-  tenantId: number | undefined,
-  privilege: TenantSbePrivilege
+  edfiTenantId: number | undefined,
+  teamId: number | undefined,
+  privilege: TeamEdfiTenantPrivilege
 ): AuthorizeConfig | undefined =>
-  edorgId === undefined || sbeId === undefined || tenantId === undefined
+  edorgId === undefined || edfiTenantId === undefined || teamId === undefined
     ? undefined
     : {
         privilege,
         subject: {
-          tenantId: tenantId,
+          teamId: teamId,
           id: edorgId,
-          sbeId: sbeId,
+          edfiTenantId: edfiTenantId,
         },
       };
 
 export const vendorAuthConfig = (
-  sbeId: number | undefined,
-  tenantId: number | undefined,
-  privilege: TenantSbePrivilege
+  edfiTenantId: number | undefined,
+  teamId: number | undefined,
+  privilege: TeamEdfiTenantPrivilege
 ): AuthorizeConfig | undefined =>
-  sbeId === undefined || tenantId === undefined
+  edfiTenantId === undefined || teamId === undefined
     ? undefined
     : {
         privilege,
         subject: {
-          tenantId: tenantId,
+          teamId: teamId,
           id: '__filtered__',
-          sbeId: sbeId,
+          edfiTenantId: edfiTenantId,
         },
       };
 
 export const claimsetAuthConfig = (
-  sbeId: number | undefined,
-  tenantId: number | undefined,
-  privilege: TenantSbePrivilege
+  edfiTenantId: number | undefined,
+  teamId: number | undefined,
+  privilege: TeamEdfiTenantPrivilege
 ): AuthorizeConfig | undefined =>
-  sbeId === undefined || tenantId === undefined
+  edfiTenantId === undefined || teamId === undefined
     ? undefined
     : {
         privilege,
         subject: {
-          tenantId: tenantId,
+          teamId: teamId,
           id: '__filtered__',
-          sbeId: sbeId,
+          edfiTenantId: edfiTenantId,
         },
       };
 
 export const odsAuthConfig = (
   odsId: number | '__filtered__' | undefined,
-  sbeId: number | undefined,
-  tenantId: number | undefined,
-  privilege: TenantSbePrivilege
+  edfiTenantId: number | undefined,
+  teamId: number | undefined,
+  privilege: TeamEdfiTenantPrivilege
 ): AuthorizeConfig | undefined =>
-  odsId === undefined || sbeId === undefined || tenantId === undefined
+  odsId === undefined || edfiTenantId === undefined || teamId === undefined
     ? undefined
     : {
         privilege,
         subject: {
-          tenantId: tenantId,
+          teamId: teamId,
           id: odsId,
-          sbeId: sbeId,
+          edfiTenantId: edfiTenantId,
         },
       };
 
-export const sbeAuthConfig = (
-  sbeId: string | number | '__filtered__' | undefined,
-  tenantId: string | number | undefined,
-  privilege: TenantBasePrivilege
+export const edfiTenantAuthConfig = (
+  edfiTenantId: string | number | '__filtered__' | undefined,
+  teamId: string | number | undefined,
+  privilege: TeamBasePrivilege
 ): AuthorizeConfig | undefined =>
-  sbeId === undefined || tenantId === undefined
+  edfiTenantId === undefined || teamId === undefined
     ? undefined
     : {
         privilege,
         subject: {
-          tenantId: Number(tenantId),
-          id: sbeId === '__filtered__' ? sbeId : Number(sbeId),
+          teamId: Number(teamId),
+          id: edfiTenantId === '__filtered__' ? edfiTenantId : Number(edfiTenantId),
         },
       };
 
-export const globalSbeAuthConfig = (
-  sbeId: number | '__filtered__' | undefined,
+export const globalEdfiTenantAuthConfig = (
+  edfiTenantId: number | '__filtered__' | undefined,
   privilege: BasePrivilege
 ): AuthorizeConfig | undefined =>
-  sbeId === undefined
+  edfiTenantId === undefined
     ? undefined
     : {
         privilege,
         subject: {
-          id: sbeId,
+          id: edfiTenantId,
+        },
+      };
+export const globalSbEnvironmentAuthConfig = (
+  sbEnvironmentId: number | '__filtered__' | undefined,
+  privilege: BasePrivilege
+): AuthorizeConfig | undefined =>
+  sbEnvironmentId === undefined
+    ? undefined
+    : {
+        privilege,
+        subject: {
+          id: sbEnvironmentId,
         },
       };
 
@@ -179,34 +242,34 @@ export const globalUtmAuthConfig = (privilege: BasePrivilege): AuthorizeConfig |
     id: '__filtered__',
   },
 });
-export const tenantUserAuthConfig = (
+export const teamUserAuthConfig = (
   userId: number | '__filtered__' | undefined,
-  tenantId: number | undefined,
-  privilege: TenantBasePrivilege
+  teamId: number | undefined,
+  privilege: TeamBasePrivilege
 ): AuthorizeConfig | undefined =>
-  userId === undefined || tenantId === undefined
+  userId === undefined || teamId === undefined
     ? undefined
     : {
         privilege,
         subject: {
-          tenantId: tenantId,
+          teamId: teamId,
           id: userId,
         },
       };
 
 export const edorgAuthConfig = (
   edorgId: number | '__filtered__' | undefined,
-  sbeId: number | undefined,
-  tenantId: number | undefined,
-  privilege: TenantSbePrivilege
+  edfiTenantId: number | undefined,
+  teamId: number | undefined,
+  privilege: TeamEdfiTenantPrivilege
 ): AuthorizeConfig | undefined =>
-  edorgId === undefined || sbeId === undefined || tenantId === undefined
+  edorgId === undefined || edfiTenantId === undefined || teamId === undefined
     ? undefined
     : {
         privilege,
         subject: {
-          tenantId: tenantId,
+          teamId: teamId,
           id: edorgId,
-          sbeId: sbeId,
+          edfiTenantId: edfiTenantId,
         },
       };

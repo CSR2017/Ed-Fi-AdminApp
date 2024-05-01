@@ -20,25 +20,34 @@ export class OwnershipsGlobalService {
   async create(createOwnershipDto: PostOwnershipDto) {
     const isRedundant = !!(
       await this.ownershipsRepository.findBy({
-        tenantId: createOwnershipDto.tenantId,
+        teamId: createOwnershipDto.teamId,
         edorgId: createOwnershipDto.edorgId,
         odsId: createOwnershipDto.odsId,
-        sbeId: createOwnershipDto.sbeId,
+        edfiTenantId: createOwnershipDto.edfiTenantId,
+        sbEnvironmentId: createOwnershipDto.sbEnvironmentId,
       })
     ).length;
 
     if (isRedundant) {
       throw new ValidationHttpException({
-        field: 'tenantId',
+        field: 'teamId',
         message:
-          'An ownership already exists for this tenant\u2013resource combination. To minimize confusion we disallow duplication.',
+          'An ownership already exists for this team\u2013resource combination. To minimize confusion we disallow duplication.',
       });
     }
+    const type = createOwnershipDto.type;
 
-    const out = await this.ownershipsRepository.save(
-      this.ownershipsRepository.create(createOwnershipDto)
-    );
-    this.authService.reloadTenantOwnershipCache(createOwnershipDto.tenantId);
+    const out = await this.ownershipsRepository.save({
+      sbEnvironmentId: type === 'environment' ? createOwnershipDto.sbEnvironmentId : undefined,
+      edfiTenantId: type === 'edfiTenant' ? createOwnershipDto.edfiTenantId : undefined,
+      odsId: type === 'ods' ? createOwnershipDto.odsId : undefined,
+      edorgId: type === 'edorg' ? createOwnershipDto.edorgId : undefined,
+
+      createdById: createOwnershipDto.createdById,
+      teamId: createOwnershipDto.teamId,
+      roleId: createOwnershipDto.roleId,
+    });
+    this.authService.reloadTeamOwnershipCache(createOwnershipDto.teamId);
     return out;
   }
 
@@ -49,14 +58,14 @@ export class OwnershipsGlobalService {
   async update(id: number, updateOwnershipDto: PutOwnershipDto) {
     const old = await this.findOne(id).catch(throwNotFound);
     const out = await this.ownershipsRepository.save({ ...old, ...updateOwnershipDto });
-    this.authService.reloadTenantOwnershipCache(old.tenantId);
+    this.authService.reloadTeamOwnershipCache(old.teamId);
     return out;
   }
 
   async remove(id: number, user: GetUserDto) {
     const old = await this.findOne(id).catch(throwNotFound);
     await this.ownershipsRepository.remove(old);
-    this.authService.reloadTenantOwnershipCache(old.tenantId);
+    this.authService.reloadTeamOwnershipCache(old.teamId);
     return undefined;
   }
 }

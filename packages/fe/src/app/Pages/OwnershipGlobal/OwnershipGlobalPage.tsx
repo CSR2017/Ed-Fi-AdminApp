@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { PageActions, PageTemplate } from '@edanalytics/common-ui';
 import omit from 'lodash/omit';
 import { useParams } from 'react-router-dom';
@@ -11,9 +12,11 @@ export const OwnershipGlobalPage = () => {
   const params = useParams() as {
     ownershipId: string;
   };
-  const ownership = ownershipQueries.useOne({
-    id: params.ownershipId,
-  }).data;
+  const ownership = useQuery(
+    ownershipQueries.getOne({
+      id: params.ownershipId,
+    })
+  ).data;
   const { edit } = useSearchParamsObject() as { edit?: boolean };
   const actions = useOwnershipGlobalActions(ownership);
 

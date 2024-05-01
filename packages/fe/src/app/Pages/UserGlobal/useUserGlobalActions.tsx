@@ -20,10 +20,10 @@ export const useUserGlobalActions = (user: GetUserDto | undefined): ActionsType 
 
   const navigate = useNavigate();
   const to = (id: number | string) => `/users/${id}`;
-  const deleteUser = userQueries.useDelete({});
+  const deleteUser = userQueries.delete({});
 
   const canView = useAuthorize(globalUserAuthConfig('user:read'));
-  const canAssign = useAuthorize(globalUtmAuthConfig('user-tenant-membership:read'));
+  const canAssign = useAuthorize(globalUtmAuthConfig('user-team-membership:read'));
   const canEdit = useAuthorize(globalUserAuthConfig('user:update'));
   const canDelete = useAuthorize(globalUserAuthConfig('user:delete'));
 
@@ -45,10 +45,10 @@ export const useUserGlobalActions = (user: GetUserDto | undefined): ActionsType 
           ? {
               Assign: {
                 icon: BiIdCard,
-                text: 'Add tenant',
-                title: 'Add ' + user.displayName + ' to a tenant',
-                to: `/user-tenant-memberships/create?userId=${user.id}`,
-                onClick: () => navigate(`/user-tenant-memberships/create?userId=${user.id}`),
+                text: 'Add team',
+                title: 'Add ' + user.displayName + ' to a team',
+                to: `/user-team-memberships/create?userId=${user.id}`,
+                onClick: () => navigate(`/user-team-memberships/create?userId=${user.id}`),
               },
             }
           : {}),
@@ -68,23 +68,26 @@ export const useUserGlobalActions = (user: GetUserDto | undefined): ActionsType 
           ? {
               Delete: {
                 icon: BiTrash,
-                isLoading: deleteUser.isPending,
+                isPending: deleteUser.isPending,
                 text: 'Delete',
                 title: 'Delete user',
                 confirmBody: 'This will permanently delete the user.',
                 onClick: () =>
-                  deleteUser.mutateAsync(user.id, {
-                    ...mutationErrCallback({ popGlobalBanner: popBanner }),
-                    onSuccess: () => {
-                      queryClient.invalidateQueries(
-                        queryKey({
-                          resourceName: 'UserTenantMembership',
-                          id: false,
-                        })
-                      );
-                      navigate(`/users`);
-                    },
-                  }),
+                  deleteUser.mutateAsync(
+                    { id: user.id },
+                    {
+                      ...mutationErrCallback({ popGlobalBanner: popBanner }),
+                      onSuccess: () => {
+                        queryClient.invalidateQueries({
+                          queryKey: queryKey({
+                            resourceName: 'UserTeamMembership',
+                            id: false,
+                          }),
+                        });
+                        navigate(`/users`);
+                      },
+                    }
+                  ),
                 confirm: true,
               },
             }

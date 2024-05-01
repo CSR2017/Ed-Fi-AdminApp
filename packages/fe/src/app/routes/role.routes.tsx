@@ -1,6 +1,6 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetRoleDto } from '@edanalytics/models';
-import { UseQueryResult } from '@tanstack/react-query';
+import { UseQueryResult, useQuery } from '@tanstack/react-query';
 import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { RolePage } from '../Pages/Role/RolePage';
 import { RolesPage } from '../Pages/Role/RolesPage';
@@ -10,10 +10,12 @@ import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const RoleBreadcrumb = () => {
   const params = useParams() as { roleId: string; asId: string };
-  const role = roleQueries.useOne({
-    id: params.roleId,
-    tenantId: params.asId,
-  });
+  const role = useQuery(
+    roleQueries.getOne({
+      id: params.roleId,
+      teamId: params.asId,
+    })
+  );
   return role.data?.displayName ?? params.roleId;
 };
 
@@ -45,12 +47,12 @@ export const RoleLink = (props: {
   return role ? (
     <Link as="span">
       <RouterLink title="Go to role" to={`/as/${asId}/roles/${role.id}`}>
-        {getRelationDisplayName(role.id, props.query)}
+        {getRelationDisplayName(props.id, props.query)}
       </RouterLink>
     </Link>
   ) : typeof props.id === 'number' ? (
-    <Text title="Role may have been deleted." as="i" color="gray.500">
-      not found
+    <Text title="Role may have been deleted, or you lack access." as="i" color="gray.500">
+      can't find &#8220;{props.id}&#8221;
     </Text>
   ) : null;
 };

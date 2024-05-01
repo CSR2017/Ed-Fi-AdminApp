@@ -7,7 +7,7 @@ import {
 } from '@edanalytics/utils';
 import { HttpException } from '@nestjs/common';
 
-export interface IAdminApiV1xValidationError {
+export interface IAdminApiValidationError {
   title: 'Validation failed';
   status: 400;
   /**
@@ -24,11 +24,10 @@ export interface IAdminApiV1xGenericError {
   message: 'The server encountered an unexpected condition that prevented it from fulfilling the request.';
 }
 
-export const isIAdminApiV1xValidationError = (error: any): error is IAdminApiV1xValidationError => {
+export const isIAdminApiValidationError = (error: any): error is IAdminApiValidationError => {
   return (
     error &&
     error?.title === 'Validation failed' &&
-    error.status === 400 &&
     typeof error.errors === 'object' &&
     Object.values(error.errors).every(
       (v) => Array.isArray(v) && v.every((v) => typeof v === 'string')
@@ -36,9 +35,9 @@ export const isIAdminApiV1xValidationError = (error: any): error is IAdminApiV1x
   );
 };
 export class CustomHttpException extends HttpException {
-  constructor(info: StatusResponseForceDelete);
-  constructor(info: StatusResponseFormValidation);
   constructor(info: StatusResponseGeneral, status: number);
+  constructor(info: StatusResponseFormValidation);
+  constructor(info: StatusResponseForceDelete);
   constructor(info: StatusResponse, status?: number) {
     super(
       info.type === 'ValidationError' ? { ...info, title: 'Invalid submission.' } : info,

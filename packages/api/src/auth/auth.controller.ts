@@ -3,13 +3,14 @@ import {
   GetSessionDataDto,
   Ids,
   PrivilegeCode,
-  isBaseTenantPrivilege,
+  isBaseTeamPrivilege,
   isGlobalPrivilege,
-  isTenantSbePrivilege,
+  isCachedByEdfiTenant,
   toGetSessionDataDto,
-  toGetTenantDto,
+  toGetTeamDto,
+  isCachedBySbEnvironment,
 } from '@edanalytics/models';
-import { Tenant } from '@edanalytics/models-server';
+import { Team } from '@edanalytics/models-server';
 import {
   Controller,
   Get,
@@ -42,8 +43,8 @@ import { NO_ROLE, USER_NOT_FOUND } from './login/oidc.strategy';
 @Controller('auth')
 export class AuthController {
   constructor(
-    @InjectRepository(Tenant)
-    private readonly tenantsRepository: Repository<Tenant>
+    @InjectRepository(Team)
+    private readonly teamsRepository: Repository<Team>
   ) {}
 
   @Public()
@@ -115,21 +116,21 @@ export class AuthController {
   async me(@ReqUser() session: GetSessionDataDto, @Req() req) {
     return toGetSessionDataDto(session);
   }
-  @Get('my-tenants')
+  @Get('my-teams')
   @NoAuthorization()
   @Header('Cache-Control', 'no-store')
-  async myTenants(
+  async myTeams(
     @ReqUser() session: GetSessionDataDto,
     @AuthCache() privileges: AuthorizationCache,
     @Req() req
   ) {
-    if (privileges['tenant:read'] === true) {
-      return toGetTenantDto(await this.tenantsRepository.find());
+    if (privileges['team:read'] === true) {
+      return toGetTeamDto(await this.teamsRepository.find());
     } else {
-      return toGetTenantDto(session?.userTenantMemberships?.map((utm) => utm.tenant) ?? []);
+      return toGetTeamDto(session?.userTeamMemberships?.map((utm) => utm.team) ?? []);
     }
   }
-  @Get('cache/:tenantId?/:sbeId?/')
+  @Get('cache/:teamId?')
   @Authorize({
     privilege: 'me:read',
     subject: {
@@ -137,29 +138,37 @@ export class AuthController {
     },
   })
   async privilegeCache(
-    @Param('tenantId') tenantId: string | undefined,
-    @Param('sbeId') sbeId: string | undefined,
+    @Param('teamId') teamId: string | undefined,
+    @Query('edfiTenantId') edfiTenantId: string | undefined,
+    @Query('sbEnvironmentId') sbEnvironmentId: string | undefined,
     @AuthCache() cache: AuthorizationCache
   ) {
     const result: Partial<AuthorizationCache> = {};
-    if (tenantId === undefined) {
+    if (teamId === undefined) {
       Object.keys(cache).forEach((privilege: PrivilegeCode) => {
         if (isGlobalPrivilege(privilege)) {
           result[privilege] = cache[privilege];
         }
       });
     }
-    if (tenantId !== undefined && sbeId === undefined) {
+    if (teamId !== undefined && sbEnvironmentId === undefined && edfiTenantId === undefined) {
       Object.keys(cache).forEach((privilege: PrivilegeCode) => {
-        if (isBaseTenantPrivilege(privilege)) {
+        if (isBaseTeamPrivilege(privilege)) {
           result[privilege] = cache[privilege] as any;
         }
       });
     }
-    if (tenantId !== undefined && sbeId !== undefined) {
+    if (teamId !== undefined && sbEnvironmentId !== undefined && edfiTenantId === undefined) {
       Object.keys(cache).forEach((privilege: PrivilegeCode) => {
-        if (isTenantSbePrivilege(privilege) && sbeId in cache[privilege]) {
-          result[privilege] = cache[privilege][sbeId];
+        if (isCachedBySbEnvironment(privilege) && sbEnvironmentId in cache[privilege]) {
+          result[privilege] = cache[privilege][sbEnvironmentId];
+        }
+      });
+    }
+    if (teamId !== undefined && sbEnvironmentId === undefined && edfiTenantId !== undefined) {
+      Object.keys(cache).forEach((privilege: PrivilegeCode) => {
+        if (isCachedByEdfiTenant(privilege) && edfiTenantId in cache[privilege]) {
+          result[privilege] = cache[privilege][edfiTenantId];
         }
       });
     }

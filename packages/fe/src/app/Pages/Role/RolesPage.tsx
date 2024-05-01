@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { HStack } from '@chakra-ui/react';
 import {
   SbaaTableAllInOne,
@@ -8,16 +9,19 @@ import {
 import { GetRoleDto, RoleType } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
 import { useParams } from 'react-router-dom';
-import { roleQueries, useMyTenants, userQueries } from '../../api';
+import { roleQueries, useMyTeams, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { RoleLink, UserLink } from '../../routes';
 import { useRoleActions } from './useRoleActions';
+import { useAuthorize } from '../../helpers';
 
 const NameCell = (info: CellContext<GetRoleDto, unknown>) => {
   const params = useParams() as { asId: string };
-  const entities = roleQueries.useAll({
-    tenantId: params.asId,
-  });
+  const entities = useQuery(
+    roleQueries.getAll({
+      teamId: params.asId,
+    })
+  );
   const actions = useRoleActions(info.row.original);
   return (
     <HStack justify="space-between">
@@ -29,15 +33,17 @@ const NameCell = (info: CellContext<GetRoleDto, unknown>) => {
 
 export const RolesPage = () => {
   const params = useParams();
-  const tenantId = Number(params.asId);
-  const roles = roleQueries.useAll({
-    tenantId: params.asId,
+  const teamId = Number(params.asId);
+  const roles = useQuery(
+    roleQueries.getAll({
+      teamId: params.asId,
+    })
+  );
+  const users = useQuery({
+    ...userQueries.getAll({ teamId: params.asId }),
+    enabled: useAuthorize({ privilege: 'team.user:read', subject: { teamId, id: '__filtered__' } }),
   });
-  const deleteRole = roleQueries.useDelete({
-    tenantId: params.asId,
-  });
-  const users = userQueries.useAll({ tenantId: params.asId, optional: true });
-  const tenants = useMyTenants();
+  const teams = useMyTeams();
 
   return (
     <PageTemplate title="Roles" justifyActionsLeft>
@@ -61,8 +67,8 @@ export const RolesPage = () => {
           {
             id: 'owned-by',
             accessorFn: (info) =>
-              typeof info.tenantId === 'number'
-                ? getRelationDisplayName(info.tenantId, tenants)
+              typeof info.teamId === 'number'
+                ? getRelationDisplayName(info.teamId, teams)
                 : 'Public',
             header: 'Owned by',
             filterFn: 'equalsString',

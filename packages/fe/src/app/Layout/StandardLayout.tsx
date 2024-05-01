@@ -1,27 +1,46 @@
 import { Box, Flex, HStack, Text, VStack } from '@chakra-ui/react';
-import { useAtomValue } from 'jotai';
 import { Outlet, useParams } from 'react-router-dom';
 import { useMe } from '../api';
-import { NavContextProvider } from '../helpers';
+import { NavContextProvider, useNavContext } from '../helpers';
 import { AppBar } from './AppBar';
 import { AppBarPublic } from './AppBarPublic';
 import { Breadcrumbs } from './Breadcrumbs';
 import { FeedbackBanners } from './FeedbackBanner';
 import { LandingLayout, LandingLayoutRouteElement } from './LandingLayout';
-import { Nav, asTenantIdAtom } from './Nav';
+import { Nav, useAsId } from './Nav';
+
+const LoadEdfiTenantContext = () => {
+  const { edfiTenant, edfiTenantId, sbEnvironment, sbEnvironmentId } = useNavContext();
+  if (edfiTenant?.id !== edfiTenantId || sbEnvironment?.id !== sbEnvironmentId) {
+    return null;
+  }
+  return <Outlet />;
+};
 
 export const StandardLayout = () => {
   const me = useMe();
   const isLoggedIn = me.data !== undefined && me.data !== null;
   const hasRole = !!me.data?.role;
-  const asId = useAtomValue(asTenantIdAtom);
+  const asId = useAsId();
   const params = useParams();
 
   return (
-    <NavContextProvider asId={asId} sbeId={'sbeId' in params ? Number(params.sbeId) : undefined}>
+    <NavContextProvider
+      asId={asId}
+      edfiTenantId={'edfiTenantId' in params ? Number(params.edfiTenantId) : undefined}
+      sbEnvironmentId={'sbEnvironmentId' in params ? Number(params.sbEnvironmentId) : undefined}
+    >
       <VStack spacing={0} h="100vh" overflow="hidden">
         {isLoggedIn ? <AppBar /> : <AppBarPublic />}
-        <HStack as="main" w="100%" flex="auto 1 1" align="start" overflow="hidden" spacing={0}>
+        <HStack
+          as="main"
+          w="100%"
+          flex="auto 1 1"
+          align="start"
+          overflow="hidden"
+          spacing={0}
+          position="static"
+        >
           {hasRole ? (
             <>
               <Nav />
@@ -42,10 +61,12 @@ export const StandardLayout = () => {
                     <Breadcrumbs mb={5} />
                     <Box flexGrow={1} pb="2em" w="fit-content" minW="100%">
                       {/* asId might be one render behind */}
-                      {params.asId && asId === undefined ? null : <Outlet />}
+                      {params.asId && Number(params.asId) !== asId ? null : (
+                        <LoadEdfiTenantContext />
+                      )}
                     </Box>
                     <Box fontSize="sm" color="gray.600" mt="auto" textAlign="center">
-                      ©2023 Education Analytics, Inc. All Rights Reserved
+                      ©2023-{new Date().getFullYear()} Education Analytics, Inc. All Rights Reserved
                     </Box>
                   </Box>
                 </Flex>

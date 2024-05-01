@@ -1,0 +1,72 @@
+import { PostOdsDto, toGetOdsDto } from '@edanalytics/models';
+import { EdfiTenant, Ods, SbEnvironment, regarding } from '@edanalytics/models-server';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CustomHttpException, ValidationHttpException } from '../../../utils';
+import { Repository } from 'typeorm';
+import { StartingBlocksServiceV2 } from '../starting-blocks';
+
+@Injectable()
+export class OdssService {
+  constructor(
+    @InjectRepository(Ods)
+    private odssRepository: Repository<Ods>,
+    private readonly startingBlocksServiceV2: StartingBlocksServiceV2
+  ) {}
+
+  async findAll(edfiTenantId: number) {
+    return this.odssRepository.findBy({ edfiTenantId });
+  }
+
+  findOne(id: number) {
+    return this.odssRepository.findOneBy({ id });
+  }
+
+  async create(sbEnvironment: SbEnvironment, edfiTenant: EdfiTenant, dto: PostOdsDto) {
+    const result = await this.startingBlocksServiceV2.createOds(
+      sbEnvironment,
+      edfiTenant,
+      dto.name,
+      dto.templateName
+    );
+    if (result.status === 'SUCCESS') {
+      return this.odssRepository
+        .findOneBy({ odsInstanceName: dto.name })
+        .then((ods) => toGetOdsDto(ods));
+    }
+    if (result.status === 'ALREADY_EXISTS') {
+      throw new ValidationHttpException({
+        field: 'name',
+        message: 'An ODS by this name already exists.',
+      });
+    }
+    throw new CustomHttpException(
+      {
+        title: 'Failed to create ODS.',
+        type: 'Error',
+        message: ('data' in result && result.data?.errorMessage) ?? result.status,
+        regarding: regarding(edfiTenant),
+      },
+      500
+    );
+  }
+  async delete(sbEnvironment: SbEnvironment, edfiTenant: EdfiTenant, id: Ods['id']) {
+    const ods = await this.odssRepository.findOneBy({ id });
+    if (ods === null) {
+      throw new NotFoundException('ODS not found');
+    }
+    const result = await this.startingBlocksServiceV2.deleteOds(sbEnvironment, edfiTenant, ods);
+    if (result.status === 'SUCCESS') {
+      return undefined;
+    }
+    throw new CustomHttpException(
+      {
+        title: 'Failed to delete ODS.',
+        type: 'Error',
+        message: ('data' in result && result.data?.errorMessage) ?? result.status,
+        regarding: regarding(ods),
+      },
+      500
+    );
+  }
+}

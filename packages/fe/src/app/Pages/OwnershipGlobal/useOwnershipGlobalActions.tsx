@@ -1,5 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
 import { ActionsType } from '@edanalytics/common-ui';
-import { GetOwnershipDto } from '@edanalytics/models';
+import { GetOwnershipDto, GetOwnershipViewDto } from '@edanalytics/models';
 import { BiEdit, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -8,14 +9,16 @@ import { ownershipQueries } from '../../api';
 import { useAuthorize } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
-export const useOwnershipGlobalActions = (ownership: GetOwnershipDto | undefined): ActionsType => {
+export const useOwnershipGlobalActions = (
+  ownership: GetOwnershipDto | GetOwnershipViewDto | undefined
+): ActionsType => {
   const params = useParams() as {
     ownershipId: string;
   };
   const popBanner = usePopBanner();
   const navigate = useNavigate();
   const to = (id: number | string) => `/ownerships/${id}`;
-  const deleteOwnership = ownershipQueries.useDelete({});
+  const deleteOwnership = ownershipQueries.delete({});
 
   const canView = useAuthorize(
     ownership && {
@@ -73,15 +76,18 @@ export const useOwnershipGlobalActions = (ownership: GetOwnershipDto | undefined
           ? {
               Delete: {
                 icon: BiTrash,
-                isLoading: deleteOwnership.isPending,
+                isPending: deleteOwnership.isPending,
                 text: 'Delete',
                 title: 'Delete ownership',
                 confirmBody: 'This will permanently delete the ownership.',
                 onClick: () =>
-                  deleteOwnership.mutateAsync(ownership.id, {
-                    ...mutationErrCallback({ popGlobalBanner: popBanner }),
-                    onSuccess: () => navigate(`/ownerships`),
-                  }),
+                  deleteOwnership.mutateAsync(
+                    { id: ownership.id },
+                    {
+                      ...mutationErrCallback({ popGlobalBanner: popBanner }),
+                      onSuccess: () => navigate(`/ownerships`),
+                    }
+                  ),
                 confirm: true,
               },
             }

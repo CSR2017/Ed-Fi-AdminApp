@@ -18,23 +18,26 @@ import { useForm } from 'react-hook-form';
 import { BsInfoCircle } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { useApplicationPost } from '../../api';
-import { useNavContext, useNavToParent } from '../../helpers';
-import { SelectClaimset, SelectEdorg, SelectVendor } from '../../helpers';
+import { applicationQueriesV1 } from '../../api';
+import {
+  SelectClaimset,
+  SelectEdorg,
+  SelectVendor,
+  useNavToParent,
+  useTeamEdfiTenantNavContextLoaded,
+} from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 const resolver = classValidatorResolver(PostApplicationForm);
 
 export const CreateApplicationPage = () => {
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
   const navigate = useNavigate();
-  const navContext = useNavContext();
-  const sbeId = navContext.sbeId!;
-  const asId = navContext.asId!;
   const navToParentOptions = useNavToParent();
   const popBanner = usePopBanner();
 
-  const postApplication = useApplicationPost({
-    sbeId: sbeId,
-    tenantId: asId,
+  const postApplication = applicationQueriesV1.post({
+    edfiTenant,
+    teamId,
   });
 
   const {
@@ -54,14 +57,20 @@ export const CreateApplicationPage = () => {
         w="30em"
         onSubmit={handleSubmit((data) =>
           postApplication
-            .mutateAsync(data, {
-              onSuccess(data, variables, context) {
-                navigate(`/as/${asId}/sbes/${sbeId}/applications/${data.applicationId}`, {
-                  state: data.link,
-                });
-              },
-              ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
-            })
+            .mutateAsync(
+              { entity: data },
+              {
+                onSuccess(data, variables, context) {
+                  navigate(
+                    `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/applications/${data.applicationId}`,
+                    {
+                      state: data.link,
+                    }
+                  );
+                },
+                ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
+              }
+            )
             .catch(noop)
         )}
       >

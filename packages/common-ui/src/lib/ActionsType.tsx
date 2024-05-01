@@ -8,7 +8,9 @@ export type ActionProps = {
   text: string;
   title: string;
   isDisabled?: boolean;
-  isLoading?: boolean;
+  isPending?: boolean;
+  /** Flag that an action should be available but at the bottom of the list. For example connect SB meta when there's already a connection. */
+  isIrrelevant?: boolean;
 };
 export type ActionPropsConfirm = ActionProps & {
   confirmBody: string;

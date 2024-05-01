@@ -5,17 +5,23 @@ const validate = (value: any) => {
   return validateArn(value) || 'Invalid Amazon Resource Name';
 };
 
-export function IsArn() {
+export function IsArn(validationOptions?: { allowEmptyString?: boolean }) {
   return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'isArn',
       target: object.constructor,
       propertyName: propertyName,
       options: {
-        message: (args) => validate(args.value) as string,
+        message: (args) =>
+          validationOptions?.allowEmptyString && args.value === ''
+            ? ''
+            : (validate(args.value) as string),
       },
       validator: {
-        validate: (value) => (validate(value) === true ? true : false),
+        validate: (value) =>
+          (validationOptions?.allowEmptyString && value === '') || validate(value) === true
+            ? true
+            : false,
       },
     });
   };

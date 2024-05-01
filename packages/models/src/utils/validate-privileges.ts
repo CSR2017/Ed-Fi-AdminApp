@@ -1,34 +1,53 @@
 import { registerDecorator } from 'class-validator';
-import { PrivilegeCode, privilegeCodes } from '../types/privilege.type';
+import { PRIVILEGE_CODES } from '../types/privilege.type';
+import { PrivilegeCode } from '../types';
 
 export const privilegeDependencies: Partial<
   Record<PrivilegeCode, { dependencies: PrivilegeCode[]; message: string }>
 > = {
   'ods:read': {
-    dependencies: ['sbe:read'],
-    message: 'All ODS features require the ability to also access SBEs.',
+    dependencies: ['sb-environment.edfi-tenant:read'],
+    message: 'All ODS features require the ability to also access EdfiTenants.',
   },
   'edorg:read': {
-    dependencies: ['sbe:read', 'ods:read'],
-    message: 'All Ed-Org features require the ability to also access SBEs and ODSs.',
+    dependencies: ['sb-environment.edfi-tenant:read', 'ods:read'],
+    message: 'All Ed-Org features require the ability to also access EdfiTenants and ODSs.',
   },
   'ownership:create': {
-    dependencies: ['sbe:read', 'ods:read', 'edorg:read', 'role:read', 'ownership:read'],
+    dependencies: [
+      'sb-environment.edfi-tenant:read',
+      'ods:read',
+      'edorg:read',
+      'role:read',
+      'ownership:read',
+    ],
     message:
       'All Ownership features require the ability to also access the several other kinds of data involved in management of ownerships.',
   },
   'ownership:read': {
-    dependencies: ['sbe:read', 'ods:read', 'edorg:read', 'role:read'],
+    dependencies: ['sb-environment.edfi-tenant:read', 'ods:read', 'edorg:read', 'role:read'],
     message:
       'All Ownership features require the ability to also access the several other kinds of data involved in management of ownerships.',
   },
   'ownership:update': {
-    dependencies: ['sbe:read', 'ods:read', 'edorg:read', 'role:read', 'ownership:read'],
+    dependencies: [
+      'sb-environment.edfi-tenant:read',
+      'ods:read',
+      'edorg:read',
+      'role:read',
+      'ownership:read',
+    ],
     message:
       'All Ownership features require the ability to also access the several other kinds of data involved in management of ownerships.',
   },
   'ownership:delete': {
-    dependencies: ['sbe:read', 'ods:read', 'edorg:read', 'role:read', 'ownership:read'],
+    dependencies: [
+      'sb-environment.edfi-tenant:read',
+      'ods:read',
+      'edorg:read',
+      'role:read',
+      'ownership:read',
+    ],
     message:
       'All Ownership features require the ability to also access the several other kinds of data involved in management of ownerships.',
   },
@@ -64,152 +83,178 @@ export const privilegeDependencies: Partial<
     dependencies: ['role:read', 'user:read'],
     message: 'All Role features require the ability to also access privileges.',
   },
-  'user-tenant-membership:create': {
-    dependencies: ['role:read', 'user:read', 'user-tenant-membership:read'],
+  'user-team-membership:create': {
+    dependencies: ['role:read', 'user:read', 'user-team-membership:read'],
     message: 'All Role features require the ability to also access privileges.',
   },
-  'user-tenant-membership:read': {
+  'user-team-membership:read': {
     dependencies: ['role:read', 'user:read'],
     message: 'All Role features require the ability to also access privileges.',
   },
-  'user-tenant-membership:update': {
-    dependencies: ['role:read', 'user:read', 'user-tenant-membership:read'],
+  'user-team-membership:update': {
+    dependencies: ['role:read', 'user:read', 'user-team-membership:read'],
     message: 'All Role features require the ability to also access privileges.',
   },
-  'user-tenant-membership:delete': {
-    dependencies: ['role:read', 'user:read', 'user-tenant-membership:read'],
+  'user-team-membership:delete': {
+    dependencies: ['role:read', 'user:read', 'user-team-membership:read'],
     message: 'All Role features require the ability to also access privileges.',
   },
-  'tenant.sbe.ods:read': {
-    dependencies: ['tenant.sbe:read'],
-    message: 'All ODS features require the ability to also access SBEs.',
+  'team.sb-environment.edfi-tenant.ods:read': {
+    dependencies: ['team.sb-environment.edfi-tenant:read'],
+    message: 'All ODS features require the ability to also access EdfiTenants.',
   },
-  'tenant.sbe.edorg:read': {
-    dependencies: ['tenant.sbe:read', 'tenant.sbe.ods:read'],
-    message: 'All Ed-Org features require the ability to also access SBEs and ODSs.',
-  },
-  'tenant.sbe.edorg.application:read': {
+  'team.sb-environment.edfi-tenant.ods.edorg:read': {
     dependencies: [
-      'tenant.sbe:read',
-      'tenant.sbe.ods:read',
-      'tenant.sbe.edorg:read',
-      'tenant.sbe.vendor:read',
-      'tenant.sbe.claimset:read',
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.ods:read',
     ],
-    message: 'All Application features require the ability to also access SBEs, ODSs, and Ed-Orgs.',
+    message: 'All Ed-Org features require the ability to also access EdfiTenants and ODSs.',
   },
-  'tenant.sbe.edorg.application:create': {
+  'team.sb-environment.edfi-tenant.ods.edorg.application:read': {
     dependencies: [
-      'tenant.sbe:read',
-      'tenant.sbe.ods:read',
-      'tenant.sbe.edorg:read',
-      'tenant.sbe.edorg.application:read',
-      'tenant.sbe.vendor:read',
-      'tenant.sbe.claimset:read',
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.ods:read',
+      'team.sb-environment.edfi-tenant.ods.edorg:read',
+      'team.sb-environment.edfi-tenant.vendor:read',
+      'team.sb-environment.edfi-tenant.claimset:read',
     ],
-    message: 'All Application features require the ability to also access SBEs, ODSs, and Ed-Orgs.',
+    message:
+      'All Application features require the ability to also access EdfiTenants, ODSs, and Ed-Orgs.',
   },
-  'tenant.sbe.edorg.application:delete': {
+  'team.sb-environment.edfi-tenant.ods.edorg.application:create': {
     dependencies: [
-      'tenant.sbe:read',
-      'tenant.sbe.ods:read',
-      'tenant.sbe.edorg:read',
-      'tenant.sbe.edorg.application:read',
-      'tenant.sbe.vendor:read',
-      'tenant.sbe.claimset:read',
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.ods:read',
+      'team.sb-environment.edfi-tenant.ods.edorg:read',
+      'team.sb-environment.edfi-tenant.ods.edorg.application:read',
+      'team.sb-environment.edfi-tenant.vendor:read',
+      'team.sb-environment.edfi-tenant.claimset:read',
     ],
-    message: 'All Application features require the ability to also access SBEs, ODSs, and Ed-Orgs.',
+    message:
+      'All Application features require the ability to also access EdfiTenants, ODSs, and Ed-Orgs.',
   },
-  'tenant.sbe.edorg.application:update': {
+  'team.sb-environment.edfi-tenant.ods.edorg.application:delete': {
     dependencies: [
-      'tenant.sbe:read',
-      'tenant.sbe.ods:read',
-      'tenant.sbe.edorg:read',
-      'tenant.sbe.edorg.application:read',
-      'tenant.sbe.vendor:read',
-      'tenant.sbe.claimset:read',
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.ods:read',
+      'team.sb-environment.edfi-tenant.ods.edorg:read',
+      'team.sb-environment.edfi-tenant.ods.edorg.application:read',
+      'team.sb-environment.edfi-tenant.vendor:read',
+      'team.sb-environment.edfi-tenant.claimset:read',
     ],
-    message: 'All Application features require the ability to also access SBEs, ODSs, and Ed-Orgs.',
+    message:
+      'All Application features require the ability to also access EdfiTenants, ODSs, and Ed-Orgs.',
   },
-  'tenant.sbe.edorg.application:reset-credentials': {
+  'team.sb-environment.edfi-tenant.ods.edorg.application:update': {
     dependencies: [
-      'tenant.sbe:read',
-      'tenant.sbe.ods:read',
-      'tenant.sbe.edorg:read',
-      'tenant.sbe.edorg.application:read',
-      'tenant.sbe.vendor:read',
-      'tenant.sbe.claimset:read',
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.ods:read',
+      'team.sb-environment.edfi-tenant.ods.edorg:read',
+      'team.sb-environment.edfi-tenant.ods.edorg.application:read',
+      'team.sb-environment.edfi-tenant.vendor:read',
+      'team.sb-environment.edfi-tenant.claimset:read',
     ],
-    message: 'All Application features require the ability to also access SBEs, ODSs, and Ed-Orgs.',
+    message:
+      'All Application features require the ability to also access EdfiTenants, ODSs, and Ed-Orgs.',
   },
-  'tenant.sbe.claimset:read': {
-    dependencies: ['tenant.sbe:read'],
-    message: 'All Claimset features require the ability to also access SBEs.',
-  },
-  'tenant.sbe.claimset:update': {
-    dependencies: ['tenant.sbe:read', 'tenant.sbe.claimset:read'],
-    message: 'All Claimset features require the ability to also access SBEs.',
-  },
-  'tenant.sbe.claimset:create': {
-    dependencies: ['tenant.sbe:read', 'tenant.sbe.claimset:read'],
-    message: 'All Claimset features require the ability to also access SBEs.',
-  },
-  'tenant.sbe.claimset:delete': {
-    dependencies: ['tenant.sbe:read', 'tenant.sbe.claimset:read'],
-    message: 'All Claimset features require the ability to also access SBEs.',
-  },
-  'tenant.sbe.vendor:read': {
-    dependencies: ['tenant.sbe:read'],
-    message: 'All Vendor features require the ability to also access SBEs.',
-  },
-  'tenant.sbe.vendor:update': {
-    dependencies: ['tenant.sbe:read', 'tenant.sbe.vendor:read'],
-    message: 'All Vendor features require the ability to also access SBEs.',
-  },
-  'tenant.sbe.vendor:create': {
-    dependencies: ['tenant.sbe:read', 'tenant.sbe.vendor:read'],
-    message: 'All Vendor features require the ability to also access SBEs.',
-  },
-  'tenant.sbe.vendor:delete': {
-    dependencies: ['tenant.sbe:read', 'tenant.sbe.vendor:read'],
-    message: 'All Vendor features require the ability to also access SBEs.',
-  },
-  'tenant.ownership:read': {
+  'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials': {
     dependencies: [
-      'tenant.sbe:read',
-      'tenant.sbe.ods:read',
-      'tenant.sbe.edorg:read',
-      'tenant.role:read',
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.ods:read',
+      'team.sb-environment.edfi-tenant.ods.edorg:read',
+      'team.sb-environment.edfi-tenant.ods.edorg.application:read',
+      'team.sb-environment.edfi-tenant.vendor:read',
+      'team.sb-environment.edfi-tenant.claimset:read',
+    ],
+    message:
+      'All Application features require the ability to also access EdfiTenants, ODSs, and Ed-Orgs.',
+  },
+  'team.sb-environment.edfi-tenant.claimset:read': {
+    dependencies: ['team.sb-environment.edfi-tenant:read'],
+    message: 'All Claimset features require the ability to also access EdfiTenants.',
+  },
+  'team.sb-environment.edfi-tenant.claimset:update': {
+    dependencies: [
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.claimset:read',
+    ],
+    message: 'All Claimset features require the ability to also access EdfiTenants.',
+  },
+  'team.sb-environment.edfi-tenant.claimset:create': {
+    dependencies: [
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.claimset:read',
+    ],
+    message: 'All Claimset features require the ability to also access EdfiTenants.',
+  },
+  'team.sb-environment.edfi-tenant.claimset:delete': {
+    dependencies: [
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.claimset:read',
+    ],
+    message: 'All Claimset features require the ability to also access EdfiTenants.',
+  },
+  'team.sb-environment.edfi-tenant.vendor:read': {
+    dependencies: ['team.sb-environment.edfi-tenant:read'],
+    message: 'All Vendor features require the ability to also access EdfiTenants.',
+  },
+  'team.sb-environment.edfi-tenant.vendor:update': {
+    dependencies: [
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.vendor:read',
+    ],
+    message: 'All Vendor features require the ability to also access EdfiTenants.',
+  },
+  'team.sb-environment.edfi-tenant.vendor:create': {
+    dependencies: [
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.vendor:read',
+    ],
+    message: 'All Vendor features require the ability to also access EdfiTenants.',
+  },
+  'team.sb-environment.edfi-tenant.vendor:delete': {
+    dependencies: [
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.vendor:read',
+    ],
+    message: 'All Vendor features require the ability to also access EdfiTenants.',
+  },
+  'team.ownership:read': {
+    dependencies: [
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.ods:read',
+      'team.sb-environment.edfi-tenant.ods.edorg:read',
+      'team.role:read',
     ],
     message:
       'All Ownership features require the ability to also access the several other kinds of data involved in management of ownerships.',
   },
-  'tenant.role:create': {
-    dependencies: ['tenant.role:read'],
+  'team.role:create': {
+    dependencies: ['team.role:read'],
     message: 'All Role features require the ability to also access privileges.',
   },
-  'tenant.role:read': {
+  'team.role:read': {
     dependencies: [],
     message: 'All Role features require the ability to also access privileges.',
   },
-  'tenant.role:update': {
-    dependencies: ['tenant.role:read'],
+  'team.role:update': {
+    dependencies: ['team.role:read'],
     message: 'All Role features require the ability to also access privileges.',
   },
-  'tenant.role:delete': {
-    dependencies: ['tenant.role:read'],
+  'team.role:delete': {
+    dependencies: ['team.role:read'],
     message: 'All Role features require the ability to also access privileges.',
   },
-  'tenant.user:read': {
-    dependencies: ['tenant.role:read'],
+  'team.user:read': {
+    dependencies: ['team.role:read'],
     message: 'All User features require the ability to also access privileges and roles.',
   },
 };
-const privilegeCodesSet = new Set(privilegeCodes);
+const privilegeCodesSet = new Set(PRIVILEGE_CODES);
 
 export type DependencyErrors = Partial<Record<PrivilegeCode, string>>;
 
-const validate = (value: string[] | undefined) => {
+const validate = (value: PrivilegeCode[] | undefined) => {
   if (!value) {
     return 'Privileges are required.';
   }

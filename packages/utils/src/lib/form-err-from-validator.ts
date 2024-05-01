@@ -150,7 +150,7 @@ export type StatusResponseGeneral = {
   message?: string;
   regarding?: string;
 } & {
-  type: 'Success' | 'Info' | 'Warning' | 'Error';
+  type: 'Success' | 'Info' | 'Warning' | 'Error' | 'RequiresForceDelete' | 'ValidationError';
   data?: object;
 };
 

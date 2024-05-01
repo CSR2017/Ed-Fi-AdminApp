@@ -1,3 +1,7 @@
+import { IPrivilege } from '../interfaces';
+import { PrivilegeCode } from './privileges';
+import { privileges } from './privileges-source';
+
 export type BasePrivilege =
   | 'me:read'
   | 'ownership:read'
@@ -8,119 +12,76 @@ export type BasePrivilege =
   | 'role:update'
   | 'role:delete'
   | 'role:create'
-  | 'sbe:read'
-  | 'sbe:update'
-  | 'sbe:delete'
-  | 'sbe:create'
-  | 'sbe:refresh-resources'
+  | 'sb-environment.edfi-tenant:read'
+  | 'sb-environment.edfi-tenant:update'
+  | 'sb-environment.edfi-tenant:delete'
+  | 'sb-environment.edfi-tenant:create'
+  | 'sb-environment.edfi-tenant:refresh-resources'
+  | 'sb-environment:read'
+  | 'sb-environment:update'
+  | 'sb-environment:delete'
+  | 'sb-environment:create'
+  | 'sb-environment:refresh-resources'
   | 'sb-sync-queue:read'
   | 'sb-sync-queue:archive'
   | 'ods:read'
   | 'edorg:read'
-  | 'privilege:read'
   | 'user:read'
   | 'user:update'
   | 'user:delete'
   | 'user:create'
-  | 'tenant:read'
-  | 'tenant:update'
-  | 'tenant:delete'
-  | 'tenant:create'
-  | 'user-tenant-membership:read'
-  | 'user-tenant-membership:update'
-  | 'user-tenant-membership:delete'
-  | 'user-tenant-membership:create';
+  | 'team:read'
+  | 'team:update'
+  | 'team:delete'
+  | 'team:create'
+  | 'user-team-membership:read'
+  | 'user-team-membership:update'
+  | 'user-team-membership:delete'
+  | 'user-team-membership:create';
 
-export type TenantBasePrivilege =
-  | 'tenant.ownership:read'
-  | 'tenant.role:read'
-  | 'tenant.role:update'
-  | 'tenant.role:delete'
-  | 'tenant.role:create'
-  | 'tenant.user:read'
-  | 'tenant.user-tenant-membership:read'
-  | 'tenant.user-tenant-membership:update'
-  | 'tenant.user-tenant-membership:delete'
-  | 'tenant.user-tenant-membership:create'
-  | 'tenant.sbe:read'
-  | 'tenant.sbe:refresh-resources';
+export type TeamBasePrivilege =
+  | 'team.ownership:read'
+  | 'team.role:read'
+  | 'team.role:update'
+  | 'team.role:delete'
+  | 'team.role:create'
+  | 'team.user:read'
+  | 'team.user-team-membership:read'
+  | 'team.user-team-membership:update'
+  | 'team.user-team-membership:delete'
+  | 'team.user-team-membership:create'
+  | 'team.sb-environment:read'
+  | 'team.sb-environment:delete-tenant'
+  | 'team.sb-environment:create-tenant';
 
-export type TenantSbePrivilege =
-  | 'tenant.sbe.vendor:read'
-  | 'tenant.sbe.vendor:update'
-  | 'tenant.sbe.vendor:delete'
-  | 'tenant.sbe.vendor:create'
-  | 'tenant.sbe.claimset:read'
-  | 'tenant.sbe.claimset:update'
-  | 'tenant.sbe.claimset:delete'
-  | 'tenant.sbe.claimset:create'
-  | 'tenant.sbe.ods:read'
-  | 'tenant.sbe.edorg:read'
-  | 'tenant.sbe.edorg.application:read'
-  | 'tenant.sbe.edorg.application:update'
-  | 'tenant.sbe.edorg.application:delete'
-  | 'tenant.sbe.edorg.application:create'
-  | 'tenant.sbe.edorg.application:reset-credentials';
+export type TeamSbEnvironmentPrivilege = 'team.sb-environment.edfi-tenant:read';
 
-export type PrivilegeCode = BasePrivilege | TenantBasePrivilege | TenantSbePrivilege;
+export type TeamEdfiTenantPrivilege =
+  | 'team.sb-environment.edfi-tenant:create-ods'
+  | 'team.sb-environment.edfi-tenant:delete-ods'
+  | 'team.sb-environment.edfi-tenant.vendor:read'
+  | 'team.sb-environment.edfi-tenant.vendor:update'
+  | 'team.sb-environment.edfi-tenant.vendor:delete'
+  | 'team.sb-environment.edfi-tenant.vendor:create'
+  | 'team.sb-environment.edfi-tenant.claimset:read'
+  | 'team.sb-environment.edfi-tenant.claimset:update'
+  | 'team.sb-environment.edfi-tenant.claimset:delete'
+  | 'team.sb-environment.edfi-tenant.claimset:create'
+  | 'team.sb-environment.edfi-tenant.ods:read'
+  | 'team.sb-environment.edfi-tenant.ods:create-edorg'
+  | 'team.sb-environment.edfi-tenant.ods:delete-edorg'
+  | 'team.sb-environment.edfi-tenant.ods.edorg:read'
+  | 'team.sb-environment.edfi-tenant.ods.edorg.application:read'
+  | 'team.sb-environment.edfi-tenant.ods.edorg.application:update'
+  | 'team.sb-environment.edfi-tenant.ods.edorg.application:delete'
+  | 'team.sb-environment.edfi-tenant.ods.edorg.application:create'
+  | 'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials';
 
-export const privilegeCodes = [
-  'me:read',
-  'ownership:read',
-  'ownership:update',
-  'ownership:delete',
-  'ownership:create',
-  'role:read',
-  'role:update',
-  'role:delete',
-  'role:create',
-  'sbe:read',
-  'sbe:update',
-  'sbe:delete',
-  'sbe:create',
-  'sbe:refresh-resources',
-  'sb-sync-queue:read',
-  'sb-sync-queue:archive',
-  'ods:read',
-  'edorg:read',
-  'privilege:read',
-  'user:read',
-  'user:update',
-  'user:delete',
-  'user:create',
-  'tenant:read',
-  'tenant:update',
-  'tenant:delete',
-  'tenant:create',
-  'user-tenant-membership:read',
-  'user-tenant-membership:update',
-  'user-tenant-membership:delete',
-  'user-tenant-membership:create',
-  'tenant.ownership:read',
-  'tenant.role:read',
-  'tenant.role:update',
-  'tenant.role:delete',
-  'tenant.role:create',
-  'tenant.user:read',
-  'tenant.user-tenant-membership:read',
-  'tenant.user-tenant-membership:update',
-  'tenant.user-tenant-membership:delete',
-  'tenant.user-tenant-membership:create',
-  'tenant.sbe:read',
-  'tenant.sbe:refresh-resources',
-  'tenant.sbe.vendor:read',
-  'tenant.sbe.vendor:update',
-  'tenant.sbe.vendor:delete',
-  'tenant.sbe.vendor:create',
-  'tenant.sbe.claimset:read',
-  'tenant.sbe.claimset:update',
-  'tenant.sbe.claimset:delete',
-  'tenant.sbe.claimset:create',
-  'tenant.sbe.ods:read',
-  'tenant.sbe.edorg:read',
-  'tenant.sbe.edorg.application:read',
-  'tenant.sbe.edorg.application:update',
-  'tenant.sbe.edorg.application:delete',
-  'tenant.sbe.edorg.application:create',
-  'tenant.sbe.edorg.application:reset-credentials',
-];
+export const PRIVILEGES = Object.fromEntries(
+  Object.keys(privileges).map((p) => [p, { code: p, description: privileges[p as PrivilegeCode] }])
+) as Record<PrivilegeCode, IPrivilege>;
+
+export const PRIVILEGE_CODES = Object.keys(privileges) as PrivilegeCode[];
+export const TEAM_EDFI_TENANT_PRIVILEGES: TeamEdfiTenantPrivilege[] = PRIVILEGE_CODES.filter((p) =>
+  p.startsWith('team.sb-environment.edfi-tenant')
+) as TeamEdfiTenantPrivilege[];

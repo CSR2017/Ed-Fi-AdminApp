@@ -1,36 +1,17 @@
-import { Box } from '@chakra-ui/react';
-import {
-  PageActions,
-  SbaaTableAllInOne,
-  PageTemplate,
-  SbaaTable,
-  SbaaTableAdvancedButton,
-  SbaaTableFilters,
-  SbaaTablePagination,
-  SbaaTableProvider,
-  SbaaTableSearch,
-  ValueAsDate,
-} from '@edanalytics/common-ui';
-import { ownershipQueries, roleQueries, sbeQueries, tenantQueries } from '../../api';
+import { PageActions, PageTemplate, SbaaTableAllInOne } from '@edanalytics/common-ui';
+import { useQuery } from '@tanstack/react-query';
+import { ownershipQueries, roleQueries, teamQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { TenantLink } from '../../routes';
+import { TeamLink } from '../../routes';
 import { RoleGlobalLink } from '../../routes/role-global.routes';
-import { useMultipleOwnershipGlobalActions } from './useMultipleOwnershipGlobalActions';
 import { OwnershipsNameCell } from './OwnershipsNameCell';
+import { useMultipleOwnershipGlobalActions } from './useMultipleOwnershipGlobalActions';
 
 export const OwnershipsGlobalPage = () => {
-  const ownerships = ownershipQueries.useAll({});
-  const roles = roleQueries.useAll({});
-  const tenants = tenantQueries.useAll({});
+  const ownerships = useQuery(ownershipQueries.getAll({}));
+  const roles = useQuery(roleQueries.getAll({}));
+  const teams = useQuery(teamQueries.getAll({}));
   const actions = useMultipleOwnershipGlobalActions();
-  const sbes = sbeQueries.useAll({});
-  const getSbeDisplayName = (sbeId: number) => {
-    if (sbes.isSuccess && sbes.data) {
-      return `(${sbes.data?.[sbeId]?.displayName ?? 'Environment not found'})`;
-    } else {
-      return '(loading environment...)';
-    }
-  };
 
   return (
     <PageTemplate title="Resource ownerships" actions={<PageActions actions={actions} />}>
@@ -43,10 +24,10 @@ export const OwnershipsGlobalPage = () => {
             header: 'Name',
           },
           {
-            id: 'tenant',
-            accessorFn: (info) => getRelationDisplayName(info.tenantId, tenants),
-            header: 'Tenant',
-            cell: (info) => <TenantLink id={info.row.original.tenantId} query={tenants} />,
+            id: 'team',
+            accessorFn: (info) => getRelationDisplayName(info.teamId, teams),
+            header: 'Team',
+            cell: (info) => <TeamLink id={info.row.original.teamId} query={teams} />,
             filterFn: 'equalsString',
             meta: {
               type: 'options',
@@ -63,34 +44,8 @@ export const OwnershipsGlobalPage = () => {
             },
           },
           {
-            id: 'resource',
-            accessorFn: (info) =>
-              info.edorg
-                ? `Ed-Org - ${info.edorg.displayName}`
-                : info.ods
-                ? `Ods - ${info.ods.displayName}`
-                : `Environment - ${info.sbe?.displayName}`,
+            accessorKey: 'resourceText',
             header: 'Resource',
-            cell: ({ row: { original } }) =>
-              original.edorg
-                ? `${original.edorg.displayName} ${getSbeDisplayName(original.edorg.sbeId)}`
-                : original.ods
-                ? `${original.ods.displayName} ${getSbeDisplayName(original.ods.sbeId)}`
-                : original.sbe
-                ? original.sbe.displayName
-                : '-',
-            filterFn: 'equalsString',
-            meta: {
-              type: 'options',
-            },
-          },
-          {
-            accessorKey: 'createdNumber',
-            cell: ValueAsDate(),
-            header: 'Created',
-            meta: {
-              type: 'date',
-            },
           },
         ]}
       />

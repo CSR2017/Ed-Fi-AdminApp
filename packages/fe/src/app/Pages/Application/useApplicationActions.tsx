@@ -1,31 +1,31 @@
 import { ActionsType } from '@edanalytics/common-ui';
 
-import { GetApplicationDto, createEdorgCompositeNaturalKey } from '@edanalytics/models';
+import { GetApplicationDto, GetEdfiTenantDto, edorgCompositeKey } from '@edanalytics/models';
 import { BiEdit, BiPlus, BiShieldX, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { applicationQueries, useApplicationResetCredential } from '../../api';
+import { applicationQueriesV1 } from '../../api';
 import { useAuthorize, useNavToParent } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { useSearchParamsObject } from '../../helpers/useSearch';
 
 export const useSingleApplicationActions = ({
   application,
-  sbeId,
-  tenantId,
+  edfiTenant,
+  teamId,
 }: {
   application: GetApplicationDto | undefined;
-  sbeId: string | number;
-  tenantId: string | number;
+  edfiTenant: GetEdfiTenantDto;
+  teamId: string | number;
 }): ActionsType => {
   const navigate = useNavigate();
   const location = useLocation();
   const popBanner = usePopBanner();
 
-  const deleteApplication = applicationQueries.useDelete({
-    sbeId: sbeId,
-    tenantId: tenantId,
+  const deleteApplication = applicationQueriesV1.delete({
+    edfiTenant: edfiTenant,
+    teamId: teamId,
   });
 
   const search = useSearchParamsObject();
@@ -38,38 +38,33 @@ export const useSingleApplicationActions = ({
   const canEdit = useAuthorize(
     application &&
       application._educationOrganizationIds.map((edorgId) => ({
-        privilege: 'tenant.sbe.edorg.application:update',
+        privilege: 'team.sb-environment.edfi-tenant.ods.edorg.application:update',
         subject: {
-          sbeId: Number(sbeId),
-          tenantId: Number(tenantId),
-          id: createEdorgCompositeNaturalKey({
-            educationOrganizationId: edorgId,
-            odsDbName: '',
+          edfiTenantId: edfiTenant.id,
+          teamId: Number(teamId),
+          id: edorgCompositeKey({
+            edorg: edorgId,
+            ods: '',
           }),
         },
       }))
   );
 
-  const resetCreds = useApplicationResetCredential({
-    sbeId: sbeId,
-    tenantId: tenantId,
-    callback: (result) => {
-      navigate(`/as/${tenantId}/sbes/${sbeId}/applications/${application?.id}`, {
-        state: result.link,
-      });
-    },
+  const resetCreds = applicationQueriesV1.resetCredential({
+    edfiTenant: edfiTenant,
+    teamId: teamId,
   });
 
   const canReset = useAuthorize(
     application &&
       application._educationOrganizationIds.map((edorgId) => ({
-        privilege: 'tenant.sbe.edorg.application:reset-credentials',
+        privilege: 'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials',
         subject: {
-          sbeId: Number(sbeId),
-          tenantId: Number(tenantId),
-          id: createEdorgCompositeNaturalKey({
-            educationOrganizationId: edorgId,
-            odsDbName: '',
+          edfiTenantId: edfiTenant.id,
+          teamId: Number(teamId),
+          id: edorgCompositeKey({
+            edorg: edorgId,
+            ods: '',
           }),
         },
       }))
@@ -77,13 +72,13 @@ export const useSingleApplicationActions = ({
 
   const canView = useAuthorize(
     application && {
-      privilege: 'tenant.sbe.edorg.application:read',
+      privilege: 'team.sb-environment.edfi-tenant.ods.edorg.application:read',
       subject: {
-        sbeId: Number(sbeId),
-        tenantId: Number(tenantId),
-        id: createEdorgCompositeNaturalKey({
-          educationOrganizationId: application.educationOrganizationId,
-          odsDbName: '',
+        edfiTenantId: edfiTenant.id,
+        teamId: Number(teamId),
+        id: edorgCompositeKey({
+          edorg: application.educationOrganizationId,
+          ods: '',
         }),
       },
     }
@@ -92,13 +87,13 @@ export const useSingleApplicationActions = ({
   const canDelete = useAuthorize(
     application &&
       application._educationOrganizationIds.map((edorgId) => ({
-        privilege: 'tenant.sbe.edorg.application:delete',
+        privilege: 'team.sb-environment.edfi-tenant.ods.edorg.application:delete',
         subject: {
-          sbeId: Number(sbeId),
-          tenantId: Number(tenantId),
-          id: createEdorgCompositeNaturalKey({
-            educationOrganizationId: edorgId,
-            odsDbName: '',
+          edfiTenantId: edfiTenant.id,
+          teamId: Number(teamId),
+          id: edorgCompositeKey({
+            edorg: application.educationOrganizationId,
+            ods: '',
           }),
         },
       }))
@@ -113,23 +108,35 @@ export const useSingleApplicationActions = ({
                 icon: HiOutlineEye,
                 text: 'View',
                 title: 'View ' + application.displayName,
-                to: `/as/${tenantId}/sbes/${sbeId}/applications/${application.id}`,
+                to: `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/applications/${application.id}`,
                 onClick: () =>
-                  navigate(`/as/${tenantId}/sbes/${sbeId}/applications/${application.id}`),
+                  navigate(
+                    `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/applications/${application.id}`
+                  ),
               },
             }
           : undefined),
         ...(canReset
           ? {
               Reset: {
-                isLoading: resetCreds.isPending,
+                isPending: resetCreds.isPending,
                 icon: BiShieldX,
                 text: 'Reset creds',
                 title: 'Reset application credentials.',
                 onClick: () => {
                   resetCreds.mutateAsync(
-                    application,
-                    mutationErrCallback({ popGlobalBanner: popBanner })
+                    { entity: { id: application.id }, pathParams: {} },
+                    {
+                      ...mutationErrCallback({ popGlobalBanner: popBanner }),
+                      onSuccess: (result) => {
+                        navigate(
+                          `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/applications/${application?.id}`,
+                          {
+                            state: result.link,
+                          }
+                        );
+                      },
+                    }
                   );
                 },
                 confirm: true,
@@ -145,10 +152,10 @@ export const useSingleApplicationActions = ({
                 icon: BiEdit,
                 text: 'Edit',
                 title: 'Edit ' + application.displayName,
-                to: `/as/${tenantId}/sbes/${sbeId}/applications/${application.id}?edit=true`,
+                to: `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/applications/${application.id}?edit=true`,
                 onClick: () =>
                   navigate(
-                    `/as/${tenantId}/sbes/${sbeId}/applications/${application.id}?edit=true`
+                    `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/applications/${application.id}?edit=true`
                   ),
               },
             }
@@ -156,21 +163,24 @@ export const useSingleApplicationActions = ({
         ...(canDelete
           ? {
               Delete: {
-                isLoading: deleteApplication.isPending,
+                isPending: deleteApplication.isPending,
                 icon: BiTrash,
                 text: 'Delete',
                 title: 'Delete application',
                 confirmBody:
                   'All systems using this application to access Ed-Fi will no longer be able to do so. This action cannot be undone, though you will be able to create a new application if you want.',
                 onClick: () =>
-                  deleteApplication.mutate(application.id, {
-                    ...mutationErrCallback({ popGlobalBanner: popBanner }),
-                    onSuccess: () => {
-                      if (onApplicationPage) {
-                        navigate(parentPath);
-                      }
-                    },
-                  }),
+                  deleteApplication.mutate(
+                    { id: application.id },
+                    {
+                      ...mutationErrCallback({ popGlobalBanner: popBanner }),
+                      onSuccess: () => {
+                        if (onApplicationPage) {
+                          navigate(parentPath);
+                        }
+                      },
+                    }
+                  ),
 
                 confirm: true,
               },
@@ -179,19 +189,19 @@ export const useSingleApplicationActions = ({
       };
 };
 export const useMultiApplicationActions = ({
-  sbeId,
-  tenantId,
+  edfiTenant,
+  teamId,
 }: {
-  sbeId: string | number;
-  tenantId: string | number;
+  edfiTenant: GetEdfiTenantDto;
+  teamId: string | number;
 }): ActionsType => {
   const navigate = useNavigate();
-  const to = `/as/${tenantId}/sbes/${sbeId}/applications/create`;
+  const to = `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/applications/create`;
   const canCreate = useAuthorize({
-    privilege: 'tenant.sbe.edorg.application:create',
+    privilege: 'team.sb-environment.edfi-tenant.ods.edorg.application:create',
     subject: {
-      sbeId: Number(sbeId),
-      tenantId: Number(tenantId),
+      edfiTenantId: edfiTenant.id,
+      teamId: Number(teamId),
       id: '__filtered__',
     },
   });

@@ -1,28 +1,30 @@
-import { defineAbility, subject } from '@casl/ability';
+import { defineAbility } from '@casl/ability';
 import {
-  TenantSbePrivilege,
-  PrivilegeCode,
-  TenantBasePrivilege,
-  BasePrivilege,
-  ITenantCache,
-  SpecificIds,
-  TrueValue,
-  isTenantSbePrivilege,
+  AuthorizationCache,
   BasePrivilegeResourceType,
+  EdfiTenantPrivilegeResourceType,
+  ITeamCache,
+  PrivilegeCode,
   PrivilegeResource,
-  SbePrivilegeResourceType,
-  baseResourcePrivilegesMap,
-  sbeResourcePrivilegesMap,
+  SpecificIds,
+  TEAM_EDFI_TENANT_PRIVILEGES,
+  TeamBasePrivilege,
+  TeamEdfiTenantPrivilege,
+  TeamSbEnvironmentPrivilege,
+  TrueValue,
+  baseTeamResourcePrivilegesMap,
+  edorgCompositeKey,
+  edfiTenantResourcePrivilegesMap,
+  isGlobalPrivilege,
+  isCachedByEdfiTenant,
+  resourcePrivileges,
   trueOnlyPrivileges,
   upwardInheritancePrivileges,
-  minimumPrivileges,
-  AuthorizationCache,
-  Ids,
-  isGlobalPrivilege,
-  sbeTenantPrivilegesMap,
+  isCachedBySbEnvironment,
+  sbEnvironmentResourcePrivilegesMap,
+  edorgKeyV2,
 } from '@edanalytics/models';
-import { Edorg } from '@edanalytics/models-server';
-import { createEdorgCompositeNaturalKey } from '@edanalytics/models';
+import { EdfiTenant, Edorg, SbEnvironment } from '@edanalytics/models-server';
 
 /**
  * Add a resource ID into the cache of IDs allowable for a specific privilege.
@@ -31,44 +33,94 @@ import { createEdorgCompositeNaturalKey } from '@edanalytics/models';
  * @param privilege privilege against which to cache the id
  * @param id id to cache
  */
-export function addIdTo(
-  cache: ITenantCache,
-  privilege: TenantBasePrivilege,
-  id: number | string | TrueValue
-): void;
+export function addIdTo({
+  cache,
+  privilege,
+  id,
+}: {
+  cache: ITeamCache;
+  privilege: TeamBasePrivilege;
+  id: number | string | TrueValue;
+}): void;
 /**
  * Add a resource ID into the cache of IDs allowable for a specific privilege.
  *
  * @param cache cache to mutate
  * @param privilege privilege against which to cache the id
  * @param id id to cache
- * @param sbeId id of the SBE which owns this resource
+ * @param edfiTenantId id of the EdfiTenant which owns this resource
  */
-export function addIdTo(
-  cache: ITenantCache,
-  privilege: TenantSbePrivilege,
-  id: number | string | TrueValue,
-  sbeId: number
-): void;
-export function addIdTo(
-  cache: ITenantCache,
-  privilege: TenantBasePrivilege | TenantSbePrivilege,
-  id: number | string | TrueValue,
-  sbeId?: number
-): void {
-  if (isTenantSbePrivilege(privilege)) {
+export function addIdTo({
+  cache,
+  privilege,
+  id,
+  edfiTenantId,
+}: {
+  cache: ITeamCache;
+  privilege: TeamEdfiTenantPrivilege;
+  id: number | string | TrueValue;
+  edfiTenantId: number;
+}): void;
+/**
+ * Add a resource ID into the cache of IDs allowable for a specific privilege.
+ *
+ * @param cache cache to mutate
+ * @param privilege privilege against which to cache the id
+ * @param id id to cache
+ * @param sbEnvironmentId id of the SbEnvironment which owns this resource
+ */
+export function addIdTo({
+  cache,
+  privilege,
+  id,
+  sbEnvironmentId,
+}: {
+  cache: ITeamCache;
+  privilege: TeamSbEnvironmentPrivilege;
+  id: number | string | TrueValue;
+  sbEnvironmentId: number;
+}): void;
+export function addIdTo({
+  cache,
+  privilege,
+  id,
+  edfiTenantId,
+  sbEnvironmentId,
+}: {
+  cache: ITeamCache;
+  privilege: TeamBasePrivilege | TeamEdfiTenantPrivilege | TeamSbEnvironmentPrivilege;
+  id: number | string | TrueValue;
+  edfiTenantId?: number;
+  sbEnvironmentId?: number;
+}): void {
+  if (isCachedByEdfiTenant(privilege)) {
     if (cache[privilege] === undefined) {
       cache[privilege] = {};
     }
-    if (cache[privilege][sbeId] !== true) {
+    if (cache[privilege][edfiTenantId] !== true) {
       if (id !== true && !trueOnlyPrivileges.has(privilege)) {
-        if (cache[privilege][sbeId] === undefined) {
-          cache[privilege][sbeId] = new Set([id]);
+        if (cache[privilege][edfiTenantId] === undefined) {
+          cache[privilege][edfiTenantId] = new Set([id]);
         } else {
-          (cache[privilege][sbeId] as SpecificIds).add(id);
+          (cache[privilege][edfiTenantId] as SpecificIds).add(id);
         }
       } else {
-        cache[privilege][sbeId] = true;
+        cache[privilege][edfiTenantId] = true;
+      }
+    }
+  } else if (isCachedBySbEnvironment(privilege)) {
+    if (cache[privilege] === undefined) {
+      cache[privilege] = {};
+    }
+    if (cache[privilege][sbEnvironmentId] !== true) {
+      if (id !== true && !trueOnlyPrivileges.has(privilege)) {
+        if (cache[privilege][sbEnvironmentId] === undefined) {
+          cache[privilege][sbEnvironmentId] = new Set([id]);
+        } else {
+          (cache[privilege][sbEnvironmentId] as SpecificIds).add(id);
+        }
+      } else {
+        cache[privilege][sbEnvironmentId] = true;
       }
     }
   } else {
@@ -97,12 +149,17 @@ export function addIdTo(
  * @param resource resource type
  * @param id id to cache
  */
-export function cacheAccordingToPrivileges(
-  cache: ITenantCache,
-  privileges: Set<PrivilegeCode | TenantBasePrivilege | TenantSbePrivilege>,
-  resource: BasePrivilegeResourceType,
-  id: number | string | TrueValue
-);
+export function cacheAccordingToPrivileges({
+  cache,
+  privileges,
+  resource,
+  id,
+}: {
+  cache: ITeamCache;
+  privileges: Set<PrivilegeCode | TeamBasePrivilege | TeamEdfiTenantPrivilege>;
+  resource: BasePrivilegeResourceType;
+  id: number | string | TrueValue;
+});
 /**
  * Cache a resource's ID (or a blanket `true`) against all relevant
  * privileges, if any are present. If no relevant privileges have
@@ -112,63 +169,145 @@ export function cacheAccordingToPrivileges(
  * @param privileges all granted privileges, or at least all relevant ones
  * @param resource resource type
  * @param id id to cache
- * @param sbeId id of the SBE which owns the resource
+ * @param edfiTenantId id of the EdfiTenant which owns the resource
  */
-export function cacheAccordingToPrivileges(
-  cache: ITenantCache,
-  privileges: Set<PrivilegeCode | TenantBasePrivilege | TenantSbePrivilege>,
-  resource: SbePrivilegeResourceType,
-  id: number | string | TrueValue,
-  sbeId: number
-);
-export function cacheAccordingToPrivileges(
-  cache: ITenantCache,
-  privileges: Set<PrivilegeCode | TenantBasePrivilege | TenantSbePrivilege>,
-  resource: PrivilegeResource,
-  id: number | string | TrueValue,
-  sbeId?: number
-) {
-  if (resource in baseResourcePrivilegesMap) {
-    baseResourcePrivilegesMap[resource]?.forEach((possiblePrivilege) => {
+export function cacheAccordingToPrivileges({
+  cache,
+  privileges,
+  resource,
+  id,
+  edfiTenantId,
+}: {
+  cache: ITeamCache;
+  privileges: Set<PrivilegeCode>;
+  resource: EdfiTenantPrivilegeResourceType;
+  id: number | string | TrueValue;
+  edfiTenantId: number;
+});
+/**
+ * Cache a resource's ID (or a blanket `true`) against all relevant
+ * privileges, if any are present. If no relevant privileges have
+ * been granted, no action is taken.
+ *
+ * @param cache cache to mutate
+ * @param privileges all granted privileges, or at least all relevant ones
+ * @param resource resource type
+ * @param id id to cache
+ * @param sbEnvironmentId id of the SbEnvironment which owns the resource
+ */
+export function cacheAccordingToPrivileges({
+  cache,
+  privileges,
+  resource,
+  id,
+  sbEnvironmentId,
+}: {
+  cache: ITeamCache;
+  privileges: Set<PrivilegeCode>;
+  resource: EdfiTenantPrivilegeResourceType;
+  id: number | string | TrueValue;
+  sbEnvironmentId: number;
+});
+export function cacheAccordingToPrivileges({
+  cache,
+  privileges,
+  resource,
+  id,
+  edfiTenantId,
+  sbEnvironmentId,
+}: {
+  cache: ITeamCache;
+  privileges: Set<PrivilegeCode>;
+  resource: PrivilegeResource;
+  id: number | string | TrueValue;
+  edfiTenantId?: number;
+  sbEnvironmentId?: number;
+}) {
+  let foundLocation = false;
+  if (resource in baseTeamResourcePrivilegesMap) {
+    foundLocation = true;
+    baseTeamResourcePrivilegesMap[resource]?.forEach((possiblePrivilege) => {
       if (privileges.has(possiblePrivilege)) {
         const idToCache = trueOnlyPrivileges.has(possiblePrivilege) ? true : id;
-        addIdTo(cache, possiblePrivilege, idToCache);
+        addIdTo({ cache, privilege: possiblePrivilege, id: idToCache });
       }
     });
-  } else {
-    sbeResourcePrivilegesMap[resource]?.forEach((possiblePrivilege) => {
+  }
+  if (resource in edfiTenantResourcePrivilegesMap) {
+    foundLocation = true;
+    edfiTenantResourcePrivilegesMap[resource]?.forEach((possiblePrivilege) => {
       if (privileges.has(possiblePrivilege)) {
         const idToCache = trueOnlyPrivileges.has(possiblePrivilege) ? true : id;
-        addIdTo(cache, possiblePrivilege, idToCache, sbeId);
+        addIdTo({ cache, privilege: possiblePrivilege, id: idToCache, edfiTenantId });
       }
     });
+  }
+  if (resource in sbEnvironmentResourcePrivilegesMap) {
+    foundLocation = true;
+    sbEnvironmentResourcePrivilegesMap[resource]?.forEach((possiblePrivilege) => {
+      if (privileges.has(possiblePrivilege)) {
+        const idToCache = trueOnlyPrivileges.has(possiblePrivilege) ? true : id;
+        addIdTo({ cache, privilege: possiblePrivilege, id: idToCache, sbEnvironmentId });
+      }
+    });
+  }
+  if (!foundLocation) {
+    throw new Error("Resource doesn't have a known caching location.");
   }
 }
 
 /**
- * Initialize all relevant sbe-level privilege caches to a blanket `true`
+ * Initialize all relevant edfi-tenant-level privilege caches to a blanket `true`
  *
  * */
-export function initializeSbePrivilegeCache(
-  cache: ITenantCache,
+export function initializeEdfiTenantPrivilegeCache(
+  cache: ITeamCache,
   privileges: Set<PrivilegeCode>,
-  sbeId: number
+  edfiTenantId: number
 ) {
-  Object.keys(sbeTenantPrivilegesMap).forEach((sbeTenantPrivilege: PrivilegeCode) => {
-    if (privileges.has(sbeTenantPrivilege)) {
-      if (!(sbeTenantPrivilege in cache)) {
-        cache[sbeTenantPrivilege] = {};
+  resourcePrivileges('team.sb-environment.edfi-tenant').forEach(
+    (edfiTenantTeamPrivilege: PrivilegeCode) => {
+      if (isCachedByEdfiTenant(edfiTenantTeamPrivilege)) {
+        if (privileges.has(edfiTenantTeamPrivilege)) {
+          if (!(edfiTenantTeamPrivilege in cache)) {
+            cache[edfiTenantTeamPrivilege] = {};
+          }
+          cache[edfiTenantTeamPrivilege][edfiTenantId] = true;
+        }
       }
-      cache[sbeTenantPrivilege][sbeId] = true;
+    }
+  );
+}
+
+/**
+ * Initialize all relevant sb-environment-level privilege caches to a blanket `true`
+ * */
+export function initializeSbEnvironmentPrivilegeCache(
+  cache: ITeamCache,
+  privileges: Set<PrivilegeCode>,
+  sbEnvironment: SbEnvironment
+) {
+  resourcePrivileges('team.sb-environment').forEach((privilege: PrivilegeCode) => {
+    if (privileges.has(privilege)) {
+      if (!(privilege in cache)) {
+        cache[privilege] = {};
+      }
+      if (isCachedByEdfiTenant(privilege)) {
+        sbEnvironment.edfiTenants.forEach(({ id }) => {
+          cache[privilege][id] = true;
+        });
+      } else if (isCachedBySbEnvironment(privilege)) {
+        cache[privilege][sbEnvironment.id] = true; // TODO not great that some are dicts of EdfiTenant while others are of SbEnvironment
+      }
     }
   });
 }
 /**
  * Initialize all relevant ods-inherited privilege caches to an empty set
  *
- * This uses an empty set whereas the sbe version uses a
- * blanket `true`. The difference is that the sbe-level ones
- * are actually executed at the sbe level, so the cache value
+ * This uses an empty set whereas the edfiTenant version uses a
+ * blanket `true`. The difference is that the edfi-tenant-level ones
+ * are actually executed at the edfiTenant level, so the cache value
  * can just go straight there. The ods-level ones are
  * executed at the individual resource level though, so while
  * we do have the privilege "in theory", it will only get
@@ -182,38 +321,38 @@ export function initializeSbePrivilegeCache(
  *
  * */
 export function initializeOdsPrivilegeCache(
-  cache: ITenantCache,
+  cache: ITeamCache,
   privileges: Set<PrivilegeCode>,
-  sbeId: number
+  edfiTenantId: number
 ) {
   // these are the privileges that are inherited from ODS ownership
   const allOdsPrivileges: PrivilegeCode[] = [
-    'tenant.sbe.edorg.application:create',
-    'tenant.sbe.edorg.application:read',
-    'tenant.sbe.edorg.application:update',
-    'tenant.sbe.edorg.application:delete',
-    'tenant.sbe.edorg.application:reset-credentials',
-    'tenant.sbe.edorg:read',
+    'team.sb-environment.edfi-tenant.ods.edorg.application:create',
+    'team.sb-environment.edfi-tenant.ods.edorg.application:read',
+    'team.sb-environment.edfi-tenant.ods.edorg.application:update',
+    'team.sb-environment.edfi-tenant.ods.edorg.application:delete',
+    'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials',
+    'team.sb-environment.edfi-tenant.ods.edorg:read',
   ];
 
-  allOdsPrivileges.forEach((odsTenantPrivilege: PrivilegeCode) => {
-    if (privileges.has(odsTenantPrivilege)) {
-      if (!(odsTenantPrivilege in cache)) {
-        cache[odsTenantPrivilege] = {};
+  allOdsPrivileges.forEach((odsTeamPrivilege: PrivilegeCode) => {
+    if (privileges.has(odsTeamPrivilege)) {
+      if (!(odsTeamPrivilege in cache)) {
+        cache[odsTeamPrivilege] = {};
       }
-      if (!(String(sbeId) in cache[odsTenantPrivilege])) {
-        cache[odsTenantPrivilege][sbeId] = new Set();
+      if (!(String(edfiTenantId) in cache[odsTeamPrivilege])) {
+        cache[odsTeamPrivilege][edfiTenantId] = new Set();
       }
     }
   });
 }
 
-/** Initialize empty-but-present privilege caches for a tenant's base (not Sbe-child) privileges */
-export function initializeBasePrivilegeCache(cache: ITenantCache, privileges: Set<PrivilegeCode>) {
-  Object.keys(sbeTenantPrivilegesMap).forEach((sbeTenantPrivilege: PrivilegeCode) => {
-    if (privileges.has(sbeTenantPrivilege)) {
-      if (!(sbeTenantPrivilege in cache)) {
-        cache[sbeTenantPrivilege] = new Set();
+/** Initialize empty-but-present privilege caches for a team's base (not EdfiTenant-child) privileges */
+export function initializeBasePrivilegeCache(cache: ITeamCache, privileges: Set<PrivilegeCode>) {
+  TEAM_EDFI_TENANT_PRIVILEGES.forEach((edfiTenantTeamPrivilege: PrivilegeCode) => {
+    if (privileges.has(edfiTenantTeamPrivilege)) {
+      if (!(edfiTenantTeamPrivilege in cache)) {
+        cache[edfiTenantTeamPrivilege] = new Set();
       }
     }
   });
@@ -223,96 +362,130 @@ export function initializeBasePrivilegeCache(cache: ITenantCache, privileges: Se
  * Climb down the Edorg tree and cache the IDs against the weakly-increasing privilege set. This does _NOT_ do anything about _upward_ inheritance.
  */
 export const cacheEdorgPrivilegesDownward = (
-  cache: ITenantCache,
+  cache: ITeamCache,
   initialPrivileges: Set<PrivilegeCode>,
-  edorg: Pick<Edorg, 'id' | 'children' | 'sbeId' | 'odsDbName' | 'educationOrganizationId'>,
+  edorg: Pick<
+    Edorg,
+    'id' | 'children' | 'edfiTenantId' | 'odsDbName' | 'odsInstanceId' | 'educationOrganizationId'
+  >,
   edorgOwnershipPrivileges: Map<number, Set<PrivilegeCode>>
 ) => {
-  const myPrivileges = new Set(initialPrivileges.values()); // so the other ODS's iterations use SBE's original privileges
+  const myPrivileges = new Set(initialPrivileges.values()); // so the other ODS's iterations use EdfiTenant's original privileges
   const ownership = edorgOwnershipPrivileges.get(edorg.id);
   if (ownership) {
     [...ownership.values()].forEach((p) => myPrivileges.add(p));
   }
-  cacheAccordingToPrivileges(cache, myPrivileges, 'tenant.sbe.edorg', edorg.id, edorg.sbeId);
-  const compositeKey = createEdorgCompositeNaturalKey({
-    odsDbName: edorg.odsDbName,
-    educationOrganizationId: edorg.educationOrganizationId,
-  });
-  cacheAccordingToPrivileges(
+  cacheAccordingToPrivileges({
     cache,
-    myPrivileges,
-    'tenant.sbe.edorg.application',
-    compositeKey,
-    edorg.sbeId
-  );
+    privileges: myPrivileges,
+    resource: 'team.sb-environment.edfi-tenant.ods.edorg',
+    id: edorg.id,
+    edfiTenantId: edorg.edfiTenantId,
+  });
+  const compositeKey =
+    edorg.odsInstanceId !== null
+      ? edorgKeyV2({
+          ods: edorg.odsInstanceId,
+          edorg: edorg.educationOrganizationId,
+        })
+      : edorgCompositeKey({
+          ods: edorg.odsDbName,
+          edorg: edorg.educationOrganizationId,
+        });
+  cacheAccordingToPrivileges({
+    cache,
+    privileges: myPrivileges,
+    resource: 'team.sb-environment.edfi-tenant.ods.edorg.application',
+    id: compositeKey,
+    edfiTenantId: edorg.edfiTenantId,
+  });
   edorg.children?.forEach((childEdorg) =>
     cacheEdorgPrivilegesDownward(cache, myPrivileges, childEdorg, edorgOwnershipPrivileges)
   );
 };
 
 /**
- * Apply privileges from an edorg ownership to its edorg, ods, sbe, vendor, and claimset _ancestors_. Does _NOT_ climb _down_ the edorg tree.
+ * Apply privileges from an edorg ownership to its edorg, ods, edfiTenant, vendor, and claimset _ancestors_. Does _NOT_ climb _down_ the edorg tree.
  *
  * Checks that the supplied privileges include the minimum set, but only applies that minimum &mdash; no _extra_ privileges can be inherited upward.
  */
-export const cacheEdorgPrivilegesUpward = (
-  cache: ITenantCache,
-  edorg: Edorg,
+export const cacheEdorgPrivilegesUpward = ({
+  cache,
+  edorg,
+  edfiTenant,
+  ownedPrivileges,
+  ancestors,
+}: {
+  cache: ITeamCache;
+  edorg: Edorg;
+  edfiTenant: Pick<EdfiTenant, 'sbEnvironmentId'>;
   /** Privileges to apply.
    *
    *  This is a possibly-TBD question of business rules. But we _probably_ don't want it to be possible for an ownership of a leaf entity to grant any more than the minimum default access to its parent trunk entities.
    * */
-  ownedPrivileges: Set<PrivilegeCode>,
-  ancestors: Edorg[]
-) => {
+  ownedPrivileges: Set<PrivilegeCode>;
+  ancestors: Edorg[];
+}) => {
   [...upwardInheritancePrivileges].forEach((mp) => {
     if (!ownedPrivileges.has(mp)) {
       throw new Error(`Resource ownership lacks required permission ${mp}.`);
     }
   });
   ancestors.forEach((ancestorEdorg) => {
-    cacheAccordingToPrivileges(
+    cacheAccordingToPrivileges({
       cache,
-      upwardInheritancePrivileges,
-      'tenant.sbe.edorg',
-      ancestorEdorg.id,
-      ancestorEdorg.sbeId
-    );
+      privileges: upwardInheritancePrivileges,
+      resource: 'team.sb-environment.edfi-tenant.ods.edorg',
+      id: ancestorEdorg.id,
+      edfiTenantId: ancestorEdorg.edfiTenantId,
+    });
   });
-  cacheAccordingToPrivileges(
+  cacheAccordingToPrivileges({
     cache,
-    upwardInheritancePrivileges,
-    'tenant.sbe.ods',
-    edorg.odsId,
-    edorg.sbeId
-  );
-  cacheAccordingToPrivileges(
+    privileges: upwardInheritancePrivileges,
+    resource: 'team.sb-environment.edfi-tenant.ods',
+    id: edorg.odsId,
+    edfiTenantId: edorg.edfiTenantId,
+  });
+  cacheAccordingToPrivileges({
     cache,
-    upwardInheritancePrivileges,
-    'tenant.sbe.claimset',
-    true,
-    edorg.sbeId
-  );
-  cacheAccordingToPrivileges(
+    privileges: upwardInheritancePrivileges,
+    resource: 'team.sb-environment.edfi-tenant.claimset',
+    id: true,
+    edfiTenantId: edorg.edfiTenantId,
+  });
+  cacheAccordingToPrivileges({
     cache,
-    upwardInheritancePrivileges,
-    'tenant.sbe.vendor',
-    true,
-    edorg.sbeId
-  );
-  cacheAccordingToPrivileges(cache, upwardInheritancePrivileges, 'tenant.sbe', edorg.sbeId);
+    privileges: upwardInheritancePrivileges,
+    resource: 'team.sb-environment.edfi-tenant.vendor',
+    id: true,
+    edfiTenantId: edorg.edfiTenantId,
+  });
+  cacheAccordingToPrivileges({
+    cache,
+    privileges: upwardInheritancePrivileges,
+    resource: 'team.sb-environment.edfi-tenant',
+    id: edorg.edfiTenantId,
+    sbEnvironmentId: edfiTenant.sbEnvironmentId,
+  });
+  cacheAccordingToPrivileges({
+    cache,
+    privileges: upwardInheritancePrivileges,
+    resource: 'team.sb-environment',
+    id: edfiTenant.sbEnvironmentId,
+  });
 };
 
 /**
  * Turn the cachable resource ownership and privilege structure into a CASL ability.
  *
- * @param cache The object containing the union of the user's global privileges and the user-filtered tenant privileges.
- * @param tenantId ID of the tenant
+ * @param cache The object containing the union of the user's global privileges and the user-filtered team privileges.
+ * @param teamId ID of the team
  * @returns CASL ability
  */
 export const abilityFromCache = (
   cache: AuthorizationCache,
-  tenantId: number | string | undefined
+  teamId: number | string | undefined
 ) => {
   const ability = defineAbility((userCan) => {
     Object.keys(cache ?? {}).forEach((privilegeCode: keyof AuthorizationCache) => {
@@ -328,42 +501,69 @@ export const abilityFromCache = (
         // subject(privilegeCode, caslSubject);
         userCan(privilegeCode, privilegeCode, caslSubject);
       } else {
-        // tenant-scoped privilege
-        if (tenantId === undefined || tenantId === 'undefined') {
-          throw new Error('Attempting to construct tenant ability but no tenantID provided.');
+        // team-scoped privilege
+        if (teamId === undefined || teamId === 'undefined') {
+          throw new Error('Attempting to construct team ability but no teamId provided.');
         }
 
-        if (isTenantSbePrivilege(privilegeCode)) {
-          // tenant-scoped privilege whose cache is a map of sbes to the Ids type
+        if (isCachedByEdfiTenant(privilegeCode)) {
+          // team-scoped privilege whose cache is a map of edfiTenants to the Ids type
           const privilegeCache = cache[privilegeCode];
-          const sbeIds = Object.keys(privilegeCache);
-          sbeIds.forEach((sbeId) => {
+          const edfiTenantIds = Object.keys(privilegeCache);
+          edfiTenantIds.forEach((edfiTenantId) => {
             const caslSubject =
-              privilegeCache[sbeId] === true
+              privilegeCache[edfiTenantId] === true
                 ? {
-                    tenantId: String(tenantId),
-                    sbeId: sbeId,
+                    teamId: String(teamId),
+                    edfiTenantId: edfiTenantId,
                   }
                 : {
-                    tenantId: String(tenantId),
-                    sbeId: sbeId,
+                    teamId: String(teamId),
+                    edfiTenantId: edfiTenantId,
                     id: {
-                      $in: ['__filtered__', ...[...privilegeCache[sbeId]].map((v) => String(v))],
+                      $in: [
+                        '__filtered__',
+                        ...[...privilegeCache[edfiTenantId]].map((v) => String(v)),
+                      ],
+                    },
+                  };
+            // subject('privilegeCode', caslSubject);
+            userCan(privilegeCode, privilegeCode, caslSubject);
+          });
+        } else if (isCachedBySbEnvironment(privilegeCode)) {
+          // team-scoped privilege whose cache is a map of edfiTenants to the Ids type
+          const privilegeCache = cache[privilegeCode];
+          const sbEnvironmentIds = Object.keys(privilegeCache);
+          sbEnvironmentIds.forEach((sbEnvironmentId) => {
+            const caslSubject =
+              privilegeCache[sbEnvironmentId] === true
+                ? {
+                    teamId: String(teamId),
+                    sbEnvironmentId: sbEnvironmentId,
+                  }
+                : {
+                    teamId: String(teamId),
+                    sbEnvironmentId: sbEnvironmentId,
+                    id: {
+                      $in: [
+                        '__filtered__',
+                        ...[...privilegeCache[sbEnvironmentId]].map((v) => String(v)),
+                      ],
                     },
                   };
             // subject('privilegeCode', caslSubject);
             userCan(privilegeCode, privilegeCode, caslSubject);
           });
         } else {
-          // tenant-scoped privilege whose cache is the Ids type
+          // team-scoped privilege whose cache is the Ids type
           const privilegeCache = cache[privilegeCode];
           const caslSubject =
             privilegeCache === true
               ? {
-                  tenantId: String(tenantId),
+                  teamId: String(teamId),
                 }
               : {
-                  tenantId: String(tenantId),
+                  teamId: String(teamId),
                   id: {
                     $in: ['__filtered__', ...[...privilegeCache].map((v) => String(v))],
                   },

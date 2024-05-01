@@ -20,27 +20,28 @@ import { useForm } from 'react-hook-form';
 import { BsInfoCircle } from 'react-icons/bs';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { claimsetQueries } from '../../api';
-import { useNavToParent } from '../../helpers';
+import { claimsetQueriesV1 } from '../../api';
+import { useNavToParent, useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { flattenFieldErrors } from '@edanalytics/utils';
 
 const resolver = classValidatorResolver(PostClaimsetDto);
 
 export const CreateClaimset = () => {
-  const params = useParams() as { asId: string; sbeId: string };
   const popBanner = usePopBanner();
-
+  const params = useTeamEdfiTenantNavContextLoaded();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const goToView = (id: string | number) =>
-    navigate(`/as/${params.asId}/sbes/${params.sbeId}/claimsets/${id}`);
+    navigate(
+      `/as/${params.asId}/sb-environments/${params.sbEnvironmentId}/edfi-tenants/${params.edfiTenantId}/claimsets/${id}`
+    );
   const parentPath = useNavToParent();
-  const postClaimset = claimsetQueries.usePost({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-    callback: (result) => goToView(result.id),
+  const postClaimset = claimsetQueriesV1.post({
+    edfiTenant: params.edfiTenant,
+    teamId: params.asId,
   });
+
   const {
     register,
     handleSubmit,
@@ -57,12 +58,16 @@ export const CreateClaimset = () => {
       <form
         onSubmit={handleSubmit((data) =>
           postClaimset
-            .mutateAsync(data, {
-              ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
-              onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['me', 'claimsets'] });
-              },
-            })
+            .mutateAsync(
+              { entity: data },
+              {
+                ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
+                onSuccess: (result) => {
+                  queryClient.invalidateQueries({ queryKey: ['me', 'claimsets'] });
+                  goToView(result.id);
+                },
+              }
+            )
             .catch(noop)
         )}
       >

@@ -1,44 +1,50 @@
 import { Box, Text, useBoolean } from '@chakra-ui/react';
-import { GetTenantDto } from '@edanalytics/models';
+import { GetTeamDto } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
 import { Select } from 'chakra-react-select';
-import { atom, useAtom } from 'jotai';
+import { atom, useAtom, useAtomValue } from 'jotai';
 import Cookies from 'js-cookie';
 import { Resizable } from 're-resizable';
-import { useEffect, useMemo } from 'react';
-import { BsHouseDoor, BsHouseDoorFill, BsPerson, BsPersonFill } from 'react-icons/bs';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useMatches, useNavigate, useParams } from 'react-router-dom';
-import { useMyTenants } from '../api';
+import { useMyTeams } from '../api';
 import {
+  NavContextProvider,
   authCacheKey,
   authorize,
+  globalEdfiTenantAuthConfig,
   globalOwnershipAuthConfig,
-  globalSbeAuthConfig,
-  globalTenantAuthConfig,
+  globalTeamAuthConfig,
   globalUserAuthConfig,
   usePrivilegeCacheForConfig,
 } from '../helpers';
 import { GlobalNav } from './GlobalNav';
-import { NavButton } from './NavButton';
-import { TenantNav } from './TenantNav';
+import { TeamNav } from './TeamNav';
 
-const parseDefaultTenant = (defaultTenant: string | undefined) => {
-  const num = Number(defaultTenant);
+const parseDefaultTeam = (defaultTeam: string | undefined) => {
+  const num = Number(defaultTeam);
   return !isNaN(num) ? num : undefined;
 };
 
-export const asTenantIdAtom = atom<number | undefined>(undefined);
+export const asteamIdAtom = atom<number | undefined>(undefined);
+
+export const useAsId = () => {
+  const params = useParams() as { asId?: string };
+  const atomValue = useAtomValue(asteamIdAtom);
+
+  return params.asId ? Number(params.asId) : atomValue;
+};
 
 export const Nav = () => {
   const [isResizing, setIsResizing] = useBoolean(false);
 
-  const tenants = useMyTenants();
+  const teams = useMyTeams();
   const queryClient = useQueryClient();
   const globalAuthConfigs = [
-    globalTenantAuthConfig('tenant:read')!,
+    globalTeamAuthConfig('team:read')!,
     globalOwnershipAuthConfig('ownership:read')!,
     globalUserAuthConfig('user:read')!,
-    globalSbeAuthConfig('__filtered__', 'sbe:read')!,
+    globalEdfiTenantAuthConfig('__filtered__', 'sb-environment.edfi-tenant:read')!,
   ];
   usePrivilegeCacheForConfig(globalAuthConfigs);
 
@@ -49,9 +55,9 @@ export const Nav = () => {
     })
   )
     ? true
-    : globalAuthConfigs.every(
-        (config) => queryClient.getQueryState(authCacheKey(config))?.status === 'success'
-      )
+    : // global auth cache in particular
+    queryClient.getQueryState(authCacheKey({ teamId: undefined, edfiTenantId: undefined }))
+        ?.status === 'success'
     ? false
     : // not done loading yet
       undefined;
@@ -61,8 +67,6 @@ export const Nav = () => {
       pb={3}
       pt={8}
       flex="0 0 20em"
-      overflowX="hidden"
-      overflowY="auto"
       bg="foreground-bg"
       enable={{ right: true }}
       defaultSize={{ width: '15em', height: '100%' }}
@@ -73,9 +77,11 @@ export const Nav = () => {
       minWidth="11em"
       maxWidth="min(40em, 80%)"
       as={Resizable}
+      display="flex"
+      flexDir="column"
     >
-      {tenants.data && hasGlobalPrivileges !== undefined ? (
-        <NavContent tenants={tenants.data} hasGlobalPrivileges={hasGlobalPrivileges} />
+      {teams.data && hasGlobalPrivileges !== undefined ? (
+        <NavContent teams={teams.data} hasGlobalPrivileges={hasGlobalPrivileges} />
       ) : (
         <Text px={3}>...Loading</Text>
       )}
@@ -84,97 +90,103 @@ export const Nav = () => {
 };
 
 const NavContent = ({
-  tenants,
+  teams,
   hasGlobalPrivileges,
 }: {
-  tenants: Record<GetTenantDto['id'], GetTenantDto>;
+  teams: Record<GetTeamDto['id'], GetTeamDto>;
   hasGlobalPrivileges: boolean;
 }) => {
   const params = useParams() as { asId?: string };
 
-  const defaultTenant = parseDefaultTenant(params?.asId ?? Cookies.get('defaultTenant'));
+  const defaultTeam = parseDefaultTeam(params?.asId ?? Cookies.get('defaultTeam'));
 
-  const [tenantId, _setTenantId] = useAtom(asTenantIdAtom);
+  const [teamId, _setteamId] = useAtom(asteamIdAtom);
   const currentMatches = useMatches();
-  const path = useLocation().pathname;
+  const location = useLocation();
 
   const navigate = useNavigate();
 
-  const selectedTenant = tenantId === undefined ? undefined : tenants?.[tenantId];
-  const tenantsCount = Object.keys(tenants).length;
-  const firstTenantId: string | undefined = Object.keys(tenants)?.[0];
+  const selectedTeam = teamId === undefined ? undefined : teams?.[teamId];
+  const teamsCount = Object.keys(teams).length;
+  const firstteamId: string | undefined = Object.keys(teams)?.[0];
 
-  const setTenantId = useMemo(() => {
-    return (newTenantId: number | undefined) => {
-      if (newTenantId === undefined) {
+  const setteamId = useMemo(() => {
+    return (newteamId: number | undefined) => {
+      let realNewValue = newteamId;
+      if (newteamId === undefined) {
         if (params.asId) {
           navigate('/');
         }
-        _setTenantId(undefined);
+        realNewValue = undefined;
       } else {
-        if (newTenantId in tenants) {
-          _setTenantId(newTenantId);
-          if (params.asId !== String(newTenantId)) {
-            navigate(`/as/${newTenantId}`);
+        if (newteamId in teams) {
+          realNewValue = newteamId;
+          if (params.asId !== String(newteamId) && location.pathname !== '/account') {
+            navigate(`/as/${newteamId}`);
           }
         } else {
           if (params.asId) {
             navigate('/');
           }
-          _setTenantId(undefined);
+          realNewValue = undefined;
         }
       }
+      _setteamId(realNewValue);
+      Cookies.set('defaultTeam', String(realNewValue));
     };
-  }, [_setTenantId, tenants, params, navigate]);
+  }, [_setteamId, teams, params, navigate, location.pathname]);
 
-  // Set initial tenantId
-  useEffect(() => {
-    setTenantId(
-      defaultTenant !== undefined && defaultTenant in tenants ? defaultTenant : undefined
-    );
-  }, []);
-
-  // Keep cookie in sync with JS state
-  useEffect(() => {
-    Cookies.set('defaultTenant', String(tenantId));
-  }, [tenantId]);
+  // Set to default teamId from cookie if appropriate
+  const setTeamIdToDefault = useCallback(() => {
+    // TODO this should likely be switched to useEffectEvent when that comes out, fixing lint disablement below.
+    if (
+      defaultTeam !== undefined &&
+      defaultTeam in teams && // you might no longer have access to this team
+      teamId === undefined &&
+      location.pathname === '/' // if on a real global-context route don't override it. Only for root route.
+    ) {
+      setteamId(defaultTeam);
+    }
+  }, [defaultTeam, teams, teamId, location.pathname, setteamId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(setTeamIdToDefault, []);
 
   useEffect(() => {
     if (
-      // if we're on a tenant route
+      // if we're on a team route
       params.asId &&
-      // and tenant state isn't synced with it yet
-      String(tenantId) !== params.asId
+      // and team state isn't synced with it yet
+      String(teamId) !== params.asId
     ) {
       // then sync it up
-      setTenantId(Number(params.asId));
+      setteamId(Number(params.asId));
     }
-  }, [tenantId, currentMatches, setTenantId, params.asId]);
+  }, [teamId, currentMatches, setteamId, params.asId]);
 
   useEffect(() => {
     if (
-      // if you only have one tenant
-      tenantsCount === 1 &&
+      // if you only have one team
+      teamsCount === 1 &&
       // and you don't have any global privileges
       !hasGlobalPrivileges &&
-      // and your tenant isn't already set
-      tenantId === undefined
+      // and your team isn't already set
+      teamId === undefined
     ) {
       // then set it
-      setTenantId(Number(firstTenantId));
+      setteamId(Number(firstteamId));
     }
-  }, [tenantsCount, firstTenantId, hasGlobalPrivileges, tenantId, setTenantId]);
+  }, [teamsCount, firstteamId, hasGlobalPrivileges, teamId, setteamId]);
 
   return (
     <>
-      {Object.keys(tenants).length > 1 || hasGlobalPrivileges ? (
+      {Object.keys(teams).length > 1 || hasGlobalPrivileges ? (
         <Box mb={7} px={3}>
           <Select
-            aria-label="Select a tenant (or global) context"
+            aria-label="Select a team (or global) context"
             value={
-              selectedTenant === undefined
+              selectedTeam === undefined
                 ? {
-                    label: 'No tenant (global)',
+                    label: 'No team (global)',
                     value: undefined,
                     styles: {
                       fontWeight: '600',
@@ -183,18 +195,18 @@ const NavContent = ({
                     },
                   }
                 : {
-                    label: selectedTenant.displayName,
-                    value: selectedTenant.id,
+                    label: selectedTeam.displayName,
+                    value: selectedTeam.id,
                   }
             }
             onChange={(option) => {
               const value = option?.value ?? undefined;
-              const newTenantId = value === undefined ? undefined : Number(value);
-              setTenantId(newTenantId);
+              const newteamId = value === undefined ? undefined : Number(value);
+              setteamId(newteamId);
             }}
             options={[
               {
-                label: 'No tenant (global)',
+                label: 'No team (global)',
                 value: undefined,
                 styles: {
                   fontWeight: '600',
@@ -202,7 +214,7 @@ const NavContent = ({
                   fontSize: 'md',
                 },
               },
-              ...Object.values(tenants)
+              ...Object.values(teams)
                 .sort((a, b) => Number(a.displayName > b.displayName) - 0.5)
                 .map((t) => ({
                   label: t.displayName,
@@ -242,25 +254,13 @@ const NavContent = ({
           />
         </Box>
       ) : null}
-      <NavButton
-        {...{
-          route: '/',
-          icon: BsHouseDoor,
-          activeIcon: BsHouseDoorFill,
-          text: 'Home',
-          isActive: /^\/(as\/\d+\/?)?$/.test(path),
-        }}
-      />
-      <NavButton
-        {...{
-          route: '/account',
-          icon: BsPerson,
-          activeIcon: BsPersonFill,
-          text: 'Account',
-          isActive: currentMatches.some((m) => m.pathname.startsWith('/account')),
-        }}
-      />
-      {tenantId === undefined ? <GlobalNav /> : <TenantNav tenantId={String(tenantId)} />}
+      {teamId === undefined ? (
+        <GlobalNav />
+      ) : (
+        <NavContextProvider asId={teamId}>
+          <TeamNav teamId={String(teamId)} />
+        </NavContextProvider>
+      )}
     </>
   );
 };

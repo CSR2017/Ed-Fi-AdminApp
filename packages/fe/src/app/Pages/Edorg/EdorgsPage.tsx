@@ -1,37 +1,48 @@
-import { PageTemplate, SbaaTableAllInOne } from '@edanalytics/common-ui';
+import { PageActions, PageTemplate, SbaaTableAllInOne } from '@edanalytics/common-ui';
 import { GetEdorgDto } from '@edanalytics/models';
+import { useQuery } from '@tanstack/react-query';
 import { CellContext } from '@tanstack/react-table';
-import { useParams } from 'react-router-dom';
 import { edorgQueries, odsQueries } from '../../api';
 import { queryClient } from '../../app';
-import { AuthorizeConfig, arrayElemIf, authorize } from '../../helpers';
+import {
+  AuthorizeConfig,
+  arrayElemIf,
+  authorize,
+  useTeamEdfiTenantNavContextLoaded,
+} from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { EdorgLink, OdsLink } from '../../routes';
-import { SbeSyncDateOverlay } from '../Sbe/SbeSyncDate';
 import { NameCell } from './NameCell';
+import { useEdorgsActions } from './useEdorgsActions';
 
 export const EdorgsPage = () => {
-  const params = useParams() as {
-    asId: string;
-    sbeId: string;
-  };
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
   const odsAuth: AuthorizeConfig = {
-    privilege: 'tenant.sbe.ods:read',
+    privilege: 'team.sb-environment.edfi-tenant.ods:read',
     subject: {
       id: '__filtered__',
-      sbeId: Number(params.sbeId),
-      tenantId: Number(params.asId),
+      edfiTenantId: edfiTenant.id,
+      teamId,
     },
   };
-  const odss = odsQueries.useAll({ tenantId: params.asId, sbeId: params.sbeId, optional: true });
-  const edorgs = edorgQueries.useAll({
-    tenantId: params.asId,
-    sbeId: params.sbeId,
+  const odss = useQuery({
+    ...odsQueries.getAll({
+      teamId,
+      edfiTenant,
+    }),
+    enabled: authorize({ config: odsAuth, queryClient }),
   });
+  const edorgs = useQuery(
+    edorgQueries.getAll({
+      teamId,
+      edfiTenant,
+    })
+  );
+
+  const actions = useEdorgsActions({});
 
   return (
-    <PageTemplate title="Education Organizations">
-      <SbeSyncDateOverlay />
+    <PageTemplate title="Education Organizations" actions={<PageActions actions={actions} />}>
       <SbaaTableAllInOne
         data={Object.values(edorgs?.data || {})}
         columns={[

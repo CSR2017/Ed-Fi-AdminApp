@@ -1,15 +1,15 @@
-import { IRole, ITenant, IUser, IUserTenantMembership } from '@edanalytics/models';
+import { IRole, ITeam, IUser, IUserTeamMembership } from '@edanalytics/models';
 import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 
 @Entity()
-@Unique(['tenantId', 'userId'])
-export class UserTenantMembership extends EntityBase implements IUserTenantMembership {
-  @ManyToOne('Tenant', (tenant: ITenant) => tenant.userTenantMemberships, { onDelete: 'CASCADE' })
-  tenant: ITenant;
+@Unique(['teamId', 'userId'])
+export class UserTeamMembership extends EntityBase implements IUserTeamMembership {
+  @ManyToOne('Team', (team: ITeam) => team.userTeamMemberships, { onDelete: 'CASCADE' })
+  team: ITeam;
   @Column()
-  tenantId: ITenant['id'];
-  @ManyToOne('User', (user: IUser) => user.userTenantMemberships, { onDelete: 'CASCADE' })
+  teamId: ITeam['id'];
+  @ManyToOne('User', (user: IUser) => user.userTeamMemberships, { onDelete: 'CASCADE' })
   user: IUser;
   @Column()
   userId: IUser['id'];

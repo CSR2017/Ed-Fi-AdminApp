@@ -46,12 +46,11 @@ export class RolesGlobalController {
   async create(@Body() createRoleDto: PostRoleDto, @ReqUser() user: GetSessionDataDto) {
     if (
       createRoleDto.type === RoleType.UserGlobal &&
-      (!createRoleDto.privileges.includes('me:read') ||
-        !createRoleDto.privileges.includes('privilege:read'))
+      !createRoleDto.privilegeIds.includes('me:read')
     ) {
       throw new ValidationHttpException({
         field: 'privileges',
-        message: 'Minimum privileges not present (me:read or privilege:read).',
+        message: 'Minimum privileges not present (me:read).',
       });
     }
     return toGetRoleDto(await this.roleService.create(addUserCreating(createRoleDto, user)));
@@ -94,14 +93,10 @@ export class RolesGlobalController {
     const existing = await this.rolesRepository
       .findOneByOrFail({ id: roleId })
       .catch(throwNotFound);
-    if (
-      existing.type === RoleType.UserGlobal &&
-      (!updateRoleDto.privileges.includes('me:read') ||
-        !updateRoleDto.privileges.includes('privilege:read'))
-    ) {
+    if (existing.type === RoleType.UserGlobal && !updateRoleDto.privilegeIds.includes('me:read')) {
       throw new ValidationHttpException({
         field: 'privileges',
-        message: 'Minimum privileges not present (me:read or privilege:read).',
+        message: 'Minimum privileges not present (me:read).',
       });
     }
 

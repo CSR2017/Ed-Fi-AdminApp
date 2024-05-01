@@ -1,0 +1,99 @@
+import { Global, Module } from '@nestjs/common';
+import { SbEnvironmentsService } from '../teams/sb-environments/sb-environments.service';
+import { UserTeamMembershipsService } from '../teams/user-team-memberships/user-team-memberships.service';
+import { UsersService } from '../teams/users/users.service';
+import { UserTeamMembershipsGlobalService } from '../user-team-memberships-global/user-team-memberships-global.service';
+import { UsersGlobalService } from '../users-global/users-global.service';
+import {
+  User,
+  Team,
+  Ods,
+  EdfiTenant,
+  SbEnvironment,
+  Edorg,
+  UserTeamMembership,
+  Role,
+  Ownership,
+  OwnershipView,
+  Oidc,
+  SbSyncQueue,
+  EnvNav,
+} from '@edanalytics/models-server';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthService } from '../auth/auth.service';
+import { SessionSerializer } from '../auth/helpers/session.serializer';
+import { RegisterOidcIdpsService } from '../auth/login/oidc.strategy';
+import { EdorgsGlobalService } from '../edfi-tenants-global/edorgs-global/edorgs-global.service';
+import { OdssGlobalService } from '../edfi-tenants-global/odss-global/odss-global.service';
+import { OwnershipsGlobalService } from '../ownerships-global/ownerships-global.service';
+import { RolesGlobalService } from '../roles-global/roles-global.service';
+import { SbEnvironmentsGlobalService } from '../sb-environments-global/sb-environments-global.service';
+import { SbSyncConsumer } from '../sb-sync/sb-sync.consumer';
+import { EdfiTenantsService } from '../teams/edfi-tenants/edfi-tenants.service';
+import { EdorgsService } from '../teams/edfi-tenants/edorgs/edorgs.service';
+import { OdssService } from '../teams/edfi-tenants/odss/odss.service';
+import {
+  AdminApiServiceV1,
+  StartingBlocksServiceV2,
+  StartingBlocksServiceV1,
+  AdminApiServiceV2,
+} from '../teams/edfi-tenants/starting-blocks';
+import { MetadataService } from '../teams/edfi-tenants/starting-blocks/metadata.service';
+import { OwnershipsService } from '../teams/ownerships/ownerships.service';
+import { RolesService } from '../teams/roles/roles.service';
+import { TeamsGlobalService } from '../teams/teams-global.service';
+import { CacheService } from './cache.module';
+
+const imports = [
+  TypeOrmModule.forFeature([
+    User,
+    Team,
+    Ods,
+    EdfiTenant,
+    SbEnvironment,
+    Edorg,
+    UserTeamMembership,
+    Role,
+    Ownership,
+    OwnershipView,
+    Oidc,
+    SbSyncQueue,
+    EnvNav,
+  ]),
+];
+const providers = [
+  AdminApiServiceV1,
+  AdminApiServiceV2,
+  AuthService,
+  CacheService,
+  EdfiTenantsService,
+  EdorgsGlobalService,
+  EdorgsService,
+  MetadataService,
+  OdssGlobalService,
+  OdssService,
+  OwnershipsGlobalService,
+  OwnershipsService,
+  RegisterOidcIdpsService,
+  RolesGlobalService,
+  RolesService,
+  SbEnvironmentsGlobalService,
+  SbEnvironmentsService,
+  SbSyncConsumer,
+  SessionSerializer,
+  StartingBlocksServiceV1,
+  StartingBlocksServiceV2,
+  TeamsGlobalService,
+  UserTeamMembershipsGlobalService,
+  UserTeamMembershipsService,
+  UsersGlobalService,
+  UsersService,
+];
+
+@Global()
+@Module({
+  imports: imports,
+  providers: providers,
+  exports: [...providers, ...imports],
+})
+export class ServicesModule {}

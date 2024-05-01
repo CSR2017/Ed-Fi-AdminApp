@@ -22,9 +22,11 @@ import {
   fuzzyFilter,
   getColumnFilterParam,
   getGlobalFilterParam,
+  getPaginationParams,
   getSortParams,
   setColumnFilterParam,
   setGlobalFilterParam,
+  setPaginationParams,
   setSortParams,
 } from '../dataTable';
 
@@ -54,6 +56,25 @@ export const SbaaTableContext = createContext<{
 export const useSbaaTableContext = () => React.useContext(SbaaTableContext);
 export type DivComponent = ChakraComponent<'div'>;
 
+/** Diff old and new URLSearchParams */
+export const diffSearchParams = (oldParams: URLSearchParams, newParams: URLSearchParams) => {
+  let changed = false;
+  for (const [key, value] of newParams) {
+    if (oldParams.get(key) !== value) {
+      changed = true;
+      break;
+    }
+  }
+  for (const [key, value] of oldParams) {
+    if (newParams.get(key) !== value) {
+      changed = true;
+      break;
+    }
+  }
+
+  return changed;
+};
+
 export function SbaaTableProvider<
   UseSubRows extends boolean,
   T extends UseSubRows extends true ? { id: any; subRows: T[] } : { id: any }
@@ -71,7 +92,15 @@ export function SbaaTableProvider<
   const data = useMemo(() => [...props.data], [props.data]);
   const columns = props.columns;
   const pageSizes = props.pageSizes ?? [10, 25, 50, 100];
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [_searchParams, _setSearchParams] = useSearchParams();
+  // detach mutations which ruin diff
+  const searchParams = new URLSearchParams(_searchParams);
+
+  const setSearchParams = (newValue: URLSearchParams) => {
+    if (diffSearchParams(_searchParams, newValue)) {
+      _setSearchParams(newValue);
+    }
+  };
 
   const columnFilters = getColumnFilterParam(searchParams, props.queryKeyPrefix);
   const setColumnFilters = (
@@ -95,6 +124,8 @@ export function SbaaTableProvider<
   };
   const sortParams = getSortParams(searchParams, props.queryKeyPrefix);
 
+  const paginationParams = getPaginationParams(searchParams, pageSizes[0], props.queryKeyPrefix);
+
   const showSettings = useBoolean(sortParams.length > 1 || columnFilters.length > 0);
 
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
@@ -111,6 +142,7 @@ export function SbaaTableProvider<
       columnFilters,
       ...(props.rowSelectionState ? { rowSelection: props.rowSelectionState } : {}),
       expanded,
+      pagination: paginationParams,
     },
     getSubRows: props.useSubRows ? (row) => row.subRows : undefined,
     filterFromLeafRows: true,
@@ -120,6 +152,15 @@ export function SbaaTableProvider<
         setSortParams(
           typeof updater === 'function' ? updater(sortParams) : updater,
           searchParams,
+          props.queryKeyPrefix
+        )
+      ),
+    onPaginationChange: (updater) =>
+      setSearchParams(
+        setPaginationParams(
+          typeof updater === 'function' ? updater(paginationParams) : updater,
+          searchParams,
+          pageSizes[0],
           props.queryKeyPrefix
         )
       ),

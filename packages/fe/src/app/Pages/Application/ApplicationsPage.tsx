@@ -1,10 +1,23 @@
-import { PageActions, PageTemplate, SbaaTableAllInOne } from '@edanalytics/common-ui';
-import { GetClaimsetDto, GetEdorgDto, createEdorgCompositeNaturalKey } from '@edanalytics/models';
-import { applicationQueries, claimsetQueries, edorgQueries, vendorQueries } from '../../api';
+import {
+  CappedLinesText,
+  PageActions,
+  PageTemplate,
+  SbaaTableAllInOne,
+} from '@edanalytics/common-ui';
+import { GetClaimsetDto, GetEdorgDto, edorgCompositeKey } from '@edanalytics/models';
+import {
+  applicationQueriesV1,
+  claimsetQueriesV1,
+  edorgQueries,
+  odsQueries,
+  vendorQueriesV1,
+} from '../../api';
 
-import { useNavContext } from '../../helpers';
+import { useQuery } from '@tanstack/react-query';
+import uniq from 'lodash/uniq';
+import { getEntityFromQuery, useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { ClaimsetLink, EdorgLink, VendorLink } from '../../routes';
+import { ClaimsetLinkV1, EdorgLink, OdsLink, VendorLinkV1 } from '../../routes';
 import { NameCell } from './NameCell';
 import { useMultiApplicationActions } from './useApplicationActions';
 
@@ -17,50 +30,58 @@ export const ApplicationsPage = () => {
 };
 
 export const ApplicationsPageActions = () => {
-  const navContext = useNavContext();
-  const sbeId = navContext.sbeId!;
-  const asId = navContext.asId!;
-
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
   const actions = useMultiApplicationActions({
-    sbeId: sbeId,
-    tenantId: asId,
+    edfiTenant,
+    teamId,
   });
   return <PageActions actions={actions} />;
 };
 
 export const ApplicationsPageContent = () => {
-  const navContext = useNavContext();
-  const sbeId = navContext.sbeId!;
-  const asId = navContext.asId!;
-
-  const applications = applicationQueries.useAll({
-    sbeId: sbeId,
-    tenantId: asId,
-  });
-  const edorgs = edorgQueries.useAll({
-    sbeId: sbeId,
-    tenantId: asId,
-  });
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const applications = useQuery(
+    applicationQueriesV1.getAll({
+      edfiTenant,
+      teamId,
+    })
+  );
+  const edorgs = useQuery(
+    edorgQueries.getAll({
+      edfiTenant,
+      teamId,
+    })
+  );
   const edorgsByEdorgId = {
     ...edorgs,
     data: Object.values(edorgs.data ?? {}).reduce<Record<string, GetEdorgDto>>((map, edorg) => {
       map[
-        createEdorgCompositeNaturalKey({
-          educationOrganizationId: edorg.educationOrganizationId,
-          odsDbName: edorg.odsDbName,
+        edorgCompositeKey({
+          edorg: edorg.educationOrganizationId,
+          ods: edorg.odsDbName,
         })
       ] = edorg;
       return map;
     }, {}),
   };
-  const vendors = vendorQueries.useAll({
-    sbeId: sbeId,
-    tenantId: asId,
-  });
-  const claimsets = claimsetQueries.useAll({
-    sbeId: sbeId,
-    tenantId: asId,
-  });
+  const odss = useQuery(
+    odsQueries.getAll({
+      edfiTenant: edfiTenant,
+      teamId,
+    })
+  );
+  const vendors = useQuery(
+    vendorQueriesV1.getAll({
+      edfiTenant,
+      teamId,
+    })
+  );
+  const claimsets = useQuery(
+    claimsetQueriesV1.getAll({
+      edfiTenant,
+      teamId,
+    })
+  );
   const claimsetsByName = {
     ...claimsets,
     data: Object.values(claimsets.data ?? {}).reduce<Record<string, GetClaimsetDto>>(
@@ -87,9 +108,9 @@ export const ApplicationsPageContent = () => {
             application._educationOrganizationIds
               .map((edorgId) =>
                 getRelationDisplayName(
-                  createEdorgCompositeNaturalKey({
-                    educationOrganizationId: edorgId,
-                    odsDbName: 'EdFi_Ods_' + application.odsInstanceName,
+                  edorgCompositeKey({
+                    edorg: edorgId,
+                    ods: 'EdFi_Ods_' + application.odsInstanceName,
                   }),
                   edorgsByEdorgId
                 )
@@ -97,21 +118,58 @@ export const ApplicationsPageContent = () => {
               .join(', '),
           header: 'Education organization',
           cell: (info) => (
-            <>
+            <CappedLinesText maxLines={2}>
               {info.row.original._educationOrganizationIds
                 .map((edorgId) => (
                   <EdorgLink
                     key={edorgId}
-                    id={createEdorgCompositeNaturalKey({
-                      educationOrganizationId: edorgId,
-                      odsDbName: 'EdFi_Ods_' + info.row.original.odsInstanceName,
+                    id={edorgCompositeKey({
+                      edorg: edorgId,
+                      ods: 'EdFi_Ods_' + info.row.original.odsInstanceName,
                     })}
                     query={edorgsByEdorgId}
                   />
                 ))
                 .reduce((prev, curr) => [prev, ', ', curr] as any)}
-            </>
+            </CappedLinesText>
           ),
+          meta: {
+            type: 'options',
+          },
+        },
+        {
+          id: 'ods',
+          accessorFn: (application) =>
+            uniq(
+              application._educationOrganizationIds
+                .map(
+                  (edorgId) =>
+                    getEntityFromQuery(
+                      edorgCompositeKey({
+                        edorg: edorgId,
+                        ods: 'EdFi_Ods_' + application.odsInstanceName,
+                      }),
+                      edorgsByEdorgId
+                    )?.odsId
+                )
+                .filter((odsId) => odsId !== undefined)
+            ).join(', '),
+          header: 'Ods',
+          cell: ({ row: { original: application }, getValue }) =>
+            uniq(
+              application._educationOrganizationIds
+                .map(
+                  (edorgId) =>
+                    getEntityFromQuery(
+                      edorgCompositeKey({
+                        edorg: edorgId,
+                        ods: 'EdFi_Ods_' + application.odsInstanceName,
+                      }),
+                      edorgsByEdorgId
+                    )?.odsId
+                )
+                .filter((odsId) => odsId !== undefined)
+            ).map((odsId) => <OdsLink key={odsId} id={odsId} query={odss} />),
           meta: {
             type: 'options',
           },
@@ -120,7 +178,7 @@ export const ApplicationsPageContent = () => {
           id: 'vendor',
           accessorFn: (info) => getRelationDisplayName(info.vendorId, vendors),
           header: 'Vendor',
-          cell: (info) => <VendorLink query={vendors} id={info.row.original.vendorId} />,
+          cell: (info) => <VendorLinkV1 query={vendors} id={info.row.original.vendorId} />,
           meta: {
             type: 'options',
           },
@@ -130,7 +188,7 @@ export const ApplicationsPageContent = () => {
           accessorFn: (info) => getRelationDisplayName(info.claimSetName, claimsetsByName),
           header: 'Claimset',
           cell: (info) => (
-            <ClaimsetLink
+            <ClaimsetLinkV1
               query={claimsets}
               id={claimsetsByName.data[info.row.original.claimSetName]?.id}
             />

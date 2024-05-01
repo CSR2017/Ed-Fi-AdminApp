@@ -1,16 +1,25 @@
-import { IEdorg, IOds, IOwnership, IRole, ISbe, ITenant } from '@edanalytics/models';
+import {
+  IEdorg,
+  IOds,
+  IOwnership,
+  IRole,
+  IEdfiTenant,
+  ITeam,
+  ISbEnvironment,
+} from '@edanalytics/models';
 import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 
 @Entity()
-@Unique(['tenantId', 'sbeId'])
-@Unique(['tenantId', 'odsId'])
-@Unique(['tenantId', 'edorgId'])
+@Unique(['teamId', 'sbEnvironmentId'])
+@Unique(['teamId', 'edfiTenantId'])
+@Unique(['teamId', 'odsId'])
+@Unique(['teamId', 'edorgId'])
 export class Ownership extends EntityBase implements IOwnership {
-  @ManyToOne('Tenant', (tenant: ITenant) => tenant.ownerships, { onDelete: 'CASCADE' })
-  tenant: ITenant;
+  @ManyToOne('Team', (team: ITeam) => team.ownerships, { onDelete: 'CASCADE' })
+  team: ITeam;
   @Column()
-  tenantId: ITenant['id'];
+  teamId: ITeam['id'];
 
   @ManyToOne('Role', { nullable: true, onDelete: 'SET NULL' })
   role: IRole | null;
@@ -18,13 +27,21 @@ export class Ownership extends EntityBase implements IOwnership {
   @Column({ nullable: true })
   roleId: IRole['id'] | null;
 
-  @ManyToOne('Sbe', (sbe: ISbe) => sbe.ownerships, {
+  @ManyToOne('SbEnvironment', (sbEnvironment: ISbEnvironment) => sbEnvironment.ownerships, {
     eager: true,
     onDelete: 'CASCADE',
   })
-  sbe?: ISbe;
+  sbEnvironment?: ISbEnvironment;
   @Column({ nullable: true })
-  sbeId?: number;
+  sbEnvironmentId?: number;
+
+  @ManyToOne('EdfiTenant', (edfiTenant: IEdfiTenant) => edfiTenant.ownerships, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
+  edfiTenant?: IEdfiTenant;
+  @Column({ nullable: true })
+  edfiTenantId?: number;
 
   @ManyToOne('Ods', (ods: IOds) => ods.ownerships, {
     eager: true,

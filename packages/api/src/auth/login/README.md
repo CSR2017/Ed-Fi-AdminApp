@@ -11,20 +11,24 @@ At a high level, here is how auth is handled:
 
 ## Authentication options
 
-Some options ("strategies"), such as HTTP Basic, consist of a single POST route. Others, such as OIDC, involve more than one route:
+Unlike other apps SBAA only supports OIDC. Multiple IdPs can be registered, each operating behind a `/:id` path section.
 
 1. Go to the `/login` route (anybody can go here).
 1. Get redirected to an external IdP.
    - ...do things...
-1. Get redirected back, this time to the `/callback` route (the data that you might call the authentication "result" is in the redirect URL, and it's parsed by PassportJS)
+1. Get redirected back, this time to the `/callback` route
+   - The data that you might call the authentication "result" is in the redirect URL, and it's parsed by PassportJS,
+   - and then used by the OIDC library to complete the OIDC flow (called the private client authorization code flow)
 
-A strategy could have any kind of unique logic in it, but the end result is always the same: a user object to store in the authentication session cache.
+A strategy other than OIDC could have any kind of unique logic in it, but the end result for Passport is always the same: a user object to store in the authenticated session cache.
 
 ## Session cache
 
 This could be any number of things, including trivial options such as a JavaScript variable or more elaborate ones like Redis.
 
 The usual reasons to stay away from in-memory options like a JS variable or a Redis emulator are: (a) volatility, or the issue of losing all the data in a crash and restart, and (b) an in-memory cache would be impossible to share if there are multiple parallel instances.
+
+SBAA uses the Postgres server that already exists for the main app database.
 
 ## HTTP cookies
 
@@ -36,6 +40,8 @@ Although HTTP cookie sessions are opaque to the front-end code, there are still 
 
 - Front-end API requests need to be sent using `credentials = include`, which tells the browser to include its HTTP-only cookie.
 - API responses need to include the header `Access-Control-Allow-Credentials = true`, which tells the browser to let JavaScript access the response.
+
+There are various ways to botch the setup of this, and we won't try to make this doc a source of truth on it. Suffice it to say, there are various ways a hacker can trick a user into sending (via their browser) a malicious request to the API from some starting point other than your front-end app, and it's critical that (a) the hacker shouldn't be able to steal the `sid`, and (b) those requests shouldn't be able to "do anything" in the app.
 
 ## Normal request authentication
 
@@ -50,3 +56,5 @@ The retrieved session value is then stored in the NestJS request pipeline for an
 ## Logout
 
 Because of the way request authentication works, all that's needed in order to log a user out is to delete their session, because that will guarantee that all subsequent requests using their old `sid` will fail.
+
+We don't currently implement back-channel logout or other ties to the IdP but eventually we should.

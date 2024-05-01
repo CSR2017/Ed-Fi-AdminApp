@@ -1,68 +1,120 @@
 import { Link, Text } from '@chakra-ui/react';
-import { GetVendorDto } from '@edanalytics/models';
-import { UseQueryResult } from '@tanstack/react-query';
+import { GetVendorDto, GetVendorDtoV2 } from '@edanalytics/models';
+import { UseQueryResult, useQuery } from '@tanstack/react-query';
 import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { VendorPage } from '../Pages/Vendor/VendorPage';
 import { VendorsPage } from '../Pages/Vendor/VendorsPage';
-import { vendorQueries } from '../api';
-import { getRelationDisplayName, useNavContext } from '../helpers';
+import { vendorQueriesV1, vendorQueriesV2 } from '../api';
+import {
+  VersioningHoc,
+  getRelationDisplayName,
+  useNavContext,
+  useTeamEdfiTenantNavContext,
+  useTeamEdfiTenantNavContextLoaded,
+  withLoader,
+} from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 import { CreateVendor } from '../Pages/Vendor/CreateVendorPage';
+import { VendorPageV2 } from '../Pages/VendorV2/VendorPage';
+import { VendorsPageV2 } from '../Pages/VendorV2/VendorsPage';
+import { CreateVendorV2 } from '../Pages/VendorV2/CreateVendorPage';
 
-const VendorBreadcrumb = () => {
+const VendorBreadcrumbV1 = () => {
   const params = useParams() as {
     vendorId: string;
-    asId: string;
-    sbeId: string;
   };
-  const vendor = vendorQueries.useOne({
-    id: params.vendorId,
-    tenantId: params.asId,
-    sbeId: params.sbeId,
-  });
-  return vendor.data?.displayName ?? params.vendorId;
+  const { edfiTenant, teamId } = useTeamEdfiTenantNavContextLoaded();
+  const vendor = useQuery(
+    vendorQueriesV1.getOne({
+      id: params.vendorId,
+      teamId,
+      edfiTenant,
+    })
+  );
+  return (vendor.data?.displayName ?? params.vendorId) as any;
+};
+const VendorBreadcrumbV2 = () => {
+  const params = useParams() as {
+    vendorId: string;
+  };
+  const { edfiTenant, teamId } = useTeamEdfiTenantNavContextLoaded();
+  const vendor = useQuery(
+    vendorQueriesV2.getOne({
+      id: params.vendorId,
+      teamId,
+      edfiTenant,
+    })
+  );
+  return (vendor.data?.displayName ?? params.vendorId) as any;
 };
 export const vendorCreateRoute: RouteObject = {
-  path: '/as/:asId/sbes/:sbeId/vendors/create',
-  element: <CreateVendor />,
+  path: '/as/:asId/sb-environments/:sbEnvironmentId/edfi-tenants/:edfiTenantId/vendors/create',
+  element: <VersioningHoc v1={<CreateVendor />} v2={<CreateVendorV2 />} />,
   handle: { crumb: () => 'Create Vendor' },
 };
 export const vendorIndexRoute: RouteObject = {
-  path: '/as/:asId/sbes/:sbeId/vendors/:vendorId/',
-  element: <VendorPage />,
+  path: '/as/:asId/sb-environments/:sbEnvironmentId/edfi-tenants/:edfiTenantId/vendors/:vendorId/',
+  element: <VersioningHoc v1={<VendorPage />} v2={<VendorPageV2 />} />,
 };
 
 export const vendorRoute: RouteObject = {
-  path: '/as/:asId/sbes/:sbeId/vendors/:vendorId',
-  handle: { crumb: VendorBreadcrumb, fallbackCrumb: () => 'Vendor' },
+  path: '/as/:asId/sb-environments/:sbEnvironmentId/edfi-tenants/:edfiTenantId/vendors/:vendorId',
+  handle: {
+    crumb: withLoader(() => (
+      <VersioningHoc v1={<VendorBreadcrumbV1 />} v2={<VendorBreadcrumbV2 />} />
+    )),
+  },
 };
 export const vendorsIndexRoute: RouteObject = {
-  path: '/as/:asId/sbes/:sbeId/vendors/',
-  element: <VendorsPage />,
+  path: '/as/:asId/sb-environments/:sbEnvironmentId/edfi-tenants/:edfiTenantId/vendors/',
+  element: <VersioningHoc v1={<VendorsPage />} v2={<VendorsPageV2 />} />,
 };
 export const vendorsRoute: RouteObject = {
-  path: '/as/:asId/sbes/:sbeId/vendors',
+  path: '/as/:asId/sb-environments/:sbEnvironmentId/edfi-tenants/:edfiTenantId/vendors',
   handle: { crumb: () => 'Vendors' },
 };
 
-export const VendorLink = (props: {
+export const VendorLinkV1 = (props: {
   id: number | undefined;
   query: UseQueryResult<Record<string | number, GetVendorDto>, unknown>;
 }) => {
   const vendor = getEntityFromQuery(props.id, props.query);
-  const navContext = useNavContext();
-  const sbeId = navContext.sbeId!;
-  const asId = navContext.asId!;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
 
   return vendor ? (
     <Link as="span">
-      <RouterLink title="Go to vendor" to={`/as/${asId}/sbes/${sbeId}/vendors/${vendor.id}`}>
-        {getRelationDisplayName(vendor.id, props.query)}
+      <RouterLink
+        title="Go to vendor"
+        to={`/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/vendors/${vendor.id}`}
+      >
+        {getRelationDisplayName(props.id, props.query)}
       </RouterLink>
     </Link>
   ) : typeof props.id === 'number' ? (
-    <Text title="Vendor may have been deleted." as="i" color="gray.500">
-      not found
+    <Text title="Vendor may have been deleted, or you lack access." as="i" color="gray.500">
+      can't find &#8220;{props.id}&#8221;
+    </Text>
+  ) : null;
+};
+export const VendorLinkV2 = (props: {
+  id: number | undefined;
+  query: UseQueryResult<Record<string | number, GetVendorDtoV2>, unknown>;
+}) => {
+  const vendor = getEntityFromQuery(props.id, props.query);
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+
+  return vendor ? (
+    <Link as="span">
+      <RouterLink
+        title="Go to vendor"
+        to={`/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/vendors/${vendor.id}`}
+      >
+        {getRelationDisplayName(props.id, props.query)}
+      </RouterLink>
+    </Link>
+  ) : typeof props.id === 'number' ? (
+    <Text title="Vendor may have been deleted, or you lack access." as="i" color="gray.500">
+      can't find &#8220;{props.id}&#8221;
     </Text>
   ) : null;
 };

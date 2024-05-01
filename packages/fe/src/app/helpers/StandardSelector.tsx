@@ -27,16 +27,22 @@ import { BsFunnel, BsFunnelFill } from 'react-icons/bs';
 import once from 'lodash/once';
 import { flushSync } from 'react-dom';
 import { wait } from '@edanalytics/utils';
+import { EdorgType } from '@edanalytics/models';
 
 type BaseSelectProps = Partial<Omit<Parameters<typeof Select>[0], 'options' | 'name' | 'onBlur'>>;
 type PassthroughSelectProps = Partial<
   Omit<Parameters<typeof Select>[0], 'options' | 'name' | 'onBlur' | 'onChange' | 'value'>
 > & { isLoading?: boolean; autoSelectOnly?: boolean };
 
-// TODO add deselect capability
+export type OptionsType<Discriminator = false> = Record<
+  string,
+  { value: number | string; label: string; subLabel?: string } & (Discriminator extends true
+    ? { discriminator: EdorgType }
+    : Record<never, never>)
+>;
 function _InnerSelect(
   props: BaseSelectProps & {
-    options: Record<string, { value: number | string; label: string; subLabel?: string }>;
+    options: OptionsType;
     autoSelectOnly?: boolean;
     isLoading?: boolean;
   } & Omit<ControllerRenderProps<any, any>, 'ref' | 'name'>,
@@ -44,7 +50,7 @@ function _InnerSelect(
 ): JSX.Element;
 function _InnerSelect(
   props: BaseSelectProps & {
-    options: Record<string, { value: number | string; label: string; subLabel?: string }>;
+    options: OptionsType;
     autoSelectOnly?: boolean;
     isLoading?: boolean;
   } & Omit<ControllerRenderProps<any, any>, 'ref'>,
@@ -52,7 +58,7 @@ function _InnerSelect(
 ): JSX.Element;
 function _InnerSelect(
   props: BaseSelectProps & {
-    options: Record<string, { value: number | string; label: string; subLabel?: string }>;
+    options: OptionsType;
     autoSelectOnly?: boolean;
     isLoading?: boolean;
   } & Omit<ControllerRenderProps<any, any>, 'ref' | 'name'> &
@@ -147,7 +153,7 @@ export function SelectWrapper<Dto extends Record<Name, number>, Name extends key
         }
       | {
           onChange: (...event: any[]) => void;
-          onBlur: () => void;
+          onBlur?: () => void;
           value: any;
         }
     ) &
@@ -197,12 +203,13 @@ export function SelectWrapper<Dto extends Record<Name, number>, Name extends key
     </HStack>
   );
 }
-export type StandardSelector<ExtraProps extends object = object> = {
+export type StandardSelector<ExtraProps extends object = object, Discriminator = false> = {
   <
     TFieldValues extends FieldValues = FieldValues,
     TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
   >(
     props: {
+      options?: OptionsType<Discriminator> | undefined;
       control: Control<TFieldValues>;
       name: TName;
     } & ExtraProps &
@@ -214,9 +221,10 @@ export type StandardSelector<ExtraProps extends object = object> = {
     TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
   >(
     props: {
+      options?: OptionsType<Discriminator> | undefined;
       onChange: (value: number | string | undefined) => void;
       value: number | string | undefined;
-    } & Omit<ControllerRenderProps<any, any>, 'ref' | 'name' | 'value'> &
+    } & Omit<ControllerRenderProps<any, any>, 'ref' | 'name' | 'value' | 'onBlur'> &
       ExtraProps &
       PassthroughSelectProps
   ): JSX.Element;

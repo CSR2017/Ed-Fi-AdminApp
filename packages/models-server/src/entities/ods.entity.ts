@@ -1,4 +1,4 @@
-import { IEdorg, IOds, IOwnership, ISbe } from '@edanalytics/models';
+import { IEdorg, IOds, IOwnership, IEdfiTenant } from '@edanalytics/models';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
 
@@ -7,13 +7,22 @@ export class Ods extends EntityBase implements IOds {
   @OneToMany('Ownership', (ownership: IOwnership) => ownership.ods)
   ownerships: IOwnership[];
 
-  @ManyToOne('Sbe', (sbe: ISbe) => sbe.odss, { onDelete: 'CASCADE' })
-  sbe: ISbe;
+  @ManyToOne('EdfiTenant', (edfiTenant: IEdfiTenant) => edfiTenant.odss, { onDelete: 'CASCADE' })
+  edfiTenant: IEdfiTenant;
   @Column()
-  sbeId: number;
+  edfiTenantId: number;
+
+  @Column()
+  sbEnvironmentId: number;
 
   @OneToMany('Edorg', (edorg: IEdorg) => edorg.ods)
   edorgs: IEdorg[];
+
+  @Column({ nullable: true })
+  odsInstanceId: number | null;
+
+  @Column({ nullable: true })
+  odsInstanceName: string | null;
 
   @Column()
   dbName: string;

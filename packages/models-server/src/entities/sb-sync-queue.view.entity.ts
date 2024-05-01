@@ -1,94 +1,57 @@
 import { ISbSyncQueue, PgBossJobState } from '@edanalytics/models';
-import { ViewColumn, ViewEntity } from 'typeorm';
+import { Index, ViewColumn, ViewEntity } from 'typeorm';
 
+@Index('sb_sync_queue_tsvector', {
+  synchronize: false,
+})
 @ViewEntity({
-  expression: `
-  select "id",
-       "name",
-       "priority",
-       "data",
-       "state",
-       "retrylimit",
-       "retrycount",
-       "retrydelay",
-       "retrybackoff",
-       "startafter",
-       "startedon",
-       "singletonkey",
-       "singletonon",
-       "expirein",
-       "createdon",
-       "completedon",
-       "keepuntil",
-       "on_complete",
-       "output",
-       "archivedon"
-from pgboss.archive
-where name = 'sbe-sync'
-union all
-select "id",
-       "name",
-       "priority",
-       "data",
-       "state",
-       "retrylimit",
-       "retrycount",
-       "retrydelay",
-       "retrybackoff",
-       "startafter",
-       "startedon",
-       "singletonkey",
-       "singletonon",
-       "expirein",
-       "createdon",
-       "completedon",
-       "keepuntil",
-       "on_complete",
-       "output",
-       null "archivedon"
-from pgboss.job
-where name = 'sbe-sync'
-  `,
+  expression: `with job as (select id, name, data, state, createdon, completedon, output
+    from pgboss.job
+    where name in ('sbe-sync', 'edfi-tenant-sync')
+    union
+    select id, name, data, state, createdon, completedon, output
+    from pgboss.archive
+    where name in ('sbe-sync', 'edfi-tenant-sync'))
+select job."id",
+case when job."name" = 'sbe-sync' then 'SbEnvironment' else 'EdfiTenant' end     "type",
+coalesce(sb_environment."name", edfi_tenant."name", 'resource no longer exists') "name",
+coalesce(sb_environment."id", edfi_tenant."sbEnvironmentId")                     "sbEnvironmentId",
+edfi_tenant."id"                                                                 "edfiTenantId",
+"data"::text                                                                     "dataText",
+data,
+state,
+createdon,
+completedon,
+output,
+(job.output -> 'hasChanges')::bool                                               "hasChanges"
+from job
+left join public.sb_environment on (job.data -> 'sbEnvironmentId')::int = sb_environment.id
+left join public.edfi_tenant on (job.data -> 'edfiTenantId')::int = edfi_tenant.id`,
+  materialized: true,
 })
 export class SbSyncQueue implements ISbSyncQueue {
   @ViewColumn()
   id: string;
   @ViewColumn()
-  name: string;
+  type: 'SbEnvironment' | 'EdfiTenant';
   @ViewColumn()
-  priority: number;
+  name: string | 'resource no longer exists';
   @ViewColumn()
-  data: object;
+  sbEnvironmentId: number | null;
+  @ViewColumn()
+  edfiTenantId: number | null;
+  @ViewColumn()
+  dataText: string;
+  @ViewColumn()
+  data: { sbEnvironmentId: number } | { edfiTenantId: number };
   @ViewColumn()
   state: PgBossJobState;
-  @ViewColumn()
-  retrylimit: number;
-  @ViewColumn()
-  retrycount: number;
-  @ViewColumn()
-  retrydelay: number;
-  @ViewColumn()
-  retrybackoff: boolean;
-  @ViewColumn()
-  startafter: Date;
-  @ViewColumn()
-  startedon: Date;
-  @ViewColumn()
-  singletonkey: string;
-  @ViewColumn()
-  singletonon: Date | null;
-  @ViewColumn()
-  expirein: Date;
   @ViewColumn()
   createdon: Date;
   @ViewColumn()
   completedon: Date;
   @ViewColumn()
-  keepuntil: Date;
-  @ViewColumn()
-  on_complete: boolean;
-  @ViewColumn()
   output: object;
   @ViewColumn()
-  archivedon: Date | null;
+  hasChanges: boolean | null | undefined;
 }

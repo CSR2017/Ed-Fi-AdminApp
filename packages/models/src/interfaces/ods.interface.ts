@@ -1,14 +1,18 @@
 import { IOwnership } from '.';
 import { IEntityBase } from '../utils/entity-base.interface';
 import { IEdorg } from './edorg.interface';
-import { ISbe } from './sbe.interface';
+import { IEdfiTenant } from './edfi-tenant.interface';
 
 export interface IOds extends IEntityBase {
   ownerships: IOwnership[];
 
-  sbe: ISbe;
-  sbeId: number;
+  edfiTenant: IEdfiTenant;
+  edfiTenantId: number;
 
+  sbEnvironmentId: number;
+
+  odsInstanceId: number | null;
+  odsInstanceName: string | null;
   dbName: string;
   edorgs: IEdorg[];
 }

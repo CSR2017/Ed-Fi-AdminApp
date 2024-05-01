@@ -1,5 +1,3 @@
-import { Sbe } from '@edanalytics/models-server';
-import _ from 'lodash';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class SbeConfigReorg1687190483472 implements MigrationInterface {

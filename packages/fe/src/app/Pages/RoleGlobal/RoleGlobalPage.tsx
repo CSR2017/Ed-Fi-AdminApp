@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { PageActions, PageTemplate } from '@edanalytics/common-ui';
 import omit from 'lodash/omit';
 import { useParams } from 'react-router-dom';
@@ -11,9 +12,11 @@ export const RoleGlobalPage = () => {
   const params = useParams() as {
     roleId: string;
   };
-  const role = roleQueries.useOne({
-    id: params.roleId,
-  }).data;
+  const role = useQuery(
+    roleQueries.getOne({
+      id: params.roleId,
+    })
+  ).data;
   const { edit } = useSearchParamsObject() as { edit?: boolean };
   const actions = useRoleGlobalActions(role);
 

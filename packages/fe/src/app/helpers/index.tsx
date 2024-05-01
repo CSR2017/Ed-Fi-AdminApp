@@ -6,4 +6,6 @@ export * from './authConfigHelpers';
 export * from './arrayElemIf';
 export * from './useQueryIfAuth';
 export * from './navContext';
+export * from './VersioningHoc';
 export * from './EntitySelectors';
+export * from './popSyncBanner';

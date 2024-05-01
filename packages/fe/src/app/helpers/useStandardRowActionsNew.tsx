@@ -1,17 +1,18 @@
-import { TenantBasePrivilege, TenantSbePrivilege } from '@edanalytics/models';
+import { TeamBasePrivilege, TeamEdfiTenantPrivilege } from '@edanalytics/models';
 import { HiOutlineEye } from 'react-icons/hi';
 import { RouteObject, generatePath, useNavigate } from 'react-router-dom';
 
 export type BaseRow = { id: number; displayName: string };
 
-export const useReadTenantEntity = (props: {
+export const useReadTeamEntity = (props: {
   route: RouteObject;
   entity: BaseRow | undefined;
-  params: { asId: string | number; sbeId?: string | number | undefined } & Record<
-    any,
-    string | number
-  >;
-  privilege: TenantBasePrivilege | TenantSbePrivilege;
+  params: {
+    asId: string | number;
+    edfiTenantId?: string | number | undefined;
+    sbEnvironmentId?: string | number | undefined;
+  } & Record<any, string | number>;
+  privilege: TeamBasePrivilege | TeamEdfiTenantPrivilege;
 }) => {
   const path = props.route.path!;
   const navigate = useNavigate();

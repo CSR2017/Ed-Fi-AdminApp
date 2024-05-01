@@ -1,28 +1,64 @@
 import { Expose, Transform, Type } from 'class-transformer';
 import { IsIn, IsNumber, IsOptional } from 'class-validator';
-import { IRole, ITenant } from '../interfaces';
-import { IOwnership } from '../interfaces/ownership.interface';
+import { IRole, ITeam } from '../interfaces';
+import { IOwnership, IOwnershipView } from '../interfaces/ownership.interface';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
 import { makeSerializer } from '../utils/make-serializer';
 import { DtoPostBase, PostDto } from '../utils/post-base.dto';
 import { DtoPutBase, PutDto } from '../utils/put-base.dto';
 import { GetEdorgDto } from './edorg.dto';
 import { GetOdsDto } from './ods.dto';
-import { GetSbeDto } from './sbe.dto';
+import { GetEdfiTenantDto } from './edfi-tenant.dto';
+import { GetSbEnvironmentDto } from './sb-environment.dto';
 
+export class GetOwnershipViewDto implements IOwnershipView {
+  @Expose()
+  id: IOwnership['id'];
+
+  @Expose()
+  teamId: ITeam['id'];
+  @Expose()
+  roleId: IRole['id'] | null;
+  @Expose()
+  resourceType: 'Edorg' | 'Ods' | 'EdfiTenant' | 'SbEnvironment';
+  @Expose()
+  resourceText: string;
+
+  get displayName() {
+    return 'Resource ownership';
+  }
+}
+
+export const toGetOwnershipViewDto = makeSerializer(GetOwnershipViewDto);
 export class GetOwnershipDto
   extends DtoGetBase
   implements
-    GetDto<IOwnership, 'tenant' | 'role' | 'sbeId' | 'sbe' | 'odsId' | 'ods' | 'edorgId' | 'edorg'>
+    GetDto<
+      IOwnership,
+      | 'team'
+      | 'role'
+      | 'sbEnvironmentId'
+      | 'sbEnvironment'
+      | 'edfiTenantId'
+      | 'edfiTenant'
+      | 'odsId'
+      | 'ods'
+      | 'edorgId'
+      | 'edorg'
+    >
 {
   @Expose()
-  tenantId: ITenant['id'];
+  teamId: ITeam['id'];
   @Expose()
   roleId: IRole['id'] | null;
 
   @Expose()
-  @Type(() => GetSbeDto)
-  sbe?: GetSbeDto;
+  @Type(() => GetSbEnvironmentDto)
+  sbEnvironment?: GetSbEnvironmentDto;
+
+  @Expose()
+  @Type(() => GetEdfiTenantDto)
+  edfiTenant?: GetEdfiTenantDto;
 
   @Expose()
   @Type(() => GetOdsDto)
@@ -43,7 +79,15 @@ export class PutOwnershipDto
   implements
     PutDto<
       IOwnership,
-      'tenant' | 'tenantId' | 'role' | 'sbeId' | 'sbe' | 'odsId' | 'ods' | 'edorgId' | 'edorg'
+      | 'team'
+      | 'teamId'
+      | 'role'
+      | 'edfiTenantId'
+      | 'edfiTenant'
+      | 'odsId'
+      | 'ods'
+      | 'edorgId'
+      | 'edorg'
     >
 {
   @Expose()
@@ -57,24 +101,24 @@ export class PostOwnershipDto
   implements
     PostDto<
       IOwnership,
-      | 'tenant'
+      | 'team'
       | 'role'
-      | 'sbeId'
-      | 'sbe'
+      | 'edfiTenantId'
+      | 'edfiTenant'
       | 'odsId'
       | 'ods'
       | 'edorgId'
       | 'edorg'
-      | 'tenantId'
+      | 'teamId'
       | 'roleId'
     >
 {
   @Expose()
   @IsNumber()
-  tenantId?: ITenant['id'] | undefined;
+  teamId?: ITeam['id'] | undefined;
 
   @Expose()
-  type: 'ods' | 'edorg' | 'sbe';
+  type: 'ods' | 'edorg' | 'edfiTenant' | 'environment';
 
   @Expose()
   @IsNumber()
@@ -85,7 +129,13 @@ export class PostOwnershipDto
   @IsOptional()
   @IsNumber()
   @Transform(({ value }) => (typeof value === 'number' ? value : undefined))
-  sbeId?: GetSbeDto['id'];
+  sbEnvironmentId?: GetSbEnvironmentDto['id'];
+
+  @Expose()
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => (typeof value === 'number' ? value : undefined))
+  edfiTenantId?: GetEdfiTenantDto['id'];
 
   @Expose()
   @IsOptional()
@@ -101,8 +151,10 @@ export class PostOwnershipDto
 
   @IsIn([true], { message: 'You need to select a resource.' })
   get hasResource() {
-    return this.type === 'sbe'
-      ? this.sbeId !== undefined
+    return this.type === 'environment'
+      ? this.sbEnvironmentId !== undefined
+      : this.type === 'edfiTenant'
+      ? this.edfiTenantId !== undefined
       : this.type === 'ods'
       ? this.odsId !== undefined
       : this.type === 'edorg'

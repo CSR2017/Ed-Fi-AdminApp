@@ -1,15 +1,17 @@
 import {
+  EdfiTenant,
   Edorg,
+  EnvNav,
   Ods,
   Oidc,
   Ownership,
-  Privilege,
+  OwnershipView,
   Role,
+  SbEnvironment,
   SbSyncQueue,
-  Sbe,
-  Tenant,
+  Team,
   User,
-  UserTenantMembership,
+  UserTeamMembership,
 } from '@edanalytics/models-server';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import { Initial1688158300508 } from './migrations/1687190483471-initial';
@@ -29,6 +31,10 @@ import { FkOnDeleteFix1694446892889 } from './migrations/1694446892889-FkOnDelet
 import { LowercaseUniqueUsernames1697054661848 } from './migrations/1697054661848-LowercaseUniqueUsernames';
 import { Seeding1697203599392 } from './migrations/1697203599392-Seeding';
 import { RemoveRemainingAppLauncherThings1697207080973 } from './migrations/1697207080973-RemoveRemainingAppLauncherThings';
+import { V7Changes1709328882890 } from './migrations/1709328882890-v7-changes';
+import { EnvNav1710178189458 } from './migrations/1710178189458-EnvNav';
+import { OdsInstanceName1710454017707 } from './migrations/1710454017707-OdsInstanceName';
+import { RemoveImpliedPrivilege1714074225483 } from './migrations/1714074225483-RemoveImpliedPrivilege';
 
 const config: Pick<
   PostgresConnectionOptions,
@@ -37,16 +43,18 @@ const config: Pick<
   type: 'postgres',
   entities: [
     User,
-    Tenant,
+    Team,
     Ods,
-    Sbe,
+    EdfiTenant,
+    SbEnvironment,
     Edorg,
-    UserTenantMembership,
-    Privilege,
+    UserTeamMembership,
     Role,
     Ownership,
+    OwnershipView,
     Oidc,
     SbSyncQueue,
+    EnvNav,
   ],
   synchronize: false,
   migrationsRun: true,
@@ -68,6 +76,10 @@ const config: Pick<
     LowercaseUniqueUsernames1697054661848,
     Seeding1697203599392,
     RemoveRemainingAppLauncherThings1697207080973,
+    V7Changes1709328882890,
+    EnvNav1710178189458,
+    OdsInstanceName1710454017707,
+    RemoveImpliedPrivilege1714074225483,
   ],
 };
 export default config;

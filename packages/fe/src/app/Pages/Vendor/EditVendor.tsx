@@ -14,11 +14,12 @@ import { GetVendorDto, PutVendorDto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
+import { BsInfoCircle } from 'react-icons/bs';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { vendorQueries } from '../../api';
+import { vendorQueriesV1 } from '../../api';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
-import { BsInfoCircle } from 'react-icons/bs';
 
 const resolver = classValidatorResolver(PutVendorDto);
 
@@ -27,17 +28,18 @@ export const EditVendor = (props: { vendor: GetVendorDto }) => {
 
   const navigate = useNavigate();
   const params = useParams() as {
-    asId: string;
-    sbeId: string;
     vendorId: string;
   };
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
   const goToView = () =>
-    navigate(`/as/${params.asId}/sbes/${params.sbeId}/vendors/${params.vendorId}`);
-  const putVendor = vendorQueries.usePut({
-    callback: goToView,
-    sbeId: params.sbeId,
-    tenantId: params.asId,
+    navigate(
+      `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/vendors/${params.vendorId}`
+    );
+  const putVendor = vendorQueriesV1.put({
+    edfiTenant,
+    teamId,
   });
+
   const {
     register,
     setError,
@@ -54,8 +56,11 @@ export const EditVendor = (props: { vendor: GetVendorDto }) => {
       onSubmit={handleSubmit((data) =>
         putVendor
           .mutateAsync(
-            data,
-            mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError })
+            { entity: data },
+            {
+              ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
+              onSuccess: goToView,
+            }
           )
           .catch(noop)
       )}

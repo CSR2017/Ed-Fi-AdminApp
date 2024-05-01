@@ -11,14 +11,20 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { PageTemplate } from '@edanalytics/common-ui';
-import { DependencyErrors, PostRoleDto, PrivilegeCode, RoleType } from '@edanalytics/models';
+import {
+  DependencyErrors,
+  PRIVILEGES,
+  PostRoleDto,
+  PrivilegeCode,
+  RoleType,
+} from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { privilegeQueries, roleQueries } from '../../api';
+import { roleQueries } from '../../api';
 import { useNavToParent } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { PrivilegesInput } from './PrivilegesInput';
@@ -29,36 +35,33 @@ export const CreateRoleGlobalPage = () => {
   const popBanner = usePopBanner();
   const navigate = useNavigate();
   const parentPath = useNavToParent();
-  const postRole = roleQueries.usePost({
-    callback: (result) => navigate(`/roles/${result.id}`),
-  });
-  const privileges = privilegeQueries.useAll({});
+  const postRole = roleQueries.post({});
+
+  const privileges = Object.values(PRIVILEGES);
   const {
     register,
     handleSubmit,
     setError,
-    setValue,
-    watch,
     formState: { errors, isSubmitting },
     control,
   } = useForm<PostRoleDto>({
     resolver,
-    defaultValues: Object.assign(new PostRoleDto(), { privileges: ['me:read', 'privilege:read'] }),
+    defaultValues: Object.assign(new PostRoleDto(), { privileges: ['me:read'] }),
   });
   const [type, setType] = useState<RoleType | null>(null);
   const filteredPrivileges =
-    privileges.data && type
-      ? Object.values(privileges.data).filter(
+    privileges && type
+      ? Object.values(privileges).filter(
           (p) =>
             type === RoleType.UserGlobal ||
-            (type === RoleType.ResourceOwnership && p.code.startsWith('tenant.sbe')) ||
-            (type === RoleType.UserTenant && p.code.startsWith('tenant.'))
+            (type === RoleType.ResourceOwnership && p.code.startsWith('team.sb-environment')) ||
+            (type === RoleType.UserTeam && p.code.startsWith('team.'))
         )
       : undefined;
   let privilegesError: undefined | string | DependencyErrors = undefined;
   try {
     // might be fancy error object for privilege dependencies
-    privilegesError = JSON.parse(errors.privileges?.message as string);
+    privilegesError = JSON.parse(errors.privilegeIds?.message as string);
   } catch (error) {
     // either undefined or plain string from class-validator
   }
@@ -69,8 +72,11 @@ export const CreateRoleGlobalPage = () => {
         onSubmit={handleSubmit((data) => {
           return postRole
             .mutateAsync(
-              data,
-              mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError })
+              { entity: data },
+              {
+                ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
+                onSuccess: (result) => navigate(`/roles/${result.id}`),
+              }
             )
             .catch(noop);
         })}
@@ -99,7 +105,7 @@ export const CreateRoleGlobalPage = () => {
                 }}
               >
                 <Stack direction="column" pl="1em" spacing={1}>
-                  <Radio value={RoleType.UserTenant}>User tenant</Radio>
+                  <Radio value={RoleType.UserTeam}>User team</Radio>
                   <Radio value={RoleType.UserGlobal}>User global</Radio>
                   <Radio value={RoleType.ResourceOwnership}>Resource ownership</Radio>
                 </Stack>
@@ -112,7 +118,7 @@ export const CreateRoleGlobalPage = () => {
           <FormLabel>Privileges</FormLabel>
           <Controller
             control={control}
-            name="privileges"
+            name="privilegeIds"
             render={(field) =>
               filteredPrivileges === undefined ? (
                 <></>

@@ -26,9 +26,8 @@ export const EditRole = (props: { role: GetRoleDto }) => {
     roleId: string;
   };
   const goToView = () => navigate(`/as/${params.asId}/roles/${params.roleId}`);
-  const putRole = roleQueries.usePut({
-    callback: goToView,
-    tenantId: params.asId,
+  const putRole = roleQueries.put({
+    teamId: params.asId,
   });
 
   const {
@@ -38,7 +37,7 @@ export const EditRole = (props: { role: GetRoleDto }) => {
     setError,
   } = useForm<PutRoleDto>({
     resolver,
-    defaultValues: { ...props.role, privileges: props.role.privileges.map((p) => p.code) },
+    defaultValues: { ...props.role, privilegeIds: props.role.privileges.map((p) => p.code) },
   });
 
   return (
@@ -46,8 +45,11 @@ export const EditRole = (props: { role: GetRoleDto }) => {
       onSubmit={handleSubmit((data) =>
         putRole
           .mutateAsync(
-            data,
-            mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError })
+            { entity: data },
+            {
+              ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
+              onSuccess: goToView,
+            }
           )
           .catch(noop)
       )}

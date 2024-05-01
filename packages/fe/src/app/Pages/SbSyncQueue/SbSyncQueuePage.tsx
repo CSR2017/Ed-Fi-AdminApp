@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { PageActions, PageTemplate } from '@edanalytics/common-ui';
 import omit from 'lodash/omit';
 import { useParams } from 'react-router-dom';
@@ -7,9 +8,11 @@ import { useSbSyncQueueActions } from './useSbSyncQueueActions';
 
 export const SbSyncQueuePage = () => {
   const params = useParams() as { sbSyncQueueId: string };
-  const sbSyncQueue = sbSyncQueueQueries.useOne({
-    id: params.sbSyncQueueId,
-  }).data;
+  const sbSyncQueue = useQuery(
+    sbSyncQueueQueries.getOne({
+      id: params.sbSyncQueueId,
+    })
+  ).data;
   const actions = useSbSyncQueueActions(sbSyncQueue);
   return (
     <PageTemplate

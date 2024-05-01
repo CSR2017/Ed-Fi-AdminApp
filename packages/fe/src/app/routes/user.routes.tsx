@@ -1,19 +1,21 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetUserDto } from '@edanalytics/models';
-import { UseQueryResult } from '@tanstack/react-query';
+import { UseQueryResult, useQuery } from '@tanstack/react-query';
 import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
-import { UserPage } from '../Pages/User/UserPage';
-import { UsersPage } from '../Pages/User/UsersPage';
+import { UserPage } from '../Pages/Team/User/UserPage';
+import { UsersPage } from '../Pages/Team/User/UsersPage';
 import { userQueries } from '../api';
-import { getRelationDisplayName, useNavContext } from '../helpers';
+import { getRelationDisplayName, useAuthorize, useNavContext } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const UserBreadcrumb = () => {
   const params = useParams() as { userId: string; asId: string };
-  const user = userQueries.useOne({
-    id: params.userId,
-    tenantId: params.asId,
-  });
+  const user = useQuery(
+    userQueries.getOne({
+      id: params.userId,
+      teamId: params.asId,
+    })
+  );
   return user.data?.displayName ?? params.userId;
 };
 
@@ -43,17 +45,28 @@ export const UserLink = (props: {
   const navContext = useNavContext();
   const asId = navContext.asId!;
 
-  const users = userQueries.useAll({ tenantId: asId, optional: true });
+  const users = useQuery({
+    ...userQueries.getAll({
+      teamId: asId,
+    }),
+    enabled: useAuthorize({
+      privilege: 'team.user:read',
+      subject: {
+        id: '__filtered__',
+        teamId: asId,
+      },
+    }),
+  });
   const user = getEntityFromQuery(props.id, users);
   return user ? (
     <Link as="span">
       <RouterLink title="Go to user" to={`/as/${asId}/users/${user.id}`}>
-        {getRelationDisplayName(user.id, users)}
+        {getRelationDisplayName(props.id, users)}
       </RouterLink>
     </Link>
   ) : typeof props.id === 'number' ? (
-    <Text title="User may have been deleted." as="i" color="gray.500">
-      not found
+    <Text title="User may have been deleted, or you lack access." as="i" color="gray.500">
+      can't find &#8220;{props.id}&#8221;
     </Text>
   ) : null;
 };

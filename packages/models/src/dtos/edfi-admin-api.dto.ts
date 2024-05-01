@@ -13,7 +13,7 @@ import {
 } from 'class-validator';
 import { makeSerializer } from '../utils/make-serializer';
 import { GetEdorgDto } from './edorg.dto';
-import { GetSbeConfigPublic } from './sbe.dto';
+import { SbaaAdminApiVersion } from '../interfaces';
 
 export class PostVendorDto {
   @Expose()
@@ -165,7 +165,7 @@ export class GetClaimsetDto extends PutClaimsetDto {
 }
 export const toGetClaimsetDto = makeSerializer(GetClaimsetDto);
 
-export class PostApplicationDto {
+export class PostApplicationDtoBase {
   @Expose()
   @IsString()
   @MinLength(3)
@@ -180,7 +180,8 @@ export class PostApplicationDto {
   @IsString()
   @MinLength(1)
   claimSetName: string;
-
+}
+export class PostApplicationDto extends PostApplicationDtoBase {
   @Expose()
   @IsOptional()
   @IsNumber()
@@ -190,7 +191,7 @@ export class PostApplicationDto {
   educationOrganizationIds: number[];
 }
 
-export class PostApplicationForm {
+export class PostApplicationFormBase {
   @Expose()
   @IsString()
   @MinLength(3)
@@ -204,7 +205,8 @@ export class PostApplicationForm {
   @Expose()
   @IsNumber()
   claimsetId: number;
-
+}
+export class PostApplicationForm extends PostApplicationFormBase {
   @Expose()
   @IsOptional()
   @IsNumber()
@@ -215,14 +217,18 @@ export class PostApplicationForm {
   educationOrganizationId: number;
 }
 
-export class PostApplicationResponseDto {
-  @Expose()
-  applicationId: number;
+export class PostApplicationResponseDtoBase {
   @Expose()
   key: string;
   @Expose()
   secret: string;
 }
+
+export class PostApplicationResponseDto extends PostApplicationResponseDtoBase {
+  @Expose()
+  applicationId: number;
+}
+
 export const toPostApplicationResponseDto = makeSerializer(PostApplicationResponseDto);
 
 export class ApplicationYopassResponseDto {
@@ -231,9 +237,16 @@ export class ApplicationYopassResponseDto {
 
   @Expose()
   link: string;
+
+  get id() {
+    return this.applicationId;
+  }
 }
 
-export const toApplicationYopassResponseDto = makeSerializer(ApplicationYopassResponseDto);
+export const toApplicationYopassResponseDto = makeSerializer<
+  ApplicationYopassResponseDto,
+  Omit<ApplicationYopassResponseDto, 'id'>
+>(ApplicationYopassResponseDto);
 
 export class PutApplicationDto extends PostApplicationDto {
   @Expose()
@@ -266,7 +279,6 @@ export class GetApplicationDto {
   @Expose()
   applicationId: number;
   @Expose()
-  @Expose()
   applicationName: string;
   @Expose()
   claimSetName: string;
@@ -296,10 +308,7 @@ export class GetApplicationDto {
     return this.applicationId;
   }
 
-  static apiUrl(
-    hostname: GetSbeConfigPublic['edfiHostname'],
-    applicationName: GetApplicationDto['applicationName']
-  ) {
+  static apiUrl(domain: string, applicationName: GetApplicationDto['applicationName']) {
     const safe = (str: string) =>
       str
         .toLowerCase()
@@ -307,9 +316,21 @@ export class GetApplicationDto {
         .replace(/[^a-z0-9-]/g, '');
 
     const appName = safe(applicationName).slice(0, 40);
+    const url = new URL(domain);
+    url.protocol = 'https:';
+    url.hostname = `${appName}.${url.hostname}`;
 
-    return `https://${appName}.${hostname?.replace(/\/$/, '')}/`;
+    return url.toString();
   }
 }
 
 export const toGetApplicationDto = makeSerializer(GetApplicationDto);
+
+export type AdminApiMeta = { version: '1.0' | '1.1' | '1.2' | '1.3' | '2.0' };
+export const importantAdminApiVersions: Record<AdminApiMeta['version'], SbaaAdminApiVersion> = {
+  '1.0': 'v1',
+  '1.1': 'v1',
+  '1.2': 'v1',
+  '1.3': 'v1',
+  '2.0': 'v2',
+};

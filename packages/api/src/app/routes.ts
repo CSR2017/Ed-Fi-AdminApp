@@ -1,85 +1,95 @@
 import { Routes } from '@nestjs/core';
 import { OwnershipsGlobalModule } from '../ownerships-global/ownerships-global.module';
-import { PrivilegesModule } from '../privileges/privileges.module';
 import { RolesGlobalModule } from '../roles-global/roles-global.module';
-import { EdorgsGlobalModule } from '../sbes-global/edorgs-global/edorgs-global.module';
-import { OdssGlobalModule } from '../sbes-global/odss-global/odss-global.module';
-import { SbesGlobalModule } from '../sbes-global/sbes-global.module';
-import { OwnershipsModule } from '../tenants/ownerships/ownerships.module';
-import { RolesModule } from '../tenants/roles/roles.module';
-import { EdorgsModule } from '../tenants/sbes/edorgs/edorgs.module';
-import { OdssModule } from '../tenants/sbes/odss/odss.module';
-import { SbesModule } from '../tenants/sbes/sbes.module';
-import { StartingBlocksModule } from '../tenants/sbes/starting-blocks/starting-blocks.module';
-import { UserTenantMembershipsModule } from '../tenants/user-tenant-memberships/user-tenant-memberships.module';
-import { UsersModule } from '../tenants/users/users.module';
-import { UserTenantMembershipsGlobalModule } from '../user-tenant-memberships-global/user-tenant-memberships-global.module';
+import { EdorgsGlobalModule } from '../edfi-tenants-global/edorgs-global/edorgs-global.module';
+import { OdssGlobalModule } from '../edfi-tenants-global/odss-global/odss-global.module';
+import { EdfiTenantsGlobalModule } from '../edfi-tenants-global/edfi-tenants-global.module';
+import { OwnershipsModule } from '../teams/ownerships/ownerships.module';
+import { RolesModule } from '../teams/roles/roles.module';
+import { EdorgsModule } from '../teams/edfi-tenants/edorgs/edorgs.module';
+import { OdssModule } from '../teams/edfi-tenants/odss/odss.module';
+import { EdfiTenantsModule } from '../teams/edfi-tenants/edfi-tenants.module';
+import { AdminApiModuleV1 } from '../teams/edfi-tenants/starting-blocks/v1/admin-api.v1.module';
+import { UserTeamMembershipsModule } from '../teams/user-team-memberships/user-team-memberships.module';
+import { UsersModule } from '../teams/users/users.module';
+import { UserTeamMembershipsGlobalModule } from '../user-team-memberships-global/user-team-memberships-global.module';
 import { UsersGlobalModule } from '../users-global/users-global.module';
-import { TenantsGlobalModule } from '../tenants/tenants-global.module';
+import { TeamsGlobalModule } from '../teams/teams-global.module';
 import { SbSyncModule } from '../sb-sync/sb-sync.module';
+import { AdminApiModuleV2 } from '../teams/edfi-tenants/starting-blocks/v2/admin-api.v2.module';
+import { SbEnvironmentsGlobalModule } from '../sb-environments-global/sb-environments-global.module';
+import { SbEnvironmentsModule } from '../teams/sb-environments/sb-environments.module';
 
 export const routes: Routes = [
   {
-    path: '/tenants',
-    module: TenantsGlobalModule,
+    path: '/teams',
+    module: TeamsGlobalModule,
     children: [
       {
-        path: '/:tenantId/sbes',
-        module: SbesModule,
+        path: '/:teamId/sb-environments',
+        module: SbEnvironmentsModule,
         children: [
           {
-            path: '/:sbeId/odss',
-            module: OdssModule,
-          },
-          {
-            path: '/:sbeId/edorgs',
-            module: EdorgsModule,
-          },
-          {
-            path: '/:sbeId',
-            module: StartingBlocksModule,
+            path: '/:sbEnvironmentId/edfi-tenants',
+            module: EdfiTenantsModule,
           },
         ],
       },
       {
-        path: '/:tenantId/users',
+        path: '/:teamId/users',
         module: UsersModule,
       },
       {
-        path: '/:tenantId/user-tenant-memberships',
-        module: UserTenantMembershipsModule,
+        path: '/:teamId/user-team-memberships',
+        module: UserTeamMembershipsModule,
       },
       {
-        path: '/:tenantId/roles',
+        path: '/:teamId/roles',
         module: RolesModule,
       },
       {
-        path: '/:tenantId/ownerships',
+        path: '/:teamId/ownerships',
         module: OwnershipsModule,
       },
+      {
+        path: '/:teamId/edfi-tenants/:edfiTenantId/odss',
+        module: OdssModule,
+      },
+      {
+        path: '/:teamId/edfi-tenants/:edfiTenantId/edorgs',
+        module: EdorgsModule,
+      },
+      {
+        path: '/:teamId/edfi-tenants/:edfiTenantId/admin-api/v1',
+        module: AdminApiModuleV1,
+      },
+      {
+        path: '/:teamId/edfi-tenants/:edfiTenantId/admin-api/v2',
+        module: AdminApiModuleV2,
+      },
     ],
-  },
-  {
-    path: '/privileges',
-    module: PrivilegesModule,
   },
   {
     path: '/sb-sync-queues',
     module: SbSyncModule,
   },
   {
-    path: '/sbes',
-    module: SbesGlobalModule,
+    path: '/sb-environments',
+    module: SbEnvironmentsGlobalModule,
     children: [
       {
-        path: '/:sbeId/odss',
-        module: OdssGlobalModule,
-      },
-      {
-        path: '/:sbeId/edorgs',
-        module: EdorgsGlobalModule,
+        path: '/:sbEnvironmentId/edfi-tenants',
+        module: EdfiTenantsGlobalModule,
       },
     ],
+  },
+  {
+    path: '/edfi-tenants/:edfiTenantId/odss',
+    module: OdssGlobalModule,
+  },
+  {
+    path: '/edfi-tenants/:edfiTenantId/edorgs',
+    module: EdorgsGlobalModule,
   },
   {
     path: '/ownerships',
@@ -94,7 +104,7 @@ export const routes: Routes = [
     module: UsersGlobalModule,
   },
   {
-    path: '/user-tenant-memberships',
-    module: UserTenantMembershipsGlobalModule,
+    path: '/user-team-memberships',
+    module: UserTeamMembershipsGlobalModule,
   },
 ];

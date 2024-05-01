@@ -12,12 +12,12 @@ import {
 } from '@chakra-ui/react';
 import { createContext } from '@chakra-ui/react-context';
 import { DOMElement, PropGetter } from '@chakra-ui/react-types';
-import { MouseEventHandler } from 'react';
+import { MouseEventHandler, ReactNode } from 'react';
 
 interface UseConfirmActionProps {
   skipConfirmation?: boolean;
   isDisabled?: boolean;
-  bodyText?: string;
+  bodyText?: ReactNode;
   headerText: string;
   yesButtonText?: string;
   noButtonText?: string;

@@ -1,15 +1,23 @@
-import { PageActions, PageTemplate, SbaaTableAllInOne } from '@edanalytics/common-ui';
-import { useParams } from 'react-router-dom';
-import { vendorQueries } from '../../api';
+import {
+  CappedLinesText,
+  PageActions,
+  PageTemplate,
+  SbaaTableAllInOne,
+} from '@edanalytics/common-ui';
+import { useQuery } from '@tanstack/react-query';
+import { vendorQueriesV1 } from '../../api';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { NameCell } from './NameCell';
 import { useManyVendorActions } from './useVendorActions';
 
 export const VendorsPageContent = () => {
-  const params = useParams() as { asId: string; sbeId: string };
-  const vendors = vendorQueries.useAll({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-  });
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const vendors = useQuery(
+    vendorQueriesV1.getAll({
+      edfiTenant,
+      teamId,
+    })
+  );
   return (
     <SbaaTableAllInOne
       data={Object.values(vendors?.data || {})}
@@ -22,6 +30,9 @@ export const VendorsPageContent = () => {
         {
           accessorKey: 'namespacePrefixes',
           header: 'Namespace',
+          cell: ({ getValue }) => (
+            <CappedLinesText maxLines={2}>{getValue() as string}</CappedLinesText>
+          ),
         },
         {
           accessorKey: 'contactName',

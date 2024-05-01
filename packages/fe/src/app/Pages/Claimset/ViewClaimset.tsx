@@ -6,30 +6,27 @@ import {
   ContentSection,
   ResourceClaimsTable,
 } from '@edanalytics/common-ui';
+import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import { claimsetQueries } from '../../api';
+import { claimsetQueriesV1 } from '../../api';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 
 const ViewClaimset = () => {
   const params = useParams() as {
-    asId: string;
-    sbeId: string;
     claimsetId: string;
   };
-  const claimset = claimsetQueries.useOne({
-    id: params.claimsetId,
-    sbeId: params.sbeId,
-    tenantId: params.asId,
-  }).data;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const claimset = useQuery(
+    claimsetQueriesV1.getOne({
+      id: params.claimsetId,
+      edfiTenant,
+      teamId,
+    })
+  ).data;
 
   return claimset ? (
     <>
-      <ContentSection
-        css={{
-          '& div.react-json-view': {
-            background: 'transparent!important',
-          },
-        }}
-      >
+      <ContentSection>
         <AttributesGrid>
           <AttributeContainer label="Is system-reserved">
             <Tooltip

@@ -107,16 +107,17 @@ export const theme = extendTheme({
               borderRightWidth: '1px',
               borderRightStyle: 'solid',
             },
-            '&:hover td': {
+            '&:hover td, &:has(button[aria-expanded="true"]) td, &:has(button[data-loading]) td': {
               bg: 'gray.100',
               borderColor: 'gray.200',
             },
             '& .row-hover': {
               visibility: 'hidden',
             },
-            '&:hover .row-hover': {
-              visibility: 'visible',
-            },
+            '&:hover .row-hover, &:has(button[aria-expanded="true"]) .row-hover, &:has(button[data-loading]) .row-hover':
+              {
+                visibility: 'visible',
+              },
           },
         },
       },
@@ -151,9 +152,9 @@ export const theme = extendTheme({
           borderRadius: 0,
         },
         'action-bar': {
-          fontSize: 'sm',
+          fontSize: 'md',
           px: '0.5em',
-          h: 7,
+          h: 8,
         },
       },
       variants: {
@@ -277,7 +278,7 @@ export const theme = extendTheme({
     body: `'IBM Plex Sans', sans-serif`,
   },
   sizes: {
-    'form-width': '25em',
+    'form-width': '28em',
   },
   styles: {
     global: {

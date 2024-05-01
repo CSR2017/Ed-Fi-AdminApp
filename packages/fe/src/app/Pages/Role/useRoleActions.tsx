@@ -5,29 +5,27 @@ import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { roleQueries } from '../../api';
-import { tenantRoleAuthConfig, useAuthorize } from '../../helpers';
+import { teamRoleAuthConfig, useAuthorize } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
 export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
   const navigate = useNavigate();
   const to = (id: number | string) => `/roles/${id}`;
-  const deleteRole = roleQueries.useDelete({});
+  const deleteRole = roleQueries.delete({});
   const popBanner = usePopBanner();
   const params = useParams() as {
     asId: string;
     roleId: string;
   };
 
-  const canView = useAuthorize(
-    tenantRoleAuthConfig(role?.id, Number(params.asId), 'tenant.role:read')
-  );
+  const canView = useAuthorize(teamRoleAuthConfig(role?.id, Number(params.asId), 'team.role:read'));
 
   const canEdit = useAuthorize(
-    tenantRoleAuthConfig(role?.id, Number(params.asId), 'tenant.role:update')
+    teamRoleAuthConfig(role?.id, Number(params.asId), 'team.role:update')
   );
 
   const canDelete = useAuthorize(
-    tenantRoleAuthConfig(role?.id, Number(params.asId), 'tenant.role:delete')
+    teamRoleAuthConfig(role?.id, Number(params.asId), 'team.role:delete')
   );
 
   return role === undefined
@@ -59,15 +57,18 @@ export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
           ? {
               Delete: {
                 icon: BiTrash,
-                isLoading: deleteRole.isPending,
+                isPending: deleteRole.isPending,
                 text: 'Delete',
                 title: 'Delete role',
                 confirmBody: 'This will permanently delete the role.',
                 onClick: () =>
-                  deleteRole.mutateAsync(role.id, {
-                    ...mutationErrCallback({ popGlobalBanner: popBanner }),
-                    onSuccess: () => navigate(`/roles`),
-                  }),
+                  deleteRole.mutateAsync(
+                    { id: role.id },
+                    {
+                      ...mutationErrCallback({ popGlobalBanner: popBanner }),
+                      onSuccess: () => navigate(`/roles`),
+                    }
+                  ),
                 confirm: true,
               },
             }

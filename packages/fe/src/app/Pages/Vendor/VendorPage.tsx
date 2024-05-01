@@ -1,24 +1,27 @@
+import { useQuery } from '@tanstack/react-query';
 import { PageActions, PageTemplate } from '@edanalytics/common-ui';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useParams } from 'react-router-dom';
-import { vendorQueries } from '../../api';
+import { vendorQueriesV1 } from '../../api';
 import { useSearchParamsObject } from '../../helpers/useSearch';
 import { EditVendor } from './EditVendor';
 import { ViewVendor } from './ViewVendor';
 import { useVendorActions } from './useVendorActions';
 import omit from 'lodash/omit';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 
 export const VendorPageContent = () => {
   const params = useParams() as {
-    asId: string;
-    sbeId: string;
     vendorId: string;
   };
-  const vendor = vendorQueries.useOne({
-    tenantId: params.asId,
-    id: params.vendorId,
-    sbeId: params.sbeId,
-  }).data;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const vendor = useQuery(
+    vendorQueriesV1.getOne({
+      teamId,
+      id: params.vendorId,
+      edfiTenant,
+    })
+  ).data;
   const { edit } = useSearchParamsObject() as { edit?: boolean };
 
   return vendor ? edit ? <EditVendor vendor={vendor} /> : <ViewVendor /> : null;
@@ -26,15 +29,16 @@ export const VendorPageContent = () => {
 
 const VendorPageTitle = () => {
   const params = useParams() as {
-    asId: string;
-    sbeId: string;
     vendorId: string;
   };
-  const vendor = vendorQueries.useOne({
-    tenantId: params.asId,
-    id: params.vendorId,
-    sbeId: params.sbeId,
-  }).data;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const vendor = useQuery(
+    vendorQueriesV1.getOne({
+      teamId,
+      id: params.vendorId,
+      edfiTenant,
+    })
+  ).data;
   return <>{vendor?.company || 'Vendor'}</>;
 };
 
@@ -55,15 +59,16 @@ export const VendorPage = () => {
 
 export const VendorPageActions = () => {
   const params = useParams() as {
-    asId: string;
-    sbeId: string;
     vendorId: string;
   };
-  const vendor = vendorQueries.useOne({
-    tenantId: params.asId,
-    id: params.vendorId,
-    sbeId: params.sbeId,
-  }).data;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const vendor = useQuery(
+    vendorQueriesV1.getOne({
+      teamId,
+      id: params.vendorId,
+      edfiTenant,
+    })
+  ).data;
 
   const actions = useVendorActions(vendor);
   return <PageActions actions={omit(actions, 'View')} />;

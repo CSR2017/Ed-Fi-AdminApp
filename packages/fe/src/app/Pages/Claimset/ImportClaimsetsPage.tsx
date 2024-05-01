@@ -25,8 +25,9 @@ import { validate } from 'class-validator';
 import { useEffect, useState } from 'react';
 import { BiCheckCircle } from 'react-icons/bi';
 import { BsInfoCircle } from 'react-icons/bs';
-import { Link as RouterLink, useParams } from 'react-router-dom';
-import { claimsetQueries } from '../../api';
+import { Link as RouterLink } from 'react-router-dom';
+import { claimsetQueriesV1 } from '../../api';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 
 function lowercaseFirstLetterOfKeys(input: any): any {
   if (typeof input !== 'object' || input === null) {
@@ -123,11 +124,12 @@ export const ImportClaimsetsPage = () => {
 };
 
 const ClaimsetItem = ({ maybeClaimset }: { maybeClaimset: PostClaimsetDto | unknown }) => {
-  const params = useParams() as { asId: string; sbeId: string };
-  const postClaimset = claimsetQueries.usePost({
-    sbeId: params.sbeId,
-    tenantId: params.asId,
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const postClaimset = claimsetQueriesV1.post({
+    edfiTenant,
+    teamId,
   });
+
   const [error, setError] = useState<StatusResponse | object | undefined>(undefined);
   const [claimset, setClaimset] = useState<PostClaimsetDto | undefined>(undefined);
   useEffect(() => {
@@ -178,14 +180,17 @@ const ClaimsetItem = ({ maybeClaimset }: { maybeClaimset: PostClaimsetDto | unkn
             size="sm"
             h="1.5rem"
             onClick={() => {
-              postClaimset.mutateAsync(claimset, {
-                onError: (err) => {
-                  setError(err as any);
-                },
-                onSuccess: () => {
-                  setError(undefined);
-                },
-              });
+              postClaimset.mutateAsync(
+                { entity: claimset },
+                {
+                  onError: (err) => {
+                    setError(err as any);
+                  },
+                  onSuccess: () => {
+                    setError(undefined);
+                  },
+                }
+              );
             }}
           >
             Import
@@ -196,7 +201,7 @@ const ClaimsetItem = ({ maybeClaimset }: { maybeClaimset: PostClaimsetDto | unkn
               ml={3}
               as={RouterLink}
               color="blue.500"
-              to={`/as/${params.asId}/sbes/${params.sbeId}/claimsets/${postClaimset.data.id}`}
+              to={`/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/claimsets/${postClaimset.data.id}`}
             >
               View &rarr;
             </Link>

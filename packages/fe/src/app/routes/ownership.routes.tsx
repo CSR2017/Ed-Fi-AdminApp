@@ -1,6 +1,6 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetOwnershipDto } from '@edanalytics/models';
-import { UseQueryResult } from '@tanstack/react-query';
+import { UseQueryResult, useQuery } from '@tanstack/react-query';
 import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
 import { OwnershipPage } from '../Pages/Ownership/OwnershipPage';
 import { OwnershipsPage } from '../Pages/Ownership/OwnershipsPage';
@@ -10,10 +10,12 @@ import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const OwnershipBreadcrumb = () => {
   const params = useParams() as { ownershipId: string; asId: string };
-  const ownership = ownershipQueries.useOne({
-    id: params.ownershipId,
-    tenantId: params.asId,
-  });
+  const ownership = useQuery(
+    ownershipQueries.getOne({
+      id: params.ownershipId,
+      teamId: params.asId,
+    })
+  );
   return ownership.data?.displayName ?? params.ownershipId;
 };
 
@@ -46,12 +48,12 @@ export const OwnershipLink = (props: {
   return ownership ? (
     <Link as="span">
       <RouterLink title="Go to ownership" to={`/as/${asId}/ownerships/${ownership.id}`}>
-        {getRelationDisplayName(ownership.id, props.query)}
+        {getRelationDisplayName(props.id, props.query)}
       </RouterLink>
     </Link>
   ) : typeof props.id === 'number' ? (
-    <Text title="Ownership may have been deleted." as="i" color="gray.500">
-      not found
+    <Text title="Ownership may have been deleted, or you lack access." as="i" color="gray.500">
+      can't find &#8220;{props.id}&#8221;
     </Text>
   ) : null;
 };

@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import {
   Button,
   ButtonGroup,
@@ -11,6 +12,7 @@ import { ConfirmAction } from '@edanalytics/common-ui';
 import {
   DependencyErrors,
   GetRoleDto,
+  PRIVILEGES,
   PrivilegeCode,
   PutRoleDto,
   RoleType,
@@ -22,26 +24,26 @@ import { useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { privilegeQueries, roleQueries } from '../../api';
+import { roleQueries } from '../../api';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { PrivilegesInput } from './PrivilegesInput';
 
 const resolver = classValidatorResolver(PutRoleDto);
-const hasTenantImpersonation = (privileges: PutRoleDto['privileges']) =>
-  privileges?.some((p) => p.startsWith('tenant.'));
+export const hasTeamImpersonation = (privileges: PutRoleDto['privilegeIds']) =>
+  privileges?.some((p) => p.startsWith('team.'));
 
-const hasGlobalPrivileges = (privileges: PutRoleDto['privileges']) =>
-  privileges?.some((p) => p !== 'me:read' && p !== 'privilege:read' && !p.startsWith('tenant.'));
+export const hasGlobalPrivileges = (privileges: PutRoleDto['privilegeIds']) =>
+  privileges?.some((p) => p !== 'me:read' && !p.startsWith('team.'));
 
-const hasNewTenantImpersonation = (privileges: PutRoleDto['privileges'], existing: GetRoleDto) =>
-  existing.type === RoleType.UserGlobal &&
-  hasTenantImpersonation(privileges) &&
-  !hasTenantImpersonation(existing.privileges.map((p) => p.code));
+export const hasNewTeamImpersonation = (
+  privileges: PutRoleDto['privilegeIds'],
+  existing: GetRoleDto['privilegeIds']
+) => hasTeamImpersonation(privileges) && !hasTeamImpersonation(existing);
 
-const hasNewGlobalPrivileges = (privileges: PutRoleDto['privileges'], existing: GetRoleDto) =>
-  existing.type === RoleType.UserGlobal &&
-  hasGlobalPrivileges(privileges) &&
-  !hasGlobalPrivileges(existing.privileges.map((p) => p.code));
+export const hasNewGlobalPrivileges = (
+  privileges: PutRoleDto['privilegeIds'],
+  existing: GetRoleDto['privilegeIds']
+) => hasGlobalPrivileges(privileges) && !hasGlobalPrivileges(existing);
 
 export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
   const popBanner = usePopBanner();
@@ -51,20 +53,22 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
     roleId: string;
   };
   const goToView = () => navigate(`/roles/${params.roleId}`);
-  const putRole = roleQueries.usePut({
-    callback: goToView,
-  });
-  const role = roleQueries.useOne({
-    id: params.roleId,
-  }).data;
-  const privileges = privilegeQueries.useAll({});
+  const putRole = roleQueries.put({});
+
+  const role = useQuery(
+    roleQueries.getOne({
+      id: params.roleId,
+    })
+  ).data;
+  const privileges = Object.values(PRIVILEGES);
   const filteredPrivileges =
-    privileges.data && role
-      ? Object.values(privileges.data).filter(
+    privileges && role
+      ? Object.values(privileges).filter(
           (p) =>
             role.type === RoleType.UserGlobal ||
-            (role.type === RoleType.ResourceOwnership && p.code.startsWith('tenant.sbe')) ||
-            (role.type === RoleType.UserTenant && p.code.startsWith('tenant.'))
+            (role.type === RoleType.ResourceOwnership &&
+              p.code.startsWith('team.sb-environment')) ||
+            (role.type === RoleType.UserTeam && p.code.startsWith('team.'))
         )
       : undefined;
   const {
@@ -78,31 +82,31 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
     resolver,
     defaultValues: {
       ...role,
-      privileges: uniq([
-        ...(role?.privileges.map((p) => p.code) ?? []),
-        'me:read',
-        'privilege:read',
-      ]),
+      privilegeIds: uniq([...(role?.privileges.map((p) => p.code) ?? []), 'me:read']),
     },
   });
 
   let privilegesError: undefined | string | DependencyErrors = undefined;
   try {
     // might be fancy error object for privilege dependencies
-    privilegesError = JSON.parse(errors.privileges?.message as string);
+    privilegesError = JSON.parse(errors.privilegeIds?.message as string);
   } catch (error) {
     // either undefined or plain string from class-validator
   }
-  const newPrivileges = watch('privileges');
+  const newPrivileges = watch('privilegeIds');
 
-  const tenantImpersonation = hasNewTenantImpersonation(newPrivileges, props.role);
-  const adminPrivileges = hasNewGlobalPrivileges(newPrivileges, props.role);
-  const confirmBody = tenantImpersonation
+  const newTeamImpersonation =
+    props.role.type === RoleType.UserGlobal &&
+    hasNewTeamImpersonation(newPrivileges, props.role.privilegeIds);
+  const adminPrivileges =
+    props.role.type === RoleType.UserGlobal &&
+    hasNewGlobalPrivileges(newPrivileges, props.role.privilegeIds);
+  const confirmBody = newTeamImpersonation
     ? adminPrivileges
-      ? "It looks like you're adding some new global privileges that this role didn't used to have. Are you sure you want to do that?"
-      : "It looks like you're adding at least some pieces of tenant impersonation ability to this role. Are you sure you want to do that?"
+      ? "It looks like you're adding new team impersonation ability and global privileges. Are you sure you want to do that?"
+      : "It looks like you're adding new team impersonation ability to this role. Are you sure you want to do that?"
     : adminPrivileges
-    ? "It looks like you're adding some global privileges that this role didn't used to have. Are you sure you want to do that?"
+    ? "It looks like you're adding new global privileges. Are you sure you want to do that?"
     : null;
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -112,8 +116,11 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
       onSubmit={handleSubmit((data) =>
         putRole
           .mutateAsync(
-            data,
-            mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError })
+            { entity: data },
+            {
+              ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
+              onSuccess: goToView,
+            }
           )
           .catch(noop)
       )}
@@ -135,7 +142,7 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
         <Controller
           rules={{ deps: [] }}
           control={control}
-          name="privileges"
+          name="privilegeIds"
           render={(field) =>
             filteredPrivileges === undefined ? (
               <></>

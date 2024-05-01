@@ -13,14 +13,14 @@ import {
 } from '@chakra-ui/react';
 import { GetApplicationDto, GetClaimsetDto, PutApplicationForm } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
 import { BsInfoCircle } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { applicationQueries, claimsetQueries, edorgQueries, queryKey } from '../../api';
-import { useNavContext } from '../../helpers';
+import { applicationQueriesV1, claimsetQueriesV1, edorgQueries, queryKey } from '../../api';
+import { useNavContext, useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { SelectClaimset, SelectEdorg, SelectVendor } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
@@ -31,31 +31,35 @@ export const EditApplication = (props: {
   claimset: GetClaimsetDto | undefined;
 }) => {
   const { application, claimset } = props;
-  const navContext = useNavContext();
-  const sbeId = navContext.sbeId!;
-  const asId = navContext.asId!;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
   const queryClient = useQueryClient();
   const popBanner = usePopBanner();
 
   const navigate = useNavigate();
   const goToView = () => {
-    navigate(`/as/${asId}/sbes/${sbeId}/applications/${application.id}`);
+    navigate(
+      `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/applications/${application.id}`
+    );
   };
-  const edorgs = edorgQueries.useAll({
-    sbeId: sbeId,
-    tenantId: asId,
+  const edorgs = useQuery(
+    edorgQueries.getAll({
+      edfiTenant,
+      teamId,
+    })
+  );
+
+  const claimsets = useQuery(
+    claimsetQueriesV1.getAll({
+      edfiTenant,
+      teamId,
+    })
+  );
+
+  const putApplication = applicationQueriesV1.put({
+    edfiTenant,
+    teamId,
   });
 
-  const claimsets = claimsetQueries.useAll({
-    sbeId: sbeId,
-    tenantId: asId,
-  });
-
-  const putApplication = applicationQueries.usePut({
-    sbeId: sbeId,
-    tenantId: asId,
-    callback: goToView,
-  });
   const defaultValues = new PutApplicationForm();
   defaultValues.applicationId = application.applicationId;
   defaultValues.applicationName = application.displayName;
@@ -78,18 +82,13 @@ export const EditApplication = (props: {
     <form
       onSubmit={handleSubmit((data) =>
         putApplication
-          .mutateAsync(data, {
-            onSuccess() {
-              queryClient.invalidateQueries({
-                queryKey: queryKey({
-                  resourceName: 'Claimset',
-                  tenantId: asId,
-                  sbeId: sbeId,
-                }),
-              });
-            },
-            ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
-          })
+          .mutateAsync(
+            { entity: data },
+            {
+              onSuccess: goToView,
+              ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
+            }
+          )
           .catch(noop)
       )}
     >

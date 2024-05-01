@@ -1,22 +1,25 @@
-import { FormLabel, Tag, Text } from '@chakra-ui/react';
-import { useParams } from 'react-router-dom';
-import { roleQueries, userQueries } from '../../api';
-import { RoleGlobalLink } from '../../routes/role-global.routes';
+import { Tag } from '@chakra-ui/react';
 import {
   Attribute,
   AttributeContainer,
   AttributesGrid,
   ContentSection,
 } from '@edanalytics/common-ui';
+import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
+import { roleQueries, userQueries } from '../../api';
+import { RoleGlobalLink } from '../../routes/role-global.routes';
 
 export const ViewUserGlobal = () => {
   const params = useParams() as {
     userId: string;
   };
-  const user = userQueries.useOne({
-    id: params.userId,
-  }).data;
-  const roles = roleQueries.useAll({});
+  const user = useQuery(
+    userQueries.getOne({
+      id: params.userId,
+    })
+  ).data;
+  const roles = useQuery(roleQueries.getAll({}));
 
   return user ? (
     <ContentSection>

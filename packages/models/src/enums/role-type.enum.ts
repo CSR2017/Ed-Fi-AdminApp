@@ -1,5 +1,5 @@
 export enum RoleType {
   UserGlobal = 'UserGlobal',
-  UserTenant = 'UserTenant',
+  UserTeam = 'UserTeam',
   ResourceOwnership = 'ResourceOwnership',
 }

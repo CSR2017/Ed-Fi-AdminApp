@@ -12,7 +12,7 @@ export const useMultipleOwnershipGlobalActions = (): ActionsType => {
         Create: {
           icon: BiPlus,
           text: 'Grant new',
-          title: 'Grant new tenant resource ownership.',
+          title: 'Grant new team resource ownership.',
           to: '/ownerships/create',
           onClick: () => navigate('/ownerships/create'),
         },
