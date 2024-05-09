@@ -226,7 +226,6 @@ export class AuthService {
             new Set([...edfiTenantPrivileges.get(o.edfiTenant.id), ...o.role.privilegeIds])
           );
           allEdfiTenants.set(o.edfiTenant.id, o.edfiTenant);
-          allSbEnvironments.set(o.edfiTenant.sbEnvironmentId, o.edfiTenant.sbEnvironment);
         } else if (o.ods) {
           odsPrivileges.set(o.ods.id, new Set(o.role?.privilegeIds ?? []));
           ownedOdss.push(o);
