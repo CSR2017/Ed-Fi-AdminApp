@@ -103,7 +103,7 @@ export class AdminApiControllerV1 {
   ) {}
 
   /** Check application edorg IDs against auth cache for _safe_ operations (GET). Requires `some` ID to be authorized. */
-  private checkApplicationSafe(
+  private checkApplicationEdorgsForSafeOperations(
     application: Pick<GetApplicationDto, '_educationOrganizationIds'>,
     validIds: Ids
   ) {
@@ -118,8 +118,12 @@ export class AdminApiControllerV1 {
     );
   }
 
-  /** Check application edorg IDs against auth cache for _unsafe_ operations (POST/PUT/DELETE/Other). Requires `every` ID to be authorized. */
-  private checkApplicationUnsafe(
+  /** Check application edorg IDs against auth cache for _unsafe_ operations (POST/PUT/DELETE). Requires `every` ID to be authorized.
+   * Note that IDs which don't exist in SBAA &mdash; either because they haven't synced yet or because they don't exist in EdFi &mdash; can
+   * never be authorized via an Edorg or Ods ownership, but _can_ be via an EdfiTenant or SbEnvironment ownership. This is due to some
+   * quirks in the SBAA auth system design.
+   */
+  private checkApplicationEdorgsForUnsafeOperations(
     application: Pick<GetApplicationDto, '_educationOrganizationIds'>,
     validIds: Ids
   ) {
@@ -245,7 +249,7 @@ export class AdminApiControllerV1 {
     validIds: Ids
   ) {
     const allApplications = await this.sbService.getVendorApplications(edfiTenant, vendorId);
-    return allApplications.filter((a) => this.checkApplicationSafe(a, validIds));
+    return allApplications.filter((a) => this.checkApplicationEdorgsForSafeOperations(a, validIds));
   }
 
   @Get('applications')
@@ -265,7 +269,7 @@ export class AdminApiControllerV1 {
     validIds: Ids
   ) {
     const allApplications = await this.sbService.getApplications(edfiTenant);
-    return allApplications.filter((a) => this.checkApplicationSafe(a, validIds));
+    return allApplications.filter((a) => this.checkApplicationEdorgsForSafeOperations(a, validIds));
   }
 
   @Get('applications/:applicationId')
@@ -287,7 +291,7 @@ export class AdminApiControllerV1 {
   ) {
     const application = await this.sbService.getApplication(edfiTenant, applicationId);
 
-    if (this.checkApplicationSafe(application, validIds)) {
+    if (this.checkApplicationEdorgsForSafeOperations(application, validIds)) {
       return application;
     } else {
       throw new NotFoundException();
@@ -337,10 +341,10 @@ export class AdminApiControllerV1 {
       claimSetName: claimset.name,
       educationOrganizationIds: [application.educationOrganizationId],
     });
-    if (this.checkApplicationSafe(existingApplication, validIds)) {
-      if (this.checkApplicationUnsafe(existingApplication, validIds)) {
+    if (this.checkApplicationEdorgsForSafeOperations(existingApplication, validIds)) {
+      if (this.checkApplicationEdorgsForUnsafeOperations(existingApplication, validIds)) {
         if (
-          this.checkApplicationUnsafe(
+          this.checkApplicationEdorgsForUnsafeOperations(
             { _educationOrganizationIds: dto.educationOrganizationIds },
             validIds
           )
@@ -410,7 +414,7 @@ export class AdminApiControllerV1 {
     if (!sbEnvironment.domain)
       throw new InternalServerErrorException('Environment config lacks an Ed-Fi hostname.');
     if (
-      this.checkApplicationUnsafe(
+      this.checkApplicationEdorgsForUnsafeOperations(
         { _educationOrganizationIds: dto.educationOrganizationIds },
         validIds
       )
@@ -455,8 +459,8 @@ export class AdminApiControllerV1 {
   ) {
     const application = await this.sbService.getApplication(edfiTenant, applicationId);
 
-    if (this.checkApplicationSafe(application, validIds)) {
-      if (this.checkApplicationUnsafe(application, validIds)) {
+    if (this.checkApplicationEdorgsForSafeOperations(application, validIds)) {
+      if (this.checkApplicationEdorgsForUnsafeOperations(application, validIds)) {
         return this.sbService.deleteApplication(edfiTenant, applicationId);
       } else {
         throw new ForbiddenException();
@@ -488,8 +492,8 @@ export class AdminApiControllerV1 {
 
     if (!sbEnvironment.domain)
       throw new InternalServerErrorException('Environment config lacks an Ed-Fi hostname.');
-    if (this.checkApplicationSafe(application, validIds)) {
-      if (this.checkApplicationUnsafe(application, validIds)) {
+    if (this.checkApplicationEdorgsForSafeOperations(application, validIds)) {
+      if (this.checkApplicationEdorgsForUnsafeOperations(application, validIds)) {
         const adminApiResponse = await this.sbService.resetApplicationCredentials(
           edfiTenant,
           applicationId

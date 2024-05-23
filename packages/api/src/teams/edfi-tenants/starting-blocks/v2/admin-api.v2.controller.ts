@@ -90,6 +90,46 @@ export class AdminApiControllerV2 {
     @InjectRepository(Ods) private readonly odsRepository: Repository<Ods>
   ) {}
 
+  /** Check application edorg IDs against auth cache for _safe_ operations (GET). Requires `some` ID to be authorized. */
+  private checkApplicationEdorgsForSafeOperations(
+    application: Pick<GetApplicationDtoV2, 'educationOrganizationIds' | 'odsInstanceIds'>,
+    validIds: Ids
+  ) {
+    return application.odsInstanceIds.some((odsInstanceId) =>
+      application.educationOrganizationIds.some((edorgId) =>
+        checkId(
+          edorgKeyV2({
+            edorg: edorgId,
+            ods: odsInstanceId,
+          }),
+          validIds
+        )
+      )
+    );
+  }
+
+  /** Check application edorg IDs against auth cache for _unsafe_ operations (POST/PUT/DELETE). Requires `every` ID to be authorized.
+   * Note that IDs which don't exist in SBAA &mdash; either because they haven't synced yet or because they don't exist in EdFi &mdash; can
+   * never be authorized via an Edorg or Ods ownership, but _can_ be via an EdfiTenant or SbEnvironment ownership. This is due to some
+   * quirks in the SBAA auth system design.
+   */
+  private checkApplicationEdorgsForUnsafeOperations(
+    application: Pick<GetApplicationDtoV2, 'educationOrganizationIds' | 'odsInstanceIds'>,
+    validIds: Ids
+  ) {
+    return application.odsInstanceIds.every((odsInstanceId) =>
+      application.educationOrganizationIds.every((edorgId) =>
+        checkId(
+          edorgKeyV2({
+            edorg: edorgId,
+            ods: odsInstanceId,
+          }),
+          validIds
+        )
+      )
+    );
+  }
+
   @Get('vendors')
   @Authorize({
     privilege: 'team.sb-environment.edfi-tenant.vendor:read',
@@ -200,19 +240,8 @@ export class AdminApiControllerV2 {
     validIds: Ids
   ) {
     const allApplications = await this.sbService.getApplications(edfiTenant);
-    return allApplications.filter((a) =>
-      // It's important that we use `.some` below for safe operations, but `.every` for unsafe operations. That's the desired business logic.
-      a.odsInstanceIds.some((odsInstanceId) =>
-        a.educationOrganizationIds.some((educationOrganizationId) =>
-          checkId(
-            edorgKeyV2({
-              edorg: educationOrganizationId,
-              ods: odsInstanceId,
-            }),
-            validIds
-          )
-        )
-      )
+    return allApplications.filter((application) =>
+      this.checkApplicationEdorgsForSafeOperations(application, validIds)
     );
   }
 
@@ -235,20 +264,7 @@ export class AdminApiControllerV2 {
   ) {
     const application = await this.sbService.getApplication(edfiTenant, applicationId);
 
-    if (
-      // It's odd how Applications have array of edorgs and array of odss, but independent from each other.
-      application.odsInstanceIds.some((odsInstanceId) =>
-        application.educationOrganizationIds.some((edorgId) =>
-          checkId(
-            edorgKeyV2({
-              edorg: edorgId,
-              ods: odsInstanceId,
-            }),
-            validIds
-          )
-        )
-      )
-    ) {
+    if (this.checkApplicationEdorgsForSafeOperations(application, validIds)) {
       return application;
     } else {
       throw new NotFoundException();
@@ -302,19 +318,7 @@ export class AdminApiControllerV2 {
       educationOrganizationIds: availableEdorgs.map((edorg) => edorg.educationOrganizationId),
     });
     const existingApplication = await this.sbService.getApplication(edfiTenant, applicationId);
-    if (
-      !existingApplication.odsInstanceIds.every((odsInstanceId) =>
-        existingApplication.educationOrganizationIds.every((educationOrganizationId) =>
-          checkId(
-            edorgKeyV2({
-              edorg: educationOrganizationId,
-              ods: odsInstanceId,
-            }),
-            validIds
-          )
-        )
-      )
-    ) {
+    if (!this.checkApplicationEdorgsForUnsafeOperations(existingApplication, validIds)) {
       throw new HttpException('You do not have control of all implicated Ed-Orgs', 403);
     }
 
@@ -332,17 +336,7 @@ export class AdminApiControllerV2 {
         message: 'Education organizations not all from the same ODS',
       });
     }
-    if (
-      dto.educationOrganizationIds.every((educationOrganizationId) =>
-        checkId(
-          edorgKeyV2({
-            edorg: educationOrganizationId,
-            ods: odsInstanceId,
-          }),
-          validIds
-        )
-      )
-    ) {
+    if (this.checkApplicationEdorgsForUnsafeOperations(dto, validIds)) {
       return this.sbService.putApplication(edfiTenant, applicationId, dto);
     } else {
       throw new ValidationHttpException({
@@ -409,17 +403,7 @@ export class AdminApiControllerV2 {
 
     if (!sbEnvironment.domain)
       throw new InternalServerErrorException('Environment config lacks an Ed-Fi hostname.');
-    if (
-      dto.educationOrganizationIds.every((educationOrganizationId) =>
-        checkId(
-          edorgKeyV2({
-            edorg: educationOrganizationId,
-            ods: odsInstanceId,
-          }),
-          validIds
-        )
-      )
-    ) {
+    if (this.checkApplicationEdorgsForUnsafeOperations(dto, validIds)) {
       const adminApiResponse = await this.sbService.postApplication(edfiTenant, dto);
 
       const yopass = await postYopassSecret({
@@ -460,25 +444,8 @@ export class AdminApiControllerV2 {
     validIds: Ids
   ) {
     const application = await this.sbService.getApplication(edfiTenant, applicationId);
-    const edorgsCount = await this.edorgRepository.countBy({
-      edfiTenantId: edfiTenant.id,
-      educationOrganizationId: In(application.educationOrganizationIds),
-    });
 
-    if (
-      edorgsCount === application.educationOrganizationIds.length &&
-      application.odsInstanceIds.every((odsInstanceId) =>
-        application.educationOrganizationIds.every((edorgId) =>
-          checkId(
-            edorgKeyV2({
-              edorg: edorgId,
-              ods: odsInstanceId,
-            }),
-            validIds
-          )
-        )
-      )
-    ) {
+    if (this.checkApplicationEdorgsForUnsafeOperations(application, validIds)) {
       return this.sbService.deleteApplication(edfiTenant, applicationId);
     } else {
       throw new HttpException('You do not have control of all implicated Ed-Orgs', 403);
@@ -504,25 +471,8 @@ export class AdminApiControllerV2 {
     validIds: Ids
   ) {
     const application = await this.sbService.getApplication(edfiTenant, applicationId);
-    const edorgsCount = await this.edorgRepository.countBy({
-      edfiTenantId: edfiTenant.id,
-      educationOrganizationId: In(application.educationOrganizationIds),
-    });
 
-    if (
-      edorgsCount === application.educationOrganizationIds.length &&
-      application.odsInstanceIds.every((odsInstanceId) =>
-        application.educationOrganizationIds.every((edorgId) =>
-          checkId(
-            edorgKeyV2({
-              edorg: edorgId,
-              ods: odsInstanceId,
-            }),
-            validIds
-          )
-        )
-      )
-    ) {
+    if (this.checkApplicationEdorgsForUnsafeOperations(application, validIds)) {
       const adminApiResponse = await this.sbService.putApplicationResetCredential(
         edfiTenant,
         applicationId
