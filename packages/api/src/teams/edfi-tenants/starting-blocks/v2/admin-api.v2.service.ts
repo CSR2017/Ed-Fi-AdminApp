@@ -36,11 +36,12 @@ import {
 } from '@edanalytics/models';
 import { EdfiTenant } from '@edanalytics/models-server';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, isAxiosError } from 'axios';
 import crypto from 'crypto';
 import NodeCache from 'node-cache';
 import { CustomHttpException } from '../../../../utils';
 import { StartingBlocksServiceV2 } from './starting-blocks.v2.service';
+import { adminApiLoginStatusMsgs } from '../../adminApiLoginFailureMsgs';
 /**
  * This service is used to interact with the Admin API. Each method is a single
  * API call (plus login if token is expired).
@@ -139,6 +140,14 @@ export class AdminApiServiceV2 {
       if (LoginFailed?.code === 'ERR_HTTP2_GOAWAY_SESSION') {
         return {
           status: 'GOAWAY' as const, // TBD what to do about this
+        };
+      } else if (isAxiosError(LoginFailed) && LoginFailed.response?.status === 404) {
+        return {
+          status: 'TOKEN_URI_NOT_FOUND' as const,
+        };
+      } else if (isAxiosError(LoginFailed) && LoginFailed.response?.status === 401) {
+        return {
+          status: 'INVALID_CREDS' as const,
         };
       }
       this.logger.warn(LoginFailed);
@@ -246,23 +255,10 @@ export class AdminApiServiceV2 {
       if (token === undefined) {
         const adminLogin = await this.login(edfiTenant);
 
-        const adminApiLoginFailureMessages: Record<
-          Exclude<(typeof adminLogin)['status'], 'SUCCESS'>,
-          string
-        > = {
-          NO_ADMIN_API_URL: 'No Admin API URL configured for environment.',
-          GOAWAY: 'Admin API not accepting new connections.',
-          LOGIN_FAILED: 'Admin API login failed.',
-          NO_CONFIG: 'No Admin API configuration found for environment.',
-          NO_TENANT_CONFIG: 'No Admin API configuration found for EdFi tenant.',
-          NO_ADMIN_API_KEY: 'No Admin API key found for EdFi tenant.',
-          NO_ADMIN_API_SECRET: 'No Admin API secret found for EdFi tenant.',
-        };
-
-        if (adminApiLoginFailureMessages[adminLogin.status]) {
+        if (adminLogin.status !== 'SUCCESS') {
           throw new CustomHttpException(
             {
-              title: adminApiLoginFailureMessages[adminLogin.status],
+              title: adminApiLoginStatusMsgs[adminLogin.status],
               type: 'Error',
             },
             500

@@ -204,7 +204,7 @@ export class SbEnvironmentsGlobalController {
     @ReqUser() user: GetSessionDataDto
   ) {
     return toGetSbEnvironmentDto(
-      await this.sbEnvironmentService.updateSbMeta(
+      await this.sbEnvironmentService.updateMetadataArn(
         sbEnvironmentId,
         addUserModifying(updateDto, user)
       )

@@ -12,14 +12,15 @@ import {
   toGetClaimsetDto,
   toGetVendorDto,
 } from '@edanalytics/models';
-import { EdfiTenant } from '@edanalytics/models-server';
+import { EdfiTenant, SbEnvironment } from '@edanalytics/models-server';
 import { Injectable, Logger } from '@nestjs/common';
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, isAxiosError } from 'axios';
 import crypto from 'crypto';
 import _ from 'lodash';
 import NodeCache from 'node-cache';
 import { CustomHttpException } from '../../../../utils';
 import { failureBut200Response } from './admin-api-v1x-exception.filter';
+import { adminApiLoginStatusMsgs } from '../../adminApiLoginFailureMsgs';
 /**
  * This service is used to interact with the Admin API. Each method is a single
  * API call (plus login if token is expired).
@@ -47,7 +48,7 @@ export class AdminApiServiceV1 {
         ? (configPrivate as ISbEnvironmentConfigPrivateV1)
         : undefined;
 
-    const adminApiUrl = v1Config?.adminApiUrl;
+    const adminApiUrl = edfiTenant.sbEnvironment.adminApiUrl;
     if (typeof adminApiUrl !== 'string') {
       Logger.log('No Admin API URL configured for environment.');
       return {
@@ -68,9 +69,9 @@ export class AdminApiServiceV1 {
         status: 'NO_ADMIN_API_SECRET' as const,
       };
     }
-    const url = `${v1Config?.adminApiUrl.replace(/\/$/, '')}/connect/token`;
+    const accessTokenUri = `${adminApiUrl.replace(/\/$/, '')}/connect/token`;
     try {
-      new URL(url);
+      new URL(accessTokenUri);
     } catch (InvalidUrl) {
       Logger.log(InvalidUrl);
       return {
@@ -78,7 +79,6 @@ export class AdminApiServiceV1 {
       };
     }
 
-    const accessTokenUri = `${adminApiUrl.replace(/\/$/, '')}/connect/token`;
     const reqBody = new URLSearchParams();
     reqBody.set('client_id', adminApiKey);
     reqBody.set('client_secret', adminApiSecret);
@@ -108,6 +108,14 @@ export class AdminApiServiceV1 {
         return {
           status: 'GOAWAY' as const, // TBD what this actually means
         };
+      } else if (isAxiosError(LoginFailed) && LoginFailed.response?.status === 404) {
+        return {
+          status: 'TOKEN_URI_NOT_FOUND' as const,
+        };
+      } else if (isAxiosError(LoginFailed) && LoginFailed.response?.status === 401) {
+        return {
+          status: 'INVALID_CREDS' as const,
+        };
       }
       Logger.warn(LoginFailed);
       return {
@@ -122,7 +130,10 @@ export class AdminApiServiceV1 {
     }
   }
 
-  async selfRegisterAdminApi(url: string) {
+  async selfRegisterAdminApi(
+    /** Base URL, no `/connect/register` */
+    url: string
+  ) {
     const ClientId = crypto.randomBytes(12).toString('hex');
     const ClientSecret = crypto.randomBytes(36).toString('hex');
     const DisplayName = `SBAA ${Number(new Date())}ms`;
@@ -138,6 +149,7 @@ export class AdminApiServiceV1 {
       })
       .then((res) => {
         if (_.isEqual(res.data, failureBut200Response)) {
+          // This may be the failure mode when the environment does not allow self-registration. Unclear.
           Logger.warn('Attempted to register Admin API but got 200 with failure response.');
           return {
             status: 'ERROR' as const,
@@ -159,22 +171,29 @@ export class AdminApiServiceV1 {
           return {
             status: 'ENOTFOUND' as const,
           };
+        } else if (isAxiosError(err) && err.response?.status === 404) {
+          Logger.warn(err);
+          return {
+            status: 'NOT_FOUND' as const,
+          };
+        } else if (isAxiosError(err) && err.response?.status === 403) {
+          Logger.warn(err);
+          return {
+            status: 'SELF_REGISTRATION_NOT_ALLOWED' as const,
+          };
         } else {
           Logger.warn(err);
           return {
             status: 'ERROR' as const,
+            message: err.message,
           };
         }
       });
   }
 
   private getAdminApiClient(edfiTenant: EdfiTenant) {
-    const configPublic = edfiTenant.sbEnvironment.configPublic;
-    const v1Config =
-      'version' in configPublic && configPublic.version === 'v1' ? configPublic.values : undefined;
-
     const client = axios.create({
-      baseURL: v1Config?.adminApiUrl,
+      baseURL: edfiTenant.sbEnvironment.adminApiUrl,
     });
     client.interceptors.response.use(
       (value) => {
@@ -203,22 +222,10 @@ export class AdminApiServiceV1 {
       if (token === undefined) {
         const adminLogin = await this.logIntoAdminApi(edfiTenant);
 
-        const adminApiLoginFailureMessages: Record<
-          Exclude<(typeof adminLogin)['status'], 'SUCCESS'>,
-          string
-        > = {
-          INVALID_ADMIN_API_URL: 'Invalid Admin API URL configured for environment.',
-          NO_ADMIN_API_URL: 'No Admin API URL configured for environment.',
-          GOAWAY: 'Admin API not accepting new connections.',
-          LOGIN_FAILED: 'Admin API login failed.',
-          NO_ADMIN_API_KEY: 'Now Admin API key configured for environment.',
-          NO_ADMIN_API_SECRET: 'No Admin API secret configured for environment.',
-        };
-
-        if (adminApiLoginFailureMessages[adminLogin.status]) {
+        if (adminLogin.status !== 'SUCCESS') {
           throw new CustomHttpException(
             {
-              title: adminApiLoginFailureMessages[adminLogin.status],
+              title: adminApiLoginStatusMsgs[adminLogin.status],
               type: 'Error',
             },
             500

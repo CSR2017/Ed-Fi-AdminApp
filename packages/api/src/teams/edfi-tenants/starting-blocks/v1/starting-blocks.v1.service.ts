@@ -23,7 +23,12 @@ export class StartingBlocksServiceV1 {
   ) {}
   async saveAdminApiCredentials(
     sbEnvironment: SbEnvironment,
-    credentials: { ClientId: string; ClientSecret: string }
+    credentials: {
+      ClientId: string;
+      ClientSecret: string;
+      /** If omitted doesn't get updated */
+      url?: string;
+    }
   ) {
     if (sbEnvironment.version !== 'v1') {
       throw new Error(
@@ -35,13 +40,16 @@ export class StartingBlocksServiceV1 {
     }
 
     const configPublic = sbEnvironment.configPublic;
+    if (credentials.url !== undefined) {
+      configPublic.adminApiUrl = credentials.url;
+    }
     configPublic.values = {
       ...(configPublic.values as ISbEnvironmentConfigPublicV1),
       adminApiKey: credentials.ClientId,
     };
 
-    const configPrivate = sbEnvironment.configPrivate;
-    (configPrivate as ISbEnvironmentConfigPrivateV1).adminApiSecret = credentials.ClientSecret;
+    (sbEnvironment.configPrivate as ISbEnvironmentConfigPrivateV1).adminApiSecret =
+      credentials.ClientSecret;
     return await this.sbEnvironmentsRepository.save(sbEnvironment);
   }
   async saveSbEnvironmentMeta(sbEnvironment: SbEnvironment, meta: SbV1MetaEnv) {

@@ -15,7 +15,7 @@ export const RegisterEdfiTenantAdminApi = (props: { edfiTenant: GetEdfiTenantDto
   const popBanner = usePopBanner();
   useEffect(() => {
     checkConnection.mutate(
-      { entity: sbEnvironment, pathParams: {} },
+      { entity: props.edfiTenant, pathParams: {} },
       {
         onError: () => undefined,
         onSuccess: (res) => {

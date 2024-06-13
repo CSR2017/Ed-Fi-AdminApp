@@ -34,9 +34,9 @@ export const RegisterSbEnvironmentAdminApiAuto = (props: {
   const putRegister = edfiTenantQueriesGlobal.registerApiAuto({
     sbEnvironmentId,
   });
-  const { sbEnvironment } = props;
+  const { sbEnvironment, edfiTenant } = props;
   const sbEnvironmentFormDefaults: PutEdfiTenantAdminApiRegister = {
-    id: sbEnvironment.id,
+    id: edfiTenant.id,
     adminRegisterUrl: sbEnvironment.adminApiUrl,
   };
   const {
@@ -60,7 +60,10 @@ export const RegisterSbEnvironmentAdminApiAuto = (props: {
             { entity: data, pathParams: {} },
             {
               ...mutationErrCallback({ setFormError: setError, popGlobalBanner: popBanner }),
-              onSuccess: goToView,
+              onSuccess: (result) => {
+                popBanner(result);
+                goToView();
+              },
             }
           )
           .catch(noop)

@@ -323,6 +323,8 @@ export class StartingBlocksServiceV2 {
     credentials: {
       ClientId: string;
       ClientSecret: string;
+      /** If omitted doesn't get updated */
+      url?: string;
     }
   ) {
     if (!sbEnvironment.configPrivate) {
@@ -333,7 +335,10 @@ export class StartingBlocksServiceV2 {
       'adminApiKey' in sbEnvironment.configPublic.values
     ) {
       // just to narrow types
-      throw new Error('Type narrowing');
+      throw new Error('Error: bad code calling v2 logic for v1 environment');
+    }
+    if (credentials.url !== undefined) {
+      sbEnvironment.configPublic.adminApiUrl = credentials.url;
     }
     if (!('tenants' in sbEnvironment.configPublic.values)) {
       sbEnvironment.configPublic.values.tenants = {};

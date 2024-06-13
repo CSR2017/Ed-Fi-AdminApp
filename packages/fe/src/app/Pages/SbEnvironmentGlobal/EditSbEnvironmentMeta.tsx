@@ -8,7 +8,7 @@ import {
   Text,
   chakra,
 } from '@chakra-ui/react';
-import { GetSbEnvironmentDto, PutSbEnvironmentMeta } from '@edanalytics/models';
+import { GetSbEnvironmentDto, PutSbEnvironmentMeta, regarding } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -47,7 +47,15 @@ export const EditSbEnvironmentMeta = (props: { sbEnvironment: GetSbEnvironmentDt
             { entity: data, pathParams: null },
             {
               ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
-              onSuccess: goToView,
+              onSuccess: () => {
+                goToView();
+                popBanner({
+                  message: '(But sync not automatically triggered — run on demand if you want)',
+                  title: 'Configuration updated',
+                  type: 'Success',
+                  regarding: regarding(sbEnvironment),
+                });
+              },
             }
           )
           .catch(noop)

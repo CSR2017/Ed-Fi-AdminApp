@@ -41,6 +41,7 @@ import { Authorize } from '../auth/authorization';
 import { ReqUser } from '../auth/helpers/user.decorator';
 import { SbEnvironmentsGlobalService } from '../sb-environments-global/sb-environments-global.service';
 import { PgBossInstance, TENANT_SYNC_CHNL } from '../sb-sync/sb-sync.module';
+import { adminApiSelfRegisterFailureMsgs } from '../teams/edfi-tenants/adminApiLoginFailureMsgs';
 import { EdfiTenantsService } from '../teams/edfi-tenants/edfi-tenants.service';
 import {
   StartingBlocksServiceV1,
@@ -178,19 +179,11 @@ export class EdfiTenantsGlobalController {
     @Body() updateDto: PutEdfiTenantAdminApi,
     @ReqUser() user: GetSessionDataDto
   ) {
-    if (sbEnvironment.version === 'v2') {
-      await this.startingBlocksServiceV2.saveAdminApiCredentials(edfiTenant, sbEnvironment, {
-        ClientId: updateDto.adminKey,
-        ClientSecret: updateDto.adminSecret,
-      });
-      return toGetEdfiTenantDto(edfiTenant);
-    } else if (sbEnvironment.version === 'v1') {
-      await this.startingBlocksServiceV1.saveAdminApiCredentials(sbEnvironment, {
-        ClientId: updateDto.adminKey,
-        ClientSecret: updateDto.adminSecret,
-      });
-      return toGetEdfiTenantDto(edfiTenant);
-    }
+    return this.sbEnvironmentService.updateAdminApi(
+      sbEnvironment,
+      edfiTenant,
+      addUserModifying(updateDto, user)
+    );
   }
 
   @Put(':edfiTenantId/admin-api-v2-keygen')
@@ -254,20 +247,24 @@ export class EdfiTenantsGlobalController {
     if (sbEnvironment.version !== 'v1') {
       throw new BadRequestException('Only v1 environments support this operation.');
     }
-    const result = await this.sbEnvironmentService.selfRegisterAdminApi(
+    const result = await this.sbEnvironmentService.selfRegisterAdminApiV1(
       sbEnvironment,
       addUserModifying(updateDto, user)
     );
-    if (result.status === 'ENOTFOUND') {
+    if (
+      result.status === 'ENOTFOUND' ||
+      result.status === 'NOT_FOUND' ||
+      result.status === 'SELF_REGISTRATION_NOT_ALLOWED'
+    ) {
       throw new ValidationHttpException({
         field: 'adminRegisterUrl',
-        message: 'DNS lookup failed for URL provided.',
+        message: adminApiSelfRegisterFailureMsgs[result.status],
       });
     } else if (result.status === 'ERROR') {
       throw new CustomHttpException(
         {
           type: 'Error',
-          title: 'Self-registration failed.',
+          title: adminApiSelfRegisterFailureMsgs[result.status],
           regarding: regarding(sbEnvironment),
           message: 'message' in result ? result.message : undefined,
           data: 'data' in result ? result.data : undefined,
@@ -275,7 +272,11 @@ export class EdfiTenantsGlobalController {
         400
       );
     } else if (result.status === 'SUCCESS') {
-      return toGetEdfiTenantDto(edfiTenant);
+      return toOperationResultDto({
+        title: 'Configuration updated successfully.',
+        type: 'Success',
+        regarding: regarding(edfiTenant),
+      });
     }
   }
 }

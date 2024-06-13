@@ -38,11 +38,11 @@ export const RegisterSbEnvironmentAdminApiManual = (props: {
   const putSbEnvironment = edfiTenantQueriesGlobal.registerApiManual({
     sbEnvironmentId,
   });
-  const { sbEnvironment } = props;
+  const { sbEnvironment, edfiTenant } = props;
   const sbEnvironmentFormDefaults: PutEdfiTenantAdminApi = {
-    id: sbEnvironment.id,
+    id: edfiTenant.id,
     adminKey: (sbEnvironment.configPublic?.values as ISbEnvironmentConfigPublicV1)?.adminApiKey,
-    url: sbEnvironment.configPublic?.adminApiUrl,
+    url: sbEnvironment.adminApiUrl,
   };
   const {
     register,
@@ -60,7 +60,10 @@ export const RegisterSbEnvironmentAdminApiManual = (props: {
             { entity: data, pathParams: null },
             {
               ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
-              onSuccess: goToView,
+              onSuccess: (result) => {
+                popBanner(result);
+                goToView();
+              },
             }
           )
           .catch(noop)

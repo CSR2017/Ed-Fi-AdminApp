@@ -322,13 +322,13 @@ export const edfiTenantQueriesGlobal = new EntityQueryBuilder({
   )
   .put(
     'registerApiManual',
-    { ReqDto: PutEdfiTenantAdminApi, ResDto: GetEdfiTenantDto },
+    { ReqDto: PutEdfiTenantAdminApi, ResDto: OperationResultDto },
     (base) =>
       `${baseUrl}/sb-environments/${base.sbEnvironmentId}/edfi-tenants/${base.entity.id}/update-admin-api`
   )
   .put(
     'registerApiAuto',
-    { ReqDto: PutEdfiTenantAdminApiRegister, ResDto: GetEdfiTenantDto },
+    { ReqDto: PutEdfiTenantAdminApiRegister, ResDto: OperationResultDto },
     (base) =>
       `${baseUrl}/sb-environments/${base.sbEnvironmentId}/edfi-tenants/${base.entity.id}/register-admin-api`
   )

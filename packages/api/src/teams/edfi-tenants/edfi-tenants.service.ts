@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CustomHttpException, ValidationHttpException } from '../../utils';
 import { AdminApiServiceV1, AdminApiServiceV2, StartingBlocksServiceV2 } from './starting-blocks';
+import { adminApiLoginStatusMsgs } from './adminApiLoginFailureMsgs';
 
 @Injectable()
 export class EdfiTenantsService {
@@ -115,22 +116,6 @@ export class EdfiTenantsService {
   }
 
   async pingAdminApi(edfiTenant: EdfiTenant): Promise<OperationResultDto> {
-    const adminApiMsgs: Record<
-      | Awaited<ReturnType<typeof this.adminApiServiceV1.logIntoAdminApi>>['status']
-      | Awaited<ReturnType<typeof this.adminApiServiceV2.login>>['status'],
-      string
-    > = {
-      SUCCESS: 'Admin API connection successful.',
-      GOAWAY: 'HTTP/2 GOAWAY received.',
-      INVALID_ADMIN_API_URL: 'Invalid Admin API URL provided.',
-      LOGIN_FAILED: 'Unknown login failure.',
-      NO_ADMIN_API_KEY: 'No Admin API key provided.',
-      NO_ADMIN_API_SECRET: 'No Admin API secret provided.',
-      NO_ADMIN_API_URL: 'No Admin API URL provided.',
-      NO_CONFIG: 'No config found for this environment.',
-      NO_TENANT_CONFIG: 'No config found for this tenant in the environment.',
-    };
-
     const result =
       edfiTenant.sbEnvironment.version === 'v1'
         ? await this.adminApiServiceV1.logIntoAdminApi(edfiTenant)
@@ -144,7 +129,7 @@ export class EdfiTenantsService {
       return toOperationResultDto({
         title: 'Connection successful.',
         type: 'Success',
-        message: adminApiMsgs[result.status],
+        message: adminApiLoginStatusMsgs[result.status],
         regarding: regarding(edfiTenant),
       });
     }
@@ -152,7 +137,7 @@ export class EdfiTenantsService {
       {
         title: 'Admin API connection unsuccessful.',
         type: 'Error',
-        message: adminApiMsgs[result.status],
+        message: adminApiLoginStatusMsgs[result.status],
         regarding: regarding(edfiTenant),
       },
       500
