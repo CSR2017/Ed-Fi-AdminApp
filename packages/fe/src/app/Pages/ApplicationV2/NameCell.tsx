@@ -4,15 +4,15 @@ import { GetApplicationDtoV2 } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
 
 import { useQuery } from '@tanstack/react-query';
-import { applicationQueriesV1 } from '../../api';
+import { applicationQueriesV2 } from '../../api';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
-import { ApplicationLinkV1 } from '../../routes';
+import { ApplicationLinkV2 } from '../../routes';
 import { useSingleApplicationActions } from './useApplicationActions';
 
 export const NameCell = (info: CellContext<GetApplicationDtoV2, unknown>) => {
   const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
   const entities = useQuery(
-    applicationQueriesV1.getAll({
+    applicationQueriesV2.getAll({
       teamId,
       edfiTenant,
     })
@@ -22,7 +22,7 @@ export const NameCell = (info: CellContext<GetApplicationDtoV2, unknown>) => {
   });
   return (
     <HStack justify="space-between">
-      <ApplicationLinkV1 id={info.row.original.id} query={entities} />
+      <ApplicationLinkV2 id={info.row.original.id} query={entities} />
       <TableRowActions actions={actions} />
     </HStack>
   );

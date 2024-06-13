@@ -1,18 +1,17 @@
 import { HStack } from '@chakra-ui/react';
 import { TableRowActions } from '@edanalytics/common-ui';
-import { CellContext } from '@tanstack/react-table';
-import { claimsetQueriesV1 } from '../../api';
-
 import { GetClaimsetMultipleDtoV2 } from '@edanalytics/models';
 import { useQuery } from '@tanstack/react-query';
+import { CellContext } from '@tanstack/react-table';
+import { claimsetQueriesV2 } from '../../api';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
-import { ClaimsetLinkV1 } from '../../routes';
+import { ClaimsetLinkV2 } from '../../routes';
 import { useClaimsetActions } from './useClaimsetActions';
 
 export const NameCell = (info: CellContext<GetClaimsetMultipleDtoV2, unknown>) => {
   const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
   const entities = useQuery(
-    claimsetQueriesV1.getAll({
+    claimsetQueriesV2.getAll({
       teamId,
       edfiTenant,
     })
@@ -23,7 +22,7 @@ export const NameCell = (info: CellContext<GetClaimsetMultipleDtoV2, unknown>) =
   });
   return (
     <HStack justify="space-between">
-      <ClaimsetLinkV1 id={info.row.original.id} query={entities} />
+      <ClaimsetLinkV2 id={info.row.original.id} query={entities} />
       <TableRowActions actions={actions} />
     </HStack>
   );

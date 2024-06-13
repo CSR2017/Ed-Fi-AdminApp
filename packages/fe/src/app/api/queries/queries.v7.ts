@@ -67,14 +67,27 @@ export const claimsetQueriesV2 = new EntityQueryBuilder({
   .getAll('getAll', { ResDto: GetClaimsetMultipleDtoV2 })
   .put('put', { ResDto: GetClaimsetSingleDtoV2, ReqDto: PutClaimsetFormDtoV2 })
   .post('post', { ResDto: GetClaimsetSingleDtoV2, ReqDto: PostClaimsetDtoV2 })
-  .post('import', { ResDto: Id, ReqDto: ImportClaimsetSingleDtoV2 }, (base) =>
-    standardPath({
-      edfiTenant: base.edfiTenant,
-      teamId: base.teamId,
-      kebabCaseName: 'claimset',
-      adminApi: true,
-      id: `import`,
-    })
+  .post(
+    'import',
+    {
+      ResDto: Id,
+      ReqDto: ImportClaimsetSingleDtoV2,
+      keysToInvalidate: (base) => [
+        queryKeyNew({
+          ...base.standardQueryKeyParams,
+          pathOverride: undefined,
+          id: undefined,
+        }),
+      ],
+    },
+    (base) =>
+      standardPath({
+        edfiTenant: base.edfiTenant,
+        teamId: base.teamId,
+        kebabCaseName: 'claimset',
+        adminApi: true,
+        id: `import`,
+      })
   )
   .post(
     'copy',
