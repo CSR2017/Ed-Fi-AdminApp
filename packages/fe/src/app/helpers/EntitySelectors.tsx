@@ -47,7 +47,9 @@ export const SelectRole: StandardSelector<{ types: RoleType[] }> = (props) => {
           },
         ])
     );
-  return <SelectWrapper {...others} isLoading={roles.isPending} options={options} />;
+  return (
+    <SelectWrapper {...others} options={options} isLoading={roles.isPending || roles.isStale} />
+  );
 };
 
 export const SelectClaimset: StandardSelector<{
@@ -71,7 +73,13 @@ export const SelectClaimset: StandardSelector<{
         },
       ])
     );
-  return <SelectWrapper {...others} options={options} isLoading={claimsets.isPending} />;
+  return (
+    <SelectWrapper
+      {...others}
+      options={options}
+      isLoading={claimsets.isPending || claimsets.isStale}
+    />
+  );
 };
 
 export const SelectClaimsetV2: StandardSelector<{
@@ -96,7 +104,13 @@ export const SelectClaimsetV2: StandardSelector<{
       ])
     );
 
-  return <SelectWrapper {...others} options={options} isLoading={claimsets.isPending} />;
+  return (
+    <SelectWrapper
+      {...others}
+      options={options}
+      isLoading={claimsets.isPending || claimsets.isStale}
+    />
+  );
 };
 
 export const SelectSbEnvironment: StandardSelector = (props) => {
@@ -114,7 +128,13 @@ export const SelectSbEnvironment: StandardSelector = (props) => {
         },
       ])
     );
-  return <SelectWrapper {...others} options={options} isLoading={sbEnvironments.isPending} />;
+  return (
+    <SelectWrapper
+      {...others}
+      options={options}
+      isLoading={sbEnvironments.isPending || sbEnvironments.isStale}
+    />
+  );
 };
 export const SelectEdfiTenant: StandardSelector = (props) => {
   const { options: externalOptions, ...others } = props;
@@ -135,7 +155,13 @@ export const SelectEdfiTenant: StandardSelector = (props) => {
         },
       ])
     );
-  return <SelectWrapper {...others} options={options} isLoading={edfiTenants.isPending} />;
+  return (
+    <SelectWrapper
+      {...others}
+      options={options}
+      isLoading={edfiTenants.isPending || edfiTenants.isStale}
+    />
+  );
 };
 export const SelectOdsTemplate: StandardSelector = (props) => {
   const { options: externalOptions, ...others } = props;
@@ -152,7 +178,13 @@ export const SelectOdsTemplate: StandardSelector = (props) => {
         },
       ])
     );
-  return <SelectWrapper {...others} options={options} isLoading={templates.isPending} />;
+  return (
+    <SelectWrapper
+      {...others}
+      options={options}
+      isLoading={templates.isPending || templates.isStale}
+    />
+  );
 };
 export const SelectTeam: StandardSelector = (props) => {
   const { options: externalOptions, ...others } = props;
@@ -168,7 +200,9 @@ export const SelectTeam: StandardSelector = (props) => {
         },
       ])
     );
-  return <SelectWrapper {...others} options={options} isLoading={teams.isPending} />;
+  return (
+    <SelectWrapper {...others} options={options} isLoading={teams.isPending || teams.isStale} />
+  );
 };
 export const SelectUser: StandardSelector = (props) => {
   const { options: externalOptions, ...others } = props;
@@ -185,7 +219,9 @@ export const SelectUser: StandardSelector = (props) => {
         },
       ])
     );
-  return <SelectWrapper {...others} options={options} isLoading={users.isPending} />;
+  return (
+    <SelectWrapper {...others} options={options} isLoading={users.isPending || users.isStale} />
+  );
 };
 
 export const SelectVendor: StandardSelector = (props) => {
@@ -203,7 +239,9 @@ export const SelectVendor: StandardSelector = (props) => {
         },
       ])
     );
-  return <SelectWrapper {...others} options={options} isLoading={vendors.isPending} />;
+  return (
+    <SelectWrapper {...others} options={options} isLoading={vendors.isPending || vendors.isStale} />
+  );
 };
 export const SelectVendorV2: StandardSelector = (props) => {
   const { options: externalOptions, ...others } = props;
@@ -220,7 +258,9 @@ export const SelectVendorV2: StandardSelector = (props) => {
         },
       ])
     );
-  return <SelectWrapper {...others} options={options} isLoading={vendors.isPending} />;
+  return (
+    <SelectWrapper {...others} options={options} isLoading={vendors.isPending || vendors.isStale} />
+  );
 };
 
 export const SelectApplication: StandardSelector = (props) => {
@@ -238,7 +278,13 @@ export const SelectApplication: StandardSelector = (props) => {
         },
       ])
     );
-  return <SelectWrapper {...others} options={options} isLoading={applications.isPending} />;
+  return (
+    <SelectWrapper
+      {...others}
+      options={options}
+      isLoading={applications.isPending || applications.isStale}
+    />
+  );
 };
 
 export const SelectApplicationV2: StandardSelector = (props) => {
@@ -256,7 +302,13 @@ export const SelectApplicationV2: StandardSelector = (props) => {
         },
       ])
     );
-  return <SelectWrapper {...others} options={options} isLoading={applications.isPending} />;
+  return (
+    <SelectWrapper
+      {...others}
+      options={options}
+      isLoading={applications.isPending || applications.isStale}
+    />
+  );
 };
 
 export const SelectOds: StandardSelector<{
@@ -290,7 +342,7 @@ export const SelectOds: StandardSelector<{
         },
       ])
     );
-  return <SelectWrapper {...others} options={options} isLoading={odss.isPending} />;
+  return <SelectWrapper {...others} options={options} isLoading={odss.isPending || odss.isStale} />;
 };
 
 export const SelectEdorgCategory: StandardSelector = (props) => {
@@ -336,7 +388,7 @@ export const SelectEdorg: StandardSelector<{ useEdorgId?: boolean }, true> = (pr
     <SelectWrapper
       {...others}
       options={options}
-      isLoading={edorgs.isPending}
+      isLoading={edorgs.isPending || edorgs.isStale}
       filterApplied={filterApplied}
       onFilterDoubleClick={() => setInclude(enumValues(EdorgType))}
       filterPane={

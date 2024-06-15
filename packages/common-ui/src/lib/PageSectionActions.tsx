@@ -24,20 +24,17 @@ export const PageSectionActions = (props: {
           '& > button': {
             borderRadius: 0,
           },
-          /*
-      React doesn't like this selector bc of SSR, but
-      we aren't doing SSR, and the preferred alternative
-      (:first-of-type) doesn't work here because we have
-      both <a> and <button> children
-      */
-          '& > *:first-child': {
+          // Using first-child causes an error so this and the sibling selector are used instead
+          // [class] is needed for precedence purposes
+          '& > *[class]': {
             borderBottomLeftRadius: 'var(--chakra-radii-md)',
           },
           '& > *:last-child': {
             borderTopRightRadius: 'var(--chakra-radii-md)',
           },
-          '& > *:not(:first-child)': {
+          '& > * + *[class]': {
             borderLeftWidth: '1px',
+            borderBottomLeftRadius: 0,
           },
         }}
         isAttached

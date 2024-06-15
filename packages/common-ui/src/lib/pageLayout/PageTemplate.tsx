@@ -71,20 +71,17 @@ export const PageTemplate = (props: {
               '& > button': {
                 borderRadius: 0,
               },
-              /*
-              React doesn't like this selector bc of SSR, but
-              we aren't doing SSR, and the preferred alternative
-              (:first-of-type) doesn't work here because we have
-              both <a> and <button> children
-              */
-              '& > *:first-child': {
+              // Using first-child causes an error so this and the sibling selector are used instead
+              // [class] is needed for precedence purposes
+              '& > *[class]': {
                 borderTopLeftRadius: 'var(--chakra-radii-md)',
               },
               '& > *:last-child': {
                 borderTopRightRadius: 'var(--chakra-radii-md)',
               },
-              '& > *:not(:first-child)': {
+              '& > * + *[class]': {
                 borderLeftWidth: '1px',
+                borderTopLeftRadius: 0,
               },
             }}
             isAttached
@@ -141,7 +138,7 @@ export const PageContentCard = ((props: BoxProps) => (
     }}
     css={{
       '& .content-section:not(:last-child)': {
-        'margin-bottom': 'var(--chakra-space-10)',
+        marginBottom: 'var(--chakra-space-10)',
       },
     }}
   />

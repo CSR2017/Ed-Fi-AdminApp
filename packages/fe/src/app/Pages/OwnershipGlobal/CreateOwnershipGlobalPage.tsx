@@ -13,14 +13,12 @@ import {
 import { PageTemplate } from '@edanalytics/common-ui';
 import { PostOwnershipDto, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useQuery } from '@tanstack/react-query';
 import { noop } from '@tanstack/react-table';
 import { plainToInstance } from 'class-transformer';
-import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { ownershipQueries, sbEnvironmentQueries, teamQueries } from '../../api';
+import { ownershipQueries } from '../../api';
 import {
   EdfiTenantNavContextLoader,
   NavContextLoader,
@@ -57,9 +55,6 @@ export const CreateOwnershipGlobalPage = () => {
   const navToParentOptions = useNavToParent();
   const goToView = (id: string | number) => navigate(`/ownerships/${id}`);
 
-  const teams = useQuery(teamQueries.getAll({}));
-  const sbEnvironments = useQuery(sbEnvironmentQueries.getAll({}));
-
   const search = useSearchParamsObject(getDefaults);
   const popBanner = usePopBanner();
 
@@ -73,12 +68,12 @@ export const CreateOwnershipGlobalPage = () => {
     setError,
   } = useForm({
     resolver,
-    defaultValues: useMemo(() => Object.assign(new PostOwnershipDto(), search), [search]),
+    defaultValues: { ...search } as PostOwnershipDto,
   });
 
   const [sbEnvironmentId, edfiTenantId, type] = watch(['sbEnvironmentId', 'edfiTenantId', 'type']);
 
-  return teams.data && sbEnvironments.data ? (
+  return (
     <PageTemplate title={'Grant new resource ownership'} actions={undefined}>
       <Box maxW="form-width">
         <FormLabel>Resource type</FormLabel>
@@ -212,5 +207,5 @@ export const CreateOwnershipGlobalPage = () => {
         </form>
       </Box>
     </PageTemplate>
-  ) : null;
+  );
 };
