@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 import { SbV1MetaEdorg, SbV1MetaEnv } from './starting-blocks.v1.dto';
-import { IsIn, IsNumberString, IsString } from 'class-validator';
+import { IsIn, IsNotEmpty, IsNumberString, IsString } from 'class-validator';
 import { TrimWhitespace } from '../utils';
 export type SbV2MetaEdorg = SbV1MetaEdorg;
 
@@ -70,6 +70,7 @@ export class AddEdorgDtoV2 {
 
   @Expose()
   @IsString()
+  @IsNotEmpty()
   @TrimWhitespace()
   NameOfInstitution: string;
 }
