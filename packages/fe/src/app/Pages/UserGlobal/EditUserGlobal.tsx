@@ -159,7 +159,7 @@ export const EditUserGlobal = (props: { user: GetUserDto }) => {
           {(props) => (
             <Button
               mt={4}
-              colorScheme="teal"
+              colorScheme="primary"
               isLoading={isSubmitting}
               type="submit"
               onClick={(e) => {
@@ -173,7 +173,7 @@ export const EditUserGlobal = (props: { user: GetUserDto }) => {
         </ConfirmAction>
         <Button
           mt={4}
-          colorScheme="teal"
+          colorScheme="primary"
           variant="ghost"
           isLoading={isSubmitting}
           type="reset"

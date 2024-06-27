@@ -51,7 +51,7 @@ export const ApplicationPageV2 = () => {
       </PageContentCard>
       {url ? (
         <ScaleFade in={showUrl} unmountOnExit>
-          <PageContentCard borderColor="teal.200" bg="teal.50" mt={4}>
+          <PageContentCard borderColor="primary.200" bg="primary.50" mt={4}>
             <Heading mb={4} whiteSpace="nowrap" color="gray.700" size="md">
               Key and secret created
             </Heading>

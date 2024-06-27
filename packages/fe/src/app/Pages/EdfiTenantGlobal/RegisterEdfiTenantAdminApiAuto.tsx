@@ -75,12 +75,12 @@ export const RegisterSbEnvironmentAdminApiAuto = (props: {
         <FormErrorMessage>{errors.adminRegisterUrl?.message}</FormErrorMessage>
       </FormControl>
       <ButtonGroup>
-        <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
+        <Button mt={4} colorScheme="primary" isLoading={isSubmitting} type="submit">
           Connect
         </Button>
         <Button
           mt={4}
-          colorScheme="teal"
+          colorScheme="primary"
           variant="ghost"
           isLoading={isSubmitting}
           type="reset"

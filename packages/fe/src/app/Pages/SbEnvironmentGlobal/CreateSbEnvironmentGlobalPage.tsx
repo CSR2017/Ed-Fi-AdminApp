@@ -69,7 +69,7 @@ export const CreateSbEnvironmentGlobalPage = () => {
             <Input {...register('metaArn')} placeholder="arn:aws:lambda:us..." />
             <FormErrorMessage>{errors.metaArn?.message}</FormErrorMessage>
           </FormControl>
-          <ButtonGroup mt={4} colorScheme="teal">
+          <ButtonGroup mt={4} colorScheme="primary">
             <Button isLoading={isSubmitting} type="submit">
               Save
             </Button>

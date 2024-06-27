@@ -62,7 +62,7 @@ export const CreateEdfiTenantGlobalPage = () => {
             <Input {...register('allowedEdorgs')} placeholder="255901, 2559..." />
             <FormErrorMessage>{errors.allowedEdorgs?.message}</FormErrorMessage>
           </FormControl>
-          <ButtonGroup mt={4} colorScheme="teal">
+          <ButtonGroup mt={4} colorScheme="primary">
             <Button isLoading={isSubmitting} type="submit">
               Save
             </Button>

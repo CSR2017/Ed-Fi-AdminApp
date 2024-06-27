@@ -91,12 +91,12 @@ export const CreateUtmGlobal = () => {
             <FormErrorMessage>{errors.roleId?.message}</FormErrorMessage>
           </FormControl>
           <ButtonGroup>
-            <Button mt={4} colorScheme="teal" isLoading={isSubmitting} type="submit">
+            <Button mt={4} colorScheme="primary" isLoading={isSubmitting} type="submit">
               Save
             </Button>
             <Button
               mt={4}
-              colorScheme="teal"
+              colorScheme="primary"
               variant="ghost"
               isLoading={isSubmitting}
               type="reset"

@@ -107,7 +107,7 @@ export const ImportClaimsetsPageV2 = () => {
           </UnorderedList>
         </>
       ) : null}
-      <ButtonGroup mt={10} colorScheme="teal" variant="outline">
+      <ButtonGroup mt={10} colorScheme="primary" variant="outline">
         <Button
           type="reset"
           onClick={() => {
@@ -180,7 +180,7 @@ const ClaimsetItem = ({
             isDisabled={importClaimset.isSuccess}
             isLoading={importClaimset.isPending}
             variant="outline"
-            colorScheme="teal"
+            colorScheme="primary"
             size="sm"
             h="1.5rem"
             onClick={() => {

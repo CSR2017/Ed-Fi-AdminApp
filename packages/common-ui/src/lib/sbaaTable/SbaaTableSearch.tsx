@@ -84,7 +84,7 @@ export const SbaaTableAdvancedButton: ChakraComponent<'button'> = (props) => {
       variant="link"
       borderRadius="99em"
       size="sm"
-      colorScheme="teal"
+      colorScheme="primary"
       onClick={setShowSettings.toggle}
       {...rest}
     >

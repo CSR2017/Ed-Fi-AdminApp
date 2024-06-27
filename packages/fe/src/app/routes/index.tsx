@@ -1,4 +1,4 @@
-import { Box, ListItem, Text, UnorderedList } from '@chakra-ui/react';
+import { Box, ChakraProvider, ListItem, Text, UnorderedList } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { Outlet, RouteObject, RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { ErrorFallback } from '../Layout/Fallback404';
@@ -119,6 +119,7 @@ import {
   sbSyncQueueRoute,
   sbSyncQueueIndexRoute,
 } from './sb-sync-queue.routes';
+import { globalTheme } from '@edanalytics/common-ui';
 export * from './account.routes';
 export * from './application.routes';
 export * from './claimset.routes';
@@ -195,32 +196,25 @@ const AuthenticatedRoute = () => {
   return <Outlet />;
 };
 
-export const authenticatedRoutes: RouteObject = {
-  element: <AuthenticatedRoute />,
+export const adminRoutes: RouteObject = {
+  element: (
+    <ChakraProvider theme={globalTheme}>
+      <Outlet />
+    </ChakraProvider>
+  ),
   errorElement: <ErrorFallback />,
   children: [
-    sbSyncQueuesRoute,
-    sbSyncQueuesIndexRoute,
-    sbSyncQueueRoute,
-    sbSyncQueueIndexRoute,
-
     sbEnvironmentsGlobalRoute,
     sbEnvironmentsGlobalIndexRoute,
     sbEnvironmentGlobalCreateRoute,
     sbEnvironmentGlobalRoute,
     sbEnvironmentGlobalIndexRoute,
 
-    edfiTenantsGlobalRoute,
-    edfiTenantsGlobalIndexRoute,
-    edfiTenantGlobalCreateRoute,
-    edfiTenantGlobalRoute,
-    edfiTenantGlobalIndexRoute,
-
-    rolesGlobalRoute,
-    rolesGlobalIndexRoute,
-    roleGlobalCreateRoute,
-    roleGlobalRoute,
-    roleGlobalIndexRoute,
+    teamsRoute,
+    teamsIndexRoute,
+    teamRoute,
+    teamIndexRoute,
+    teamCreateRoute,
 
     usersGlobalRoute,
     usersGlobalIndexRoute,
@@ -228,18 +222,40 @@ export const authenticatedRoutes: RouteObject = {
     userGlobalRoute,
     userGlobalIndexRoute,
 
-    ownershipsGlobalRoute,
-    ownershipsGlobalIndexRoute,
-    ownershipGlobalRoute,
-    ownershipGlobalIndexRoute,
-    ownershipGlobalCreateRoute,
-
     utmsGlobalRoute,
     utmsGlobalIndexRoute,
     utmGlobalRoute,
     utmGlobalIndexRoute,
     utmGlobalCreateRoute,
 
+    rolesGlobalRoute,
+    rolesGlobalIndexRoute,
+    roleGlobalCreateRoute,
+    roleGlobalRoute,
+    roleGlobalIndexRoute,
+
+    ownershipsGlobalRoute,
+    ownershipsGlobalIndexRoute,
+    ownershipGlobalRoute,
+    ownershipGlobalIndexRoute,
+    ownershipGlobalCreateRoute,
+
+    sbSyncQueuesRoute,
+    sbSyncQueuesIndexRoute,
+    sbSyncQueueRoute,
+    sbSyncQueueIndexRoute,
+
+    edfiTenantsGlobalRoute,
+    edfiTenantsGlobalIndexRoute,
+    edfiTenantGlobalCreateRoute,
+    edfiTenantGlobalRoute,
+    edfiTenantGlobalIndexRoute,
+  ],
+};
+export const authenticatedRoutes: RouteObject = {
+  element: <AuthenticatedRoute />,
+  errorElement: <ErrorFallback />,
+  children: [
     edfiTenantsRoute,
     edfiTenantsIndexRoute,
     edfiTenantRoute,
@@ -261,12 +277,6 @@ export const authenticatedRoutes: RouteObject = {
     rolesIndexRoute,
     roleRoute,
     roleIndexRoute,
-
-    teamsRoute,
-    teamsIndexRoute,
-    teamRoute,
-    teamIndexRoute,
-    teamCreateRoute,
 
     usersRoute,
     usersIndexRoute,
@@ -304,8 +314,9 @@ export const authenticatedRoutes: RouteObject = {
     vendorIndexRoute,
     vendorCreateRoute,
 
-    asRoute,
     accountRouteGlobal,
+    asRoute,
+    adminRoutes,
   ],
 };
 

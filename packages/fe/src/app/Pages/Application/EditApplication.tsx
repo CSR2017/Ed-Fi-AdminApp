@@ -120,7 +120,7 @@ export const EditApplication = (props: {
           <SelectClaimset noReserved name="claimsetId" control={control} />
           <FormErrorMessage>{errors.claimsetId?.message}</FormErrorMessage>
         </FormControl>
-        <ButtonGroup mt={4} colorScheme="teal">
+        <ButtonGroup mt={4} colorScheme="primary">
           <Button isLoading={isSubmitting} type="submit">
             Save
           </Button>

@@ -30,7 +30,7 @@ export const StandardLayout = () => {
       edfiTenantId={'edfiTenantId' in params ? Number(params.edfiTenantId) : undefined}
       sbEnvironmentId={'sbEnvironmentId' in params ? Number(params.sbEnvironmentId) : undefined}
     >
-      <VStack spacing={0} h="100vh" overflow="hidden">
+      <VStack spacing={0} h="100vh" overflow="hidden" id="borderGlobal">
         {isLoggedIn ? <AppBar /> : <AppBarPublic />}
         <HStack
           as="main"

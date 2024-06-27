@@ -75,7 +75,7 @@ export const CopyClaimsetForm = ({
           <Input {...register('name')} placeholder="name" />
           <FormErrorMessage>{errors.name?.message}</FormErrorMessage>
         </FormControl>
-        <ButtonGroup mt={4} colorScheme="teal">
+        <ButtonGroup mt={4} colorScheme="primary">
           <Button isLoading={isSubmitting} type="submit">
             Save
           </Button>

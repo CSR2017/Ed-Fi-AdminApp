@@ -4,7 +4,7 @@ export const ActionGroup = (props: Parameters<typeof ButtonGroup>['0']) => (
   <ButtonGroup
     size="action-bar"
     variant="solid"
-    colorScheme="teal"
+    colorScheme="primary"
     display="flex"
     justifyContent="flex-end"
     spacing={2}

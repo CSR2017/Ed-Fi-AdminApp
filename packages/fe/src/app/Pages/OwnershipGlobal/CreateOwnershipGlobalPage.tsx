@@ -253,7 +253,7 @@ export const CreateOwnershipGlobalPage = () => {
             />
             <FormErrorMessage>{errors.roleId?.message}</FormErrorMessage>
           </FormControl>
-          <ButtonGroup mt={4} colorScheme="teal">
+          <ButtonGroup mt={4} colorScheme="primary">
             <Button isLoading={isSubmitting} type="submit">
               Save
             </Button>

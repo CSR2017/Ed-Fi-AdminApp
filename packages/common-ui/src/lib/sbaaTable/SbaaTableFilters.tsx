@@ -69,7 +69,7 @@ export const Sorting = () => {
           isDisabled={!sortableColumns.length}
           title={!sortableColumns.length ? 'No columns available to sort' : undefined}
           variant="outline"
-          colorScheme="teal"
+          colorScheme="primary"
           as={Button}
           size="xs"
           rightIcon={<Icon as={BiPlus} />}
@@ -168,7 +168,7 @@ const Filters = () => {
             title={!filterableColumns.length ? 'No filters available' : undefined}
             onClick={onToggle}
             variant="outline"
-            colorScheme="teal"
+            colorScheme="primary"
             size="xs"
             rightIcon={<Icon as={BiPlus} />}
           >

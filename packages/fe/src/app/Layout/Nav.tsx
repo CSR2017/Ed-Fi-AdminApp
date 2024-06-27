@@ -73,7 +73,7 @@ export const Nav = () => {
       onResizeStart={setIsResizing.on}
       onResizeStop={setIsResizing.off}
       borderRightWidth={isResizing ? '3px' : undefined}
-      borderRightColor={isResizing ? 'teal.500' : undefined}
+      borderRightColor={isResizing ? 'primary.500' : undefined}
       minWidth="11em"
       maxWidth="min(40em, 80%)"
       as={Resizable}

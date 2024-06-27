@@ -176,7 +176,7 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
           {(props) => (
             <Button
               mt={4}
-              colorScheme="teal"
+              colorScheme="primary"
               isLoading={isSubmitting}
               type="submit"
               onClick={(e) => {
@@ -190,7 +190,7 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
         </ConfirmAction>
         <Button
           mt={4}
-          colorScheme="teal"
+          colorScheme="primary"
           variant="ghost"
           isLoading={isSubmitting}
           type="reset"
