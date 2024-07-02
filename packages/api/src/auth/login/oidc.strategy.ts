@@ -46,17 +46,23 @@ export class RegisterOidcIdpsService {
               return done(err, false);
             });
 
+            const isEaUser = username.includes('edanalytics.org');
             if (user === null) {
-              const usernameHash = crypto.createHash('sha1');
-              usernameHash.update(username);
-              Logger.warn(`User sha1:${usernameHash.digest('hex')} not found in database`);
+              if (!isEaUser) {
+                Logger.warn(`LOGIN_ERROR User [${username}] not found in database`);
+              }
               return done(new Error(USER_NOT_FOUND), false);
             } else if (user.roleId === null || user.roleId === undefined) {
-              const usernameHash = crypto.createHash('sha1');
-              usernameHash.update(username);
-              Logger.warn(`No role assigned for User sha1:${usernameHash.digest('hex')}`);
+              if (!isEaUser) {
+                Logger.warn(`LOGIN_ERROR No role assigned for User [${username}]`);
+              }
               return done(new Error(NO_ROLE), false);
             } else {
+              if (!user.userTeamMemberships || user.userTeamMemberships.length === 0) {
+                if (!isEaUser) {
+                  Logger.warn(`LOGIN_ERROR No team memberships assigned for User [${username}]`);
+                }
+              }
               return done(null, user);
             }
           }
@@ -69,3 +75,4 @@ export class RegisterOidcIdpsService {
 
 export const USER_NOT_FOUND = 'User not found';
 export const NO_ROLE = 'No role assigned for user';
+export const NO_TEAM_MEMBERSHIPS = 'No team memberships assigned';
