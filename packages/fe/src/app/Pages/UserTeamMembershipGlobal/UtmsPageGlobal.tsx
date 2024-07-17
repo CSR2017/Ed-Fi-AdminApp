@@ -14,7 +14,7 @@ export const UtmsGlobalPage = () => {
   const teams = useQuery(teamQueries.getAll({}));
   const roles = useQuery(roleQueries.getAll({}));
   const actions = useUtmsActionsGlobal();
-
+  const usersByUserId = Object.values(users?.data || {});
   return (
     <PageTemplate
       title="Team memberships"
@@ -44,6 +44,16 @@ export const UtmsGlobalPage = () => {
             accessorFn: (info) => getRelationDisplayName(info.userId, users),
             header: 'User',
             cell: (info) => <UserGlobalLink id={info.row.original.userId} />,
+            filterFn: 'equalsString',
+            meta: {
+              type: 'options',
+            },
+          },
+          {
+            id: 'username',
+            accessorFn: (info) => usersByUserId?.find((user) => user.id === info.userId)?.username,
+            header: 'username',
+            cell: (info) => <UserGlobalLink id={info.row.original.userId} displayUsername={true} />,
             filterFn: 'equalsString',
             meta: {
               type: 'options',

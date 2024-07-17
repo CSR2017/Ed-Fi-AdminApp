@@ -45,6 +45,7 @@ export const usersGlobalRoute: RouteObject = {
 
 export const UserGlobalLink = (props: {
   id: number | undefined;
+  displayUsername?: boolean | undefined;
   /**@deprecated unneeded and no longer used. */
   query?: UseQueryResult<Record<string | number, GetUserDto>, unknown>;
 }) => {
@@ -61,7 +62,7 @@ export const UserGlobalLink = (props: {
   return user ? (
     <Link as="span">
       <RouterLink title="Go to user" to={`/users/${user.id}`}>
-        {getRelationDisplayName(props.id, users)}
+        {props.displayUsername ? user.username || '-' : getRelationDisplayName(props.id, users)}
       </RouterLink>
     </Link>
   ) : typeof props.id === 'number' ? (

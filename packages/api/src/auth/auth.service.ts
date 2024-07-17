@@ -473,7 +473,7 @@ export class AuthService {
       const ownership = ownedOdss[odsId];
       const ods = ownership.ods!;
 
-      const ownedPrivileges = new Set(ownership.role?.privileges.map((p) => p.code) ?? []);
+      const ownedPrivileges = new Set(ownership.role?.privileges.map((p) => p?.code) ?? []);
       const appliedPrivileges = new Set(
         [...ownedPrivileges].filter((p) => upwardInheritancePrivileges.has(p))
       );

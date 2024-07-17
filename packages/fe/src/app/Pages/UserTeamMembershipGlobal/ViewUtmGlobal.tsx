@@ -31,6 +31,9 @@ export const ViewUtmGlobal = () => {
             <RoleGlobalLink query={roles} id={userTeamMembership.roleId} />
           )}
         </AttributeContainer>
+        <AttributeContainer label="UserName">
+          <UserGlobalLink id={userTeamMembership.userId} displayUsername={true} />
+        </AttributeContainer>
       </AttributesGrid>
     </ContentSection>
   ) : null;
