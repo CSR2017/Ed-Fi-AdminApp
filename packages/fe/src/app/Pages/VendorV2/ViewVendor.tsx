@@ -26,6 +26,7 @@ export const ViewVendor = () => {
   return vendor ? (
     <ContentSection>
       <AttributesGrid>
+        <Attribute label="Id" value={vendor.id} isCopyable />
         <Attribute label="Company" value={vendor.company} />
         <Attribute label="Contact" value={vendor.contactName} />
         {vendor.contactEmailAddress ? (

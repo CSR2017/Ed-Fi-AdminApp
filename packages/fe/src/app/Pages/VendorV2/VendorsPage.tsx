@@ -24,6 +24,10 @@ export const VendorsPageContent = () => {
       data={Object.values(vendors?.data || {})}
       columns={[
         {
+          accessorKey: 'id',
+          header: 'ID',
+        },
+        {
           accessorKey: 'company',
           cell: NameCell,
           header: 'Company',
