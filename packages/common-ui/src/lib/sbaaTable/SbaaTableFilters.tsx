@@ -18,8 +18,9 @@ import {
 } from '@chakra-ui/react';
 import { BiPlus } from 'react-icons/bi';
 import { BsX } from 'react-icons/bs';
-import { ColumnFilter, ColumnFilterContent } from './ColumnFilter';
+import { ColumnFilter, ColumnFilterContent, type WithMetaType } from './ColumnFilter';
 import { DivComponent, useSbaaTableContext } from './SbaaTableProvider';
+import { Column } from '@tanstack/react-table';
 
 export const SbaaTableFilters: DivComponent = (props) => {
   const { children, ...rest } = props;
@@ -29,6 +30,7 @@ export const SbaaTableFilters: DivComponent = (props) => {
   } = useSbaaTableContext();
 
   if (!table) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return null as any;
   }
 
@@ -54,6 +56,7 @@ export const Sorting = () => {
   const { table } = useSbaaTableContext();
 
   if (!table) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return null as any;
   }
   const sortableColumns = table
@@ -81,7 +84,8 @@ export const Sorting = () => {
           {sortableColumns.map((column) => (
             <MenuItem onClick={() => column.toggleSorting(false, true)} key={column.id}>
               {typeof column.columnDef.header === 'function'
-                ? column.columnDef.header({ table, column, header: null as any })
+                ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  column.columnDef.header({ table, column, header: null as any })
                 : column.columnDef.header}
             </MenuItem>
           ))}
@@ -106,7 +110,8 @@ export const Sorting = () => {
               key={sort.id}
             >
               {typeof column.columnDef.header === 'function'
-                ? column.columnDef.header({ table, column, header: null as any })
+                ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  column.columnDef.header({ table, column, header: null as any })
                 : column.columnDef.header}
               {sort.desc ? <>&darr;</> : <>&uarr;</>}
             </Link>
@@ -141,13 +146,14 @@ const Filters = () => {
   };
 
   if (!table) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return null as any;
   }
-  const filterableColumns = table
-    .getAllFlatColumns()
-    .filter(
-      (column) => column.getCanFilter() && !column.getIsFiltered() && column.columnDef.meta?.type
-    );
+  const filterableColumns = table.getAllFlatColumns().filter(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (column: Column<any, unknown> & WithMetaType) =>
+      column.getCanFilter() && !column.getIsFiltered() && column.columnDef.meta?.type
+  );
 
   const { columnFilters } = table.getState();
   const pendingFilterColumnDef =
@@ -195,7 +201,8 @@ const Filters = () => {
                     key={column.id}
                   >
                     {typeof column.columnDef.header === 'function'
-                      ? column.columnDef.header({ table, column, header: null as any })
+                      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        column.columnDef.header({ table, column, header: null as any })
                       : column.columnDef.header}
                   </Button>
                 ))}

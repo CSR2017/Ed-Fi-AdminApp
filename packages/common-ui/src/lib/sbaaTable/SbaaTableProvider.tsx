@@ -15,6 +15,7 @@ import {
   useReactTable,
   ExpandedState,
   getExpandedRowModel,
+  TableState,
 } from '@tanstack/react-table';
 import React, { createContext, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -31,6 +32,7 @@ import {
 } from '../dataTable';
 
 export const SbaaTableContext = createContext<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   table: TrtTable<any> | null;
   pageSizes: number[];
   pendingFilterColumn: string | boolean;
@@ -77,6 +79,7 @@ export const diffSearchParams = (oldParams: URLSearchParams, newParams: URLSearc
 
 export function SbaaTableProvider<
   UseSubRows extends boolean,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   T extends UseSubRows extends true ? { id: any; subRows: T[] } : { id: any }
 >(props: {
   useSubRows?: UseSubRows;
@@ -88,6 +91,7 @@ export function SbaaTableProvider<
   onRowSelectionChange?: OnChangeFn<RowSelectionState> | undefined;
   pageSizes?: number[];
   queryKeyPrefix?: string | undefined;
+  state?: Partial<TableState>;
 }) {
   const data = useMemo(() => [...props.data], [props.data]);
   const columns = props.columns;
@@ -137,7 +141,7 @@ export function SbaaTableProvider<
       fuzzy: fuzzyFilter,
     },
     state: {
-      sorting: sortParams,
+      sorting: sortParams.length > 0 ? sortParams : props.state?.sorting ?? [],
       globalFilter,
       columnFilters,
       ...(props.rowSelectionState ? { rowSelection: props.rowSelectionState } : {}),

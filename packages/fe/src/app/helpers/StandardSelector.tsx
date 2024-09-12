@@ -4,6 +4,7 @@ import {
   HStack,
   Icon,
   IconButton,
+  Menu,
   Popover,
   PopoverArrow,
   PopoverBody,
@@ -45,7 +46,9 @@ function _InnerSelect(
     options: OptionsType;
     autoSelectOnly?: boolean;
     isLoading?: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } & Omit<ControllerRenderProps<any, any>, 'ref' | 'name'>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ref?: any
 ): JSX.Element;
 function _InnerSelect(
@@ -53,7 +56,9 @@ function _InnerSelect(
     options: OptionsType;
     autoSelectOnly?: boolean;
     isLoading?: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } & Omit<ControllerRenderProps<any, any>, 'ref'>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ref?: any
 ): JSX.Element;
 function _InnerSelect(
@@ -61,8 +66,11 @@ function _InnerSelect(
     options: OptionsType;
     autoSelectOnly?: boolean;
     isLoading?: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } & Omit<ControllerRenderProps<any, any>, 'ref' | 'name'> &
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Partial<Pick<ControllerRenderProps<any, any>, 'name'>>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ref?: any
 ) {
   const {
@@ -116,25 +124,32 @@ function _InnerSelect(
   const isClearable = props.isClearable && value !== null;
 
   return (
-    <VirtualizedSelect
-      {...others}
-      ref={ref}
-      isClearable={isClearable}
-      options={optionsArray as any}
-      name={name}
-      onBlur={onBlur}
-      selectedOptionStyle="check"
-      value={
-        value === null
-          ? { label: 'Select an option', value: '' as any }
-          : {
-              label: isLoading ? '...loading' : options?.[value as any]?.label ?? '',
-              subLabel: isLoading ? undefined : options?.[value as any]?.subLabel,
-              value: value,
-            }
-      }
-      onChange={(value: any) => onChange(value?.value ?? null)}
-    />
+    <Menu>
+      <VirtualizedSelect
+        {...others}
+        ref={ref}
+        isClearable={isClearable}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        options={optionsArray as any}
+        name={name}
+        onBlur={onBlur}
+        selectedOptionStyle="check"
+        value={
+          value === null
+            ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              { label: 'Select an option', value: '' as any }
+            : {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                label: isLoading ? '...loading' : options?.[value as any]?.label ?? '',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                subLabel: isLoading ? undefined : options?.[value as any]?.subLabel,
+                value: value,
+              }
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onChange={(value: any) => onChange(value?.value ?? null)}
+      />
+    </Menu>
   );
 }
 
@@ -152,8 +167,10 @@ export function SelectWrapper<Dto extends Record<Name, number>, Name extends key
           control: Control<Dto>;
         }
       | {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onChange: (...event: any[]) => void;
           onBlur?: () => void;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           value: any;
         }
     ) &
@@ -165,6 +182,7 @@ export function SelectWrapper<Dto extends Record<Name, number>, Name extends key
         {'control' in props ? (
           <Controller
             control={props.control}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             name={props.name as any}
             render={(args) => {
               const { ref, ...others } = props;
@@ -172,6 +190,7 @@ export function SelectWrapper<Dto extends Record<Name, number>, Name extends key
             }}
           />
         ) : (
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           <InnerSelect {...(props as any)} />
         )}
       </Box>
@@ -224,6 +243,7 @@ export type StandardSelector<ExtraProps extends object = object, Discriminator =
       options?: OptionsType<Discriminator> | undefined;
       onChange: (value: number | string | undefined) => void;
       value: number | string | undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } & Omit<ControllerRenderProps<any, any>, 'ref' | 'name' | 'value' | 'onBlur'> &
       ExtraProps &
       PassthroughSelectProps

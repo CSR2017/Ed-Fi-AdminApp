@@ -25,12 +25,17 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { stdDuration, stdShort } from '@edanalytics/utils';
-import { Column } from '@tanstack/react-table';
+import type { Column } from '@tanstack/react-table';
 import React, { useState } from 'react';
 import { BsX } from 'react-icons/bs';
 import { VirtualizedSelect } from '../VirtualizedSelect';
 
-const FilterValueLabel = ({ column }: { column: Column<any, unknown> }) => {
+export type WithMetaType = {
+  columnDef: { meta?: { type?: 'date' | 'duration' | 'number' | 'options' } };
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const FilterValueLabel = ({ column }: { column: Column<any, unknown> & WithMetaType }) => {
   const value = column.getFilterValue();
 
   if (value === undefined) {
@@ -78,15 +83,18 @@ const FilterValueLabel = ({ column }: { column: Column<any, unknown> }) => {
   }
   return <>{String(value)}</>;
 };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ColumnLabel = ({ column }: { column: Column<any, unknown> }) => (
   <Text as="span" fontWeight="bold">
     {typeof column.columnDef.header === 'function'
-      ? column.columnDef.header({ table: null as any, column, header: null as any })
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        column.columnDef.header({ table: null as any, column, header: null as any })
       : column.columnDef.header}
     :&nbsp;
   </Text>
 );
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const ColumnFilter = ({ column }: { column: Column<any, unknown> }) => {
   return (
     <Popover>
@@ -152,8 +160,10 @@ export const ColumnFilterContent = ({
   apply,
   cancel,
 }: {
-  column: Column<any, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  column: Column<any, unknown> & WithMetaType;
   cancel: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   apply: React.Dispatch<React.SetStateAction<any>>;
 }) => {
   return column.columnDef.meta?.type === 'date' ? (
@@ -180,7 +190,9 @@ const dateTransformerInv = (value: number | undefined) => {
   return value === undefined ? undefined : new Date(value).toISOString().split('T')[0];
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const useMathFilterConstraints = (column: Column<any, unknown>) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const initial: any = column.getFilterValue();
   const [filter, setFilter] = useState<[number | undefined, number | undefined] | undefined>(
     initial
@@ -248,8 +260,10 @@ export const DateFilter = ({
   cancel,
   apply,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   column: Column<any, unknown>;
   cancel: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   apply: React.Dispatch<React.SetStateAction<any>>;
 }) => {
   const {
@@ -365,8 +379,10 @@ export const NumberFilter = ({
   cancel,
   apply,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   column: Column<any, unknown>;
   cancel: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   apply: React.Dispatch<React.SetStateAction<any>>;
 }) => {
   const {
@@ -403,9 +419,8 @@ export const NumberFilter = ({
                     onChange={(str, value) => {
                       setFilter((old) => [value, old?.[1]]);
                     }}
-                    placeholder="Minimum value"
                   >
-                    <NumberInputField />
+                    <NumberInputField placeholder="Minimum value" />
                     <NumberInputStepper>
                       <NumberIncrementStepper />
                       <NumberDecrementStepper />
@@ -422,9 +437,8 @@ export const NumberFilter = ({
                     onChange={(str, value) => {
                       setFilter((old) => [old?.[0], value]);
                     }}
-                    placeholder="Maximum value"
                   >
-                    <NumberInputField />
+                    <NumberInputField placeholder="Maximum value" />
                     <NumberInputStepper>
                       <NumberIncrementStepper />
                       <NumberDecrementStepper />
@@ -447,9 +461,8 @@ export const NumberFilter = ({
                     onChange={(str, value) => {
                       setFilter((old) => [old?.[0], value]);
                     }}
-                    placeholder="Maximum value"
                   >
-                    <NumberInputField />
+                    <NumberInputField placeholder="Maximum value" />
                     <NumberInputStepper>
                       <NumberIncrementStepper />
                       <NumberDecrementStepper />
@@ -472,9 +485,8 @@ export const NumberFilter = ({
                     onChange={(str, value) => {
                       setFilter((old) => [value, old?.[1]]);
                     }}
-                    placeholder="Minimum value"
                   >
-                    <NumberInputField />
+                    <NumberInputField placeholder="Minimum value" />
                     <NumberInputStepper>
                       <NumberIncrementStepper />
                       <NumberDecrementStepper />
@@ -537,8 +549,10 @@ export const DurationFilter = ({
   cancel,
   apply,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   column: Column<any, unknown>;
   cancel: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   apply: React.Dispatch<React.SetStateAction<any>>;
 }) => {
   const {
@@ -612,9 +626,8 @@ export const DurationFilter = ({
                     onChange={(str, value) => {
                       setFilter((old) => [inputToSeconds(value, unit), old?.[1]]);
                     }}
-                    placeholder="Minimum value"
                   >
-                    <NumberInputField />
+                    <NumberInputField placeholder="Minimum value" />
                     <NumberInputStepper>
                       <NumberIncrementStepper />
                       <NumberDecrementStepper />
@@ -631,9 +644,8 @@ export const DurationFilter = ({
                     onChange={(str, value) => {
                       setFilter((old) => [old?.[0], inputToSeconds(value, unit)]);
                     }}
-                    placeholder="Maximum value"
                   >
-                    <NumberInputField />
+                    <NumberInputField placeholder="Maximum value" />
                     <NumberInputStepper>
                       <NumberIncrementStepper />
                       <NumberDecrementStepper />
@@ -656,9 +668,8 @@ export const DurationFilter = ({
                     onChange={(str, value) => {
                       setFilter((old) => [old?.[0], inputToSeconds(value, unit)]);
                     }}
-                    placeholder="Maximum value"
                   >
-                    <NumberInputField />
+                    <NumberInputField placeholder="Maximum value" />
                     <NumberInputStepper>
                       <NumberIncrementStepper />
                       <NumberDecrementStepper />
@@ -681,9 +692,8 @@ export const DurationFilter = ({
                     onChange={(str, value) => {
                       setFilter((old) => [inputToSeconds(value, unit), old?.[1]]);
                     }}
-                    placeholder="Minimum value"
                   >
-                    <NumberInputField />
+                    <NumberInputField placeholder="Minimum value" />
                     <NumberInputStepper>
                       <NumberIncrementStepper />
                       <NumberDecrementStepper />
@@ -711,8 +721,10 @@ export const OptionsFilter = ({
   cancel,
   apply,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   column: Column<any, unknown>;
   cancel: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   apply: React.Dispatch<React.SetStateAction<any>>;
 }) => {
   const initial = column.getFilterValue() as string | undefined | boolean;
@@ -734,6 +746,7 @@ export const OptionsFilter = ({
               borderRadius: 'md',
             }),
           }}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onChange={(o: any) => {
             setFilter(o.value);
           }}
@@ -760,11 +773,13 @@ const FilterContentFooter = ({
   isDisabled,
 }: {
   clear: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   column: Column<any, unknown>;
   cancel: () => void;
   apply: () => void;
   isDisabled?: boolean | undefined;
 }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const initial: any = column.getFilterValue();
 
   return (
