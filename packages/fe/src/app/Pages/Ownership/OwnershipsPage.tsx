@@ -14,6 +14,7 @@ export const OwnershipsPage = () => {
   );
   const users = useQuery(userQueries.getAll({ teamId: params.asId }));
   const roles = useQuery(roleQueries.getAll({ teamId: params.asId }));
+
   return (
     <PageTemplate title="Ownerships">
       <SbaaTableAllInOne
