@@ -1,6 +1,7 @@
 import { Expose, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
@@ -39,15 +40,21 @@ export class GetProfileDtoV2 {
 
   @Expose()
   definition?: string | undefined;
+
+  get displayName() {
+    return this.name;
+  }
 }
 
 export class PostProfileDtoV2 {
   @Expose()
+  @IsNotEmpty()
   @TrimWhitespace()
   name: string;
 
   @Expose()
   @IsString()
+  @IsNotEmpty()
   @TrimWhitespace()
   definition: string;
 }

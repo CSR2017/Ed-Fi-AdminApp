@@ -136,6 +136,7 @@ const mapEnvNav = (authCache: AuthorizationCache) => (env: EnvNav) => {
       vendors: false,
       claimsets: false,
       applications: false,
+      profiles: false,
     };
   } else {
     return {
@@ -146,6 +147,7 @@ const mapEnvNav = (authCache: AuthorizationCache) => (env: EnvNav) => {
       claimsets: !!authCache['team.sb-environment.edfi-tenant.claimset:read'][env.edfiTenantId],
       applications:
         !!authCache['team.sb-environment.edfi-tenant.ods.edorg.application:read'][env.edfiTenantId],
+      profiles: !!authCache['team.sb-environment.edfi-tenant.profile:read']?.[env.edfiTenantId],
     };
   }
 };

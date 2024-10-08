@@ -47,7 +47,11 @@ export type TeamPrivileges =
   | 'team.sb-environment.edfi-tenant.ods.edorg.application:update'
   | 'team.sb-environment.edfi-tenant.ods.edorg.application:delete'
   | 'team.sb-environment.edfi-tenant.ods.edorg.application:create'
-  | 'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials';
+  | 'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials'
+  | 'team.sb-environment.edfi-tenant.profile:read'
+  | 'team.sb-environment.edfi-tenant.profile:update'
+  | 'team.sb-environment.edfi-tenant.profile:delete'
+  | 'team.sb-environment.edfi-tenant.profile:create';
 
 export type TeamSbEnvironmentPrivileges =
   | 'team.sb-environment.edfi-tenant:read'
@@ -70,7 +74,11 @@ export type TeamSbEnvironmentPrivileges =
   | 'team.sb-environment.edfi-tenant.ods.edorg.application:update'
   | 'team.sb-environment.edfi-tenant.ods.edorg.application:delete'
   | 'team.sb-environment.edfi-tenant.ods.edorg.application:create'
-  | 'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials';
+  | 'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials'
+  | 'team.sb-environment.edfi-tenant.profile:read'
+  | 'team.sb-environment.edfi-tenant.profile:update'
+  | 'team.sb-environment.edfi-tenant.profile:delete'
+  | 'team.sb-environment.edfi-tenant.profile:create';
 
 export type TeamSbEnvironmentEdfiTenantPrivileges =
   | 'team.sb-environment.edfi-tenant.vendor:read'
@@ -90,7 +98,11 @@ export type TeamSbEnvironmentEdfiTenantPrivileges =
   | 'team.sb-environment.edfi-tenant.ods.edorg.application:update'
   | 'team.sb-environment.edfi-tenant.ods.edorg.application:delete'
   | 'team.sb-environment.edfi-tenant.ods.edorg.application:create'
-  | 'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials';
+  | 'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials'
+  | 'team.sb-environment.edfi-tenant.profile:read'
+  | 'team.sb-environment.edfi-tenant.profile:update'
+  | 'team.sb-environment.edfi-tenant.profile:delete'
+  | 'team.sb-environment.edfi-tenant.profile:create';
 
 export type TeamSbEnvironmentEdfiTenantOdsPrivileges =
   | 'team.sb-environment.edfi-tenant.ods.edorg:read'
@@ -149,6 +161,12 @@ export const TeamResourcePrivileges = {
     'team.sb-environment.edfi-tenant.claimset:delete',
     'team.sb-environment.edfi-tenant.claimset:create',
   ],
+  'team.sb-environment.edfi-tenant.profile': [
+    'team.sb-environment.edfi-tenant.profile:read',
+    'team.sb-environment.edfi-tenant.profile:update',
+    'team.sb-environment.edfi-tenant.profile:delete',
+    'team.sb-environment.edfi-tenant.profile:create',
+  ],
   'team.sb-environment.edfi-tenant.ods': [
     'team.sb-environment.edfi-tenant.ods:read',
     'team.sb-environment.edfi-tenant.ods:read-row-counts',
@@ -183,6 +201,12 @@ export const TeamSbEnvironmentResourcePrivileges = {
     'team.sb-environment.edfi-tenant.claimset:delete',
     'team.sb-environment.edfi-tenant.claimset:create',
   ],
+  'team.sb-environment.edfi-tenant.profile': [
+    'team.sb-environment.edfi-tenant.profile:read',
+    'team.sb-environment.edfi-tenant.profile:update',
+    'team.sb-environment.edfi-tenant.profile:delete',
+    'team.sb-environment.edfi-tenant.profile:create',
+  ],
   'team.sb-environment.edfi-tenant.ods': [
     'team.sb-environment.edfi-tenant.ods:read',
     'team.sb-environment.edfi-tenant.ods:read-row-counts',
@@ -211,6 +235,12 @@ export const TeamSbEnvironmentEdfiTenantResourcePrivileges = {
     'team.sb-environment.edfi-tenant.claimset:update',
     'team.sb-environment.edfi-tenant.claimset:delete',
     'team.sb-environment.edfi-tenant.claimset:create',
+  ],
+  'team.sb-environment.edfi-tenant.profile': [
+    'team.sb-environment.edfi-tenant.profile:read',
+    'team.sb-environment.edfi-tenant.profile:update',
+    'team.sb-environment.edfi-tenant.profile:delete',
+    'team.sb-environment.edfi-tenant.profile:create',
   ],
   'team.sb-environment.edfi-tenant.ods': [
     'team.sb-environment.edfi-tenant.ods:read',
@@ -268,6 +298,7 @@ export type PrivilegeResources =
   | 'team.sb-environment.edfi-tenant'
   | 'team.sb-environment.edfi-tenant.vendor'
   | 'team.sb-environment.edfi-tenant.claimset'
+  | 'team.sb-environment.edfi-tenant.profile'
   | 'team.sb-environment.edfi-tenant.ods'
   | 'team.sb-environment.edfi-tenant.ods.edorg'
   | 'team.sb-environment.edfi-tenant.ods.edorg.application'

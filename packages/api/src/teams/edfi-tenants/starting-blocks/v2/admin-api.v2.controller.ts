@@ -8,10 +8,12 @@ import {
   PostApplicationDtoV2,
   PostApplicationFormDtoV2,
   PostClaimsetDtoV2,
+  PostProfileDtoV2,
   PostVendorDtoV2,
   PutApplicationDtoV2,
   PutApplicationFormDtoV2,
   PutClaimsetDtoV2,
+  PutProfileDtoV2,
   PutVendorDtoV2,
   edorgKeyV2,
   toApplicationYopassResponseDto,
@@ -708,6 +710,119 @@ export class AdminApiControllerV2 {
     @Param('claimsetId', new ParseIntPipe()) claimsetId: number
   ) {
     await this.sbService.deleteClaimset(edfiTenant, claimsetId);
+    return undefined;
+  }
+  @Get('profiles')
+  @Authorize({
+    privilege: 'team.sb-environment.edfi-tenant.profile:read',
+    subject: {
+      id: '__filtered__',
+      edfiTenantId: 'edfiTenantId',
+      teamId: 'teamId',
+    },
+  })
+  async getProfiles(
+    @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
+    @Param('teamId', new ParseIntPipe()) teamId: number,
+    @ReqEdfiTenant() edfiTenant: EdfiTenant,
+    @InjectFilter('team.sb-environment.edfi-tenant.profile:read')
+    validIds: Ids
+  ) {
+    const allProfiles = await this.sbService.getProfiles(edfiTenant);
+    return allProfiles.filter((c) => checkId(c.id, validIds));
+  }
+
+  @Get('profiles/:profileId')
+  @Authorize({
+    privilege: 'team.sb-environment.edfi-tenant.profile:read',
+    subject: {
+      id: 'profileId',
+      edfiTenantId: 'edfiTenantId',
+      teamId: 'teamId',
+    },
+  })
+  async getProfile(
+    @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
+    @Param('teamId', new ParseIntPipe()) teamId: number,
+    @ReqEdfiTenant() edfiTenant: EdfiTenant,
+    @Param('profileId', new ParseIntPipe()) profileId: number
+  ) {
+    return this.sbService.getProfile(edfiTenant, profileId);
+  }
+
+  @Put('profiles/:profileId')
+  @Authorize({
+    privilege: 'team.sb-environment.edfi-tenant.profile:update',
+    subject: {
+      id: 'profileId',
+      edfiTenantId: 'edfiTenantId',
+      teamId: 'teamId',
+    },
+  })
+  async putProfile(
+    @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
+    @Param('teamId', new ParseIntPipe()) teamId: number,
+    @ReqEdfiTenant() edfiTenant: EdfiTenant,
+    @Param('profileId', new ParseIntPipe()) profileId: number,
+    @Body() profile: PutProfileDtoV2
+  ) {
+    {
+      try {
+        return await this.sbService.putProfile(edfiTenant, profileId, profile);
+      } catch (error) {
+        if (error.response.data.title === 'Validation failed') {
+          const errorDefiniton = error.response.data.errors['Definition'][0];
+          throw new HttpException(`Invalid XML format for definition: ${errorDefiniton}`, 500);
+        } else {
+          throw new HttpException('Error updating profile', 500);
+        }
+      }
+    }
+  }
+
+  @Post('profiles')
+  @Authorize({
+    privilege: 'team.sb-environment.edfi-tenant.profile:create',
+    subject: {
+      id: '__filtered__',
+      edfiTenantId: 'edfiTenantId',
+      teamId: 'teamId',
+    },
+  })
+  async postProfile(
+    @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
+    @Param('teamId', new ParseIntPipe()) teamId: number,
+    @ReqEdfiTenant() edfiTenant: EdfiTenant,
+    @Body() profile: PostProfileDtoV2
+  ) {
+    try {
+      return await this.sbService.postProfile(edfiTenant, profile);
+    } catch (error) {
+      if (error.response.data.title === 'Validation failed') {
+        const errorDefiniton = error.response.data.errors['Definition'][0];
+        throw new HttpException(`Invalid XML format for definition: ${errorDefiniton}`, 500);
+      } else {
+        throw new HttpException('Error creating profile', 500);
+      }
+    }
+  }
+
+  @Delete('profiles/:profileId')
+  @Authorize({
+    privilege: 'team.sb-environment.edfi-tenant.profile:delete',
+    subject: {
+      id: 'profileId',
+      edfiTenantId: 'edfiTenantId',
+      teamId: 'teamId',
+    },
+  })
+  async deleteProfile(
+    @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
+    @Param('teamId', new ParseIntPipe()) teamId: number,
+    @ReqEdfiTenant() edfiTenant: EdfiTenant,
+    @Param('profileId', new ParseIntPipe()) profileId: number
+  ) {
+    await this.sbService.deleteProfile(edfiTenant, profileId);
     return undefined;
   }
 }

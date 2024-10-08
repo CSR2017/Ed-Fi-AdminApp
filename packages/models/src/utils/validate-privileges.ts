@@ -125,9 +125,10 @@ export const privilegeDependencies: Partial<
       'team.sb-environment.edfi-tenant.ods.edorg:read',
       'team.sb-environment.edfi-tenant.vendor:read',
       'team.sb-environment.edfi-tenant.claimset:read',
+      'team.sb-environment.edfi-tenant.profile:read',
     ],
     message:
-      'All Application features require the ability to also access EdfiTenants, ODSs, and Ed-Orgs.',
+      'All Application features require the ability to also access EdfiTenants, ODSs, Profiles and Ed-Orgs.',
   },
   'team.sb-environment.edfi-tenant.ods.edorg.application:create': {
     dependencies: [
@@ -137,9 +138,10 @@ export const privilegeDependencies: Partial<
       'team.sb-environment.edfi-tenant.ods.edorg.application:read',
       'team.sb-environment.edfi-tenant.vendor:read',
       'team.sb-environment.edfi-tenant.claimset:read',
+      'team.sb-environment.edfi-tenant.profile:read',
     ],
     message:
-      'All Application features require the ability to also access EdfiTenants, ODSs, and Ed-Orgs.',
+      'All Application features require the ability to also access EdfiTenants, ODSs, Profiles and Ed-Orgs.',
   },
   'team.sb-environment.edfi-tenant.ods.edorg.application:delete': {
     dependencies: [
@@ -149,9 +151,10 @@ export const privilegeDependencies: Partial<
       'team.sb-environment.edfi-tenant.ods.edorg.application:read',
       'team.sb-environment.edfi-tenant.vendor:read',
       'team.sb-environment.edfi-tenant.claimset:read',
+      'team.sb-environment.edfi-tenant.profile:read',
     ],
     message:
-      'All Application features require the ability to also access EdfiTenants, ODSs, and Ed-Orgs.',
+      'All Application features require the ability to also access EdfiTenants, ODSs, Profiles and Ed-Orgs.',
   },
   'team.sb-environment.edfi-tenant.ods.edorg.application:update': {
     dependencies: [
@@ -161,9 +164,10 @@ export const privilegeDependencies: Partial<
       'team.sb-environment.edfi-tenant.ods.edorg.application:read',
       'team.sb-environment.edfi-tenant.vendor:read',
       'team.sb-environment.edfi-tenant.claimset:read',
+      'team.sb-environment.edfi-tenant.profile:read',
     ],
     message:
-      'All Application features require the ability to also access EdfiTenants, ODSs, and Ed-Orgs.',
+      'All Application features require the ability to also access EdfiTenants, ODSs, Profiles and Ed-Orgs.',
   },
   'team.sb-environment.edfi-tenant.ods.edorg.application:reset-credentials': {
     dependencies: [
@@ -173,9 +177,10 @@ export const privilegeDependencies: Partial<
       'team.sb-environment.edfi-tenant.ods.edorg.application:read',
       'team.sb-environment.edfi-tenant.vendor:read',
       'team.sb-environment.edfi-tenant.claimset:read',
+      'team.sb-environment.edfi-tenant.profile:read',
     ],
     message:
-      'All Application features require the ability to also access EdfiTenants, ODSs, and Ed-Orgs.',
+      'All Application features require the ability to also access EdfiTenants, ODSs, Profiles and Ed-Orgs.',
   },
   'team.sb-environment.edfi-tenant.claimset:read': {
     dependencies: ['team.sb-environment.edfi-tenant:read'],
@@ -226,6 +231,31 @@ export const privilegeDependencies: Partial<
       'team.sb-environment.edfi-tenant.vendor:read',
     ],
     message: 'All Vendor features require the ability to also access EdfiTenants.',
+  },
+  'team.sb-environment.edfi-tenant.profile:read': {
+    dependencies: ['team.sb-environment.edfi-tenant:read'],
+    message: 'All Profile features require the ability to also access EdfiTenants.',
+  },
+  'team.sb-environment.edfi-tenant.profile:update': {
+    dependencies: [
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.profile:read',
+    ],
+    message: 'All Profile features require the ability to also access EdfiTenants.',
+  },
+  'team.sb-environment.edfi-tenant.profile:create': {
+    dependencies: [
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.profile:read',
+    ],
+    message: 'All Profile features require the ability to also access EdfiTenants.',
+  },
+  'team.sb-environment.edfi-tenant.profile:delete': {
+    dependencies: [
+      'team.sb-environment.edfi-tenant:read',
+      'team.sb-environment.edfi-tenant.profile:read',
+    ],
+    message: 'All Profile features require the ability to also access EdfiTenants.',
   },
   'team.ownership:read': {
     dependencies: [

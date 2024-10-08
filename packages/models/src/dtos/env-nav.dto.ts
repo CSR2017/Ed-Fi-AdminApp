@@ -23,6 +23,8 @@ export class EnvNavDto implements IEnvNav {
   claimsets: boolean;
   @Expose()
   applications: boolean;
+  @Expose()
+  profiles: boolean;
 
   get displayName() {
     return this.sbEnvironmentName;

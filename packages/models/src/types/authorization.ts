@@ -43,6 +43,10 @@ export type EdfiTenantSubEntityPrivilege =
   | 'claimset:update'
   | 'claimset:delete'
   | 'claimset:create'
+  | 'profile:read'
+  | 'profile:update'
+  | 'profile:delete'
+  | 'profile:create'
   | 'ods:read'
   | 'ods:read-row-counts'
   | 'edorg:read'
@@ -134,6 +138,10 @@ export interface ITeamCache
   'team.sb-environment.edfi-tenant.claimset:update'?: Record<IEdfiTenant['id'], Ids>;
   'team.sb-environment.edfi-tenant.claimset:delete'?: Record<IEdfiTenant['id'], Ids>;
   'team.sb-environment.edfi-tenant.claimset:create'?: Record<IEdfiTenant['id'], TrueValue>;
+  'team.sb-environment.edfi-tenant.profile:read'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.profile:update'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.profile:delete'?: Record<IEdfiTenant['id'], Ids>;
+  'team.sb-environment.edfi-tenant.profile:create'?: Record<IEdfiTenant['id'], TrueValue>;
   'team.sb-environment.edfi-tenant.ods:read'?: Record<IEdfiTenant['id'], Ids>;
   'team.sb-environment.edfi-tenant.ods:read-row-counts'?: Record<IEdfiTenant['id'], Ids>;
   'team.sb-environment.edfi-tenant.ods.edorg:read'?: Record<IEdfiTenant['id'], Ids>;
@@ -202,6 +210,12 @@ export const edfiTenantResourcePrivilegesMap: Partial<Record<string, TeamEdfiTen
     'team.sb-environment.edfi-tenant.claimset:update',
     'team.sb-environment.edfi-tenant.claimset:delete',
     'team.sb-environment.edfi-tenant.claimset:create',
+  ],
+  'team.sb-environment.edfi-tenant.profile': [
+    'team.sb-environment.edfi-tenant.profile:read',
+    'team.sb-environment.edfi-tenant.profile:update',
+    'team.sb-environment.edfi-tenant.profile:delete',
+    'team.sb-environment.edfi-tenant.profile:create',
   ],
   'team.sb-environment.edfi-tenant.ods': [
     'team.sb-environment.edfi-tenant.ods:read',

@@ -10,6 +10,7 @@ import {
   PostApplicationForm,
   PostApplicationFormDtoV2,
   PostClaimsetDto,
+  PostProfileDto,
   PostVendorDto,
   PostVendorDtoV2,
   PutApplicationForm,
@@ -119,6 +120,11 @@ class TestUrl {
   /** odss/:id? */
   ods(id?: number) {
     this._str += `odss${idStr(id)}`;
+    return this;
+  }
+  /** profiles/:id? */
+  profile(id?: number) {
+    this._str += `profiles${idStr(id)}`;
     return this;
   }
 }
@@ -410,6 +416,36 @@ it(
   'post vendor sb2 - tenant admin',
   post(asState().et2().vendor().str(), cookies.stateAdmin, newVendorV1, 201)
 );
+
+it('get profiles sb2 - LEA reader', get(asLea().et2().profile().str(), cookies.moReader, 200));
+
+it(
+  'get profiles sb2 - tenant admin',
+  get(asState().et2().profile().str(), cookies.stateAdmin, 200)
+);
+
+const newProfile: PostProfileDto = {
+  name: 'EA',
+  definition: 'test',
+};
+it(
+  'post profile sb2 - LEA admin',
+  post(asLea().et2().profile().str(), cookies.moAdmin, newProfile, 403)
+);
+it(
+  'post profile sb2 - tenant admin',
+  post(asState().et2().profile().str(), cookies.stateAdmin, newProfile, 201)
+);
+
+it(
+  'put profile sb2 - LEA admin',
+  put(asLea().et2().profile().str(), cookies.moAdmin, newProfile, 403)
+);
+it(
+  'put profile sb2 - tenant admin',
+  put(asState().et2().profile().str(), cookies.stateAdmin, newProfile, 201)
+);
+
 it('read claimsets - LEA reader', get(asLea().et1().claimset().str(), cookies.moReader, 200));
 
 it(

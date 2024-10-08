@@ -11,6 +11,8 @@ import {
   BsBuildingFill,
   BsDatabase,
   BsDatabaseFill,
+  BsFileEarmarkDiff,
+  BsFileEarmarkDiffFill,
   BsFillMortarboardFill,
   BsGrid,
   BsGridFill,
@@ -181,6 +183,14 @@ export const TeamNav = (props: { teamId: string }) => {
         },
         {
           privilege: 'team.sb-environment.edfi-tenant.claimset:read' as const,
+          subject: {
+            id: '__filtered__',
+            edfiTenantId: edfiTenantId,
+            teamId: teamId,
+          },
+        },
+        {
+          privilege: 'team.sb-environment.edfi-tenant.profile:read' as const,
           subject: {
             id: '__filtered__',
             edfiTenantId: edfiTenantId,
@@ -397,6 +407,25 @@ export const TeamNav = (props: { teamId: string }) => {
                             icon: BsShieldLock,
                             activeIcon: BsShieldLockFill,
                             text: 'Claimsets',
+                          }
+                        ),
+                        ...arrayElemIf(
+                          authorize({
+                            queryClient,
+                            config: {
+                              privilege: 'team.sb-environment.edfi-tenant.profile:read',
+                              subject: {
+                                teamId: teamId,
+                                edfiTenantId: edfiTenantId,
+                                id: '__filtered__',
+                              },
+                            },
+                          }) && sbEnvironment?.version === 'v2',
+                          {
+                            route: `/as/${props.teamId}/sb-environments/${sbEnvironment.id}/edfi-tenants/${edfiTenantId}/profiles`,
+                            icon: BsFileEarmarkDiff,
+                            activeIcon: BsFileEarmarkDiffFill,
+                            text: 'Profiles',
                           }
                         ),
                       ],

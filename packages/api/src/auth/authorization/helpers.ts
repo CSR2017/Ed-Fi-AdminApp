@@ -464,6 +464,13 @@ export const cacheEdorgPrivilegesUpward = ({
   cacheAccordingToPrivileges({
     cache,
     privileges: upwardInheritancePrivileges,
+    resource: 'team.sb-environment.edfi-tenant.profile',
+    id: true,
+    edfiTenantId: edorg.edfiTenantId,
+  });
+  cacheAccordingToPrivileges({
+    cache,
+    privileges: upwardInheritancePrivileges,
     resource: 'team.sb-environment.edfi-tenant',
     id: edorg.edfiTenantId,
     sbEnvironmentId: edfiTenant.sbEnvironmentId,

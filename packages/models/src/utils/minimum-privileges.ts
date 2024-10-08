@@ -11,5 +11,6 @@ export const upwardInheritancePrivileges = new Set<PrivilegeCode>([
   'team.sb-environment.edfi-tenant.ods.edorg:read',
   'team.sb-environment.edfi-tenant.claimset:read',
   'team.sb-environment.edfi-tenant.vendor:read',
+  'team.sb-environment.edfi-tenant.profile:read',
 ]);
 export const minimumPrivileges = upwardInheritancePrivileges;

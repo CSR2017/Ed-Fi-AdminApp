@@ -45,10 +45,8 @@ export const authorize = <PrivilegeType extends PrivilegeCode>(props: {
     : props.config === undefined
     ? []
     : [props.config];
-
   let isAuthorized =
     props.config !== undefined && (!Array.isArray(props.config) || props.config.length > 0);
-
   configArray.forEach((config, i) => {
     const thisPrivilegeCache = props.queryClient.getQueryData<FeAuthCache>(
       authCacheKey({
@@ -58,7 +56,6 @@ export const authorize = <PrivilegeType extends PrivilegeCode>(props: {
         edfiTenantId: 'edfiTenantId' in config.subject ? config.subject.edfiTenantId : undefined,
       })
     );
-
     /**
     This query data gets stored in its native format which allows react-query's diffing to work
     but should be transformed (Array to Set) for more efficient usage.
@@ -66,7 +63,6 @@ export const authorize = <PrivilegeType extends PrivilegeCode>(props: {
     const transformedCache =
       thisPrivilegeCache === undefined ? undefined : authCachArraysToSets(thisPrivilegeCache);
     const selectedValue = transformedCache?.[config.privilege] ?? false;
-
     if (selectedValue === false) {
       isAuthorized = false;
     } else if (selectedValue === true) {

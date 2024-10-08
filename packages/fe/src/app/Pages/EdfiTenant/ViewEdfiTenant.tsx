@@ -99,6 +99,22 @@ export const ViewEdfiTenant = ({ edfiTenant }: { edfiTenant: GetEdfiTenantDto })
               Claimsets &rarr;
             </Link>
           </AuthorizeComponent>
+          {sbEnvironment?.version === 'v2' && (
+            <AuthorizeComponent
+              config={{
+                privilege: 'team.sb-environment.edfi-tenant.profile:read',
+                subject: { id: '__filtered__', edfiTenantId: edfiTenant.id, teamId },
+              }}
+            >
+              <Link
+                display="block"
+                as={RouterLink}
+                to={`/as/${teamId}/sb-environments/${sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/profiles`}
+              >
+                Profiles &rarr;
+              </Link>
+            </AuthorizeComponent>
+          )}
         </AttributeContainer>
         {allowedEdorgs?.length && (
           <Attribute label="Allowed Ed-Orgs" value={allowedEdorgs.join(', ')} />

@@ -502,7 +502,6 @@ export function usePrivilegeCache<
 export type FeAuthCache = Partial<Record<PrivilegeCode, Ids>>;
 export const authCachArraysToSets = (res: FeAuthCache) => {
   const d: FeAuthCache = res;
-
   Object.keys(d).forEach((key) => {
     const v = d[key as PrivilegeCode];
     if (Array.isArray(v)) {
@@ -534,7 +533,6 @@ export function usePrivilegeCacheQueryNew<
             queryParams.set('sbEnvironmentId', String(c.sbEnvironmentId));
           }
           const query = queryParams.toString();
-
           return apiClient.get(
             `/auth/cache${c.teamId !== undefined ? `/${c.teamId}` : ''}${
               query === '' ? '' : `?${query}`

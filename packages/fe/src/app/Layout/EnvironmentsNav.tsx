@@ -9,7 +9,14 @@ import { useQuery } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import lunr, { Query, tokenizer } from 'lunr';
 import { LegacyRef, useMemo, useRef, useState } from 'react';
-import { BsBuilding, BsDatabase, BsKey, BsMortarboard, BsShieldLock } from 'react-icons/bs';
+import {
+  BsBuilding,
+  BsDatabase,
+  BsFileEarmarkDiff,
+  BsKey,
+  BsMortarboard,
+  BsShieldLock,
+} from 'react-icons/bs';
 import { IconType } from 'react-icons/lib';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { teamQueries } from '../api';
@@ -204,6 +211,7 @@ const resourceNames: Record<string, string> = {
   vendors: 'Vendors',
   claimsets: 'Claimsets',
   applications: 'Applications',
+  profiles: 'Profiles',
 };
 const resourceIcons: Record<string, IconType> = {
   odss: BsDatabase,
@@ -211,4 +219,5 @@ const resourceIcons: Record<string, IconType> = {
   vendors: BsBuilding,
   applications: BsKey,
   claimsets: BsShieldLock,
+  profiles: BsFileEarmarkDiff,
 };

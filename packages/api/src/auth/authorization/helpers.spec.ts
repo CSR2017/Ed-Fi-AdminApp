@@ -243,6 +243,7 @@ describe('helpers', () => {
       'team.sb-environment.edfi-tenant.ods.edorg.application:read',
       'team.sb-environment.edfi-tenant.ods.edorg.application:delete',
       'team.sb-environment.edfi-tenant.vendor:read',
+      'team.sb-environment.edfi-tenant.profile:read',
       'team.sb-environment.edfi-tenant.claimset:read',
       'team.sb-environment.edfi-tenant:read',
       'team.sb-environment.edfi-tenant.ods:read',
@@ -300,6 +301,7 @@ describe('helpers', () => {
       'team.sb-environment.edfi-tenant:read': { 1: new Set([0]) },
       'team.sb-environment.edfi-tenant.claimset:read': { '0': true },
       'team.sb-environment.edfi-tenant.vendor:read': { '0': true },
+      'team.sb-environment.edfi-tenant.profile:read': { '0': true },
       'team.sb-environment.edfi-tenant.ods:read': { '0': new Set([0]) },
       'team.sb-environment.edfi-tenant.ods.edorg:read': { '0': new Set([2, 3, 0]) }, // add 0.
     };
