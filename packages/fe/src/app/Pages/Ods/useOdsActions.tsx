@@ -34,7 +34,7 @@ export const useOdsActions = (ods: Pick<GetOdsDto, 'id'>): ActionsType => {
             icon: BiTrash,
             isPending: deleteOds.isPending,
             text: 'Delete',
-            title: 'Delete OS',
+            title: 'Delete ODS',
             confirmBody: 'This will permanently delete the ODS.',
             onClick: () =>
               deleteOds.mutateAsync(
