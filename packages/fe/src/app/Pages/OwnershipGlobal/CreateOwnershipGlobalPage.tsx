@@ -187,7 +187,16 @@ export const CreateOwnershipGlobalPage = () => {
             }
           >
             <FormLabel>Starting Blocks environment</FormLabel>
-            <SelectSbEnvironment name="sbEnvironmentId" control={control} />
+            {/* @ts-expect-error onchange */}
+            <SelectSbEnvironment
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onChange={(value: any) => {
+                setValue('sbEnvironmentId', value);
+                setValue('edfiTenantId', undefined);
+              }}
+              name="sbEnvironmentId"
+              control={control}
+            />
             <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
           </FormControl>
           {type !== undefined && type !== 'environment' && typeof sbEnvironmentId === 'number' && (
