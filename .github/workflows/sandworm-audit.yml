@@ -19,7 +19,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Node.js dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Sandworm Audit
         run: NODE_OPTIONS="--max-old-space-size=16384" npx @sandworm/audit@latest --skip-all
