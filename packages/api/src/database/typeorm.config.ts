@@ -37,7 +37,7 @@ import { OdsInstanceName1710454017707 } from './migrations/1710454017707-OdsInst
 import { RemoveImpliedPrivilege1714074225483 } from './migrations/1714074225483-RemoveImpliedPrivilege';
 import { BigIntEdOrg1717166915117 } from './migrations/1717166915117-BigIntEdOrgId';
 import { AddProfilePrivileges1719427712090 } from './migrations/1719427712090-AddProfilePrivileges';
-import { Migrations1725479500715 } from './1725479500715-migrations';
+import { AddNameOfInstitutionToOwnershipView1725479500715 } from './migrations/1725479500715-AddNameOfInstitutionToOwnershipView';
 
 const config: Pick<
   PostgresConnectionOptions,
@@ -85,7 +85,7 @@ const config: Pick<
     RemoveImpliedPrivilege1714074225483,
     BigIntEdOrg1717166915117,
     AddProfilePrivileges1719427712090,
-    Migrations1725479500715,
+    AddNameOfInstitutionToOwnershipView1725479500715,
   ],
 };
 export default config;
