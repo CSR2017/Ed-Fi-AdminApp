@@ -119,6 +119,13 @@ import {
   sbSyncQueueRoute,
   sbSyncQueueIndexRoute,
 } from './sb-sync-queue.routes';
+import {
+  profileCreateRoute,
+  profileIndexRoute,
+  profileRoute,
+  profilesIndexRoute,
+  profilesRoute,
+} from './profile.routes';
 import { globalTheme } from '@edanalytics/common-ui';
 export * from './account.routes';
 export * from './application.routes';
@@ -138,6 +145,7 @@ export * from './user.routes';
 export * from './user-global.routes';
 export * from './vendor.routes';
 export * from './sb-sync-queue.routes';
+export * from './profile.routes';
 
 export const fallback404Route: RouteObject = {
   path: '*',
@@ -316,6 +324,12 @@ export const authenticatedRoutes: RouteObject = {
     vendorCreateRoute,
 
     accountRouteGlobal,
+
+    profileRoute,
+    profilesRoute,
+    profileIndexRoute,
+    profilesIndexRoute,
+    profileCreateRoute,
     asRoute,
     adminRoutes,
   ],

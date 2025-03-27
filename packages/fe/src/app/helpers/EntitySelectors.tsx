@@ -14,6 +14,7 @@ import {
   edorgQueries,
   odsQueries,
   odsTemplateQueries,
+  profileQueriesV2,
   roleQueries,
   sbEnvironmentQueries,
   teamQueries,
@@ -260,6 +261,30 @@ export const SelectVendorV2: StandardSelector = (props) => {
     );
   return (
     <SelectWrapper {...others} options={options} isLoading={vendors.isPending || vendors.isStale} />
+  );
+};
+
+export const SelectProfile: StandardSelector = (props) => {
+  const { options: externalOptions, ...others } = props;
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
+  const profiles = useQuery(profileQueriesV2.getAll({ teamId, edfiTenant }));
+  const options =
+    externalOptions ??
+    Object.fromEntries(
+      Object.values(profiles.data ?? {}).map((profile) => [
+        profile.id,
+        {
+          value: profile.id,
+          label: profile.name,
+        },
+      ])
+    );
+  return (
+    <SelectWrapper
+      {...others}
+      options={options}
+      isLoading={profiles.isPending || profiles.isStale}
+    />
   );
 };
 

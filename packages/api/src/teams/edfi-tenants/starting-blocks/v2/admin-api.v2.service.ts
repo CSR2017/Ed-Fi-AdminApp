@@ -588,7 +588,8 @@ export class AdminApiServiceV2 {
   }
 
   async postProfile(edfiTenant: EdfiTenant, profile: PostProfileDtoV2) {
-    return toGetProfileDtoV2(await this.getAdminApiClient(edfiTenant).post(`profiles`, profile));
+    const { headers } = await this.getAdminApiClient(edfiTenant, true).post(`profiles`, profile);
+    return { id: Number(headers.location.match(/\d+$/)[0]) };
   }
 
   async getProfile(edfiTenant: EdfiTenant, profileId: number) {

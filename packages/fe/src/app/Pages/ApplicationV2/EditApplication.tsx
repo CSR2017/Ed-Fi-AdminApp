@@ -25,21 +25,27 @@ import {
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { noop } from '@tanstack/react-table';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { BsInfoCircle, BsTrash } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { applicationQueriesV2, claimsetQueriesV2, edorgQueries, queryKey } from '../../api';
+import {
+  applicationQueriesV2,
+  claimsetQueriesV2,
+  edorgQueries,
+  profileQueriesV2,
+  queryKey,
+} from '../../api';
 import { getRelationDisplayName, useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import {
   SelectClaimsetV2,
   SelectEdorg,
   SelectOds,
+  SelectProfile,
   SelectVendorV2,
 } from '../../helpers/EntitySelectors';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
-import { Attribute } from '@edanalytics/common-ui';
 
 const resolver = classValidatorResolver(PutApplicationFormDtoV2);
 
@@ -55,6 +61,7 @@ export const EditApplication = (props: {
       teamId,
     })
   );
+  const profiles = useQuery(profileQueriesV2.getAll({ edfiTenant, teamId }));
   const edorgsByEdorgId = useMemo(() => {
     return {
       data: Object.values(edorgs.data ?? {}).reduce<Record<string, GetEdorgDto>>((map, edorg) => {
@@ -93,7 +100,6 @@ export const EditApplication = (props: {
   defaultValues.vendorId = application.vendorId;
   defaultValues.educationOrganizationIds = application.educationOrganizationIds;
   defaultValues.odsInstanceId = application.odsInstanceIds[0];
-
   const {
     register,
     handleSubmit,
@@ -110,10 +116,13 @@ export const EditApplication = (props: {
   });
 
   const selectedEdorgs = watch('educationOrganizationIds', defaultValues.educationOrganizationIds);
+  const selectedProfileIds = watch('profileIds', defaultValues.profileIds) || [];
   const selectedOds = watch('odsInstanceId');
-
   const setSelectedEdorgs = (edorgs: number[]) => {
     setValue('educationOrganizationIds', edorgs);
+  };
+  const setSelectedProfiles = (profiles: number[]) => {
+    setValue('profileIds', profiles);
   };
 
   const filteredEdorgOptions = useMemo(() => {
@@ -146,7 +155,25 @@ export const EditApplication = (props: {
       ])
     );
   }, [edorgsByEdorgId, selectedEdorgs, selectedOds]);
+  const filteredProfileOptions = useMemo(() => {
+    const filteredProfiles = { ...profiles.data };
+    const selectedProfiles = new Set(selectedProfileIds);
 
+    Object.values(filteredProfiles || {}).forEach((profile) => {
+      if (selectedProfiles.has(profile.id)) {
+        delete filteredProfiles[profile.id];
+      }
+    });
+    return Object.fromEntries(
+      Object.entries(filteredProfiles).map(([compositeKey, v]) => [
+        v.id,
+        {
+          value: v.id,
+          label: v.name,
+        },
+      ])
+    );
+  }, [profiles.data, selectedProfileIds]);
   return edorgs.data && claimsets.data ? (
     <form
       onSubmit={handleSubmit((data) => {
@@ -253,8 +280,48 @@ export const EditApplication = (props: {
           <FormErrorMessage>{errors.vendorId?.message}</FormErrorMessage>
         </FormControl>
         <FormControl>
-          <FormLabel>Profile IDs</FormLabel>
-          {application.profileIds?.length ? application.profileIds.join(', ') : '-'}
+          {selectedProfileIds.length ? (
+            <Box my={4}>
+              <FormLabel>Profiles</FormLabel>
+              <Box ml={4} mb={6}>
+                <UnorderedList fontSize="sm">
+                  {selectedProfileIds?.map((profileId, i) => (
+                    <ListItem key={profileId}>
+                      <Text as="span">{profiles.data?.[profileId].name}</Text>
+                      &nbsp;&nbsp;
+                      <IconButton
+                        variant="ghost"
+                        colorScheme="red"
+                        aria-label="remove"
+                        icon={<Icon as={BsTrash} />}
+                        size="xs"
+                        onClick={() => {
+                          const newSelection = [...selectedProfileIds];
+                          newSelection.splice(i, 1);
+                          setSelectedProfiles(newSelection);
+                        }}
+                      />
+                    </ListItem>
+                  ))}
+                </UnorderedList>
+                <FormLabel>Add another</FormLabel>
+                <SelectProfile
+                  onChange={(profileId) => setSelectedProfiles([...selectedProfileIds, profileId])}
+                  value={undefined}
+                  options={filteredProfileOptions}
+                />
+              </Box>
+              <Divider mt={6} />
+            </Box>
+          ) : (
+            <>
+              <FormLabel>Profile</FormLabel>
+              <SelectProfile
+                onChange={(profileId) => setSelectedProfiles([...selectedProfileIds, profileId])}
+                value={selectedProfileIds[0]}
+              />
+            </>
+          )}
         </FormControl>
         <FormControl isInvalid={!!errors.claimsetId}>
           <FormLabel>

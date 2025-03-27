@@ -13,9 +13,15 @@ import {
   edorgKeyV2,
 } from '@edanalytics/models';
 import { useQuery } from '@tanstack/react-query';
-import { claimsetQueriesV2, edorgQueries, odsQueries, vendorQueriesV2 } from '../../api';
+import {
+  claimsetQueriesV2,
+  edorgQueries,
+  odsQueries,
+  profileQueriesV2,
+  vendorQueriesV2,
+} from '../../api';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
-import { ClaimsetLinkV2, EdorgLink, OdsLink, VendorLinkV2 } from '../../routes';
+import { ClaimsetLinkV2, EdorgLink, OdsLink, ProfileLink, VendorLinkV2 } from '../../routes';
 
 export const ViewApplication = ({ application }: { application: GetApplicationDtoV2 }) => {
   const { edfiTenant, teamId } = useTeamEdfiTenantNavContextLoaded();
@@ -35,6 +41,12 @@ export const ViewApplication = ({ application }: { application: GetApplicationDt
 
   const edorgs = useQuery(
     edorgQueries.getAll({
+      teamId,
+      edfiTenant,
+    })
+  );
+  const profiles = useQuery(
+    profileQueriesV2.getAll({
       teamId,
       edfiTenant,
     })
@@ -100,10 +112,19 @@ export const ViewApplication = ({ application }: { application: GetApplicationDt
         <AttributeContainer label="Vendor">
           <VendorLinkV2 id={application.vendorId} query={vendors} />
         </AttributeContainer>
-        <Attribute
-          label="Profile IDs"
-          value={application.profileIds ? application.profileIds.join(', ') : undefined}
-        />
+        <AttributeContainer label="Profiles">
+          {application.profileIds?.length ? (
+            <UnorderedList>
+              {application.profileIds.map((profileId) => (
+                <ListItem key={profileId}>
+                  <ProfileLink key={profileId} id={profileId} query={profiles} />
+                </ListItem>
+              ))}
+            </UnorderedList>
+          ) : (
+            '-'
+          )}{' '}
+        </AttributeContainer>
         <AttributeContainer label="Claimset">
           <ClaimsetLinkV2 id={application.claimSetName} query={claimsetsByName} />
         </AttributeContainer>

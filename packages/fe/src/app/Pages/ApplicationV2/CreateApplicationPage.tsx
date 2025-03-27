@@ -24,7 +24,7 @@ import { useForm } from 'react-hook-form';
 import { BsInfoCircle, BsTrash } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { applicationQueriesV2, edorgQueries } from '../../api';
+import { applicationQueriesV2, edorgQueries, profileQueriesV2 } from '../../api';
 import {
   getRelationDisplayName,
   useNavToParent,
@@ -34,6 +34,7 @@ import {
   SelectClaimsetV2,
   SelectEdorg,
   SelectOds,
+  SelectProfile,
   SelectVendorV2,
 } from '../../helpers/EntitySelectors';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
@@ -55,6 +56,8 @@ export const CreateApplicationPageV2 = () => {
       teamId: asId,
     })
   );
+  const profiles = useQuery(profileQueriesV2.getAll({ edfiTenant, teamId: asId }));
+
   const edorgsByEdorgId = useMemo(() => {
     return {
       data: Object.values(edorgs.data ?? {}).reduce<Record<string, GetEdorgDto>>((map, edorg) => {
@@ -78,12 +81,16 @@ export const CreateApplicationPageV2 = () => {
   });
 
   const selectedEdorgs = watch('educationOrganizationIds', []);
+  const selectedProfileIds = watch('profileIds', []);
+
   const selectedOds = watch('odsInstanceId');
 
   const setSelectedEdorgs = (edorgs: number[]) => {
     setValue('educationOrganizationIds', edorgs);
   };
-
+  const setSelectedProfiles = (profiles: number[]) => {
+    setValue('profileIds', profiles);
+  };
   const filteredEdorgOptions = useMemo(() => {
     const filteredEdorgs = { ...edorgsByEdorgId.data };
     const selectedEdorgsSet = new Set(selectedEdorgs);
@@ -114,7 +121,25 @@ export const CreateApplicationPageV2 = () => {
       ])
     );
   }, [edorgsByEdorgId, selectedEdorgs, selectedOds]);
+  const filteredProfileOptions = useMemo(() => {
+    const filteredProfiles = { ...profiles.data };
+    const selectedProfiles = new Set(selectedProfileIds);
 
+    Object.values(filteredProfiles || {}).forEach((profile) => {
+      if (selectedProfiles.has(profile.id)) {
+        delete filteredProfiles[profile.id];
+      }
+    });
+    return Object.fromEntries(
+      Object.entries(filteredProfiles).map(([compositeKey, v]) => [
+        v.id,
+        {
+          value: v.id,
+          label: v.name,
+        },
+      ])
+    );
+  }, [profiles.data, selectedProfileIds]);
   return (
     <PageTemplate title="New application">
       <chakra.form
@@ -218,6 +243,52 @@ export const CreateApplicationPageV2 = () => {
           <FormLabel>Vendor</FormLabel>
           <SelectVendorV2 name="vendorId" control={control} />
           <FormErrorMessage>{errors.vendorId?.message}</FormErrorMessage>
+        </FormControl>
+        <FormControl>
+          {selectedProfileIds?.length ? (
+            <Box my={4}>
+              <FormLabel>Profiles</FormLabel>
+              <Box ml={4} mb={6}>
+                <UnorderedList fontSize="sm">
+                  {selectedProfileIds?.map((profileId, i) => (
+                    <ListItem key={profileId}>
+                      <Text as="span">{profiles.data?.[profileId].name}</Text>
+                      &nbsp;&nbsp;
+                      <IconButton
+                        variant="ghost"
+                        colorScheme="red"
+                        aria-label="remove"
+                        icon={<Icon as={BsTrash} />}
+                        size="xs"
+                        onClick={() => {
+                          const newSelection = [...selectedProfileIds];
+                          newSelection.splice(i, 1);
+                          setSelectedProfiles(newSelection);
+                        }}
+                      />
+                    </ListItem>
+                  ))}
+                </UnorderedList>
+                <FormLabel>Add another</FormLabel>
+                <SelectProfile
+                  onChange={(profileId) => setSelectedProfiles([...selectedProfileIds, profileId])}
+                  value={undefined}
+                  options={filteredProfileOptions}
+                />
+              </Box>
+              <Divider mt={6} />
+            </Box>
+          ) : (
+            <>
+              <FormLabel>Profile</FormLabel>
+              <SelectProfile
+                onChange={(profileId) =>
+                  setSelectedProfiles([...(selectedProfileIds || []), profileId])
+                }
+                value={selectedProfileIds?.[0]}
+              />
+            </>
+          )}
         </FormControl>
         <FormControl isInvalid={!!errors.claimsetId}>
           <FormLabel>

@@ -10,13 +10,14 @@ import {
   claimsetQueriesV2,
   edorgQueries,
   odsQueries,
+  profileQueriesV2,
   vendorQueriesV2,
 } from '../../api';
 
 import { useQuery } from '@tanstack/react-query';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
-import { ClaimsetLinkV2, EdorgLink, OdsLink, VendorLinkV2 } from '../../routes';
+import { ClaimsetLinkV2, EdorgLink, OdsLink, ProfileLink, VendorLinkV2 } from '../../routes';
 import { NameCell } from './NameCell';
 import { useMultiApplicationActions } from './useApplicationActions';
 
@@ -84,6 +85,13 @@ export const ApplicationsPageContent = () => {
       edfiTenant: edfiTenant,
     })
   );
+  const profiles = useQuery(
+    profileQueriesV2.getAll({
+      teamId: asId,
+      edfiTenant: edfiTenant,
+    })
+  );
+
   const claimsets = useQuery(
     claimsetQueriesV2.getAll({
       teamId: asId,
@@ -182,8 +190,28 @@ export const ApplicationsPageContent = () => {
         },
         {
           id: 'profiles',
-          accessorFn: (info) => info.profileIds?.join(', ') ?? undefined,
-          header: 'Profile IDs',
+          accessorFn: (application) =>
+            application.profileIds
+              .map((profileId) => getRelationDisplayName(profileId, profiles))
+              .join(', '),
+          header: 'Profiles',
+          cell: (info) => (
+            <>
+              {info.row.original.profileIds
+                .map((profileId) => <ProfileLink key={profileId} query={profiles} id={profileId} />)
+                .reduce((accumulator, currentValue, index) => {
+                  return index === 0
+                    ? currentValue
+                    : ((
+                        <>
+                          {accumulator}
+                          {', '}
+                          {currentValue}
+                        </>
+                      ) as any);
+                }, null)}
+            </>
+          ),
         },
         {
           id: 'claimest',

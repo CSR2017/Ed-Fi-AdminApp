@@ -23,7 +23,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Node.js dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: ${{ matrix.package}}
         run: npm run test:${{ matrix.package}}

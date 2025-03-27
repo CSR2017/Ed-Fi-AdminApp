@@ -157,6 +157,21 @@ export const vendorAuthConfig = (
         },
       };
 
+export const profileAuthConfig = (
+  edfiTenantId: number | undefined,
+  teamId: number | undefined,
+  privilege: TeamEdfiTenantPrivilege
+): AuthorizeConfig | undefined =>
+  edfiTenantId === undefined || teamId === undefined
+    ? undefined
+    : {
+        privilege,
+        subject: {
+          teamId: teamId,
+          id: '__filtered__',
+          edfiTenantId: edfiTenantId,
+        },
+      };
 export const claimsetAuthConfig = (
   edfiTenantId: number | undefined,
   teamId: number | undefined,

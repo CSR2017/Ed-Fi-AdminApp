@@ -138,7 +138,6 @@ export class AuthService {
         'role',
       ],
     });
-
     /** Map of all Edorgs needed during execution.
      *
      * Just a data bucket used for dynamic programming; carries no access control meaning itself.
@@ -502,6 +501,13 @@ export class AuthService {
         cache,
         privileges: appliedPrivileges,
         resource: 'team.sb-environment.edfi-tenant.vendor',
+        id: true,
+        edfiTenantId: ods.edfiTenantId,
+      });
+      cacheAccordingToPrivileges({
+        cache,
+        privileges: appliedPrivileges,
+        resource: 'team.sb-environment.edfi-tenant.profile',
         id: true,
         edfiTenantId: ods.edfiTenantId,
       });

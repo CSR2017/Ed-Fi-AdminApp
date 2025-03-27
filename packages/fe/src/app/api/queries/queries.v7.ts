@@ -4,14 +4,17 @@ import {
   GetApplicationDtoV2,
   GetClaimsetMultipleDtoV2,
   GetClaimsetSingleDtoV2,
+  GetProfileDtoV2,
   GetVendorDtoV2,
   Id,
   ImportClaimsetSingleDtoV2,
   PostApplicationFormDtoV2,
   PostClaimsetDtoV2,
+  PostProfileDtoV2,
   PostVendorDtoV2,
   PutApplicationFormDtoV2,
   PutClaimsetFormDtoV2,
+  PutProfileDtoV2,
   PutVendorDtoV2,
 } from '@edanalytics/models';
 import { EntityQueryBuilder, queryKeyNew, standardPath } from './builder';
@@ -125,5 +128,18 @@ export const vendorQueriesV2 = new EntityQueryBuilder({
   .getAll('getAll', { ResDto: GetVendorDtoV2 })
   .put('put', { ResDto: GetVendorDtoV2, ReqDto: PutVendorDtoV2 })
   .post('post', { ResDto: Id, ReqDto: PostVendorDtoV2 })
+  .delete('delete')
+  .build();
+
+export const profileQueriesV2 = new EntityQueryBuilder({
+  adminApi: true,
+  name: 'Profile',
+  includeEdfiTenant: true,
+  includeTeam: TeamOptions.Required,
+})
+  .getOne('getOne', { ResDto: GetProfileDtoV2 })
+  .getAll('getAll', { ResDto: GetProfileDtoV2 })
+  .put('put', { ResDto: GetProfileDtoV2, ReqDto: PutProfileDtoV2 })
+  .post('post', { ResDto: GetProfileDtoV2, ReqDto: PostProfileDtoV2 })
   .delete('delete')
   .build();
