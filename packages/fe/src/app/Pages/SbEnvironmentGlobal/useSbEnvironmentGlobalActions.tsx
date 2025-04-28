@@ -1,4 +1,4 @@
-import { GetSbEnvironmentDto } from '@edanalytics/models';
+import { GetSbEnvironmentDto, OWNERSHIP_RESOURCE_TYPE } from '@edanalytics/models';
 import { BiData, BiDownload, BiRefresh, BiRename, BiShieldPlus, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
@@ -48,10 +48,10 @@ export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto
                 icon: BiShieldPlus,
                 text: 'Grant ownership',
                 title: 'Grant ownership of ' + sbEnvironment.displayName,
-                to: `/ownerships/create?sbEnvironmentId=${sbEnvironment.id}&type=environment`,
+                to: `/ownerships/create?sbEnvironmentId=${sbEnvironment.id}&type=${OWNERSHIP_RESOURCE_TYPE.sbEnvironment}`,
                 onClick: () =>
                   navigate(
-                    `/ownerships/create?sbEnvironmentId=${sbEnvironment.id}&type=environment`
+                    `/ownerships/create?sbEnvironmentId=${sbEnvironment.id}&type=${OWNERSHIP_RESOURCE_TYPE.sbEnvironment}`
                   ),
               },
             }

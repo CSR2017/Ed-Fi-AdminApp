@@ -1,4 +1,9 @@
-import { GetUserDto, PostOwnershipDto, PutOwnershipDto } from '@edanalytics/models';
+import {
+  GetUserDto,
+  OWNERSHIP_RESOURCE_TYPE,
+  PostOwnershipDto,
+  PutOwnershipDto,
+} from '@edanalytics/models';
 import { Ownership } from '@edanalytics/models-server';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
@@ -25,6 +30,7 @@ export class OwnershipsGlobalService {
         odsId: createOwnershipDto.odsId,
         edfiTenantId: createOwnershipDto.edfiTenantId,
         sbEnvironmentId: createOwnershipDto.sbEnvironmentId,
+        integrationProviderId: createOwnershipDto.integrationProviderId,
       })
     ).length;
 
@@ -38,10 +44,18 @@ export class OwnershipsGlobalService {
     const type = createOwnershipDto.type;
 
     const out = await this.ownershipsRepository.save({
-      sbEnvironmentId: type === 'environment' ? createOwnershipDto.sbEnvironmentId : undefined,
-      edfiTenantId: type === 'edfiTenant' ? createOwnershipDto.edfiTenantId : undefined,
-      odsId: type === 'ods' ? createOwnershipDto.odsId : undefined,
-      edorgId: type === 'edorg' ? createOwnershipDto.edorgId : undefined,
+      sbEnvironmentId:
+        type === OWNERSHIP_RESOURCE_TYPE.sbEnvironment
+          ? createOwnershipDto.sbEnvironmentId
+          : undefined,
+      edfiTenantId:
+        type === OWNERSHIP_RESOURCE_TYPE.edfiTenant ? createOwnershipDto.edfiTenantId : undefined,
+      odsId: type === OWNERSHIP_RESOURCE_TYPE.ods ? createOwnershipDto.odsId : undefined,
+      edorgId: type === OWNERSHIP_RESOURCE_TYPE.edorg ? createOwnershipDto.edorgId : undefined,
+      integrationProviderId:
+        type === OWNERSHIP_RESOURCE_TYPE.integrationProvider
+          ? createOwnershipDto.integrationProviderId
+          : undefined,
 
       createdById: createOwnershipDto.createdById,
       teamId: createOwnershipDto.teamId,

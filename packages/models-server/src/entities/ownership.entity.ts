@@ -6,6 +6,7 @@ import {
   IEdfiTenant,
   ITeam,
   ISbEnvironment,
+  IIntegrationProvider,
 } from '@edanalytics/models';
 import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 import { EntityBase } from '../utils/entity-base';
@@ -15,6 +16,7 @@ import { EntityBase } from '../utils/entity-base';
 @Unique(['teamId', 'edfiTenantId'])
 @Unique(['teamId', 'odsId'])
 @Unique(['teamId', 'edorgId'])
+@Unique(['teamId', 'integrationProviderId'])
 export class Ownership extends EntityBase implements IOwnership {
   @ManyToOne('Team', (team: ITeam) => team.ownerships, { onDelete: 'CASCADE' })
   team: ITeam;
@@ -58,4 +60,12 @@ export class Ownership extends EntityBase implements IOwnership {
   edorg?: IEdorg;
   @Column({ nullable: true })
   edorgId?: number;
+
+  @ManyToOne('IntegrationProvider', (provider: IIntegrationProvider) => provider.ownerships, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
+  integrationProvider?: IIntegrationProvider;
+  @Column({ nullable: true })
+  integrationProviderId?: number;
 }

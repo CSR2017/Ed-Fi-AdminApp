@@ -1,5 +1,5 @@
 import { ActionsType } from '@edanalytics/common-ui';
-import { GetEdfiTenantDto } from '@edanalytics/models';
+import { GetEdfiTenantDto, OWNERSHIP_RESOURCE_TYPE } from '@edanalytics/models';
 import { BiCog, BiDownload, BiPlug, BiShieldPlus, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
@@ -71,10 +71,10 @@ export const useEdfiTenantGlobalActions = (
             icon: BiShieldPlus,
             text: 'Grant ownership',
             title: 'Grant ownership of ' + edfiTenant.displayName,
-            to: `/ownerships/create?sbEnvironmentId=${edfiTenant.sbEnvironmentId}&edfiTenantId=${edfiTenant.id}&type=edfiTenant`,
+            to: `/ownerships/create?sbEnvironmentId=${edfiTenant.sbEnvironmentId}&edfiTenantId=${edfiTenant.id}&type=${OWNERSHIP_RESOURCE_TYPE.edfiTenant}`,
             onClick: () =>
               navigate(
-                `/ownerships/create?sbEnvironmentId=${edfiTenant.sbEnvironmentId}&edfiTenantId=${edfiTenant.id}&type=edfiTenant`
+                `/ownerships/create?sbEnvironmentId=${edfiTenant.sbEnvironmentId}&edfiTenantId=${edfiTenant.id}&type=${OWNERSHIP_RESOURCE_TYPE.edfiTenant}`
               ),
           },
         }

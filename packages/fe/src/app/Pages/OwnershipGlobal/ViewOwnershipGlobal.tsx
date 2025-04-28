@@ -1,21 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
-import {
-  Attribute,
-  AttributeContainer,
-  AttributesGrid,
-  ContentSection,
-} from '@edanalytics/common-ui';
+import { AttributeContainer, AttributesGrid, ContentSection } from '@edanalytics/common-ui';
 import { useParams } from 'react-router-dom';
 import {
   ownershipQueries,
   roleQueries,
   teamQueries,
-  edfiTenantQueries,
   sbEnvironmentQueries,
   odsQueries,
   edfiTenantQueriesGlobal,
 } from '../../api';
 import { EdfiTenantLink, EdorgLink, OdsLink, SbEnvironmentLink, TeamLink } from '../../routes';
+import { IntegrationProviderLink } from '../IntegrationProvider/IntegrationProviderLink';
 import { RoleGlobalLink } from '../../routes/role-global.routes';
 import {
   GetEdfiTenantDto,
@@ -28,14 +23,10 @@ import { NavContextProvider } from '../../helpers';
 import { chakra } from '@chakra-ui/react';
 
 export const ViewOwnershipGlobal = () => {
-  const params = useParams() as {
+  const { ownershipId: id } = useParams() as {
     ownershipId: string;
   };
-  const ownership = useQuery(
-    ownershipQueries.getOne({
-      id: params.ownershipId,
-    })
-  ).data;
+  const ownership = useQuery(ownershipQueries.getOne({ id })).data;
   const teams = useQuery(teamQueries.getAll({}));
   const roles = useQuery(roleQueries.getAll({}));
 
@@ -65,6 +56,8 @@ export const OwnershipResourceLink = ({ ownership }: { ownership: GetOwnershipDt
     <EdfiTenantGlobalLink teamId={ownership.teamId} edfiTenant={ownership.edfiTenant} />
   ) : ownership.sbEnvironment ? (
     <SbEnvironmentGlobalLink teamId={ownership.teamId} sbEnvironment={ownership.sbEnvironment} />
+  ) : ownership.integrationProvider ? (
+    <IntegrationProviderLink id={ownership.integrationProvider.id} prefix="Integration Provider:" />
   ) : (
     <>-</>
   );

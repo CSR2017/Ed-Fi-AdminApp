@@ -10,6 +10,7 @@
     - [Environment](#environment)
     - [External dependencies](#external-dependencies)
     - [Send it](#send-it)
+  - [Creating and running migrations](#creating-and-running-migrations)
   - [Possible issues](#possible-issues)
   - [Using a machine user](#using-a-machine-user)
   - [Random things](#random-things)
@@ -120,6 +121,25 @@ You now have a local identity provider running with a configuration that matches
 
 1. Go to http://localhost:4200 and log in.
 1. Start Storybook if you want with the Nx `storybook` target
+
+## Creating and running migrations
+
+1. Run `npx nx run api:migrations:generate --name MigrationNameHere`
+   1. Using the `--name` flag should give your migration a more meaningful name and put it in the correct folder
+2. Check the migration has appeared under [packages/api/src/database/migrations](packages/api/src/database/migrations) and with the name you gave it
+   1. If it has, continue
+   2. If it has not appeared under the above folder, move the migration to the above folder
+   3. If it has a generic name like `migration`, change the following
+      - the filename
+      - the classname in the file
+      - the name variable in the file
+3. Run `npx nx run api:migrations:run`
+
+If you need to revert a migration, you can run the following
+
+```
+npx nx run api:migrations:revert
+```
 
 ## Possible issues
 

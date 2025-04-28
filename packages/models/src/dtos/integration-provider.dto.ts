@@ -7,7 +7,10 @@ import { makeSerializer } from '../utils/make-serializer';
 import { DtoPostBase, PostDto } from '../utils/post-base.dto';
 import { DtoPutBase, PutDto } from '../utils/put-base.dto';
 
-export class GetIntegrationProviderDto extends DtoGetBase implements GetDto<IIntegrationProvider> {
+export class GetIntegrationProviderDto
+  extends DtoGetBase
+  implements GetDto<IIntegrationProvider, 'ownerships'>
+{
   @Expose()
   name: string;
 
@@ -16,7 +19,10 @@ export class GetIntegrationProviderDto extends DtoGetBase implements GetDto<IInt
 }
 export const toGetIntegrationProviderDto = makeSerializer(GetIntegrationProviderDto);
 
-export class PutIntegrationProviderDto extends DtoPutBase implements PutDto<IIntegrationProvider> {
+export class PutIntegrationProviderDto
+  extends DtoPutBase
+  implements PutDto<IIntegrationProvider, 'ownerships'>
+{
   @Expose()
   @IsString()
   @MinLength(3)
@@ -31,7 +37,7 @@ export class PutIntegrationProviderDto extends DtoPutBase implements PutDto<IInt
 
 export class PostIntegrationProviderDto
   extends DtoPostBase
-  implements PostDto<IIntegrationProvider>
+  implements PostDto<IIntegrationProvider, 'ownerships'>
 {
   @Expose()
   @IsString()

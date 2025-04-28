@@ -1,7 +1,13 @@
 import { Expose, Transform, Type } from 'class-transformer';
 import { IsIn, IsNumber, IsOptional } from 'class-validator';
-import { IRole, ITeam } from '../interfaces';
-import { IOwnership, IOwnershipView } from '../interfaces/ownership.interface';
+import { OWNERSHIP_RESOURCE_TYPE } from '../interfaces';
+import type {
+  IRole,
+  ITeam,
+  IOwnership,
+  IOwnershipView,
+  OwnershipResourceType,
+} from '../interfaces';
 import { DtoGetBase, GetDto } from '../utils/get-base.dto';
 import { makeSerializer } from '../utils/make-serializer';
 import { DtoPostBase, PostDto } from '../utils/post-base.dto';
@@ -10,6 +16,7 @@ import { GetEdorgDto } from './edorg.dto';
 import { GetOdsDto } from './ods.dto';
 import { GetEdfiTenantDto } from './edfi-tenant.dto';
 import { GetSbEnvironmentDto } from './sb-environment.dto';
+import { GetIntegrationProviderDto } from './integration-provider.dto';
 
 export class GetOwnershipViewDto implements IOwnershipView {
   @Expose()
@@ -20,7 +27,7 @@ export class GetOwnershipViewDto implements IOwnershipView {
   @Expose()
   roleId: IRole['id'] | null;
   @Expose()
-  resourceType: 'Edorg' | 'Ods' | 'EdfiTenant' | 'SbEnvironment';
+  resourceType: OwnershipResourceType;
   @Expose()
   resourceText: string;
 
@@ -45,6 +52,8 @@ export class GetOwnershipDto
       | 'ods'
       | 'edorgId'
       | 'edorg'
+      | 'integrationProviderId'
+      | 'integrationProvider'
     >
 {
   @Expose()
@@ -68,6 +77,10 @@ export class GetOwnershipDto
   @Type(() => GetEdorgDto)
   edorg?: GetEdorgDto;
 
+  @Expose()
+  @Type(() => GetIntegrationProviderDto)
+  integrationProvider?: GetIntegrationProviderDto;
+
   override get displayName() {
     return 'Resource ownership';
   }
@@ -88,6 +101,8 @@ export class PutOwnershipDto
       | 'ods'
       | 'edorgId'
       | 'edorg'
+      | 'integrationProviderId'
+      | 'integrationProvider'
     >
 {
   @Expose()
@@ -111,6 +126,7 @@ export class PostOwnershipDto
       | 'edorg'
       | 'teamId'
       | 'roleId'
+      | 'integrationProviderId'
     >
 {
   @Expose()
@@ -118,7 +134,7 @@ export class PostOwnershipDto
   teamId?: ITeam['id'] | undefined;
 
   @Expose()
-  type: 'ods' | 'edorg' | 'edfiTenant' | 'environment';
+  type: OwnershipResourceType;
 
   @Expose()
   @IsNumber()
@@ -149,16 +165,24 @@ export class PostOwnershipDto
   @Transform(({ value }) => (typeof value === 'number' ? value : undefined))
   edorgId?: GetEdorgDto['id'];
 
+  @Expose()
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => (typeof value === 'number' ? value : undefined))
+  integrationProviderId?: GetIntegrationProviderDto['id'];
+
   @IsIn([true], { message: 'You need to select a resource.' })
   get hasResource() {
-    return this.type === 'environment'
+    return this.type === OWNERSHIP_RESOURCE_TYPE.sbEnvironment
       ? this.sbEnvironmentId !== undefined
-      : this.type === 'edfiTenant'
+      : this.type === OWNERSHIP_RESOURCE_TYPE.edfiTenant
       ? this.edfiTenantId !== undefined
-      : this.type === 'ods'
+      : this.type === OWNERSHIP_RESOURCE_TYPE.ods
       ? this.odsId !== undefined
-      : this.type === 'edorg'
+      : this.type === OWNERSHIP_RESOURCE_TYPE.edorg
       ? this.edorgId !== undefined
+      : this.type === OWNERSHIP_RESOURCE_TYPE.integrationProvider
+      ? this.integrationProviderId !== undefined
       : false;
   }
 }

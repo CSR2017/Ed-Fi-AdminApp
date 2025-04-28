@@ -18,7 +18,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import { ValidationHttpException, throwNotFound } from '../utils';
 import { Authorize } from '../auth/authorization';
 
@@ -27,7 +27,9 @@ import { Authorize } from '../auth/authorization';
 export class IntegrationProvidersGlobalController {
   constructor(
     @InjectRepository(IntegrationProvider)
-    private integrationProvidersRepository: Repository<IntegrationProvider>
+    private integrationProvidersRepository: Repository<IntegrationProvider>,
+    @InjectRepository(Ownership)
+    private ownershipsViewRepository: Repository<Ownership>
   ) {}
 
   @Post()
@@ -55,9 +57,7 @@ export class IntegrationProvidersGlobalController {
   }
 
   async findOne(id: number) {
-    return toGetIntegrationProviderDto(
-      await this.integrationProvidersRepository.findOneByOrFail({ id }).catch(throwNotFound)
-    );
+    return await this.integrationProvidersRepository.findOneByOrFail({ id }).catch(throwNotFound);
   }
 
   @Get()
@@ -65,9 +65,19 @@ export class IntegrationProvidersGlobalController {
     privilege: 'integration-provider:read',
     subject: { id: '__filtered__' },
   })
-  async find(@Query('id') id: number) {
+  async find(@Query('id') id?: number, @Query('teamId') teamId?: number) {
     if (id) {
-      return await this.findOne(id);
+      return toGetIntegrationProviderDto(await this.findOne(id));
+    }
+
+    if (teamId) {
+      const ownerships = await this.ownershipsViewRepository.find({
+        where: { teamId, integrationProviderId: Not(IsNull()) },
+      });
+      const providerIds = ownerships.map((ownership) => ownership.integrationProviderId);
+      return toGetIntegrationProviderDto(
+        await this.integrationProvidersRepository.find({ where: { id: In(providerIds) } })
+      );
     }
 
     return toGetIntegrationProviderDto(

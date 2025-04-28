@@ -29,9 +29,7 @@ export const OwnershipsGlobalPage = () => {
             header: 'Team',
             cell: (info) => <TeamLink id={info.row.original.teamId} query={teams} />,
             filterFn: 'equalsString',
-            meta: {
-              type: 'options',
-            },
+            meta: { type: 'options' },
           },
           {
             id: 'role',
@@ -39,9 +37,13 @@ export const OwnershipsGlobalPage = () => {
             header: 'Role',
             cell: (info) => <RoleGlobalLink id={info.row.original.roleId} query={roles} />,
             filterFn: 'equalsString',
-            meta: {
-              type: 'options',
-            },
+            meta: { type: 'options' },
+          },
+          {
+            accessorKey: 'resourceType',
+            header: 'Type',
+            filterFn: 'equalsString',
+            meta: { type: 'options' },
           },
           {
             accessorKey: 'resourceText',

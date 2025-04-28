@@ -3,26 +3,28 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useGetManyIntegrationProviders } from '../../api-v2';
 import { paths } from '../../routes/paths';
 
-export const IntegrationProviderLink = (props: { id: number | undefined }) => {
+export const IntegrationProviderLink = (props: { id: number | undefined; prefix?: string }) => {
   const integrationProviders = useGetManyIntegrationProviders({}).data;
 
-  if (!props.id) {
+  const { id, prefix } = props;
+
+  if (!id) {
     return (
       <Text
         title="Integration provider may have been deleted, or you lack access."
         as="i"
         color="gray.500"
       >
-        can't find &#8220;{props.id}&#8221;
+        can't find &#8220;{id}&#8221;
       </Text>
     );
   }
 
-  const integrationProvider = integrationProviders?.find((p) => p.id === props.id);
+  const integrationProvider = integrationProviders?.find((p) => p.id === id);
   return (
     <Link as="span">
-      <RouterLink title="Go to integration" to={paths.integrationProvider.id(props.id)}>
-        {integrationProvider?.name ?? props.id}
+      <RouterLink title="Go to integration provider" to={paths.integrationProvider.id(id)}>
+        {prefix} {integrationProvider?.name ?? id}
       </RouterLink>
     </Link>
   );

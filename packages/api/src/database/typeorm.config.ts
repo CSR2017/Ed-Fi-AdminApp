@@ -41,6 +41,7 @@ import { AddProfilePrivileges1719427712090 } from './migrations/1719427712090-Ad
 import { AddNameOfInstitutionToOwnershipView1725479500715 } from './migrations/1725479500715-AddNameOfInstitutionToOwnershipView';
 import { AddMachineUserColumns1742186909224 } from './migrations/1742891918530-AddMachineUserColumns';
 import { IntegrationProviders1744127024224 } from './migrations/1744127024224-IntegrationProviders';
+import { AddIntegrationProviderToOwnership1744919046622 } from './migrations/1744919046622-AddIntegrationProviderToOwnership';
 
 const config: Pick<
   PostgresConnectionOptions,
@@ -92,6 +93,7 @@ const config: Pick<
     AddNameOfInstitutionToOwnershipView1725479500715,
     AddMachineUserColumns1742186909224,
     IntegrationProviders1744127024224,
+    AddIntegrationProviderToOwnership1744919046622,
   ],
 };
 export default config;

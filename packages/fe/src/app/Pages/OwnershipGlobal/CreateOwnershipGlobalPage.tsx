@@ -13,14 +13,12 @@ import {
 import { PageTemplate } from '@edanalytics/common-ui';
 import {
   GetEdfiTenantDto,
-  GetEdorgDto,
+  OWNERSHIP_RESOURCE_TYPE,
   PostOwnershipDto,
   RoleType,
-  edorgKeyV2,
 } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useQuery } from '@tanstack/react-query';
-import { noop } from '@tanstack/react-table';
 import { plainToInstance } from 'class-transformer';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -47,17 +45,21 @@ import {
 } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { useSearchParamsObject } from '../../helpers/useSearch';
+import { SelectIntegrationProvider } from '../IntegrationProvider/SelectIntegrationProvider';
 
 const resolver = classValidatorResolver(PostOwnershipDto);
 
 const getDefaults = (dict: {
   edfiTenantId?: string;
+  integrationProviderId?: string;
   sbEnvironmentId?: string;
   teamId?: string;
-  type?: 'ods' | 'edorg' | 'edfiTenant' | 'environment';
+  type?: PostOwnershipDto['type'];
 }) => {
   return {
     edfiTenantId: 'edfiTenantId' in dict ? Number(dict.edfiTenantId) : undefined,
+    integrationProviderId:
+      'integrationProviderId' in dict ? Number(dict.integrationProviderId) : undefined,
     sbEnvironmentId: 'sbEnvironmentId' in dict ? Number(dict.sbEnvironmentId) : undefined,
     teamId: 'teamId' in dict ? Number(dict.teamId) : undefined,
     type: 'type' in dict ? dict.type : 'ods',
@@ -67,33 +69,39 @@ const getDefaults = (dict: {
 export const CreateOwnershipGlobalPage = () => {
   const navigate = useNavigate();
   const navToParentOptions = useNavToParent();
-  const goToView = (id: string | number) => navigate(`/ownerships/${id}`);
 
   const teams = useQuery(teamQueries.getAll({}));
   const sbEnvironments = useQuery(sbEnvironmentQueries.getAll({}));
 
   const search = useSearchParamsObject(getDefaults);
-  const popBanner = usePopBanner();
+  const popGlobalBanner = usePopBanner();
 
-  const postOwnership = ownershipQueries.post({});
+  const { mutateAsync: postOwnership } = ownershipQueries.post({});
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
     control,
     setValue,
     watch,
-    setError,
+    setError: setFormError,
   } = useForm({
     resolver,
     defaultValues: useMemo(() => Object.assign(new PostOwnershipDto(), search), [search]),
   });
 
-  const [sbEnvironmentId, edfiTenantId, type, selectedOdsId] = watch([
-    'sbEnvironmentId',
-    'edfiTenantId',
-    'type',
-    'odsId',
-  ]);
+  const [edfiTenantId, integrationProviderId, odsId, sbEnvironmentId, type]: [
+    number,
+    number,
+    number,
+    number,
+    PostOwnershipDto['type']
+  ] = watch(['edfiTenantId', 'integrationProviderId', 'odsId', 'sbEnvironmentId', 'type']);
+  const isSbEnvironment = type === OWNERSHIP_RESOURCE_TYPE.sbEnvironment;
+  const isEdfiTenant = type === OWNERSHIP_RESOURCE_TYPE.edfiTenant;
+  const isOds = type === OWNERSHIP_RESOURCE_TYPE.ods;
+  const isEdorg = type === OWNERSHIP_RESOURCE_TYPE.edorg;
+  const isIntegrationProvider = type === OWNERSHIP_RESOURCE_TYPE.integrationProvider;
+
   const { data: edfiTenant } = useQuery(
     edfiTenantQueriesGlobal.getOne({
       id: edfiTenantId,
@@ -101,17 +109,19 @@ export const CreateOwnershipGlobalPage = () => {
       enabled: !!edfiTenantId,
     })
   );
+
   const edorgs = useQuery(
     edorgQueries.getAll({
       edfiTenant: edfiTenant || ({} as GetEdfiTenantDto),
       enabled: !!edfiTenant?.id,
     })
   );
+
   const filteredEdorgOptions = useMemo(() => {
     const filteredEdorgs = { ...edorgs.data };
     return Object.fromEntries(
       Object.entries(filteredEdorgs)
-        .filter(([key, v]) => v.odsId === Number(selectedOdsId))
+        .filter(([key, v]) => v.odsId === Number(odsId))
         .map(([key, v]) => [
           v.id,
           {
@@ -122,107 +132,122 @@ export const CreateOwnershipGlobalPage = () => {
           },
         ])
     );
-  }, [edorgs, selectedOdsId]);
+  }, [edorgs, odsId]);
+
+  const onSubmit = async (data: PostOwnershipDto) => {
+    const body = plainToInstance(PostOwnershipDto, data);
+    if (type !== OWNERSHIP_RESOURCE_TYPE.edfiTenant) {
+      body.edfiTenantId = undefined;
+    }
+    if (type !== OWNERSHIP_RESOURCE_TYPE.ods) {
+      body.odsId = undefined;
+    }
+    if (type !== OWNERSHIP_RESOURCE_TYPE.sbEnvironment) {
+      body.sbEnvironmentId = undefined;
+    }
+    if (type !== OWNERSHIP_RESOURCE_TYPE.edorg) {
+      body.edorgId = undefined;
+    }
+    if (type !== OWNERSHIP_RESOURCE_TYPE.integrationProvider) {
+      body.integrationProviderId = undefined;
+    }
+    return postOwnership(
+      { entity: body },
+      {
+        ...mutationErrCallback({ setFormError, popGlobalBanner }),
+        onSuccess: (result) => navigate(`/ownerships/${result.id}`),
+      }
+    ).catch(() => {});
+  };
+
   return teams.data && sbEnvironments.data ? (
     <PageTemplate title={'Grant new resource ownership'} actions={undefined}>
       <Box maxW="form-width">
         <FormLabel>Resource type</FormLabel>
         <RadioGroup
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          onChange={(value: any) => {
+          onChange={(value: PostOwnershipDto['type']) => {
             setValue('type', value);
-            if (value === 'environment') {
+            // Integration Provider is independent, so it's reset for all types
+            setValue('integrationProviderId', undefined);
+
+            if (value === OWNERSHIP_RESOURCE_TYPE.sbEnvironment) {
               setValue('edfiTenantId', undefined);
+              setValue('edorgId', undefined);
               setValue('odsId', undefined);
+            }
+            if (value === OWNERSHIP_RESOURCE_TYPE.edfiTenant) {
+              setValue('edorgId', undefined);
+              setValue('odsId', undefined);
+            }
+            if (value === OWNERSHIP_RESOURCE_TYPE.ods) {
               setValue('edorgId', undefined);
             }
-            if (value === 'edfiTenant') {
+            if (value === OWNERSHIP_RESOURCE_TYPE.edorg) {
               setValue('odsId', undefined);
-              setValue('edorgId', undefined);
             }
-            if (value === 'ods') {
+
+            if (value === OWNERSHIP_RESOURCE_TYPE.integrationProvider) {
+              setValue('edfiTenantId', undefined);
               setValue('edorgId', undefined);
-            }
-            if (value === 'edorg') {
               setValue('odsId', undefined);
+              setValue('sbEnvironmentId', undefined);
             }
           }}
           value={type}
         >
           <Stack direction="column" pl="1em" spacing={1}>
-            <Radio value="edorg">Ed-Org</Radio>
-            <Radio value="ods">Ods</Radio>
-            <Radio value="edfiTenant">Tenant</Radio>
-            <Radio value="environment">Whole environment</Radio>
+            <Radio value={OWNERSHIP_RESOURCE_TYPE.edorg}>Ed-Org</Radio>
+            <Radio value={OWNERSHIP_RESOURCE_TYPE.ods}>Ods</Radio>
+            <Radio value={OWNERSHIP_RESOURCE_TYPE.edfiTenant}>Tenant</Radio>
+            <Radio value={OWNERSHIP_RESOURCE_TYPE.sbEnvironment}>Whole environment</Radio>
+            <Radio value={OWNERSHIP_RESOURCE_TYPE.integrationProvider}>Integration provider</Radio>
           </Stack>
         </RadioGroup>
-        <form
-          onSubmit={handleSubmit((data) => {
-            const body = plainToInstance(PostOwnershipDto, data);
-            if (type !== 'edfiTenant') {
-              body.edfiTenantId = undefined;
-            }
-            if (type !== 'ods') {
-              body.odsId = undefined;
-            }
-            if (type !== 'environment') {
-              body.sbEnvironmentId = undefined;
-            }
-            return postOwnership
-              .mutateAsync(
-                { entity: body },
-                {
-                  ...mutationErrCallback({ setFormError: setError, popGlobalBanner: popBanner }),
-                  onSuccess: (result) => {
-                    goToView(result.id);
-                  },
-                }
-              )
-              .catch(noop);
-          })}
-        >
-          <FormControl
-            isInvalid={
-              !!errors.hasResource && (sbEnvironmentId === undefined || type === 'environment')
-            }
-          >
-            <FormLabel>Starting Blocks environment</FormLabel>
-            {/* @ts-expect-error onchange */}
-            <SelectSbEnvironment
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onChange={(value: any) => {
-                setValue('sbEnvironmentId', value);
-                setValue('edfiTenantId', undefined);
-              }}
-              name="sbEnvironmentId"
-              control={control}
-            />
-            <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
-          </FormControl>
-          {type !== undefined && type !== 'environment' && typeof sbEnvironmentId === 'number' && (
+
+        <form onSubmit={handleSubmit(onSubmit)}>
+          {(isSbEnvironment || isOds || isEdorg || isEdfiTenant) && (
+            <FormControl
+              isInvalid={!!errors.hasResource && (sbEnvironmentId === undefined || isSbEnvironment)}
+            >
+              <FormLabel>Starting Blocks environment</FormLabel>
+              <SelectSbEnvironment
+                // @ts-expect-error onchange
+                onChange={(value: number) => {
+                  setValue('sbEnvironmentId', value);
+                  setValue('edfiTenantId', undefined);
+                }}
+                name="sbEnvironmentId"
+                control={control}
+              />
+              <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
+            </FormControl>
+          )}
+
+          {type !== undefined && !isSbEnvironment && typeof sbEnvironmentId === 'number' && (
             <NavContextProvider sbEnvironmentId={sbEnvironmentId}>
               <NavContextLoader fallback={null}>
                 <FormControl
                   isInvalid={
-                    !!errors.hasResource &&
-                    (typeof edfiTenantId !== 'number' || type === 'edfiTenant')
+                    !!errors.hasResource && (typeof edfiTenantId !== 'number' || isEdfiTenant)
                   }
                 >
                   <FormLabel>Tenant</FormLabel>
                   <SelectEdfiTenant autoSelectOnly name="edfiTenantId" control={control} />
                   <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
                 </FormControl>
-                {(type === 'ods' || type === 'edorg') && typeof edfiTenantId === 'number' ? (
+
+                {(isOds || isEdorg) && typeof edfiTenantId === 'number' ? (
                   <NavContextProvider edfiTenantId={edfiTenantId}>
                     <EdfiTenantNavContextLoader fallback={null}>
-                      {type === 'ods' ? (
+                      {isOds && (
                         <FormControl isInvalid={!!errors.hasResource}>
                           <FormLabel>ODS</FormLabel>
                           <SelectOds control={control} name="odsId" useDbName={false} />
                           <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
                         </FormControl>
-                      ) : null}
-                      {type === 'edorg' ? (
+                      )}
+
+                      {isEdorg && (
                         <>
                           <FormControl isInvalid={!!errors.hasResource}>
                             <FormLabel>ODS</FormLabel>
@@ -232,7 +257,7 @@ export const CreateOwnershipGlobalPage = () => {
                           <FormControl isInvalid={!!errors.hasResource}>
                             <FormLabel>Ed-Org</FormLabel>
                             <SelectEdorg
-                              isDisabled={!selectedOdsId}
+                              isDisabled={!odsId}
                               options={filteredEdorgOptions}
                               control={control}
                               name="edorgId"
@@ -241,18 +266,33 @@ export const CreateOwnershipGlobalPage = () => {
                             <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
                           </FormControl>
                         </>
-                      ) : null}
+                      )}
                     </EdfiTenantNavContextLoader>
                   </NavContextProvider>
                 ) : null}
               </NavContextLoader>
             </NavContextProvider>
           )}
+
+          {isIntegrationProvider && (
+            <FormControl
+              isInvalid={
+                !!errors.hasResource &&
+                (integrationProviderId === undefined || isIntegrationProvider)
+              }
+            >
+              <FormLabel>Integration Provider</FormLabel>
+              <SelectIntegrationProvider name="integrationProviderId" control={control} />
+              <FormErrorMessage>{errors.hasResource?.message}</FormErrorMessage>
+            </FormControl>
+          )}
+
           <FormControl isInvalid={!!errors.teamId}>
             <FormLabel>Team</FormLabel>
             <SelectTeam name="teamId" control={control} />
             <FormErrorMessage>{errors.teamId?.message}</FormErrorMessage>
           </FormControl>
+
           <FormControl isInvalid={!!errors.roleId}>
             <FormLabel>Role</FormLabel>
             <SelectRole
@@ -263,6 +303,7 @@ export const CreateOwnershipGlobalPage = () => {
             />
             <FormErrorMessage>{errors.roleId?.message}</FormErrorMessage>
           </FormControl>
+
           <ButtonGroup mt={4} colorScheme="primary">
             <Button isLoading={isSubmitting} type="submit">
               Save

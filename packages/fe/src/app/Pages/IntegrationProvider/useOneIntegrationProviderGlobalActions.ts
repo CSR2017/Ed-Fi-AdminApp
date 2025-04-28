@@ -1,10 +1,10 @@
 import { ActionsType } from '@edanalytics/common-ui';
-import { GetIntegrationProviderDto } from '@edanalytics/models';
-import { BiEdit, BiTrash } from 'react-icons/bi';
+import { GetIntegrationProviderDto, OWNERSHIP_RESOURCE_TYPE } from '@edanalytics/models';
+import { BiEdit, BiShieldPlus, BiTrash } from 'react-icons/bi';
 import { HiOutlineEye } from 'react-icons/hi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { globalUserAuthConfig, useAuthorize } from '../../helpers';
+import { globalOwnershipAuthConfig, globalUserAuthConfig, useAuthorize } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { useSearchParamsObject } from '../../helpers/useSearch';
 import { useQueryClient } from '@tanstack/react-query';
@@ -22,6 +22,7 @@ export const useOneIntegrationProviderGlobalActions = (
 
   const { mutate: deleteIntegrationProvider } = useDeleteIntegrationProvider();
 
+  const canGrantOwnership = useAuthorize(globalOwnershipAuthConfig('ownership:create'));
   const canView = useAuthorize(globalUserAuthConfig('integration-provider:read'));
   const canEdit = useAuthorize(globalUserAuthConfig('integration-provider:update'));
   const canDelete = useAuthorize(globalUserAuthConfig('integration-provider:delete'));
@@ -40,10 +41,26 @@ export const useOneIntegrationProviderGlobalActions = (
       ...mutationErrCallback({ popGlobalBanner }),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.integrationProviders] });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ownerships] });
         navigate(paths.integrationProvider.index);
       },
     });
   };
+
+  const ownershipAction: ActionsType = canGrantOwnership
+    ? {
+        GrantOwnership: {
+          icon: BiShieldPlus,
+          text: 'Grant ownership',
+          title: 'Grant ownership of ' + integrationProvider.name,
+          to: `/ownerships/create?integrationProviderId=${integrationProvider.id}&type=${OWNERSHIP_RESOURCE_TYPE.integrationProvider}`,
+          onClick: () =>
+            navigate(
+              `/ownerships/create?integrationProviderId=${integrationProvider.id}&type=${OWNERSHIP_RESOURCE_TYPE.integrationProvider}`
+            ),
+        },
+      }
+    : {};
 
   const viewAction: ActionsType = canView
     ? {
@@ -84,6 +101,7 @@ export const useOneIntegrationProviderGlobalActions = (
     : {};
 
   return {
+    ...ownershipAction,
     ...viewAction,
     ...editAction,
     ...deleteAction,
