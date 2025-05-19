@@ -43,9 +43,6 @@ Metadata:
           - AppLauncherUrl
           - YopassUrl
           - Auth0ConfigSecret
-          - WebACLArn
-          - DeploymentStrategy
-          - OpenApi
       - Label:
           default: Database (RDS Postgres) information
         Parameters:
@@ -320,23 +317,6 @@ Parameters:
   Auth0ConfigSecret:
     Type: String
     Description: Name of Auth0 Config Secret in Secrets Manager
-  WebACLArn:
-    Type: String
-    Description: Provide the ARN of the WAF to attach to the Application Load Balancer
-  DeploymentStrategy:
-    Type: String
-    Description: Beanstalk deployment strategy for platform updates and application versions.
-    AllowedValues:
-      - 'RollingWithAdditionalBatch'
-      - 'AllAtOnce'
-    Default: 'RollingWithAdditionalBatch'
-  OpenApi:
-    Type: String
-    AllowedValues:
-      - 'true'
-      - 'false'
-    Default: 'true'
-    Description: Create the /api endpoint
 
 Conditions:
   EnableHealthCheck: !Not [!Equals [!Ref SNSTopicArn, '']]
@@ -389,9 +369,6 @@ Resources:
         East1AlarmLambdaArn:
           !If [EnableHealthCheck, !GetAtt 'LambdaCoreStack.Outputs.East1AlarmLambdaArn', '']
         Auth0ConfigSecret: !Ref Auth0ConfigSecret
-        WebACLArn: !Ref WebACLArn
-        DeploymentStrategy: !Ref DeploymentStrategy
-        OpenApi: !Ref OpenApi
   FrontEndS3CloudFrontStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -457,4 +434,4 @@ Resources:
 Outputs:
   TemplateVersion:
     Description: The version of the cloudformation template
-    Value: '1.0.1'
+    Value: '1.0.0'
