@@ -15,7 +15,7 @@
     "notes": "Install script acceptable"
   },
   {
-    "id": "SWRM-201-@nestjs/core-10.4.18-postinstall",
+    "id": "SWRM-201-@nestjs/core-10.4.19-postinstall",
     "paths": [
       "@nestjs/core",
       "@nestjs/platform-express>@nestjs/core",
