@@ -355,6 +355,7 @@ export const EditApplication = (props: {
             name="integrationProviderId"
             control={control}
             isDisabled={hasIntegrationProvider}
+            isClearable={!hasIntegrationProvider}
           />
           <FormErrorMessage>{errors.integrationProviderId?.message}</FormErrorMessage>
         </FormControl>

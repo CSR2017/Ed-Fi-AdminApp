@@ -295,7 +295,7 @@ export const CreateApplicationPageV2 = () => {
 
         <FormControl isInvalid={!!errors.integrationProviderId}>
           <FormLabel>Integration Provider</FormLabel>
-          <SelectIntegrationProvider name="integrationProviderId" control={control} />
+          <SelectIntegrationProvider name="integrationProviderId" isClearable control={control} />
           <FormErrorMessage>{errors.integrationProviderId?.message}</FormErrorMessage>
         </FormControl>
 
