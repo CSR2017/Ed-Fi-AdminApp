@@ -4,18 +4,16 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Icon,
   Input,
   Text,
   Tooltip,
   chakra,
 } from '@chakra-ui/react';
-import { PageTemplate } from '@edanalytics/common-ui';
+import { Icons, PageTemplate } from '@edanalytics/common-ui';
 import { PostApplicationForm } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { BsInfoCircle } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { applicationQueriesV1 } from '../../api';
@@ -94,7 +92,7 @@ export const CreateApplicationPage = () => {
             Claimset{' '}
             <Tooltip label="You can only select non-reserved claimsets here." hasArrow>
               <chakra.span>
-                <Icon as={BsInfoCircle} />
+                <Icons.InfoCircle />
               </chakra.span>
             </Tooltip>
           </FormLabel>

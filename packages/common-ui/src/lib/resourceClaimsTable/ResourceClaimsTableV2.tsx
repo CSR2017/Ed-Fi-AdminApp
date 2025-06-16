@@ -3,8 +3,8 @@ import { GetClaimsetSingleDtoV2, GetResourceClaimDtoV2 } from '@edanalytics/mode
 import { CellContext, ColumnDef } from '@tanstack/react-table';
 import uniq from 'lodash/uniq';
 import { useMemo } from 'react';
-import { BsCaretRightFill } from 'react-icons/bs';
 import { SbaaTableAllInOne, useSbaaTableContext } from '../sbaaTable';
+import { Icons } from '../Icons';
 
 const AuthStrategyBadge = (props: {
   authDefault: string | null;
@@ -71,7 +71,7 @@ const NameCell = (props: CellContext<ResourceClaimRow, unknown>) => {
               margin: 'auto',
             },
           }}
-          icon={<BsCaretRightFill />}
+          icon={<Icons.CaretRightFill />}
         />
       )}
       {props.row.original.name}

@@ -6,30 +6,6 @@ import set from 'lodash/set';
 import sortBy from 'lodash/sortBy';
 import uniq from 'lodash/uniq';
 import { useEffect, useMemo, useState } from 'react';
-import {
-  BsBuilding,
-  BsBuildingFill,
-  BsDatabase,
-  BsDatabaseFill,
-  BsFileEarmarkDiff,
-  BsFileEarmarkDiffFill,
-  BsFillMortarboardFill,
-  BsGrid,
-  BsGridFill,
-  BsHdd,
-  BsHddFill,
-  BsKey,
-  BsKeyFill,
-  BsMortarboard,
-  BsPeople,
-  BsPeopleFill,
-  BsPin,
-  BsPinFill,
-  BsPuzzle,
-  BsPuzzleFill,
-  BsShieldLock,
-  BsShieldLockFill,
-} from 'react-icons/bs';
 import { useMatches, useParams } from 'react-router-dom';
 import { sbEnvironmentQueries, teamQueries } from '../api';
 import {
@@ -45,6 +21,7 @@ import { INavButtonProps, NavButton } from './NavButton';
 import { UniversalNavLinks } from './UniversalNavLinks';
 import { usePaths } from '../routes/paths';
 import { useGetManyIntegrationProviders } from '../api-v2';
+import { Icons } from '@edanalytics/common-ui';
 
 type OpenNavs = Record<number, number[]>;
 const mergeOpenNavs = (objectOne: OpenNavs, objectTwo: OpenNavs) => {
@@ -222,8 +199,7 @@ export const TeamNav = (props: { teamId: string }) => {
         }),
         {
           route: `/as/${teamId}/sb-environments/${sbEnvironment.id}`,
-          icon: BsHdd,
-          activeIcon: BsHddFill,
+          icon: Icons.SbEnvironment,
           text: sbEnvironment.displayName,
           childItems:
             sbEnvironment.id in openNavItems && sbEnvironment.id in envNavTenantNams
@@ -287,11 +263,10 @@ export const TeamNav = (props: { teamId: string }) => {
                               margin: 'auto',
                             },
                           }}
-                          icon={isPinned ? <BsPinFill /> : <BsPin />}
+                          icon={<Icons.Pin isFilled={isPinned} />}
                         />
                       ),
-                      icon: BsGrid,
-                      activeIcon: BsGridFill,
+                      icon: Icons.EdFiTenant,
                       childItems: [
                         ...arrayElemIf(
                           authorize({
@@ -303,8 +278,7 @@ export const TeamNav = (props: { teamId: string }) => {
                           }),
                           {
                             route: `${tenantRootUrl}/odss`,
-                            icon: BsDatabase,
-                            activeIcon: BsDatabaseFill,
+                            icon: Icons.ODS,
                             text: 'ODSs',
                           }
                         ),
@@ -318,8 +292,7 @@ export const TeamNav = (props: { teamId: string }) => {
                           }),
                           {
                             route: `${tenantRootUrl}/edorgs`,
-                            icon: BsMortarboard,
-                            activeIcon: BsFillMortarboardFill,
+                            icon: Icons.EdOrg,
                             text: 'Ed-Orgs',
                           }
                         ),
@@ -333,8 +306,7 @@ export const TeamNav = (props: { teamId: string }) => {
                           }),
                           {
                             route: `${tenantRootUrl}/vendors`,
-                            icon: BsBuilding,
-                            activeIcon: BsBuildingFill,
+                            icon: Icons.Vendor,
                             text: 'Vendors',
                           }
                         ),
@@ -349,8 +321,7 @@ export const TeamNav = (props: { teamId: string }) => {
                           }),
                           {
                             route: `${tenantRootUrl}/applications`,
-                            icon: BsKey,
-                            activeIcon: BsKeyFill,
+                            icon: Icons.Application,
                             text: 'Applications',
                           }
                         ),
@@ -364,8 +335,7 @@ export const TeamNav = (props: { teamId: string }) => {
                           }),
                           {
                             route: `${tenantRootUrl}/claimsets`,
-                            icon: BsShieldLock,
-                            activeIcon: BsShieldLockFill,
+                            icon: Icons.Claimset,
                             text: 'Claimsets',
                           }
                         ),
@@ -379,8 +349,7 @@ export const TeamNav = (props: { teamId: string }) => {
                           }) && sbEnvironment?.version === 'v2',
                           {
                             route: `${tenantRootUrl}/profiles`,
-                            icon: BsFileEarmarkDiff,
-                            activeIcon: BsFileEarmarkDiffFill,
+                            icon: Icons.Profile,
                             text: 'Profiles',
                           }
                         ),
@@ -408,8 +377,7 @@ export const TeamNav = (props: { teamId: string }) => {
       }),
       {
         route: `/as/${props.teamId}/users`,
-        icon: BsPeople,
-        activeIcon: BsPeopleFill,
+        icon: Icons.User,
         text: 'Users',
       }
     ),
@@ -424,8 +392,7 @@ export const TeamNav = (props: { teamId: string }) => {
         }),
       {
         route: paths.integrationProvider.index(),
-        icon: BsPuzzle,
-        activeIcon: BsPuzzleFill,
+        icon: Icons.IntegrationProvider,
         text: 'Integration Providers',
       }
     ),

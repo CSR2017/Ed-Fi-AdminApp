@@ -4,7 +4,6 @@ import {
   ButtonGroup,
   FormLabel,
   HStack,
-  Icon,
   Link,
   ListItem,
   Popover,
@@ -17,14 +16,12 @@ import {
   UnorderedList,
   chakra,
 } from '@chakra-ui/react';
-import { PageTemplate } from '@edanalytics/common-ui';
+import { Icons, PageTemplate } from '@edanalytics/common-ui';
 import { PostClaimsetDto } from '@edanalytics/models';
 import { StatusResponse, isExplicitStatusResponse } from '@edanalytics/utils';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { useEffect, useState } from 'react';
-import { BiCheckCircle } from 'react-icons/bi';
-import { BsInfoCircle } from 'react-icons/bs';
 import { Link as RouterLink } from 'react-router-dom';
 import { claimsetQueriesV1 } from '../../api';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
@@ -61,7 +58,7 @@ export const ImportClaimsetsPage = () => {
             hasArrow
           >
             <chakra.span>
-              <Icon as={BsInfoCircle} />
+              <Icons.InfoCircle />
             </chakra.span>
           </Tooltip>
         </FormLabel>
@@ -198,7 +195,7 @@ const ClaimsetItem = ({ maybeClaimset }: { maybeClaimset: PostClaimsetDto | unkn
           >
             Import
           </Button>
-          {postClaimset.isSuccess ? <Icon as={BiCheckCircle} color="green.500" /> : undefined}
+          {postClaimset.isSuccess ? <Icons.CheckCircle color="green.500" /> : undefined}
           {postClaimset.data ? (
             <Link
               ml={3}

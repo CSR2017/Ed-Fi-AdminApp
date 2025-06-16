@@ -1,7 +1,5 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetEdfiTenantDto, OWNERSHIP_RESOURCE_TYPE } from '@edanalytics/models';
-import { BiCog, BiDownload, BiPlug, BiShieldPlus, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { edfiTenantQueriesGlobal } from '../../api';
@@ -68,7 +66,7 @@ export const useEdfiTenantGlobalActions = (
     ...(canGrantOwnership
       ? {
           GrantOwnership: {
-            icon: BiShieldPlus,
+            icon: Icons.ShieldPlus,
             text: 'Grant ownership',
             title: 'Grant ownership of ' + edfiTenant.displayName,
             to: `/ownerships/create?sbEnvironmentId=${edfiTenant.sbEnvironmentId}&edfiTenantId=${edfiTenant.id}&type=${OWNERSHIP_RESOURCE_TYPE.edfiTenant}`,
@@ -82,7 +80,7 @@ export const useEdfiTenantGlobalActions = (
     ...(canView
       ? {
           View: {
-            icon: HiOutlineEye,
+            icon: Icons.View,
             text: 'View',
             title: 'View ' + edfiTenant.displayName,
             to: `/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}`,
@@ -96,7 +94,7 @@ export const useEdfiTenantGlobalActions = (
     ...(canDelete
       ? {
           Delete: {
-            icon: BiTrash,
+            icon: Icons.Delete,
             isPending: deleteEdfiTenant.isPending,
             text: 'Delete',
             title: 'Delete tenant',
@@ -119,7 +117,7 @@ export const useEdfiTenantGlobalActions = (
           RegisterAdminApi: {
             isIrrelevant: adminApiConfigExists,
             isDisabled: edit === 'admin-api',
-            icon: BiCog,
+            icon: Icons.Cog,
             text: 'Connect Admin API',
             title: 'Setup connection to Ed-Fi Admin API',
             to: `/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}?edit=admin-api`,
@@ -135,7 +133,7 @@ export const useEdfiTenantGlobalActions = (
           AdminApiV2Keygen: {
             isIrrelevant: adminApiConfigExists,
             isPending: v2Keygen.isPending,
-            icon: BiCog,
+            icon: Icons.Cog,
             text: 'Admin API keygen',
             title: 'Auto-generate Admin API creds',
             onClick: async () => {
@@ -153,7 +151,7 @@ export const useEdfiTenantGlobalActions = (
     ...(canCheckConnection
       ? {
           CheckConnection: {
-            icon: BiPlug,
+            icon: Icons.Plug,
             isPending: checkAdminApi.isPending,
             text: 'Ping Admin API',
             title: 'Check connection to Ed-Fi Admin API',
@@ -172,7 +170,7 @@ export const useEdfiTenantGlobalActions = (
     ...(canRefreshResources
       ? {
           RefreshResources: {
-            icon: BiDownload,
+            icon: Icons.Download,
             isPending: refreshResources.isPending,
             text: 'Sync with SB',
             title: 'Sync ODSs and Ed-Orgs from Starting Blocks to SBAA.',

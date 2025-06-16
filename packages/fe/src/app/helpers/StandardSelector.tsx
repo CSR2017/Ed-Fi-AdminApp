@@ -2,7 +2,6 @@ import {
   Box,
   FormControl,
   HStack,
-  Icon,
   IconButton,
   Menu,
   Popover,
@@ -13,7 +12,7 @@ import {
   PopoverHeader,
   PopoverTrigger,
 } from '@chakra-ui/react';
-import { VirtualizedSelect } from '@edanalytics/common-ui';
+import { Icons, VirtualizedSelect } from '@edanalytics/common-ui';
 import { Select } from 'chakra-react-select';
 import sortBy from 'lodash/sortBy';
 import { ReactNode, forwardRef, useEffect, useMemo, useState } from 'react';
@@ -24,9 +23,6 @@ import {
   FieldPath,
   FieldValues,
 } from 'react-hook-form';
-import { BsFunnel, BsFunnelFill } from 'react-icons/bs';
-import once from 'lodash/once';
-import { flushSync } from 'react-dom';
 import { wait } from '@edanalytics/utils';
 import { EdorgType } from '@edanalytics/models';
 
@@ -201,7 +197,7 @@ export function SelectWrapper<Dto extends Record<Name, number>, Name extends key
               isDisabled={!!props.isDisabled}
               variant="ghost"
               aria-label="edit filters"
-              icon={<Icon as={props.filterApplied ? BsFunnelFill : BsFunnel} />}
+              icon={<Icons.Funnel isFilled={props.filterApplied} />}
               onDoubleClick={props.onFilterDoubleClick}
             />
           </PopoverTrigger>

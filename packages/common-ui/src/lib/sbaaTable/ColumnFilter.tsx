@@ -4,7 +4,6 @@ import {
   ButtonGroup,
   Divider,
   HStack,
-  Icon,
   IconButton,
   Input,
   NumberDecrementStepper,
@@ -27,8 +26,8 @@ import {
 import { stdDuration, stdShort } from '@edanalytics/utils';
 import type { Column } from '@tanstack/react-table';
 import React, { useState } from 'react';
-import { BsX } from 'react-icons/bs';
 import { VirtualizedSelect } from '../VirtualizedSelect';
+import { Icons } from '../Icons';
 
 export type WithMetaType = {
   columnDef: { meta?: { type?: 'date' | 'duration' | 'number' | 'options' } };
@@ -129,7 +128,7 @@ export const ColumnFilter = ({ column }: { column: Column<any, unknown> }) => {
                 borderColor: 'gray.400',
               }}
               aria-label="clear column filter"
-              icon={<Icon fontSize="md" as={BsX} />}
+              icon={<Icons.X fontSize="md" />}
               size="xs"
               onClick={() => column.setFilterValue(undefined)}
             />

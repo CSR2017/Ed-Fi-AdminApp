@@ -1,8 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetOwnershipDto, GetOwnershipViewDto } from '@edanalytics/models';
-import { BiEdit, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { ownershipQueries } from '../../api';
@@ -53,7 +50,7 @@ export const useOwnershipGlobalActions = (
         ...(canView
           ? {
               View: {
-                icon: HiOutlineEye,
+                icon: Icons.View,
                 text: 'View',
                 title: 'View ' + ownership.displayName,
                 to: to(ownership.id),
@@ -64,7 +61,7 @@ export const useOwnershipGlobalActions = (
         ...(canEdit
           ? {
               Edit: {
-                icon: BiEdit,
+                icon: Icons.Edit,
                 text: 'Edit',
                 title: 'Edit ' + ownership.displayName,
                 to: to(ownership.id) + '?edit=true',
@@ -75,7 +72,7 @@ export const useOwnershipGlobalActions = (
         ...(canDelete
           ? {
               Delete: {
-                icon: BiTrash,
+                icon: Icons.Delete,
                 isPending: deleteOwnership.isPending,
                 text: 'Delete',
                 title: 'Delete ownership',

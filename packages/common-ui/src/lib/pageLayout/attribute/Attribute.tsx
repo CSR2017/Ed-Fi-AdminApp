@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   FormLabel,
-  Icon,
   IconButton,
   Link,
   Popover,
@@ -19,9 +18,8 @@ import {
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { ReactElement, forwardRef, useEffect, useState } from 'react';
-import { BiCopy } from 'react-icons/bi';
-import { BsCheckCircle } from 'react-icons/bs';
 import { Link as RouterLink } from 'react-router-dom';
+import { Icons } from '../../Icons';
 
 dayjs.extend(localizedFormat);
 
@@ -164,13 +162,7 @@ function _Attribute(
         {isMasked && resultValue !== undefined ? (
           <Button
             fontWeight="medium"
-            onClick={() => {
-              if (showSecret.isOpen) {
-                showSecret.onToggle();
-              } else {
-                showSecret.onToggle();
-              }
-            }}
+            onClick={showSecret.onToggle}
             height="auto"
             variant="link"
             colorScheme="blue"
@@ -211,7 +203,7 @@ export function CopyButton(
           fontSize="md"
           variant="unstyled"
           aria-label="copy"
-          icon={<Icon as={BiCopy} />}
+          icon={<Icons.Copy />}
           onClick={clip.onCopy}
         />
       </PopoverTrigger>
@@ -225,7 +217,7 @@ export function CopyButton(
           maxW="30em"
           p={3}
         >
-          <Icon as={BsCheckCircle} color="green.500" display="inline" />
+          <Icons.CheckCircle color="green.500" display="inline" />
           &nbsp;&nbsp;Copied{props.isMasked ? null : <>&nbsp;&nbsp;{value}</>}
         </PopoverBody>
       </PopoverContent>

@@ -1,17 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetVendorDto } from '@edanalytics/models';
-import { BiEdit, BiPlus, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { vendorQueriesV1 } from '../../api';
-import {
-  useAuthorize,
-  useNavContext,
-  useTeamEdfiTenantNavContextLoaded,
-  vendorAuthConfig,
-} from '../../helpers';
+import { useAuthorize, useTeamEdfiTenantNavContextLoaded, vendorAuthConfig } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
 export const useVendorActions = (vendor: GetVendorDto | undefined): ActionsType => {
@@ -39,7 +31,7 @@ export const useVendorActions = (vendor: GetVendorDto | undefined): ActionsType 
         ...(canView
           ? {
               View: {
-                icon: HiOutlineEye,
+                icon: Icons.View,
                 text: 'View',
                 title: 'View ' + vendor.displayName,
                 to: to(vendor.id),
@@ -50,7 +42,7 @@ export const useVendorActions = (vendor: GetVendorDto | undefined): ActionsType 
         ...(canEdit
           ? {
               Edit: {
-                icon: BiEdit,
+                icon: Icons.Edit,
                 text: 'Edit',
                 title: 'Edit ' + vendor.displayName,
                 to: to(vendor.id) + '?edit=true',
@@ -61,7 +53,7 @@ export const useVendorActions = (vendor: GetVendorDto | undefined): ActionsType 
         ...(canDelete
           ? {
               Delete: {
-                icon: BiTrash,
+                icon: Icons.Delete,
                 isPending: deleteVendor.isPending,
                 text: 'Delete',
                 title: 'Delete vendor',
@@ -96,7 +88,7 @@ export const useManyVendorActions = (): ActionsType => {
   return canCreate
     ? {
         Create: {
-          icon: BiPlus,
+          icon: Icons.Plus,
           text: 'New',
           title: 'New vendor',
           to,

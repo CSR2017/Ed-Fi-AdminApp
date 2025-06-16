@@ -1,6 +1,5 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { SbSyncQueueDto } from '@edanalytics/models';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { useAuthorize } from '../../helpers';
 
@@ -23,7 +22,7 @@ export const useSbSyncQueueActions = (sbSyncQueue: SbSyncQueueDto | undefined): 
         ...(canView
           ? {
               View: {
-                icon: HiOutlineEye,
+                icon: Icons.View,
                 text: 'View',
                 title: 'View ' + sbSyncQueue.displayName,
                 to: to(sbSyncQueue.id),

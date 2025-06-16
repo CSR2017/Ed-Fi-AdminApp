@@ -4,7 +4,6 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Icon,
   Input,
   Text,
   Tooltip,
@@ -14,12 +13,12 @@ import { GetVendorDtoV2, PutVendorDtoV2 } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { BsInfoCircle } from 'react-icons/bs';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { vendorQueriesV2 } from '../../api';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
+import { Icons } from '@edanalytics/common-ui';
 
 const resolver = classValidatorResolver(PutVendorDtoV2);
 
@@ -79,7 +78,7 @@ export const EditVendor = (props: { vendor: GetVendorDtoV2 }) => {
             hasArrow
           >
             <chakra.span>
-              <Icon as={BsInfoCircle} />
+              <Icons.InfoCircle />
             </chakra.span>
           </Tooltip>
         </FormLabel>

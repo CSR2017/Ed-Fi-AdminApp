@@ -1,13 +1,11 @@
 import { Button } from '@chakra-ui/react';
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetRoleDto } from '@edanalytics/models';
 import { isExplicitStatusResponse } from '@edanalytics/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { BiEdit, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { queryKey, roleQueries } from '../../api';
+import { roleQueries } from '../../api';
 import { globalRoleAuthConfig, useAuthorize } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
@@ -30,7 +28,7 @@ export const useRoleGlobalActions = (role: GetRoleDto | undefined): ActionsType 
         ...(canView
           ? {
               View: {
-                icon: HiOutlineEye,
+                icon: Icons.View,
                 text: 'View',
                 title: 'View ' + role.displayName,
                 to: to(role.id),
@@ -41,7 +39,7 @@ export const useRoleGlobalActions = (role: GetRoleDto | undefined): ActionsType 
         ...(canEdit
           ? {
               Edit: {
-                icon: BiEdit,
+                icon: Icons.Edit,
                 text: 'Edit',
                 title: 'Edit ' + role.displayName,
                 to: to(role.id) + '?edit=true',
@@ -52,7 +50,7 @@ export const useRoleGlobalActions = (role: GetRoleDto | undefined): ActionsType 
         ...(canDelete
           ? {
               Delete: {
-                icon: BiTrash,
+                icon: Icons.Delete,
                 text: 'Delete',
                 title: 'Delete role',
                 confirmBody: 'This will permanently delete the role.',

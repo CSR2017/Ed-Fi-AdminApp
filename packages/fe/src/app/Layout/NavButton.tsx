@@ -4,18 +4,16 @@ import {
   Button,
   Collapse,
   HStack,
-  Icon,
   IconButton,
   Text,
   useDisclosure,
 } from '@chakra-ui/react';
+import { Icons } from '@edanalytics/common-ui';
 import { useEffect } from 'react';
-import { BsCaretRightFill } from 'react-icons/bs';
 import { Link as RouterLink } from 'react-router-dom';
 export interface INavButtonProps {
   route: string;
-  icon?: As;
-  activeIcon?: As;
+  icon: As;
   text: string;
   childItems?: INavButtonProps[];
   depth?: number;
@@ -29,6 +27,7 @@ export interface INavButtonProps {
  * expandable nested list of indented sub-items.
  */
 export const NavButton = (props: INavButtonProps) => {
+  const { icon: Icon } = props;
   const isActive = props.isActive && !props.childItems?.some((child) => child.isActive);
   const {
     isOpen: isExpandedState,
@@ -82,7 +81,8 @@ export const NavButton = (props: INavButtonProps) => {
       gap={3}
       title={props.text}
     >
-      <Icon fontSize="xl" as={isActive && props.activeIcon ? props.activeIcon : props.icon} />
+      <Icon fontSize="xl" isFilled={isActive} />
+
       <Text
         flexGrow={1}
         textAlign="left"
@@ -128,7 +128,7 @@ export const NavButton = (props: INavButtonProps) => {
                     margin: 'auto',
                   },
                 }}
-                icon={<BsCaretRightFill />}
+                icon={<Icons.CaretRightFill />}
               />
             </Box>
           ) : undefined}

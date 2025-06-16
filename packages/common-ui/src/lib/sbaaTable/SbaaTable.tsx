@@ -1,7 +1,6 @@
 import {
   ChakraComponent,
   Checkbox,
-  Icon,
   Table,
   Tbody,
   Td,
@@ -11,8 +10,8 @@ import {
   chakra,
 } from '@chakra-ui/react';
 import { type Row, flexRender } from '@tanstack/react-table';
-import { BsFunnel } from 'react-icons/bs';
 import { useSbaaTableContext } from './SbaaTableProvider';
+import { Icons } from '../Icons';
 
 type TableComponent = ChakraComponent<'table', { isFixedHeightForPagination?: boolean }>;
 
@@ -72,7 +71,7 @@ export const SbaaTable: TableComponent = (props) => {
                       {header.column.getIsFiltered() ? (
                         <>
                           &nbsp;
-                          <Icon fontSize="xs" mb="-2px" as={BsFunnel} />
+                          <Icons.Funnel fontSize="xs" mb="-2px" />
                         </>
                       ) : (
                         <chakra.span visibility="hidden">&nbsp;&#9660;</chakra.span>

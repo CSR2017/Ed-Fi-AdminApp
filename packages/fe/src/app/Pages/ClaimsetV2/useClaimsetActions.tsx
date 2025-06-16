@@ -1,9 +1,7 @@
 import { Link } from '@chakra-ui/react';
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetClaimsetMultipleDtoV2 } from '@edanalytics/models';
 import { RowSelectionState } from '@tanstack/react-table';
-import { BiCopy, BiExport, BiImport, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { claimsetQueriesV2 } from '../../api';
@@ -48,14 +46,14 @@ export const useClaimsetActions = ({
         ...(canView
           ? {
               View: {
-                icon: HiOutlineEye,
+                icon: Icons.View,
                 text: 'View',
                 title: 'View ' + claimset.displayName,
                 to: to(claimset.id),
                 onClick: () => navigate(to(claimset.id)),
               },
               Export: {
-                icon: BiExport,
+                icon: Icons.Export,
                 text: 'Export',
                 title: 'Export ' + claimset.displayName,
                 isPending: createExport.isPending,
@@ -99,7 +97,7 @@ export const useClaimsetActions = ({
         ...(canDelete
           ? {
               Delete: {
-                icon: BiTrash,
+                icon: Icons.Delete,
                 isPending: deleteClaimset.isPending,
                 text: 'Delete',
                 title: 'Delete claimset',
@@ -129,7 +127,7 @@ export const useClaimsetActions = ({
               //   onClick: () => navigate(toCreate),
               // },
               Import: {
-                icon: BiCopy,
+                icon: Icons.Copy,
                 text: 'Copy',
                 title: 'Copy claimset',
                 to: to(claimset.id) + '/copy',
@@ -172,7 +170,7 @@ export const useManyClaimsetActions = ({
           //   onClick: () => navigate(toCreate),
           // },
           Import: {
-            icon: BiImport,
+            icon: Icons.Import,
             text: 'Import',
             title: 'Import claimsets',
             to: toImport,
@@ -183,7 +181,7 @@ export const useManyClaimsetActions = ({
     ...(canRead && Object.keys(selectionState).length > 0
       ? {
           Export: {
-            icon: BiExport,
+            icon: Icons.Export,
             text: 'Export',
             title: 'Export selected claimsets',
             isPending: createExport.isPending,

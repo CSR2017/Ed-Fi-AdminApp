@@ -1,4 +1,4 @@
-import { IconType } from 'react-icons/lib';
+import { IconType } from './Icons/types';
 
 export type ActionsType = Record<string, ActionPropsConfirm | ActionProps | LinkActionProps>;
 

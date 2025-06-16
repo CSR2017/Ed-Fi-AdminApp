@@ -17,3 +17,5 @@ export * from './ToggleButtonGroup';
 export * from './searchWithResults';
 export * from './CappedLinesText';
 export * from './OneTimeShareLink';
+export * from './Icons';
+export type { IconType } from './Icons/types';

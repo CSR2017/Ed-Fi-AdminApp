@@ -1,9 +1,7 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 
 import { GetApplicationDtoV2, GetIntegrationAppDto, edorgKeyV2 } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
-import { BiEdit, BiPlus, BiShieldX, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { applicationQueriesV2 } from '../../api';
@@ -120,7 +118,7 @@ export const useSingleApplicationActions = ({
         ...(canView
           ? {
               View: {
-                icon: HiOutlineEye,
+                icon: Icons.View,
                 text: 'View',
                 title: 'View ' + application.applicationName,
                 to: `/as/${asId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenantId}/applications/${application.id}`,
@@ -135,7 +133,7 @@ export const useSingleApplicationActions = ({
           ? {
               Reset: {
                 isPending: resetCreds.isPending,
-                icon: BiShieldX,
+                icon: Icons.ShieldX,
                 text: 'Reset creds',
                 title: 'Reset application credentials.',
                 onClick: () => {
@@ -164,7 +162,7 @@ export const useSingleApplicationActions = ({
           ? {
               Edit: {
                 isDisabled: inEdit,
-                icon: BiEdit,
+                icon: Icons.Edit,
                 text: 'Edit',
                 title: 'Edit ' + application.applicationName,
                 to: `/as/${asId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenantId}/applications/${application.id}?edit=true`,
@@ -179,7 +177,7 @@ export const useSingleApplicationActions = ({
           ? {
               Delete: {
                 isPending: deleteApplication.isPending,
-                icon: BiTrash,
+                icon: Icons.Delete,
                 text: 'Delete',
                 title: 'Delete application',
                 confirmBody:
@@ -235,7 +233,7 @@ export const useMultiApplicationActions = ({
   return canCreate
     ? {
         Create: {
-          icon: BiPlus,
+          icon: Icons.Plus,
           text: 'New',
           title: 'New application',
           to,

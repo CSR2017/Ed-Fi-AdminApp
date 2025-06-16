@@ -1,6 +1,6 @@
-import { IconButton, ButtonGroup, HStack, Icon, Select, Text } from '@chakra-ui/react';
-import { FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
+import { IconButton, ButtonGroup, HStack, Select, Text } from '@chakra-ui/react';
 import { DivComponent, useSbaaTableContext } from './SbaaTableProvider';
+import { Icons } from '../Icons';
 
 export const SbaaTablePagination: DivComponent = (props) => {
   const { children, ...rest } = props;
@@ -20,7 +20,7 @@ export const SbaaTablePagination: DivComponent = (props) => {
           borderRadius={'8em'}
           onClick={() => table.setPageIndex(0)}
           isDisabled={!table.getCanPreviousPage()}
-          icon={<Icon as={FiChevronsLeft} />}
+          icon={<Icons.DoubleChevronsLeft />}
         />
         <IconButton
           aria-label="Previous Page"
@@ -28,7 +28,7 @@ export const SbaaTablePagination: DivComponent = (props) => {
           borderRadius={'8em'}
           onClick={() => table.previousPage()}
           isDisabled={!table.getCanPreviousPage()}
-          icon={<Icon as={FiChevronLeft} />}
+          icon={<Icons.ChevronLeft />}
         />
       </ButtonGroup>
       <Text>
@@ -42,7 +42,7 @@ export const SbaaTablePagination: DivComponent = (props) => {
           borderRadius={'8em'}
           onClick={() => table.nextPage()}
           isDisabled={!table.getCanNextPage()}
-          icon={<Icon as={FiChevronRight} />}
+          icon={<Icons.ChevronRight />}
         />
         <IconButton
           aria-label="Last Page"
@@ -50,7 +50,7 @@ export const SbaaTablePagination: DivComponent = (props) => {
           borderRadius={'8em'}
           onClick={() => table.setPageIndex(table.getPageCount() - 1)}
           isDisabled={!table.getCanNextPage()}
-          icon={<Icon as={FiChevronsRight} />}
+          icon={<Icons.DoubleChevronsRight />}
         />
       </ButtonGroup>
       <Select

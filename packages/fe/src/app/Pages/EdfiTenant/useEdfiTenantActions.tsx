@@ -1,7 +1,5 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetEdfiTenantDto } from '@edanalytics/models';
-import { BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { edfiTenantQueries } from '../../api';
@@ -21,7 +19,7 @@ export const useEdfiTenantActions = (edfiTenant: GetEdfiTenantDto | undefined): 
   return edfiTenant
     ? {
         View: {
-          icon: HiOutlineEye,
+          icon: Icons.View,
           text: 'View',
           title: 'View ' + edfiTenant.displayName,
           to: `/as/${teamId}/sb-environments/${sbEnvironmentId}/edfi-tenants/${edfiTenant.id}`,
@@ -33,7 +31,7 @@ export const useEdfiTenantActions = (edfiTenant: GetEdfiTenantDto | undefined): 
         ...(canDelete
           ? {
               Delete: {
-                icon: BiTrash,
+                icon: Icons.Delete,
                 isPending: deleteTenant.isPending,
                 text: 'Delete',
                 title: 'Delete tenant',

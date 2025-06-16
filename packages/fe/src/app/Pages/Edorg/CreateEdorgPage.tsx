@@ -4,18 +4,16 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Icon,
   Input,
   Text,
   Tooltip,
   chakra,
 } from '@chakra-ui/react';
-import { PageTemplate } from '@edanalytics/common-ui';
+import { Icons, PageTemplate } from '@edanalytics/common-ui';
 import { AddEdorgDtoV2, ISbEnvironmentConfigPublicV2 } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { BsInfoCircle } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { edorgQueries } from '../../api';
@@ -92,7 +90,7 @@ export const CreateEdorg = () => {
                   hasArrow
                 >
                   <chakra.span>
-                    <Icon as={BsInfoCircle} />
+                    <Icons.InfoCircle />
                   </chakra.span>
                 </Tooltip>
               </>

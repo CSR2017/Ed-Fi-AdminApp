@@ -1,5 +1,5 @@
+import { Icons } from '@edanalytics/common-ui';
 import { TeamBasePrivilege, TeamEdfiTenantPrivilege } from '@edanalytics/models';
-import { HiOutlineEye } from 'react-icons/hi';
 import { RouteObject, generatePath, useNavigate } from 'react-router-dom';
 
 export type BaseRow = { id: number; displayName: string };
@@ -22,7 +22,7 @@ export const useReadTeamEntity = (props: {
   return entity === undefined
     ? undefined
     : {
-        icon: HiOutlineEye,
+        icon: Icons.View,
         text: 'View',
         title: 'View ' + entity.displayName,
         to: toOptions,

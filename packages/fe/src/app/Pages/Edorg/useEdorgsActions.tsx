@@ -1,5 +1,4 @@
-import { ActionsType } from '@edanalytics/common-ui';
-import { BiPlus } from 'react-icons/bi';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { useNavigate } from 'react-router-dom';
 import {
   teamEdfiTenantAuthConfig,
@@ -28,7 +27,7 @@ export const useEdorgsActions = ({ ods }: { ods?: GetOdsDto }): ActionsType => {
   return canPost
     ? {
         Create: {
-          icon: BiPlus,
+          icon: Icons.Plus,
           text: 'Create',
           title: 'Create new ed-org.',
           to: createEdorgUrl,

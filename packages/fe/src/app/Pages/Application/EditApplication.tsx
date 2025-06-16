@@ -5,7 +5,6 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Icon,
   Input,
   Text,
   Tooltip,
@@ -16,13 +15,13 @@ import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { BsInfoCircle } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { applicationQueriesV1, claimsetQueriesV1, edorgQueries, queryKey } from '../../api';
 import { useNavContext, useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { SelectClaimset, SelectEdorg, SelectVendor } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
+import { Icons } from '@edanalytics/common-ui';
 
 const resolver = classValidatorResolver(PutApplicationForm);
 
@@ -113,7 +112,7 @@ export const EditApplication = (props: {
             Claimset{' '}
             <Tooltip label="You can only select non-reserved claimsets here." hasArrow>
               <chakra.span>
-                <Icon as={BsInfoCircle} />
+                <Icons.InfoCircle />
               </chakra.span>
             </Tooltip>
           </FormLabel>

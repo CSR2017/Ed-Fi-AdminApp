@@ -1,6 +1,4 @@
 import { GetSbEnvironmentDto, OWNERSHIP_RESOURCE_TYPE } from '@edanalytics/models';
-import { BiData, BiDownload, BiRefresh, BiRename, BiShieldPlus, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { sbEnvironmentQueriesGlobal } from '../../api';
@@ -12,6 +10,7 @@ import {
 } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { useSearchParamsObject } from '../../helpers/useSearch';
+import { Icons } from '@edanalytics/common-ui';
 
 export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto | undefined) => {
   const refreshResources = sbEnvironmentQueriesGlobal.refreshResources({});
@@ -45,7 +44,7 @@ export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto
         ...(canGrantOwnership
           ? {
               GrantOwnership: {
-                icon: BiShieldPlus,
+                icon: Icons.ShieldPlus,
                 text: 'Grant ownership',
                 title: 'Grant ownership of ' + sbEnvironment.displayName,
                 to: `/ownerships/create?sbEnvironmentId=${sbEnvironment.id}&type=${OWNERSHIP_RESOURCE_TYPE.sbEnvironment}`,
@@ -59,7 +58,7 @@ export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto
         ...(canView
           ? {
               View: {
-                icon: HiOutlineEye,
+                icon: Icons.View,
                 text: 'View',
                 title: 'View ' + sbEnvironment.displayName,
                 to: `/sb-environments/${sbEnvironment.id}`,
@@ -72,7 +71,7 @@ export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto
               EditSbMeta: {
                 isIrrelevant: !!sbEnvironment.configPublic?.sbEnvironmentMetaArn,
                 isDisabled: edit === 'sb-environment-meta',
-                icon: BiData,
+                icon: Icons.Data,
                 text: 'Connect SB Meta',
                 title: 'Setup connection to Starting Blocks metadata API',
                 to: `/sb-environments/${sbEnvironment.id}?edit=sb-environment-meta`,
@@ -85,7 +84,7 @@ export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto
           ? {
               Rename: {
                 isDisabled: edit === 'name',
-                icon: BiRename,
+                icon: Icons.Rename,
                 text: 'Rename',
                 title: 'Rename the environment',
                 to: `/sb-environments/${sbEnvironment.id}?edit=name`,
@@ -96,7 +95,7 @@ export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto
         ...(canDelete
           ? {
               Delete: {
-                icon: BiTrash,
+                icon: Icons.Delete,
                 isPending: deleteSbEnvironment.isPending,
                 text: 'Delete',
                 title: 'Delete environment',
@@ -116,7 +115,7 @@ export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto
         ...(canRefreshResources
           ? {
               RefreshResources: {
-                icon: BiDownload,
+                icon: Icons.Download,
                 isPending: refreshResources.isPending,
                 text: 'Sync with SB',
                 title: 'Sync ODSs and Ed-Orgs from Starting Blocks to SBAA.',
@@ -141,7 +140,7 @@ export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto
           ? {
               Restart: {
                 isPending: reloadTenants.isPending,
-                icon: BiRefresh,
+                icon: Icons.Refresh,
                 text: 'Reload tenants',
                 title: 'Reload tenants in the Admin API server',
                 onClick: async () => {

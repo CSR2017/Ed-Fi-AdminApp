@@ -1,15 +1,12 @@
 import {
   Button,
   ChakraComponent,
-  Icon,
   IconButton,
   InputGroup,
   InputLeftElement,
   InputRightElement,
 } from '@chakra-ui/react';
-import { BiSearch } from 'react-icons/bi';
-import { BsX } from 'react-icons/bs';
-import { DebouncedInput, DivComponent, useSbaaTableContext } from '..';
+import { DebouncedInput, DivComponent, Icons, useSbaaTableContext } from '..';
 
 export const SbaaTableSearch: DivComponent = (props) => {
   const { children, ...rest } = props;
@@ -37,7 +34,7 @@ export const SbaaTableSearch: DivComponent = (props) => {
       {...rest}
     >
       <InputLeftElement pointerEvents="none" color="gray.300">
-        <Icon fontSize="1.2em" as={BiSearch} />
+        <Icons.Search fontSize="1.2em" />
       </InputLeftElement>
       <DebouncedInput
         debounce={300}
@@ -58,7 +55,7 @@ export const SbaaTableSearch: DivComponent = (props) => {
             variant="ghost"
             size="sm"
             borderRadius={'100em'}
-            icon={<Icon as={BsX} />}
+            icon={<Icons.X />}
             aria-label="clear search"
           />
         </InputRightElement>

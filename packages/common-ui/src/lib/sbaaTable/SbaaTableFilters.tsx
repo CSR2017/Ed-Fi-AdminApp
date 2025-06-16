@@ -2,7 +2,6 @@ import {
   Button,
   Collapse,
   HStack,
-  Icon,
   IconButton,
   Link,
   Menu,
@@ -16,11 +15,10 @@ import {
   PopoverTrigger,
   Text,
 } from '@chakra-ui/react';
-import { BiPlus } from 'react-icons/bi';
-import { BsX } from 'react-icons/bs';
 import { ColumnFilter, ColumnFilterContent, type WithMetaType } from './ColumnFilter';
 import { DivComponent, useSbaaTableContext } from './SbaaTableProvider';
 import { Column } from '@tanstack/react-table';
+import { Icons } from '../Icons';
 
 export const SbaaTableFilters: DivComponent = (props) => {
   const { children, ...rest } = props;
@@ -75,7 +73,7 @@ export const Sorting = () => {
           colorScheme="primary"
           as={Button}
           size="xs"
-          rightIcon={<Icon as={BiPlus} />}
+          rightIcon={<Icons.Plus />}
           mr={2}
         >
           Add sort
@@ -123,7 +121,7 @@ export const Sorting = () => {
                 borderColor: 'gray.400',
               }}
               aria-label="clear column filter"
-              icon={<Icon fontSize="md" as={BsX} />}
+              icon={<Icons.X fontSize="md" />}
               size="xs"
               onClick={column.clearSorting}
             />
@@ -176,7 +174,7 @@ const Filters = () => {
             variant="outline"
             colorScheme="primary"
             size="xs"
-            rightIcon={<Icon as={BiPlus} />}
+            rightIcon={<Icons.Plus />}
           >
             Add filter
           </Button>

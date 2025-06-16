@@ -1,5 +1,4 @@
-import { ActionsType } from '@edanalytics/common-ui';
-import { BiPlus } from 'react-icons/bi';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { useNavigate } from 'react-router-dom';
 import {
   teamEdfiTenantAuthConfig,
@@ -22,7 +21,7 @@ export const useOdssActions = (): ActionsType => {
   return canPost
     ? {
         Create: {
-          icon: BiPlus,
+          icon: Icons.Plus,
           text: 'Create',
           title: 'Create new ODS.',
           to: `/as/${teamId}/sb-environments/${sbEnvironmentId}/edfi-tenants/${edfiTenantId}/odss/create`,

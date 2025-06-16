@@ -4,20 +4,18 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Icon,
   Input,
   Text,
   Textarea,
   Tooltip,
   chakra,
 } from '@chakra-ui/react';
-import { PageTemplate } from '@edanalytics/common-ui';
+import { Icons, PageTemplate } from '@edanalytics/common-ui';
 import { PostClaimsetDto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useQueryClient } from '@tanstack/react-query';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { BsInfoCircle } from 'react-icons/bs';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { claimsetQueriesV1 } from '../../api';
@@ -81,7 +79,7 @@ export const CreateClaimset = () => {
             Resource claims{' '}
             <Tooltip label="Paste resource claims JSON here." hasArrow>
               <chakra.span>
-                <Icon as={BsInfoCircle} />
+                <Icons.InfoCircle />
               </chakra.span>
             </Tooltip>
           </FormLabel>

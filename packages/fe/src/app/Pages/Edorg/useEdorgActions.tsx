@@ -1,6 +1,5 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetEdorgDto } from '@edanalytics/models';
-import { BiTrash } from 'react-icons/bi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { edorgQueries } from '../../api';
@@ -31,7 +30,7 @@ export const useEdorgActions = (edorg: Pick<GetEdorgDto, 'id'>): ActionsType => 
     ...(canDelete
       ? {
           Delete: {
-            icon: BiTrash,
+            icon: Icons.Delete,
             isPending: deleteEdorg.isPending,
             text: 'Delete',
             title: 'Delete ed-org',

@@ -1,13 +1,4 @@
-import {
-  Box,
-  Checkbox,
-  FormControl,
-  FormErrorMessage,
-  HStack,
-  Icon,
-  Tag,
-  Text,
-} from '@chakra-ui/react';
+import { Box, Checkbox, FormControl, FormErrorMessage, HStack, Tag, Text } from '@chakra-ui/react';
 import {
   DependencyErrors,
   IPrivilege,
@@ -15,8 +6,8 @@ import {
   PRIVILEGE_CODES,
   privilegeDependencies,
 } from '@edanalytics/models';
-import { BsCheckAll, BsXLg } from 'react-icons/bs';
 import { PrivilegeNest, nestPrivileges } from './nest-privileges';
+import { Icons } from '@edanalytics/common-ui';
 
 const privilegeCodesSet = new Set(PRIVILEGE_CODES);
 const isDeepTrue = (children: PrivilegeNest, value: Set<PrivilegeCode>) => {
@@ -171,10 +162,7 @@ const SinglePrivilege = (props: {
                   </Tag>
                 );
               })}
-              <Icon
-                as={allDepsIncluded ? BsCheckAll : BsXLg}
-                color={allDepsIncluded ? 'green' : 'red'}
-              />
+              {allDepsIncluded ? <Icons.CheckAll color="green" /> : <Icons.LargeX color="red" />}
             </>
           ) : null}
         </HStack>

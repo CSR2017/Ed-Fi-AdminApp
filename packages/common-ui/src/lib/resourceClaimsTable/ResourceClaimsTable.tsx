@@ -1,8 +1,8 @@
 import { Badge, BadgeProps, Box, Flex, IconButton, StyleProps, Text } from '@chakra-ui/react';
 import { GetClaimsetDto, ResourceClaimDto131 } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
-import { BsCaretRightFill } from 'react-icons/bs';
 import { SbaaTableAllInOne, useSbaaTableContext } from '../sbaaTable';
+import { Icons } from '../Icons';
 
 const AuthStrategyBadge = (props: {
   authDefault: (string | null)[];
@@ -148,7 +148,7 @@ const NameCell = (props: CellContext<ResourceClaimRow, unknown>) => {
               margin: 'auto',
             },
           }}
-          icon={<BsCaretRightFill />}
+          icon={<Icons.CaretRightFill />}
         />
       )}
       {props.row.original.name}

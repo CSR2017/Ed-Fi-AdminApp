@@ -1,5 +1,4 @@
-import { ActionsType } from '@edanalytics/common-ui';
-import { BiPlus } from 'react-icons/bi';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { useNavigate } from 'react-router-dom';
 import { globalUserAuthConfig, useAuthorize } from '../../helpers';
 
@@ -11,7 +10,7 @@ export const useMultipleUserGlobalActions = (): ActionsType => {
   return canCreate
     ? {
         Create: {
-          icon: BiPlus,
+          icon: Icons.Plus,
           text: 'Create new',
           title: 'Create new application user.',
           to: '/users/create',

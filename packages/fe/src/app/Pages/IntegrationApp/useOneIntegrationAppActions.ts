@@ -1,8 +1,6 @@
 import { GetIntegrationAppDto } from '@edanalytics/models';
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { useNavigate } from 'react-router-dom';
-import { BiShieldX } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { usePaths } from '../../routes/paths';
 import { useResetIntegrationAppCredentials } from '../../api-v2';
 import { useAuthorize, useTeamNavContext } from '../../helpers';
@@ -49,7 +47,7 @@ export function useOneIntegrationAppActions(
   const viewAction: ActionsType = canView
     ? {
         View: {
-          icon: HiOutlineEye,
+          icon: Icons.View,
           text: 'View',
           title: 'View ' + applicationName,
           to: paths.integrationApp.view({ integrationAppId, integrationProviderId }),
@@ -76,7 +74,7 @@ export function useOneIntegrationAppActions(
     ? {
         Reset: {
           isPending,
-          icon: BiShieldX,
+          icon: Icons.ShieldX,
           text: 'Reset credentials',
           title: 'Reset integration application credentials',
           onClick: onResetClick,

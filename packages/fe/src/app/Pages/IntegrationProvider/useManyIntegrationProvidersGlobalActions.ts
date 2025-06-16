@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ActionsType } from '@edanalytics/common-ui';
-import { BiPlus } from 'react-icons/bi';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { usePaths } from '../../routes/paths';
 import { globalUserAuthConfig, useAuthorize, useNavContext } from '../../helpers';
 
@@ -17,7 +16,7 @@ export const useManyIntegrationProvidersGlobalActions = (): ActionsType => {
   const createAction: ActionsType = canCreate
     ? {
         Create: {
-          icon: BiPlus,
+          icon: Icons.Plus,
           text: 'Create new',
           title: 'Create new integration provider.',
           to: paths.integrationProvider.create(),

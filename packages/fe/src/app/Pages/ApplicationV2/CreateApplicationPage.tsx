@@ -6,7 +6,6 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Icon,
   IconButton,
   Input,
   ListItem,
@@ -15,12 +14,11 @@ import {
   UnorderedList,
   chakra,
 } from '@chakra-ui/react';
-import { PageTemplate } from '@edanalytics/common-ui';
+import { Icons, PageTemplate } from '@edanalytics/common-ui';
 import { GetEdorgDto, PostApplicationFormDtoV2, edorgKeyV2 } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { BsInfoCircle, BsTrash } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { applicationQueriesV2, edorgQueries, profileQueriesV2 } from '../../api';
@@ -202,7 +200,7 @@ export const CreateApplicationPageV2 = () => {
                         variant="ghost"
                         colorScheme="red"
                         aria-label="remove"
-                        icon={<Icon as={BsTrash} />}
+                        icon={<Icons.Delete />}
                         size="xs"
                         onClick={() => {
                           const newSelection = [...selectedEdorgs];
@@ -259,7 +257,7 @@ export const CreateApplicationPageV2 = () => {
                         variant="ghost"
                         colorScheme="red"
                         aria-label="remove"
-                        icon={<Icon as={BsTrash} />}
+                        icon={<Icons.Delete />}
                         size="xs"
                         onClick={() => {
                           const newSelection = [...selectedProfileIds];
@@ -304,7 +302,7 @@ export const CreateApplicationPageV2 = () => {
             Claimset{' '}
             <Tooltip label="You can only select non-reserved claimsets here." hasArrow>
               <chakra.span>
-                <Icon as={BsInfoCircle} />
+                <Icons.InfoCircle />
               </chakra.span>
             </Tooltip>
           </FormLabel>

@@ -1,9 +1,6 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetTeamDto } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
-import { BiArch, BiEdit, BiTrash, BiUserPlus } from 'react-icons/bi';
-import { BsClipboardPlus } from 'react-icons/bs';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { teamQueries } from '../../api';
@@ -30,7 +27,7 @@ export const useTeamActions = (team: GetTeamDto | undefined): ActionsType => {
         ...(canAssume
           ? {
               Assume: {
-                icon: BiArch,
+                icon: Icons.Arch,
                 text: 'Assume',
                 title: 'Assume ' + team.displayName + ' team scope',
                 to: `/as/${team.id}`,
@@ -41,7 +38,7 @@ export const useTeamActions = (team: GetTeamDto | undefined): ActionsType => {
         ...(canInvite
           ? {
               Invite: {
-                icon: BiUserPlus,
+                icon: Icons.UserPlus,
                 text: 'Add user',
                 title: 'Add existing user to ' + team.displayName,
                 to: `/user-team-memberships/create?teamId=${team.id}`,
@@ -52,7 +49,7 @@ export const useTeamActions = (team: GetTeamDto | undefined): ActionsType => {
         ...(canGrant
           ? {
               Grant: {
-                icon: BsClipboardPlus,
+                icon: Icons.ClipboardPlus,
                 text: 'Add resource',
                 title: 'Give ' + team.displayName + ' a new resource ownership',
                 to: `/ownerships/create?teamId=${team.id}`,
@@ -63,7 +60,7 @@ export const useTeamActions = (team: GetTeamDto | undefined): ActionsType => {
         ...(canView
           ? {
               View: {
-                icon: HiOutlineEye,
+                icon: Icons.View,
                 text: 'View',
                 title: 'View ' + team.displayName,
                 to: to(team.id),
@@ -74,7 +71,7 @@ export const useTeamActions = (team: GetTeamDto | undefined): ActionsType => {
         ...(canEdit
           ? {
               Edit: {
-                icon: BiEdit,
+                icon: Icons.Edit,
                 text: 'Edit',
                 title: 'Edit ' + team.displayName,
                 to: to(team.id) + '?edit=true',
@@ -85,7 +82,7 @@ export const useTeamActions = (team: GetTeamDto | undefined): ActionsType => {
         ...(canDelete
           ? {
               Delete: {
-                icon: BiTrash,
+                icon: Icons.Delete,
                 text: 'Delete',
                 title: 'Delete team',
                 confirmBody: 'This will permanently delete the team.',

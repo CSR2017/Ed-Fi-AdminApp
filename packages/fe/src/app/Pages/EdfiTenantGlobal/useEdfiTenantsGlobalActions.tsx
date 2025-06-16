@@ -1,5 +1,4 @@
-import { ActionsType } from '@edanalytics/common-ui';
-import { BiPlus } from 'react-icons/bi';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { useNavigate } from 'react-router-dom';
 import {
   globalEdfiTenantAuthConfig,
@@ -18,7 +17,7 @@ export const useEdfiTenantsGlobalActions = (): ActionsType => {
   return canCreate && sbEnvironment.version === 'v2'
     ? {
         Create: {
-          icon: BiPlus,
+          icon: Icons.Plus,
           text: 'Create',
           title: 'Create new tenant.',
           to: `/sb-environments/${sbEnvironmentId}/edfi-tenants/create`,

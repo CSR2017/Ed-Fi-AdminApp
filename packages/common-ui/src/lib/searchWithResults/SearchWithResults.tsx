@@ -1,7 +1,6 @@
 import {
   Box,
   Divider,
-  Icon,
   IconButton,
   InputGroup,
   InputLeftElement,
@@ -9,9 +8,8 @@ import {
   Stack,
   chakra,
 } from '@chakra-ui/react';
-import { BiSearch } from 'react-icons/bi';
-import { BsX } from 'react-icons/bs';
 import { DebouncedInput } from '../dataTable';
+import { Icons } from '../Icons';
 
 export const SearchWithResults = (props: {
   value: string;
@@ -77,7 +75,7 @@ export const SearchWithResults = (props: {
               variant="ghost"
               size="sm"
               borderRadius={'100em'}
-              icon={<Icon as={BsX} />}
+              icon={<Icons.X />}
               aria-label="clear search"
             />
           </chakra.div>
@@ -86,7 +84,7 @@ export const SearchWithResults = (props: {
         <Box className="focus-container">
           <InputGroup className="input-group" w="100%">
             <InputLeftElement pointerEvents="none" color="gray.300">
-              <Icon fontSize="1.2em" as={BiSearch} />
+              <Icons.Search fontSize="1.2em" />
             </InputLeftElement>
             <DebouncedInput
               debounce={300}
@@ -113,7 +111,7 @@ export const SearchWithResults = (props: {
                   variant="ghost"
                   size="sm"
                   borderRadius={'100em'}
-                  icon={<Icon as={BsX} />}
+                  icon={<Icons.X />}
                   aria-label="clear search"
                 />
               </InputRightElement>

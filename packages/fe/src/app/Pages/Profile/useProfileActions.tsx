@@ -1,7 +1,5 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetProfileDtoV2 } from '@edanalytics/models';
-import { BiEdit, BiPlus, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { profileQueriesV2 } from '../../api';
@@ -40,7 +38,7 @@ export const useProfileActions = (profile: GetProfileDtoV2 | undefined): Actions
   if (!profile) return {};
   const viewAction = {
     View: {
-      icon: HiOutlineEye,
+      icon: Icons.View,
       text: 'View',
       title: 'View ' + profile.name,
       to: to(profile.id),
@@ -49,7 +47,7 @@ export const useProfileActions = (profile: GetProfileDtoV2 | undefined): Actions
   };
   const editAction = {
     Edit: {
-      icon: BiEdit,
+      icon: Icons.Edit,
       text: 'Edit',
       title: 'Edit ' + profile.name,
       to: to(profile.id) + '?edit=true',
@@ -58,7 +56,7 @@ export const useProfileActions = (profile: GetProfileDtoV2 | undefined): Actions
   };
   const deleteAction = {
     Delete: {
-      icon: BiTrash,
+      icon: Icons.Delete,
       isPending: deleteProfile.isPending,
       text: 'Delete',
       title: 'Delete profile',
@@ -96,7 +94,7 @@ export const useManyProfileActions = (): ActionsType => {
   return canCreate
     ? {
         Create: {
-          icon: BiPlus,
+          icon: Icons.Plus,
           text: 'New',
           title: 'New Profile',
           to,

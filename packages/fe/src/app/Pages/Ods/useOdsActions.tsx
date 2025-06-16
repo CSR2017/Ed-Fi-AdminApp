@@ -1,6 +1,5 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetOdsDto } from '@edanalytics/models';
-import { BiTrash } from 'react-icons/bi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { odsQueries } from '../../api';
@@ -31,7 +30,7 @@ export const useOdsActions = (ods: Pick<GetOdsDto, 'id'>): ActionsType => {
     ...(canDelete
       ? {
           Delete: {
-            icon: BiTrash,
+            icon: Icons.Delete,
             isPending: deleteOds.isPending,
             text: 'Delete',
             title: 'Delete ODS',

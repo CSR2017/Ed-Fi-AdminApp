@@ -1,5 +1,4 @@
-import { ActionsType } from '@edanalytics/common-ui';
-import { BiPlus } from 'react-icons/bi';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { useNavigate } from 'react-router-dom';
 import { globalOwnershipAuthConfig, useAuthorize } from '../../helpers';
 
@@ -10,7 +9,7 @@ export const useMultipleOwnershipGlobalActions = (): ActionsType => {
   return canCreate
     ? {
         Create: {
-          icon: BiPlus,
+          icon: Icons.Plus,
           text: 'Grant new',
           title: 'Grant new team resource ownership.',
           to: '/ownerships/create',

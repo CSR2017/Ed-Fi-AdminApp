@@ -1,7 +1,5 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetIntegrationProviderDto, OWNERSHIP_RESOURCE_TYPE } from '@edanalytics/models';
-import { BiEdit, BiShieldPlus, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import {
@@ -65,7 +63,7 @@ export const useOneIntegrationProviderGlobalActions = (
   const ownershipAction: ActionsType = canGrantOwnership
     ? {
         GrantOwnership: {
-          icon: BiShieldPlus,
+          icon: Icons.ShieldPlus,
           text: 'Grant ownership',
           title: 'Grant ownership of ' + integrationProvider.name,
           to: `/ownerships/create?integrationProviderId=${integrationProvider.id}&type=${OWNERSHIP_RESOURCE_TYPE.integrationProvider}`,
@@ -80,7 +78,7 @@ export const useOneIntegrationProviderGlobalActions = (
   const viewAction: ActionsType = canView
     ? {
         View: {
-          icon: HiOutlineEye,
+          icon: Icons.View,
           text: 'View',
           title: 'View ' + integrationProvider.name,
           to: paths.integrationProvider.view({ integrationProviderId }),
@@ -92,7 +90,7 @@ export const useOneIntegrationProviderGlobalActions = (
   const editAction: ActionsType = canEdit
     ? {
         Edit: {
-          icon: BiEdit,
+          icon: Icons.Edit,
           isDisabled: inEdit,
           text: 'Edit',
           title: 'Edit ' + integrationProvider.name,
@@ -108,7 +106,7 @@ export const useOneIntegrationProviderGlobalActions = (
   const deleteAction: ActionsType = canDelete
     ? {
         Delete: {
-          icon: BiTrash,
+          icon: Icons.Delete,
           text: 'Delete',
           title: deleteTitle,
           confirmBody: 'This will permanently delete the integration provider.',

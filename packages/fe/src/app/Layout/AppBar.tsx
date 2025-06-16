@@ -2,7 +2,6 @@ import {
   Avatar,
   Button,
   HStack,
-  Icon,
   IconButton,
   Image,
   Menu,
@@ -11,13 +10,12 @@ import {
   MenuList,
   Text,
 } from '@chakra-ui/react';
-import { BsQuestionLg } from 'react-icons/bs';
-import { RxCaretDown } from 'react-icons/rx';
 import { Link as RouterLink } from 'react-router-dom';
 import logoUrl from '../../assets/logo-sb.svg';
 import { apiClient, useMe, useMyTeams } from '../api';
 import { useAsId } from './Nav';
 import { emailUrls } from '../routes/pathConstants';
+import { Icons } from '@edanalytics/common-ui';
 
 export const AppBar = () => {
   const me = useMe();
@@ -63,7 +61,7 @@ export const AppBar = () => {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Help"
-          icon={<Icon fontSize="lg" as={BsQuestionLg} />}
+          icon={<Icons.HelpLink fontSize="lg" />}
           borderRadius="99em"
           variant="ghost"
           size="sm"
@@ -73,7 +71,7 @@ export const AppBar = () => {
           <MenuButton as={Button} variant="unstyled">
             <HStack spacing={0}>
               <Avatar name={me.data?.fullName} size="sm" />
-              <Icon as={RxCaretDown} />
+              <Icons.OpenProfileMenu />
             </HStack>
           </MenuButton>
           <MenuList>

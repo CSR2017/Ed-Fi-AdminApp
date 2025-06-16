@@ -1,7 +1,5 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetUserTeamMembershipDto } from '@edanalytics/models';
-import { BiEdit, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { userTeamMembershipQueries } from '../../api';
@@ -26,7 +24,7 @@ export const useUtmActionsGlobal = (
         ...(canView
           ? {
               View: {
-                icon: HiOutlineEye,
+                icon: Icons.View,
                 text: 'View',
                 title: 'View ' + userTeamMembership.displayName,
                 to: to(userTeamMembership.id),
@@ -37,7 +35,7 @@ export const useUtmActionsGlobal = (
         ...(canEdit
           ? {
               Edit: {
-                icon: BiEdit,
+                icon: Icons.Edit,
                 text: 'Edit',
                 title: 'Edit ' + userTeamMembership.displayName,
                 to: to(userTeamMembership.id) + '?edit=true',
@@ -48,7 +46,7 @@ export const useUtmActionsGlobal = (
         ...(canDelete
           ? {
               Delete: {
-                icon: BiTrash,
+                icon: Icons.Delete,
                 text: 'Delete',
                 title: 'Delete team membership',
                 confirmBody: 'This will permanently delete the team membership.',

@@ -1,23 +1,16 @@
 import { Box, HStack, Link, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import {
   ActionsType,
+  Icons,
   LinkActionProps,
   SearchWithResults,
   TableRowActions,
 } from '@edanalytics/common-ui';
+import { type IconType } from '@edanalytics/common-ui';
 import { useQuery } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import lunr, { Query, tokenizer } from 'lunr';
 import { LegacyRef, useMemo, useRef, useState } from 'react';
-import {
-  BsBuilding,
-  BsDatabase,
-  BsFileEarmarkDiff,
-  BsKey,
-  BsMortarboard,
-  BsShieldLock,
-} from 'react-icons/bs';
-import { IconType } from 'react-icons/lib';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { teamQueries } from '../api';
 import { AuthorizeConfig, useAuthorize, useTeamNavContext } from '../helpers';
@@ -214,10 +207,10 @@ const resourceNames: Record<string, string> = {
   profiles: 'Profiles',
 };
 const resourceIcons: Record<string, IconType> = {
-  odss: BsDatabase,
-  edorgs: BsMortarboard,
-  vendors: BsBuilding,
-  applications: BsKey,
-  claimsets: BsShieldLock,
-  profiles: BsFileEarmarkDiff,
+  odss: Icons.ODS,
+  edorgs: Icons.EdOrg,
+  vendors: Icons.Vendor,
+  applications: Icons.Application,
+  claimsets: Icons.Claimset,
+  profiles: Icons.Profile,
 };

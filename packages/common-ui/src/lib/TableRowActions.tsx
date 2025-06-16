@@ -1,7 +1,7 @@
-import { ButtonGroup, Icon, IconButton, Menu, MenuButton, MenuList } from '@chakra-ui/react';
-import { BiDotsVerticalRounded } from 'react-icons/bi';
+import { ButtonGroup, IconButton, Menu, MenuButton, MenuList } from '@chakra-ui/react';
 import { ActionsType } from './ActionsType';
 import { ActionMenuButton, TdIconButton } from './getStandardActions';
+import { Icons } from './Icons';
 
 /**
  * Split actions into some to be visible and some to be buried in menu, based on config for target number to show.
@@ -63,7 +63,7 @@ export const TableRowActions = (props: {
             as={IconButton}
             aria-label="more"
             px="0.3rem"
-            icon={<Icon as={BiDotsVerticalRounded} />}
+            icon={<Icons.DotsVerticalRounded />}
           />
           <MenuList>
             {hidden.map(([key, actionProps]) => (

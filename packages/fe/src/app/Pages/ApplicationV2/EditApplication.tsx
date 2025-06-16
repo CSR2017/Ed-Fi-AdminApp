@@ -6,7 +6,6 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Icon,
   IconButton,
   Input,
   ListItem,
@@ -27,7 +26,6 @@ import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { BsInfoCircle, BsTrash } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import {
@@ -48,6 +46,7 @@ import {
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { SelectIntegrationProvider } from '../IntegrationProvider/SelectIntegrationProvider';
 import { QUERY_KEYS } from '../../api-v2';
+import { Icons } from '@edanalytics/common-ui';
 
 const resolver = classValidatorResolver(PutApplicationFormDtoV2);
 
@@ -259,7 +258,7 @@ export const EditApplication = (props: {
                           variant="ghost"
                           colorScheme="red"
                           aria-label="remove"
-                          icon={<Icon as={BsTrash} />}
+                          icon={<Icons.Delete />}
                           size="xs"
                           onClick={() => {
                             const newSelection = [...selectedEdorgs];
@@ -318,7 +317,7 @@ export const EditApplication = (props: {
                         variant="ghost"
                         colorScheme="red"
                         aria-label="remove"
-                        icon={<Icon as={BsTrash} />}
+                        icon={<Icons.Delete />}
                         size="xs"
                         onClick={() => {
                           const newSelection = [...selectedProfileIds];
@@ -365,7 +364,7 @@ export const EditApplication = (props: {
             Claimset{' '}
             <Tooltip label="You can only select non-reserved claimsets here." hasArrow>
               <chakra.span>
-                <Icon as={BsInfoCircle} />
+                <Icons.InfoCircle />
               </chakra.span>
             </Tooltip>
           </FormLabel>

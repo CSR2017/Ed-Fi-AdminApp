@@ -1,8 +1,6 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetClaimsetDto } from '@edanalytics/models';
 import { RowSelectionState } from '@tanstack/react-table';
-import { BiEdit, BiExport, BiImport, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { claimsetQueriesV1 } from '../../api';
@@ -43,14 +41,14 @@ export const useClaimsetActions = ({
         ...(canView
           ? {
               View: {
-                icon: HiOutlineEye,
+                icon: Icons.View,
                 text: 'View',
                 title: 'View ' + claimset.displayName,
                 to: to(claimset.id),
                 onClick: () => navigate(to(claimset.id)),
               },
               Export: {
-                icon: BiExport,
+                icon: Icons.Export,
                 text: 'Export',
                 title: 'Export ' + claimset.displayName,
                 onClick: () => {
@@ -67,7 +65,7 @@ export const useClaimsetActions = ({
         ...(canEdit
           ? {
               Edit: {
-                icon: BiEdit,
+                icon: Icons.Edit,
                 text: 'Edit',
                 title: 'Edit ' + claimset.displayName,
                 to: to(claimset.id) + '?edit=true',
@@ -78,7 +76,7 @@ export const useClaimsetActions = ({
         ...(canDelete
           ? {
               Delete: {
-                icon: BiTrash,
+                icon: Icons.Delete,
                 isPending: deleteClaimset.isPending,
                 text: 'Delete',
                 title: 'Delete claimset',
@@ -130,7 +128,7 @@ export const useManyClaimsetActions = ({
           //   onClick: () => navigate(toCreate),
           // },
           Import: {
-            icon: BiImport,
+            icon: Icons.Import,
             text: 'Import',
             title: 'Import claimsets from Ed-Fi Admin App',
             to: toImport,
@@ -141,7 +139,7 @@ export const useManyClaimsetActions = ({
     ...(canRead && Object.keys(selectionState).length > 0
       ? {
           Export: {
-            icon: BiExport,
+            icon: Icons.Export,
             text: 'Export',
             title: 'Export selected claimsets',
             onClick: () => {

@@ -1,5 +1,4 @@
-import { ActionsType } from '@edanalytics/common-ui';
-import { BiPlus } from 'react-icons/bi';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { useNavigate, useParams } from 'react-router-dom';
 import { teamBaseAuthConfig, useAuthorize, useTeamSbEnvironmentNavContext } from '../../helpers';
 
@@ -15,7 +14,7 @@ export const useEdfiTenantsActions = (): ActionsType => {
   return canPost
     ? {
         Create: {
-          icon: BiPlus,
+          icon: Icons.Plus,
           text: 'Create',
           title: 'Create new tenant.',
           to: `/as/${teamId}/sb-environments/${sbEnvironmentId}/edfi-tenants/create`,

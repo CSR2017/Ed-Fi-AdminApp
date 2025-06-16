@@ -1,6 +1,6 @@
-import { BsHouseDoor, BsHouseDoorFill, BsPerson, BsPersonFill } from 'react-icons/bs';
 import { useLocation, useMatches } from 'react-router-dom';
 import { NavButton } from './NavButton';
+import { Icons } from '@edanalytics/common-ui';
 
 export const UniversalNavLinks = (props: object) => {
   const currentMatches = useMatches();
@@ -10,8 +10,7 @@ export const UniversalNavLinks = (props: object) => {
       <NavButton
         {...{
           route: '/',
-          icon: BsHouseDoor,
-          activeIcon: BsHouseDoorFill,
+          icon: Icons.Home,
           text: 'Home',
           isActive: /^\/(as\/\d+\/?)?$/.test(path),
         }}
@@ -19,8 +18,7 @@ export const UniversalNavLinks = (props: object) => {
       <NavButton
         {...{
           route: '/account',
-          icon: BsPerson,
-          activeIcon: BsPersonFill,
+          icon: Icons.Account,
           text: 'Account',
           isActive: currentMatches.some((m) => m.pathname.startsWith('/account')),
         }}

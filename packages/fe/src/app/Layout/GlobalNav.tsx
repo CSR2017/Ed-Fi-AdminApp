@@ -1,30 +1,13 @@
 import { Box, Link } from '@chakra-ui/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import sortBy from 'lodash/sortBy';
-import {
-  BsBuildings,
-  BsBuildingsFill,
-  BsClipboard,
-  BsClipboardFill,
-  BsHdd,
-  BsHddFill,
-  BsInboxes,
-  BsInboxesFill,
-  BsPeople,
-  BsPeopleFill,
-  BsPersonBadge,
-  BsPersonBadgeFill,
-  BsPersonVcard,
-  BsPersonVcardFill,
-  BsPuzzle,
-  BsPuzzleFill,
-} from 'react-icons/bs';
 import { Link as RouterLink, useMatches } from 'react-router-dom';
 import { sbEnvironmentQueries } from '../api';
 import { arrayElemIf, authorize, useAuthorize, usePrivilegeCacheForConfig } from '../helpers';
 import { INavButtonProps, NavButton } from './NavButton';
 import { UniversalNavLinks } from './UniversalNavLinks';
 import { usePaths } from '../routes/paths';
+import { Icons } from '@edanalytics/common-ui';
 
 export const findDeepestMatch = (
   matches: { pathname: string }[],
@@ -129,8 +112,7 @@ export const GlobalNav = () => {
       }),
       {
         route: `/sb-environments`,
-        icon: BsHdd,
-        activeIcon: BsHddFill,
+        icon: Icons.SbEnvironment,
         text: 'Environments',
       }
     ),
@@ -144,8 +126,7 @@ export const GlobalNav = () => {
       }),
       {
         route: `/teams`,
-        icon: BsBuildings,
-        activeIcon: BsBuildingsFill,
+        icon: Icons.Team,
         text: 'Teams',
       }
     ),
@@ -159,8 +140,7 @@ export const GlobalNav = () => {
       }),
       {
         route: `/users`,
-        icon: BsPeople,
-        activeIcon: BsPeopleFill,
+        icon: Icons.User,
         text: 'Users',
       }
     ),
@@ -174,8 +154,7 @@ export const GlobalNav = () => {
       }),
       {
         route: `/user-team-memberships`,
-        icon: BsPersonBadge,
-        activeIcon: BsPersonBadgeFill,
+        icon: Icons.TeamMembership,
         text: 'Team memberships',
       }
     ),
@@ -189,8 +168,7 @@ export const GlobalNav = () => {
       }),
       {
         route: `/roles`,
-        icon: BsPersonVcard,
-        activeIcon: BsPersonVcardFill,
+        icon: Icons.Role,
         text: 'Roles',
       }
     ),
@@ -204,8 +182,7 @@ export const GlobalNav = () => {
       }),
       {
         route: `/ownerships`,
-        icon: BsClipboard,
-        activeIcon: BsClipboardFill,
+        icon: Icons.Ownership,
         text: 'Ownerships',
       }
     ),
@@ -219,8 +196,7 @@ export const GlobalNav = () => {
       }),
       {
         route: paths.integrationProvider.index(),
-        icon: BsPuzzle,
-        activeIcon: BsPuzzleFill,
+        icon: Icons.IntegrationProvider,
         text: 'Integration Providers',
       }
     ),
@@ -234,8 +210,7 @@ export const GlobalNav = () => {
       }),
       {
         route: `/sb-sync-queues`,
-        icon: BsInboxes,
-        activeIcon: BsInboxesFill,
+        icon: Icons.SyncQueue,
         text: 'Sync queue',
       }
     ),
@@ -255,8 +230,7 @@ export const GlobalNav = () => {
         }),
         {
           route: `/sb-environments/${sbEnvironment.id}`,
-          icon: BsHdd,
-          activeIcon: BsHddFill,
+          icon: Icons.SbEnvironment,
           text: sbEnvironment.displayName,
         }
       )

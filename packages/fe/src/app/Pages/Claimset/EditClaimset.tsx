@@ -4,7 +4,6 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Icon,
   Input,
   Text,
   Textarea,
@@ -16,12 +15,12 @@ import { flattenFieldErrors } from '@edanalytics/utils';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { BsInfoCircle } from 'react-icons/bs';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { claimsetQueriesV1 } from '../../api';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
+import { Icons } from '@edanalytics/common-ui';
 
 const resolver = classValidatorResolver(PutClaimsetDto);
 
@@ -76,7 +75,7 @@ export const EditClaimset = (props: { claimset: GetClaimsetDto }) => {
           Resource claims{' '}
           <Tooltip label="Paste resource claims JSON here." hasArrow>
             <chakra.span>
-              <Icon as={BsInfoCircle} />
+              <Icons.InfoCircle />
             </chakra.span>
           </Tooltip>
         </FormLabel>

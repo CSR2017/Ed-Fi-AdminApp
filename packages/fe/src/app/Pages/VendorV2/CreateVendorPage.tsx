@@ -5,27 +5,21 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Icon,
   Input,
   Text,
   Tooltip,
   chakra,
 } from '@chakra-ui/react';
-import { PageTemplate } from '@edanalytics/common-ui';
+import { Icons, PageTemplate } from '@edanalytics/common-ui';
 import { PostVendorDtoV2 } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useQueryClient } from '@tanstack/react-query';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { BsInfoCircle } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { vendorQueriesV2 } from '../../api';
-import {
-  useNavToParent,
-  useTeamEdfiTenantNavContext,
-  useTeamEdfiTenantNavContextLoaded,
-} from '../../helpers';
+import { useNavToParent, useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
 const resolver = classValidatorResolver(PostVendorDtoV2);
@@ -85,7 +79,7 @@ export const CreateVendorV2 = () => {
                 hasArrow
               >
                 <chakra.span>
-                  <Icon as={BsInfoCircle} />
+                  <Icons.InfoCircle />
                 </chakra.span>
               </Tooltip>
             </FormLabel>

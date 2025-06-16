@@ -1,7 +1,5 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetUserDto } from '@edanalytics/models';
-import { BiEdit, BiIdCard, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { queryKey, userQueries } from '../../api';
@@ -33,7 +31,7 @@ export const useUserGlobalActions = (user: GetUserDto | undefined): ActionsType 
         ...(canView
           ? {
               View: {
-                icon: HiOutlineEye,
+                icon: Icons.View,
                 text: 'View',
                 title: 'View ' + user.displayName,
                 to: to(user.id),
@@ -44,7 +42,7 @@ export const useUserGlobalActions = (user: GetUserDto | undefined): ActionsType 
         ...(canAssign
           ? {
               Assign: {
-                icon: BiIdCard,
+                icon: Icons.IdCard,
                 text: 'Add team',
                 title: 'Add ' + user.displayName + ' to a team',
                 to: `/user-team-memberships/create?userId=${user.id}`,
@@ -55,7 +53,7 @@ export const useUserGlobalActions = (user: GetUserDto | undefined): ActionsType 
         ...(canEdit
           ? {
               Edit: {
-                icon: BiEdit,
+                icon: Icons.Edit,
                 isDisabled: inEdit,
                 text: 'Edit',
                 title: 'Edit ' + user.displayName,
@@ -67,7 +65,7 @@ export const useUserGlobalActions = (user: GetUserDto | undefined): ActionsType 
         ...(canDelete
           ? {
               Delete: {
-                icon: BiTrash,
+                icon: Icons.Delete,
                 isPending: deleteUser.isPending,
                 text: 'Delete',
                 title: 'Delete user',

@@ -1,4 +1,3 @@
-import { BiAlarm, BiEdit, BiTrash } from 'react-icons/bi';
 import { PageTemplate } from './PageTemplate';
 import { Box } from '@chakra-ui/react';
 import { Meta } from '@storybook/react';
@@ -9,33 +8,35 @@ import {
   ContentSection,
   PageContentCard,
   PageSectionActions,
+  Icons,
 } from '..';
 import { faker } from '@faker-js/faker';
 import { Standard } from '../sbaaTable/SbaaTable.stories';
+
 const ExampleActions = () => (
   <PageActions
     show={2}
     actions={{
       0: {
-        icon: BiEdit,
+        icon: Icons.Edit,
         text: 'Edit',
         title: 'Edit the thingy',
         onClick: () => undefined,
       },
       1: {
-        icon: BiTrash,
+        icon: Icons.Delete,
         text: 'Delete',
         title: 'Delete the thingy',
         onClick: () => undefined,
       },
       2: {
-        icon: BiTrash,
+        icon: Icons.Delete,
         text: 'Delete',
         title: 'Delete the thingy',
         onClick: () => undefined,
       },
       3: {
-        icon: BiTrash,
+        icon: Icons.Delete,
         text: 'Delete',
         title: 'Delete the thingy',
         onClick: () => undefined,
@@ -43,6 +44,7 @@ const ExampleActions = () => (
     }}
   />
 );
+
 const meta: Meta<typeof PageTemplate> = {
   title: 'PageTemplate',
   component: PageTemplate,
@@ -177,13 +179,13 @@ export const NoSectionHeadings = () => (
 const actions = {
   Bah: {
     confirm: true,
-    icon: BiTrash,
+    icon: Icons.Delete,
     text: 'Delete',
     title: 'Delete the thingy',
     onClick: () => undefined,
   },
   Bah2: {
-    icon: BiAlarm,
+    icon: Icons.DotsVerticalRounded,
     text: 'Blub',
     title: 'Blub the thingy',
     onClick: () => undefined,

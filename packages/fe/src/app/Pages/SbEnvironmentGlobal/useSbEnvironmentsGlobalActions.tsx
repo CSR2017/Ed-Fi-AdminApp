@@ -1,5 +1,4 @@
-import { ActionsType } from '@edanalytics/common-ui';
-import { BiPlus } from 'react-icons/bi';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { useNavigate } from 'react-router-dom';
 import { globalSbEnvironmentAuthConfig, useAuthorize } from '../../helpers';
 
@@ -13,7 +12,7 @@ export const useSbEnvironmentsGlobalActions = (): ActionsType => {
   return canCreate
     ? {
         Create: {
-          icon: BiPlus,
+          icon: Icons.Plus,
           text: 'Connect',
           title: 'Connect new environment.',
           to: '/sb-environments/create',

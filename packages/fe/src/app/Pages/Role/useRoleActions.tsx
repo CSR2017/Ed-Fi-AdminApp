@@ -1,7 +1,5 @@
-import { ActionsType } from '@edanalytics/common-ui';
+import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetRoleDto } from '@edanalytics/models';
-import { BiEdit, BiTrash } from 'react-icons/bi';
-import { HiOutlineEye } from 'react-icons/hi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { roleQueries } from '../../api';
@@ -34,7 +32,7 @@ export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
         ...(canView
           ? {
               View: {
-                icon: HiOutlineEye,
+                icon: Icons.View,
                 text: 'View',
                 title: 'View ' + role.displayName,
                 to: to(role.id),
@@ -45,7 +43,7 @@ export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
         ...(canEdit
           ? {
               Edit: {
-                icon: BiEdit,
+                icon: Icons.Edit,
                 text: 'Edit',
                 title: 'Edit ' + role.displayName,
                 to: to(role.id) + '?edit=true',
@@ -56,7 +54,7 @@ export const useRoleActions = (role: GetRoleDto | undefined): ActionsType => {
         ...(canDelete
           ? {
               Delete: {
-                icon: BiTrash,
+                icon: Icons.Delete,
                 isPending: deleteRole.isPending,
                 text: 'Delete',
                 title: 'Delete role',
