@@ -92,6 +92,11 @@ Parameters:
       - 'true'
       - 'false'
     Description: Create the /api endpoint
+  BeanstalkPlatformUpdateTime:
+    Description: Specify the update day and time in UTC using the format 'Day:HH:MM' (e.g., Wed:15:30). Platform updates will be disabled if no value is specified. (optional)
+    Type: String
+    AllowedPattern: '^$|^(Mon|Tue|Wed|Thu|Fri|Sat|Sun):(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$'
+
 Conditions:
   AllowSshToBeanstalk: !Equals
     - !Ref 'SshToBeanstalk'
@@ -101,6 +106,8 @@ Conditions:
   UseRollingUpdates: !Equals
     - !Ref 'DeploymentStrategy'
     - 'RollingWithAdditionalBatch'
+  EnableBeanstalkPlatformUpdate: !Not [!Equals [!Ref BeanstalkPlatformUpdateTime, '']]
+
 Resources:
   DbEncryptionSecretRole:
     Type: AWS::IAM::Role
@@ -308,6 +315,39 @@ Resources:
             Resource: !Ref WebACLArn
       Roles:
         - !Ref ElasticBeanstalkEC2Role
+  ElasticBeanstalkServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - elasticbeanstalk.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkEnhancedHealth
+        - arn:aws:iam::aws:policy/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy
+      RoleName: !Sub '${EnvLabel}-elasticbeanstalk-service-role'
+      Policies:
+        - PolicyName: SNS
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - SNS:GetTopicAttributes
+                Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${EnvLabel}*'
+        - PolicyName: SSM
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameters
+                Resource: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/beanstalk/environments/${EnvLabel}-Env/parameters/ALBHostNameRestriction'
   ElasticBeanstalkEC2InstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
     Properties:
@@ -576,6 +616,35 @@ Resources:
         - Namespace: aws:elasticbeanstalk:cloudwatch:logs
           OptionName: RetentionInDays
           Value: !Ref LogRetentionInDays
+        - !If
+          - EnableBeanstalkPlatformUpdate
+          - Namespace: aws:elasticbeanstalk:managedactions
+            OptionName: ManagedActionsEnabled
+            Value: 'true'
+          - Namespace: aws:elasticbeanstalk:managedactions
+            OptionName: ManagedActionsEnabled
+            Value: 'false'
+        - !If
+          - EnableBeanstalkPlatformUpdate
+          - Namespace: aws:elasticbeanstalk:managedactions:platformupdate
+            OptionName: UpdateLevel
+            Value: 'minor'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - EnableBeanstalkPlatformUpdate
+          - Namespace: aws:elasticbeanstalk:managedactions:platformupdate
+            OptionName: InstanceRefreshEnabled
+            Value: 'false'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - EnableBeanstalkPlatformUpdate
+          - Namespace: aws:elasticbeanstalk:managedactions
+            OptionName: PreferredStartTime
+            Value: !Ref BeanstalkPlatformUpdateTime
+          - !Ref 'AWS::NoValue'
+        - Namespace: aws:elasticbeanstalk:environment
+          OptionName: ServiceRole
+          Value: !Ref ElasticBeanstalkServiceRole
       SolutionStackName: !Sub 'arn:aws:elasticbeanstalk:${AWS::Region}::platform/Docker running on 64bit Amazon Linux 2'
       Tier:
         Name: 'WebServer'
