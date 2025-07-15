@@ -404,7 +404,6 @@ Resources:
               - SNS:Subscribe
               - SNS:ListSubscriptionsByTopic
               - SNS:Publish
-              - SNS:Receive
             Resource: !Ref 'BeanstalkSNSTopic'
             Condition:
               StringEquals:

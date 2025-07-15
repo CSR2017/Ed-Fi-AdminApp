@@ -441,4 +441,4 @@ Resources:
 Outputs:
   TemplateVersion:
     Description: The version of the cloudformation template
-    Value: '1.0.4'
+    Value: '1.0.5'
