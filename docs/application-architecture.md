@@ -1,10 +1,13 @@
-- [About the architecture — a vertical slice](#about-the-architecture--a-vertical-slice)
-  - [1. Model definitions](#1-model-definitions)
-  - [2. Server](#2-server)
-  - [3. Client](#3-client)
-  - [4. Plumbing](#4-plumbing)
-- [Monorepo structure](#monorepo-structure)
-- [Testing](#testing)
+# Application Architecture
+
+- [Application Architecture](#application-architecture)
+  - [About the architecture — a vertical slice](#about-the-architecture--a-vertical-slice)
+    - [1. Model definitions](#1-model-definitions)
+    - [2. Server](#2-server)
+    - [3. Client](#3-client)
+    - [4. Plumbing](#4-plumbing)
+  - [Monorepo structure](#monorepo-structure)
+  - [Testing](#testing)
 
 ## About the architecture &mdash; a vertical slice
 
