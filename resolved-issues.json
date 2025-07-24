@@ -1,5 +1,20 @@
 [
   {
+    "id": "GHSA-fjxv-7rqg-78g4",
+    "paths": ["aws4-axios>axios>form-data", "axios>form-data"],
+    "notes": "FormData is not used within this repository"
+  },
+  {
+    "id": "GHSA-fjgf-rc76-4x9p",
+    "paths": [
+      "@nestjs/core>@nestjs/platform-express>multer",
+      "@nestjs/platform-express>multer",
+      "@nestjs/swagger>@nestjs/core>@nestjs/platform-express>multer",
+      "@nestjs/typeorm>@nestjs/core>@nestjs/platform-express>multer"
+    ],
+    "notes": "Waiting on a PR"
+  },
+  {
     "id": "GHSA-9wv6-86v2-598j",
     "paths": ["@nestjs/swagger>path-to-regexp"],
     "notes": "path-to-regexp: Waiting on the same PR as body-parser"
