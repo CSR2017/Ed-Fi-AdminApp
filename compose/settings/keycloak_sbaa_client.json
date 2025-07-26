@@ -1,0 +1,13 @@
+{
+  "clientId": "sbaa",
+  "name": "Starting Blocks Admin App",
+  "enabled": true,
+  "rootUrl": "http://localhost:3333",
+  "adminUrl": "http://localhost:3333",
+  "baseUrl": "http://localhost:3333",
+  "clientAuthenticatorType": "client-secret",
+  "secret": "big-secret-123",
+  "redirectUris": ["http://localhost:3333/api/auth/callback/1"],
+  "webOrigins": ["http://localhost:4200"],
+  "protocol": "openid-connect"
+}

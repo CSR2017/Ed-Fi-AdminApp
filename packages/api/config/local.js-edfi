@@ -1,0 +1,49 @@
+// packages/api/config/local-development.js
+
+module.exports = {
+  _OPEN_API: true,
+  API_PORT: 3333,
+  DB_SSL: false,
+  AWS_REGION: 'us-east-2',
+  FE_URL: 'http://localhost:4200',
+  MY_URL: 'http://localhost:3333',
+  YOPASS_URL: 'http://localhost:8082',
+
+
+  DB_SECRET_VALUE: {
+    DB_HOST: 'localhost',
+    DB_PORT: 5432,
+    DB_USERNAME: 'postgres',
+    DB_DATABASE: 'sbaa',
+    DB_PASSWORD: 'postgres',
+  },
+  DB_ENCRYPTION_SECRET_VALUE: {
+    // Can replace with `openssl rand -hex 32` or `node -e "console.log('KEY: '+ require('crypto').randomBytes(32).toString('hex'))"`
+    KEY: 'bbeadc2d4d15f5c9cfc2239b682cca392b233ee6979b6b9578d256aa01a7c565',
+    IV: '<ignore - this should be refactored out. See comments elsewhere>',
+  },
+
+  // Optional (can delete): seed IdP configs for your local Keycloak. You'll need to use these values for the appropriate things in keycloak itself.
+  SAMPLE_OIDC_CONFIG: {
+    issuer: 'http://localhost:8045/realms/edfi',
+    clientId: 'sbaa',
+    clientSecret: 'big-secret-123',
+    scope: '',
+  },
+
+  // Optional: seed an initial user.
+  ADMIN_USERNAME: 'sbaa-admin@example.com', // use an email address in the future
+
+  // Do not comment this out! Even though Ed-Fi environments do not use Auth0, the code is looking for this object
+  AUTH0_CONFIG_SECRET_VALUE: {
+    ISSUER: 'https://example.com/',
+    CLIENT_ID: '<your value>',
+    CLIENT_SECRET: '<your value>',
+    MACHINE_AUDIENCE: 'sbaa-local',
+    MANAGEMENT_DOMAIN: '<your value>',
+    MANAGEMENT_CLIENT_ID: '<your value>',
+    MANAGEMENT_CLIENT_SECRET: '<your value>',
+  },
+
+  // There are other defaults you can override if you want to. See default.js.
+};

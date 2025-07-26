@@ -3,6 +3,15 @@ name: Test
 on:
   pull_request:
     branches: [main, develop]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'tsconfig.build.json'
+      - 'src/**'
+      - 'e2e/**'
+      - '.github/workflows/test.yml'
+  workflow_dispatch:
 
 jobs:
   test:

@@ -3,6 +3,10 @@ name: Storybook
 on:
   pull_request:
     branches: [main, develop]
+    paths:
+      - '.github/workflows/storybook.yml'
+      - 'packages/common-ui/**'
+  workflow_dispatch:
 
 jobs:
   build:

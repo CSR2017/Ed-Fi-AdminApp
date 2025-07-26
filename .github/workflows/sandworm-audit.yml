@@ -3,6 +3,11 @@ name: Sandworm Audit
 on:
   pull_request:
     branches: [main, develop]
+    paths:
+      - '.github/workflows/sandworm-audit.yml'
+      - 'package-lock.json'
+      - '.sandworm.config.json'
+  workflow_dispatch:
 
 jobs:
   audit:

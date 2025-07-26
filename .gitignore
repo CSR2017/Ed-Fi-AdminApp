@@ -47,8 +47,11 @@ db.sqlite
 *.local.*
 *.local
 !sbaa-keycloak-config.local.yml
+!local.js-edfi
 
 packages/api/config/local*
 !*.copyme*
 
 sandworm/
+
+.env
