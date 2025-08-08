@@ -30,9 +30,27 @@ export class SbEnvironmentsGlobalService {
     private readonly edfiTenantService: EdfiTenantsService
   ) {}
   create(createSbEnvironmentDto: PostSbEnvironmentDto) {
-    return this.sbEnvironmentsRepository.save(
-      this.sbEnvironmentsRepository.create(createSbEnvironmentDto)
-    );
+    // Validate and transform the DTO
+    const { version, ...otherProps } = createSbEnvironmentDto;
+
+    // Validate version is one of the allowed values
+    if (version !== 'v1' && version !== 'v2') {
+      throw new CustomHttpException(
+        {
+          title: 'Invalid version',
+          message: 'Version must be either "v1" or "v2"',
+          type: 'Error',
+        },
+        400
+      );
+    }
+
+    // Create the entity with properly typed version
+    const entityData = {
+      ...otherProps,
+      version: version as 'v1' | 'v2', // Type assertion after validation
+    };
+    return this.sbEnvironmentsRepository.save(this.sbEnvironmentsRepository.create(entityData));
   }
 
   async findOne(id: number) {

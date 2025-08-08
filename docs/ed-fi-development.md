@@ -26,7 +26,7 @@ It is also easy to test / fix a specific file, for example:
 
 ```shell
 npx prettier compose/readme.md
-npx pretteri --write compose/readmem.d
+npx prettier --write compose/readme.md
 ```
 
 ## Troubleshooting
@@ -69,3 +69,18 @@ Although it is not ideal, go ahead and run:
 ```shell
 npm install --legacy-peer-deps
 ```
+
+## Tips for Understanding the Repository
+
+### Routing
+
+How does URL routing work in this application? The following snippet sets up the UI routing for the Tenant creation page, for example:
+
+```javascript
+export const edfiTenantCreateRoute: RouteObject = {
+  path: '/as/:asId/sb-environments/:sbEnvironmentId/edfi-tenants/create/',
+  element: <CreateEdfiTenantPage />,
+};
+```
+
+If the user is working with environment 1, then this route definition becomes this URL: `http://localhost:4200/sb-environments/1/edfi-tenants/create`.

@@ -157,12 +157,14 @@ In Global Scope, complete the following setup:
 ### URLs
 
 - [ODS/API 7.x](https://localhost:4443/v7-ods)
-- [Admin API 2.x](https://localhost:4443/v7-adminapi)
+  - [Admin API 2.x](https://localhost:4443/v7-adminapi)
 - [ODS/API 6.x](https://localhost:5443/v6-ods)
-- [Admin API 2.x](https://localhost:5443/v6-adminapi)
+  - [Admin API 1.x](https://localhost:5443/v6-adminapi)
 - [Keycloak](http://localhost:8045)
 - [Yopass](http://localhost:8082)
 - [PGAdmin4](http://localhost:5050)
+- [SBAA API Swagger](http://localhost:3333/api/)
+- [SBAA UI](http://localhost:4200/)
 
 ## Troubleshooting
 

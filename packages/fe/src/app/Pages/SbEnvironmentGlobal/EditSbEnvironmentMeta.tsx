@@ -63,6 +63,7 @@ export const EditSbEnvironmentMeta = (props: { sbEnvironment: GetSbEnvironmentDt
     >
       <FormControl isInvalid={!!errors.arn}>
         <FormLabel>Metadata ARN</FormLabel>
+        <Text as="em">Required when using Starting Blocks, leave blank otherwise.</Text>
         <Input {...register('arn')} placeholder="arn:aws:lambda:us..." />
         <FormErrorMessage>{errors.arn?.message}</FormErrorMessage>
       </FormControl>

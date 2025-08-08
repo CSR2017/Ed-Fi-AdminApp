@@ -209,7 +209,7 @@ export const CreateOwnershipGlobalPage = () => {
             <FormControl
               isInvalid={!!errors.hasResource && (sbEnvironmentId === undefined || isSbEnvironment)}
             >
-              <FormLabel>Starting Blocks environment</FormLabel>
+              <FormLabel>Environment</FormLabel>
               <SelectSbEnvironment
                 // @ts-expect-error onchange
                 onChange={(value: number) => {

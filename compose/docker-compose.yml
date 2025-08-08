@@ -212,7 +212,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       API_MODE: DistrictSpecific
     # Temporary workaround to ensure the database is set up correctly (there's a bug in the image)
-    user: root  # Run as root initially
+    user: root # Run as root initially
     command: >
       sh -c "
         chown -R postgres:postgres /tmp/AdminApiScripts &&

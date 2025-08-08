@@ -33,6 +33,7 @@ export type SbEnvironmentConfigPublic = {
   odsApiMeta?: OdsApiMeta;
   adminApiUrl: string;
   lastSuccessfulPull?: Date;
+  adminApiVersion: SbaaAdminApiVersion; //Maybe it will be required in case we add DMS
 } & (
   | {
       version: 'v1';

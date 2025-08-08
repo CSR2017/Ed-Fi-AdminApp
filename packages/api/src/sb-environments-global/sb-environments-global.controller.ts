@@ -6,6 +6,7 @@ import {
   PostSbEnvironmentDto,
   PutSbEnvironmentDto,
   PutSbEnvironmentMeta,
+  SbEnvironmentConfigPublic,
   toGetSbEnvironmentDto,
   toOperationResultDto,
   toPostSbEnvironmentResponseDto,
@@ -46,6 +47,7 @@ import { CustomHttpException, ValidationHttpException, throwNotFound } from '../
 import { SbEnvironmentsGlobalService } from './sb-environments-global.service';
 import { StartingBlocksServiceV2 } from '../teams/edfi-tenants/starting-blocks';
 import { Operation, SbVersion } from '../auth/authorization/sbVersion.decorator';
+import { SbEnvironmentsEdFiService } from './sb-environments-edfi.services';
 
 @ApiTags('SbEnvironment - Global')
 @UseInterceptors(SbEnvironmentEdfiTenantInterceptor)
@@ -53,6 +55,7 @@ import { Operation, SbVersion } from '../auth/authorization/sbVersion.decorator'
 export class SbEnvironmentsGlobalController {
   constructor(
     private readonly sbEnvironmentService: SbEnvironmentsGlobalService,
+    private readonly sbEnvironmentEdFiService: SbEnvironmentsEdFiService,
     @InjectRepository(SbEnvironment)
     private sbEnvironmentsRepository: Repository<SbEnvironment>,
     private startingBlocksServiceV2: StartingBlocksServiceV2,
@@ -116,17 +119,8 @@ export class SbEnvironmentsGlobalController {
         }
       });
     } else {
-      const sbEnvironment = await this.sbEnvironmentsRepository.save(
-        addUserCreating(
-          this.sbEnvironmentsRepository.create({
-            name: createSbEnvironmentDto.name,
-          }),
-          user
-        )
-      );
-      return toPostSbEnvironmentResponseDto({
-        id: sbEnvironment.id,
-      });
+      const response = await this.sbEnvironmentEdFiService.create(createSbEnvironmentDto, user);
+      return toPostSbEnvironmentResponseDto(response);
     }
   }
 

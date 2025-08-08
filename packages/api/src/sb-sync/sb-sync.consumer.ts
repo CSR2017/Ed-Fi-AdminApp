@@ -76,53 +76,67 @@ export class SbSyncConsumer implements OnModuleInit {
   }
 
   async refreshSbEnvironment(sbEnvironmentId: number) {
-    const sbEnvironment = await this.sbEnvironmentsRepository
+    let sbEnvironment = await this.sbEnvironmentsRepository
       .createQueryBuilder()
       .select()
       .where(`"configPublic"->>'sbEnvironmentMetaArn' is not null and id = :id`, {
         id: sbEnvironmentId,
       })
       .getOne();
-    if (sbEnvironment === null)
-      throw new BadRequestException(`No syncable environment found with id ${sbEnvironmentId}`);
+    if (sbEnvironment === null) {
+      //try to find a syncable environment EdFi
+      sbEnvironment = await this.sbEnvironmentsRepository
+        .createQueryBuilder()
+        .select()
+        .where(`"configPublic"->>'type' is not null and id = :id`, {
+          id: sbEnvironmentId,
+        })
+        .getOne();
+      if (sbEnvironment === null)
+        throw new NotFoundException(`No syncable environment found with id ${sbEnvironmentId}`);
 
-    const sbMeta = await this.metadataService.getMetadata(sbEnvironment);
-    if (sbMeta.status === 'NO_CONFIG') {
-      throw new CustomHttpException(
-        {
-          type: 'Error',
-          title: 'Metadata retrieval failed.',
-          message: 'Bad config for metadata lambda function.',
-          regarding: regarding(sbEnvironment),
-        },
-        500
-      );
-    } else if (sbMeta.status !== 'SUCCESS') {
-      throw new CustomHttpException(
-        {
-          type: 'Error',
-          title: 'Matadata retrieval failed.',
-          message: sbMeta.error,
-          regarding: regarding(sbEnvironment),
-        },
-        500
-      );
-    }
-    let result: Awaited<
-      ReturnType<
-        | StartingBlocksServiceV1['syncEnvironmentEverything']
-        | StartingBlocksServiceV2['syncEnvironmentEverything']
-      >
-    >;
-    if (isSbV2MetaEnv(sbMeta.data)) {
-      result = await this.sbServiceV2.syncEnvironmentEverything(sbEnvironment, sbMeta.data);
+      // make some stuff to the environment like getting the tenants. Tenants are getting from a lambda function
+      // maybe we should have a list of tenants in the sbEnvironment react form?
     } else {
-      result = await this.sbServiceV1.syncEnvironmentEverything(sbEnvironment, sbMeta.data);
-    }
-    if (result.status !== 'SUCCESS') {
-      throw result;
-    } else {
-      return result.data;
+      // Use the lambda function to get metadata
+      const sbMeta = await this.metadataService.getMetadata(sbEnvironment);
+      if (sbMeta.status === 'NO_CONFIG') {
+        throw new CustomHttpException(
+          {
+            type: 'Error',
+            title: 'Metadata retrieval failed.',
+            message: 'Bad config for metadata lambda function.',
+            regarding: regarding(sbEnvironment),
+          },
+          500
+        );
+      } else if (sbMeta.status !== 'SUCCESS') {
+        throw new CustomHttpException(
+          {
+            type: 'Error',
+            title: 'Matadata retrieval failed.',
+            message: sbMeta.error,
+            regarding: regarding(sbEnvironment),
+          },
+          500
+        );
+      }
+      let result: Awaited<
+        ReturnType<
+          | StartingBlocksServiceV1['syncEnvironmentEverything']
+          | StartingBlocksServiceV2['syncEnvironmentEverything']
+        >
+      >;
+      if (isSbV2MetaEnv(sbMeta.data)) {
+        result = await this.sbServiceV2.syncEnvironmentEverything(sbEnvironment, sbMeta.data);
+      } else {
+        result = await this.sbServiceV1.syncEnvironmentEverything(sbEnvironment, sbMeta.data);
+      }
+      if (result.status !== 'SUCCESS') {
+        throw result;
+      } else {
+        return result.data;
+      }
     }
   }
 

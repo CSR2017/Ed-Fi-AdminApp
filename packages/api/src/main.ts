@@ -18,6 +18,8 @@ import passport from 'passport';
 import { Client } from 'pg';
 import { AppModule } from './app/app.module';
 import { CustomHttpException } from './utils/customExceptions';
+import axios from 'axios';
+import https from 'https';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -104,6 +106,17 @@ async function bootstrap() {
     );
   }
 
+  // Not sure if this is the best way to disable SSL verification, but it is necessary for local development
+  if (config.FE_URL.includes('localhost')) {
+    axios.defaults.httpsAgent = new https.Agent({
+      rejectUnauthorized: false,
+    });
+    Logger.warn(
+      colors.yellow(
+        'SSL verification is disabled for local development. Do not use this in production!'
+      )
+    );
+  }
   Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
 }
 

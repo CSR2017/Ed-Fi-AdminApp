@@ -25,7 +25,7 @@ export const ViewSbEnvironmentGlobal = (props: { sbEnvironment: GetSbEnvironment
               isCopyable
               isUrl
               isUrlExternal
-              label="Ed-Fi ODS API"
+              label="Ed-Fi API Domain"
               value={sbEnvironment.usableDomain}
             />
             <Attribute label="Created" value={sbEnvironment.created} isDate />
@@ -36,7 +36,7 @@ export const ViewSbEnvironmentGlobal = (props: { sbEnvironment: GetSbEnvironment
               label="Admin API"
               value={sbEnvironment.adminApiUrl}
             />
-            <Attribute isCopyable label="ODS API version" value={sbEnvironment.odsApiVersion} />
+            <Attribute isCopyable label="Ed-Fi API version" value={sbEnvironment.odsApiVersion} />
             <Attribute
               isCopyable
               label="Data standard version"

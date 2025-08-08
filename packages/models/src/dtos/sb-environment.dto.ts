@@ -1,5 +1,5 @@
 import { Expose, Type } from 'class-transformer';
-import { IsOptional, IsString, MinLength } from 'class-validator';
+import { IsOptional, IsString, Matches, MaxLength, MinLength, IsIn } from 'class-validator';
 import { TrimWhitespace } from '../utils';
 import type {
   ISbEnvironment,
@@ -146,10 +146,49 @@ export class PostSbEnvironmentDto
   name: string;
 
   @Expose()
+  @MaxLength(2)
+  @IsIn(['v1', 'v2'])
+  version?: 'v1' | 'v2';
+
+  @Expose()
+  @MinLength(3)
+  @TrimWhitespace()
+  @Matches(/^(https?:\/\/)[^\s$.?#].[^\s]*$/i, {
+    message: 'ODS/API Discovery URL must be a valid URL starting with http:// or https://',
+  })
+  odsApiDiscoveryUrl?: string;
+
+  @Expose()
+  @MinLength(3)
+  @TrimWhitespace()
+  @Matches(/^(https?:\/\/)[^\s$.?#].[^\s]*$/i, {
+    message: 'Admin API URL must be a valid URL starting with http:// or https://',
+  })
+  adminApiUrl?: string;
+
+  @Expose()
+  @MinLength(3)
+  @TrimWhitespace()
+  environmentLabel?: string;
+
+  @Expose()
+  isMultitenant?: boolean;
+
+  @Expose()
+  startingBlocks: boolean;
+
+  @Expose()
+  edOrgIds: string;
+
+  @Expose()
+  @IsOptional()
   @IsString()
   @IsArn({ allowEmptyString: true })
   @TrimWhitespace()
   metaArn?: string | undefined;
+
+  @Expose()
+  configPublic?: SbEnvironmentConfigPublic;
 }
 
 export class PostSbEnvironmentResponseDto {
