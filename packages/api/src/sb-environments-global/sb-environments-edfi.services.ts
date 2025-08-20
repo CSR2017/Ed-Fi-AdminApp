@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ValidationHttpException } from '../utils';
 import { InjectRepository } from '@nestjs/typeorm';
 import { addUserCreating, EdfiTenant, SbEnvironment } from '@edanalytics/models-server';
@@ -9,7 +9,7 @@ import {
   StartingBlocksServiceV2,
 } from '../teams/edfi-tenants/starting-blocks';
 import { EdfiTenantsService } from '../teams/edfi-tenants/edfi-tenants.service';
-import { PostSbEnvironmentDto, SbV1MetaEnv, SbV1MetaOds, EdorgType } from '@edanalytics/models';
+import { PostSbEnvironmentDto, SbV1MetaEnv, EdorgType, OdsApiMeta, GetUserDto } from '@edanalytics/models';
 import axios from 'axios';
 
 @Injectable()
@@ -25,13 +25,44 @@ export class SbEnvironmentsEdFiService {
     private edfiTenantsRepository: Repository<EdfiTenant>,
   ) {}
 
-  async create(createSbEnvironmentDto: PostSbEnvironmentDto, user: any) {
+  private determineVersionFromMetadata(odsApiMeta: OdsApiMeta): 'v1' | 'v2' {
+  try {
+    // Extract version from metadata
+    const version = odsApiMeta.version;
+
+    if (!version) {
+      Logger.warn('No version found in ODS API metadata, defaulting to v1');
+      return 'v1';
+    }
+
+    // Parse the major version number correctly from semantic version string
+    const majorVersion = parseInt(version.split('.')[0], 10);
+
+    if (majorVersion >= 7) {
+      return 'v2';
+    } else {
+      return 'v1';
+    }
+  } catch (error) {
+    Logger.warn('Failed to parse version from metadata, defaulting to v1:', error);
+    return 'v1';
+  }
+}
+
+  async create(createSbEnvironmentDto: PostSbEnvironmentDto, user: GetUserDto | undefined) {
     // Validate ODS Discovery URL if provided
     if (createSbEnvironmentDto.odsApiDiscoveryUrl) {
       try {
-        // Fetch ODS API metadata
-        const odsApiMetaResponse = await this.fetchOdsApiMetadata(createSbEnvironmentDto);
+      // Fetch ODS API metadata
+      const odsApiMetaResponse = await this.fetchOdsApiMetadata(createSbEnvironmentDto);
 
+      // Auto-detect version from metadata
+      const detectedVersion = this.determineVersionFromMetadata(odsApiMetaResponse);
+
+      // Override the version with detected version
+      createSbEnvironmentDto.version = detectedVersion;
+
+      Logger.log(`Auto-detected API version: ${detectedVersion} from ODS version: ${odsApiMetaResponse.version}`);
         // const multitenantMode = createSbEnvironmentDto.isMultitenant ? "MultiTenant" : "SingleTenant";
         const sbEnvironment = await this.sbEnvironmentsRepository.save(
           addUserCreating(
@@ -75,7 +106,7 @@ export class SbEnvironmentsEdFiService {
         if (createSbEnvironmentDto.version === 'v1') {
           this.syncv1Environment(sbEnvironment, createSbEnvironmentDto);
           // Make a POST request to register the client
-          const { clientId, displayName, clientSecret } =
+          const { clientId, clientSecret } =
             await this.createClientCredentials(createSbEnvironmentDto);
 
           // Save the admin API credentials
@@ -85,7 +116,7 @@ export class SbEnvironmentsEdFiService {
             url: createSbEnvironmentDto.adminApiUrl,
           };
           await this.startingBlocksServiceV1.saveAdminApiCredentials(sbEnvironment, credentials);
-        } else if (sbEnvironment.version === 'v2') {
+        } else if (createSbEnvironmentDto.version === 'v2') {
           // For v2, we need to investigate if applies the same process
         }
 

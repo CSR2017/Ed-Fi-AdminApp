@@ -36,37 +36,27 @@ export const CreateSbEnvironmentGlobalPage = () => {
     handleSubmit,
     clearErrors,
     setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<PostSbEnvironmentDto>({
     defaultValues: Object.assign(new PostSbEnvironmentDto(), { metaArn: undefined, version: 'v1' }),
   });
 
-  // Watch the version value for the RadioGroup
-  const currentVersion = watch('version');
-
   const handleSwitchChange = (checked: boolean) => {
     setStartingBlocks(checked);
 
     // Clear validation errors when switching modes to prevent stale errors
-    clearErrors(['metaArn', 'odsApiDiscoveryUrl', 'adminApiUrl', 'version', 'environmentLabel']);
+    clearErrors(['metaArn', 'odsApiDiscoveryUrl', 'adminApiUrl', 'environmentLabel']);
 
     // Clear field values when switching modes to prevent stale data
     if (checked) {
       setValue('odsApiDiscoveryUrl', undefined);
       setValue('adminApiUrl', undefined);
-      setValue('version', undefined);
       setValue('environmentLabel', undefined);
       setValue('edOrgIds', '');
       setValue('isMultitenant', false);
     } else {
       setValue('metaArn', undefined);
-      setValue('version', 'v1');
     }
-  };
-
-  const handleVersionChange = (value: string) => {
-    setValue('version', value as 'v1' | 'v2');
   };
 
   // Manual validation function
@@ -89,11 +79,6 @@ export const CreateSbEnvironmentGlobalPage = () => {
         isValid = false;
       }
     } else {
-      // Validate manual configuration fields
-      if (!data.version || data.version.trim() === '') {
-        setError('version', { message: 'Version is required' });
-        isValid = false;
-      }
       if (!data.odsApiDiscoveryUrl || data.odsApiDiscoveryUrl.trim() === '') {
         setError('odsApiDiscoveryUrl', { message: 'Ed-Fi API Discovery URL is required' });
         isValid = false;
@@ -208,20 +193,6 @@ export const CreateSbEnvironmentGlobalPage = () => {
                 </FormLabel>
                 <Input {...register('adminApiUrl')} placeholder="https://..." />
                 <FormErrorMessage>{errors.adminApiUrl?.message}</FormErrorMessage>
-              </FormControl>
-              <FormControl isInvalid={!!errors.version}>
-                <FormLabel>Management API Version</FormLabel>
-                <RadioGroup onChange={handleVersionChange} value={currentVersion} colorScheme="primary">
-                  <Stack direction="row">
-                    <Radio value="v1" {...register('version')}>
-                      v1
-                    </Radio>
-                    <Radio value="v2" {...register('version')}>
-                      v2
-                    </Radio>
-                  </Stack>
-                </RadioGroup>
-                <FormErrorMessage>{errors.version?.message}</FormErrorMessage>
               </FormControl>
               <FormControl isInvalid={!!errors.environmentLabel}>
                 <FormLabel>
