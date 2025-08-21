@@ -133,6 +133,24 @@ export class SbEnvironmentsGlobalController {
     return toGetSbEnvironmentDto(await this.sbEnvironmentsRepository.find());
   }
 
+  @Post('checkEdFiVersion')
+  @Authorize({
+    privilege: 'sb-environment:create',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  async checkEdFiVersion(
+    @Body() body: { odsApiDiscoveryUrl: string }
+  ) {
+    const { odsApiDiscoveryUrl } = body;
+    // Fetch ODS API metadata
+    const odsApiMetaResponse = await this.sbEnvironmentEdFiService.fetchOdsApiMetadata({ odsApiDiscoveryUrl } as PostSbEnvironmentDto);
+    // Auto-detect version from metadata
+    const detectedVersion = await this.sbEnvironmentEdFiService.determineVersionFromMetadata(odsApiMetaResponse);
+    return detectedVersion;
+  }
+
   @Get(':sbEnvironmentId')
   @Authorize({
     privilege: 'sb-environment:read',

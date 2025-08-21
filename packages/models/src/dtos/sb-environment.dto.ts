@@ -1,6 +1,7 @@
 import { Expose, Type } from 'class-transformer';
-import { IsOptional, IsString, Matches, MaxLength, MinLength, IsIn } from 'class-validator';
+import { IsOptional, IsString, Matches, MaxLength, MinLength, IsIn, ValidateNested, IsArray, IsNumber } from 'class-validator';
 import { TrimWhitespace } from '../utils';
+import { IsNumberOrCommaSeparatedNumbers } from '../decorators/conditional-validation.decorator';
 import type {
   ISbEnvironment,
   SbEnvironmentConfigPublic,
@@ -82,7 +83,7 @@ export class GetSbEnvironmentDto
 
   /** SB routing rules require an extra subdomain to identify applications. Sbaa uses `sbaa.`. */
   get usableDomain() {
-    return this.domain?.replace(/(https?:\/\/)/, '$1sbaa.');
+    return this.configPublic.sbEnvironmentMetaArn ? this.domain?.replace(/(https?:\/\/)/, '$1sbaa.') : this.domain;
   }
 
   get odsApiVersion() {
@@ -188,11 +189,16 @@ export class PostSbEnvironmentDto
   @Expose()
   @IsOptional()
   @IsString()
-  @Matches(/^\s*\d+\s*(\s*,\s*\d+\s*)*$/, {
-    message: 'Must be a single number or a comma-separated list of numbers',
-  })
-  @TrimWhitespace()
+  @IsOptional()
+  @IsNumberOrCommaSeparatedNumbers(['v1'])
   edOrgIds?: string;
+
+  @Expose()
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PostSbEnvironmentTenantDTO)
+  tenants?: PostSbEnvironmentTenantDTO[];
 
   @Expose()
   @IsOptional()
@@ -203,6 +209,40 @@ export class PostSbEnvironmentDto
 
   @Expose()
   configPublic?: SbEnvironmentConfigPublic;
+}
+
+export class PostSbEnvironmentTenantDTO {
+  @Expose()
+  @IsString()
+  @TrimWhitespace()
+  name: string;
+
+  @Expose()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PostSbEnvironmentOdsDTO)
+  odss?: PostSbEnvironmentOdsDTO[];
+}
+
+export class PostSbEnvironmentOdsDTO {
+  @Expose()
+  @IsNumber()
+  id: number;
+
+  @Expose()
+  @IsString()
+  @TrimWhitespace()
+  name: string;
+
+  @Expose()
+  @IsString()
+  @TrimWhitespace()
+  dbName: string;
+
+  @Expose()
+  @IsString()
+  @IsNumberOrCommaSeparatedNumbers(['v2'])
+  allowedEdOrgs: string;
 }
 
 export class PostSbEnvironmentResponseDto {
