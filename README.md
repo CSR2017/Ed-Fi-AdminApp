@@ -9,6 +9,7 @@ environment.
 - [Developer's Guide](./docs/development.md)
 - [System Architecture](./docs/system-architecture.md)
 - [Application Architecture](./docs/application-architecture.md)
+- [Deployment Notes](./docs/deployment.md)
 
 ## Legal Information
 
