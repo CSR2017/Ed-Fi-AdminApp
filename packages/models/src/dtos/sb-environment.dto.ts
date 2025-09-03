@@ -106,6 +106,11 @@ export class GetSbEnvironmentDto
   get startingBlocks() {
     return this.configPublic?.startingBlocks ?? false;
   }
+
+  get multiTenant() {
+    const values = this.configPublic?.values;
+    return values && 'meta' in values && values.meta?.mode === 'MultiTenant';
+  }
 }
 export const toGetSbEnvironmentDto = makeSerializer<GetSbEnvironmentDto, ISbEnvironment>(
   GetSbEnvironmentDto

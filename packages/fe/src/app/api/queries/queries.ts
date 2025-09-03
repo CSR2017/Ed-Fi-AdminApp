@@ -302,7 +302,7 @@ export const sbEnvironmentQueries = new EntityQueryBuilder({
   .put('put', { ReqDto: PutSbEnvironmentDto, ResDto: GetSbEnvironmentDto })
   .put('registerMeta', { ReqDto: PutSbEnvironmentMeta, ResDto: GetSbEnvironmentDto })
   .post('post', { ReqDto: PostSbEnvironmentDto, ResDto: PostSbEnvironmentResponseDto })
-  .post('checkEdFiVersion', { ReqDto: Object, ResDto: String }, () => `${baseUrl}/sb-environments/checkEdFiVersion`)
+  .post('checkEdFiVersionAndTenantMode', { ReqDto: Object, ResDto: Object }, () => `${baseUrl}/sb-environments/checkEdFiVersionAndTenantMode`)
   .delete('delete')
   .build();
 

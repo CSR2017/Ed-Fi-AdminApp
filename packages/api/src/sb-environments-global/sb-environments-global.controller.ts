@@ -40,7 +40,7 @@ import {
 import { Authorize } from '../auth/authorization';
 import { ReqUser } from '../auth/helpers/user.decorator';
 import { ENV_SYNC_CHNL, PgBossInstance } from '../sb-sync/sb-sync.module';
-import { CustomHttpException, ValidationHttpException, throwNotFound } from '../utils';
+import { CustomHttpException, ValidationHttpException, throwNotFound, fetchOdsApiMetadata, determineVersionFromMetadata, determineTenantModeFromMetadata } from '../utils';
 import { SbEnvironmentsGlobalService } from './sb-environments-global.service';
 import { StartingBlocksServiceV2 } from '../teams/edfi-tenants/starting-blocks';
 import { Operation, SbVersion } from '../auth/authorization/sbVersion.decorator';
@@ -133,22 +133,31 @@ export class SbEnvironmentsGlobalController {
     return toGetSbEnvironmentDto(await this.sbEnvironmentsRepository.find());
   }
 
-  @Post('checkEdFiVersion')
+  @Post('checkEdFiVersionAndTenantMode')
   @Authorize({
     privilege: 'sb-environment:create',
     subject: {
       id: '__filtered__',
     },
   })
-  async checkEdFiVersion(
+  async checkEdFiVersionAndTenantMode(
     @Body() body: { odsApiDiscoveryUrl: string }
   ) {
     const { odsApiDiscoveryUrl } = body;
     // Fetch ODS API metadata
-    const odsApiMetaResponse = await this.sbEnvironmentEdFiService.fetchOdsApiMetadata({ odsApiDiscoveryUrl } as PostSbEnvironmentDto);
+    const odsApiMetaResponse = await fetchOdsApiMetadata({ odsApiDiscoveryUrl } as PostSbEnvironmentDto);
+
     // Auto-detect version from metadata
-    const detectedVersion = await this.sbEnvironmentEdFiService.determineVersionFromMetadata(odsApiMetaResponse);
-    return detectedVersion;
+    const detectedVersion = determineVersionFromMetadata(odsApiMetaResponse);
+
+    // Auto-detect tenant mode from metadata
+    const tenantMode = determineTenantModeFromMetadata(odsApiMetaResponse);
+    const isMultiTenant = tenantMode === 'MultiTenant';
+
+    return {
+      version: detectedVersion,
+      isMultiTenant: isMultiTenant
+    };
   }
 
   @Get(':sbEnvironmentId')

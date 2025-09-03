@@ -6,37 +6,26 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
-  Stack,
   Text,
   Switch,
   Tooltip,
   chakra,
-  Accordion,
-  AccordionItem,
-  AccordionButton,
-  AccordionIcon,
-  AccordionPanel,
-  Table,
-  Thead,
-  Th,
-  Tr,
-  Tbody,
-  Td,
 } from '@chakra-ui/react';
 import { Icons, PageTemplate } from '@edanalytics/common-ui';
-import { PostSbEnvironmentDto, PostSbEnvironmentTenantDTO } from '@edanalytics/models';
-import { get, useForm } from 'react-hook-form';
+import { PostSbEnvironmentDto } from '@edanalytics/models';
+import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { sbEnvironmentQueries } from '../../api';
 import { popSyncBanner, useNavToParent } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
+import { TenantManagementSection } from './TenantManagementSection';
 
 export const CreateSbEnvironmentGlobalPage = () => {
   const popBanner = usePopBanner();
   const navToParentOptions = useNavToParent();
   const navigate = useNavigate();
-  const checkEdFiVersion = sbEnvironmentQueries.checkEdFiVersion({});
+  const checkEdFiVersionAndTenantMode = sbEnvironmentQueries.checkEdFiVersionAndTenantMode({});
   const postSbEnvironment = sbEnvironmentQueries.post({});
   const {
     register,
@@ -60,6 +49,7 @@ export const CreateSbEnvironmentGlobalPage = () => {
   // Watch form values
   const isStartingBlocks = watch('startingBlocks');
   const currentVersion = watch('version');
+  const isMultitenant = watch('isMultitenant');
   const tenants = watch('tenants') || [];
 
   const handleSwitchChange = (checked: boolean) => {
@@ -84,17 +74,23 @@ export const CreateSbEnvironmentGlobalPage = () => {
     }
   };
 
-  const validateVersion = (odsApiDiscoveryUrl: string) => {
+  const validateVersionAndTenantMode = (odsApiDiscoveryUrl: string) => {
     const errorMessage = 'Could not fetch version from API Discovery URL. Please check the URL and try again.';
     if (!isStartingBlocks && odsApiDiscoveryUrl && odsApiDiscoveryUrl.trim() !== '') {
       // To perform the version check
-      checkEdFiVersion.mutateAsync(
+      checkEdFiVersionAndTenantMode.mutateAsync(
         { entity: { odsApiDiscoveryUrl: odsApiDiscoveryUrl }, pathParams: null },
         {
           onSuccess: (result) => {
             if (result) {
-              if (result === 'v1' || result === 'v2') {
-                setValue('version', result as 'v1' | 'v2');
+              // Handle the new response structure with version and isMultiTenant
+              const response = result as { version: string; isMultiTenant: boolean };
+              const version = response.version;
+              const isMultiTenant = response.isMultiTenant;
+
+              if (version === 'v1' || version === 'v2') {
+                setValue('version', version as 'v1' | 'v2');
+                setValue('isMultitenant', isMultiTenant);
                 clearErrors(['odsApiDiscoveryUrl']);
               } else {
                 setValue('version', undefined);
@@ -143,7 +139,7 @@ export const CreateSbEnvironmentGlobalPage = () => {
       }
       else {
         if (!currentVersion) {
-          validateVersion(data.odsApiDiscoveryUrl);
+            validateVersionAndTenantMode(data.odsApiDiscoveryUrl);
         }
       }
       if (!data.adminApiUrl || data.adminApiUrl.trim() === '') {
@@ -164,8 +160,16 @@ export const CreateSbEnvironmentGlobalPage = () => {
       } else if (currentVersion === 'v2') {
         // Validate v2 specific fields
         if (data.isMultitenant && (!tenants || tenants.length === 0)) {
-          setError('environmentLabel', { message: 'At least one tenant is required for multi-tenant deployment' });
+          setError('tenants', { message: 'At least one tenant is required for multi-tenant deployment' });
           isValid = false;
+        }
+
+        // For single-tenant v2, ensure we have at least one ODS instance in the default tenant
+        if (!data.isMultitenant) {
+          if (!tenants || tenants.length === 0 || !tenants[0] || !tenants[0].odss || tenants[0].odss.length === 0) {
+            setError('tenants.0.odss', { message: 'At least one ODS instance is required for single-tenant deployment' });
+            isValid = false;
+          }
         }
 
         // Validate tenant data
@@ -176,7 +180,7 @@ export const CreateSbEnvironmentGlobalPage = () => {
           }
 
           if (!tenant.odss || tenant.odss.length === 0) {
-            setError(`tenants.${tenantIndex}.name`, { message: 'At least one ODS instance is required' });
+            setError(`tenants.${tenantIndex}.odss`, { message: 'At least one ODS instance is required' });
             isValid = false;
           }
 
@@ -292,7 +296,7 @@ export const CreateSbEnvironmentGlobalPage = () => {
                     setValue('odsApiDiscoveryUrl', value);
                     // Auto-detect version if not Starting Blocks and value is present
                     if (!isStartingBlocks && value.trim() !== '') {
-                      validateVersion(value);
+                      validateVersionAndTenantMode(value);
                     }
                   }}
                 />
@@ -324,260 +328,34 @@ export const CreateSbEnvironmentGlobalPage = () => {
               </FormControl>
               {
                 currentVersion === 'v2' ? (
+                  <TenantManagementSection
+                    isMultitenant={isMultitenant || false}
+                    tenants={tenants}
+                    register={register}
+                    setValue={setValue}
+                    getValues={getValues}
+                    errors={errors}
+                    clearErrors={clearErrors}
+                  />
+                ) : (
                   <Box>
-                    <FormControl>
+                    <FormControl isInvalid={!!errors.edOrgIds}>
                       <FormLabel>
-                        Tenants{' '}
-                        <Tooltip label="Add tenants for this multi-tenant deployment" hasArrow>
+                        Education Organization Identifier(s){' '}
+                        <Tooltip
+                          label="Comma separated list of Education Organization IDs managed in this instance"
+                          hasArrow
+                        >
                           <chakra.span>
                             <Icons.InfoCircle />
                           </chakra.span>
                         </Tooltip>
                       </FormLabel>
-                      <Stack spacing={2}>
-                        <ButtonGroup size="sm">
-                          <Button
-                            onClick={() => {
-                              const currentTenants = getValues('tenants') || [];
-                              const newTenant: PostSbEnvironmentTenantDTO = {
-                                name: `tenant${currentTenants.length + 1}`,
-                                odss: [],
-                              };
-                              setValue('tenants', [...currentTenants, newTenant]);
-                            }}
-                          >
-                            Add Tenant
-                          </Button>
-                        </ButtonGroup>
-                        {tenants.length > 0 && (
-                          <Accordion defaultIndex={[0]} allowMultiple>
-                            {tenants.map((tenant, index) => (
-                              <AccordionItem key={index}>
-                                <AccordionButton>
-                                  <Box flex="1" textAlign="left">
-                                    <Text fontWeight="bold">{tenant.name}</Text>
-                                  </Box>
-                                  <Box
-                                    as="span"
-                                    fontSize="sm"
-                                    color="red.500"
-                                    cursor="pointer"
-                                    px={2}
-                                    py={1}
-                                    borderRadius="md"
-                                    _hover={{ bg: "red.50" }}
-                                    onClick={(e: React.MouseEvent) => {
-                                      e.stopPropagation();
-                                      const currentTenants = getValues('tenants') || [];
-                                      const updatedTenants = [...currentTenants];
-                                      if (updatedTenants[index]) {
-                                        updatedTenants.splice(index, 1);
-                                      }
-                                      setValue('tenants', updatedTenants);
-                                    }}
-                                  >
-                                    Remove
-                                  </Box>
-                                  <AccordionIcon />
-                                </AccordionButton>
-                                <AccordionPanel pb={4}>
-                                  <Box flex="1" textAlign="left">
-                                    <Stack spacing={2} w="full">
-                                      <FormControl isInvalid={!!errors.tenants?.[index]?.name}>
-                                        <FormLabel>
-                                          Tenant Name{' '}
-                                          <Tooltip label="The tenant key you set in appsettings file" hasArrow>
-                                            <chakra.span>
-                                              <Icons.InfoCircle />
-                                            </chakra.span>
-                                          </Tooltip>
-                                        </FormLabel>
-                                        <Input
-                                          value={tenant.name}
-                                          {...register(`tenants.${index}.name`)}
-                                          onChange={(e) => {
-                                            const currentTenants = getValues('tenants') || [];
-                                            const updatedTenants = [...currentTenants];
-                                            updatedTenants[index].name = e.target.value;
-                                            setValue('tenants', updatedTenants);
-                                          }}
-                                          placeholder="Tenant name"
-                                        />
-                                        <FormErrorMessage>{errors.tenants?.[index]?.name?.message}</FormErrorMessage>
-                                      </FormControl>
-                                      <FormControl isInvalid={!!errors.tenants?.[index]?.odss}>
-                                        <FormLabel>
-                                          ODS Instances{' '}
-                                          <Tooltip label="Add the ODS Instances for the tenant" hasArrow>
-                                            <chakra.span>
-                                              <Icons.InfoCircle />
-                                            </chakra.span>
-                                          </Tooltip>
-                                        </FormLabel>
-                                        <ButtonGroup size="sm" mb={2}>
-                                          <Button
-                                            onClick={() => {
-                                              const currentTenants = getValues('tenants') || [];
-                                              const updatedTenants = [...currentTenants];
-                                              if (!updatedTenants[index].odss) {
-                                                updatedTenants[index].odss = [];
-                                              }
-                                              // Find the max id currently in use and increment by 1 for the new ODS instance
-                                              const currentOdss = updatedTenants[index].odss;
-                                              const idArray = currentOdss.map(o => typeof o.id === 'number' ? o.id : 0);
-                                              const maxId = idArray.length > 0 ? Math.max(...idArray) : 0;
-                                              updatedTenants[index].odss.push({
-                                                id: maxId + 1,
-                                                name: `ODS ${maxId + 1}`,
-                                                dbName: `ODS_${maxId + 1}`, // Placeholder, you can set a default or leave it empty
-                                                allowedEdOrgs: '', // Placeholder, you can set a default or leave it empty
-                                              });
-                                              setValue('tenants', updatedTenants);
-                                            }}
-                                          >
-                                            Add ODS
-                                          </Button>
-                                        </ButtonGroup>
-                                        <Box>
-                                          <Table variant="simple" size="sm">
-                                            <Thead>
-                                              <Tr>
-                                                <Th>ODS Name{' '}
-                                                  <Tooltip label="ODS name in Admin API" hasArrow>
-                                                    <chakra.span>
-                                                      <Icons.InfoCircle />
-                                                    </chakra.span>
-                                                  </Tooltip></Th>
-                                                <Th>DB Name{' '}
-                                                  <Tooltip label="Database name for the ODS instance" hasArrow>
-                                                    <chakra.span>
-                                                      <Icons.InfoCircle />
-                                                    </chakra.span>
-                                                  </Tooltip></Th>
-                                                <Th>Education Organization Identifier(s){' '}
-                                                  <Tooltip label="Comma separated list of Education Organization IDs managed in this instance" hasArrow>
-                                                    <chakra.span>
-                                                      <Icons.InfoCircle />
-                                                    </chakra.span>
-                                                  </Tooltip></Th>
-                                                <Th>Actions</Th>
-                                              </Tr>
-                                            </Thead>
-                                            {tenant.odss && tenant.odss.length > 0 && (
-                                              <Tbody>
-                                                {tenant.odss.map((ods, odsIndex) => (
-                                                  <Tr key={odsIndex}>
-                                                    <Td>
-                                                      <FormControl isInvalid={!!errors.tenants?.[index]?.odss?.[odsIndex]?.name}>
-                                                        <Input
-                                                          value={ods.name}
-                                                          {...register(`tenants.${index}.odss.${odsIndex}.name`)}
-                                                          onChange={(e) => {
-                                                            const currentTenants = getValues('tenants') || [];
-                                                            const updatedTenants = [...currentTenants];
-                                                            if (updatedTenants[index]?.odss?.[odsIndex]) {
-                                                              updatedTenants[index].odss[odsIndex].name = e.target.value;
-                                                            }
-                                                            setValue('tenants', updatedTenants);
-                                                          }}
-                                                          placeholder="ODS name"
-                                                          size="sm"
-                                                        />
-                                                        <FormErrorMessage>{errors.tenants?.[index]?.odss?.[odsIndex]?.name?.message}</FormErrorMessage>
-                                                      </FormControl>
-                                                    </Td>
-                                                    <Td>
-                                                      <FormControl isInvalid={!!errors.tenants?.[index]?.odss?.[odsIndex]?.dbName}>
-                                                        <Input
-                                                          value={ods.dbName}
-                                                          {...register(`tenants.${index}.odss.${odsIndex}.dbName`)}
-                                                          onChange={(e) => {
-                                                            const currentTenants = getValues('tenants') || [];
-                                                            const updatedTenants = [...currentTenants];
-                                                            if (updatedTenants[index]?.odss?.[odsIndex]) {
-                                                              updatedTenants[index].odss[odsIndex].dbName = e.target.value;
-                                                            }
-                                                            setValue('tenants', updatedTenants);
-                                                          }}
-                                                          placeholder="DB name"
-                                                          size="sm"
-                                                        />
-                                                        <FormErrorMessage>{errors.tenants?.[index]?.odss?.[odsIndex]?.dbName?.message}</FormErrorMessage>
-                                                      </FormControl>
-                                                    </Td>
-                                                    <Td>
-                                                      <FormControl isInvalid={!!errors.tenants?.[index]?.odss?.[odsIndex]?.allowedEdOrgs}>
-                                                        <Input
-                                                          value={ods.allowedEdOrgs}
-                                                          {...register(`tenants.${index}.odss.${odsIndex}.allowedEdOrgs`)}
-                                                          onChange={(e) => {
-                                                            const currentTenants = getValues('tenants') || [];
-                                                            const updatedTenants = [...currentTenants];
-                                                            if (updatedTenants[index]?.odss?.[odsIndex]) {
-                                                              updatedTenants[index].odss[odsIndex].allowedEdOrgs = e.target.value;
-                                                            }
-                                                            setValue('tenants', updatedTenants);
-                                                          }}
-                                                          placeholder="1, 255901, 25590100"
-                                                          size="sm"
-                                                        />
-                                                        <FormErrorMessage>{errors.tenants?.[index]?.odss?.[odsIndex]?.allowedEdOrgs?.message}</FormErrorMessage>
-                                                      </FormControl>
-                                                    </Td>
-                                                    <Td>
-                                                      <Button
-                                                        size="sm"
-                                                        colorScheme="red"
-                                                        variant="ghost"
-                                                        onClick={() => {
-                                                          const currentTenants = getValues('tenants') || [];
-                                                          const updatedTenants = [...currentTenants];
-                                                          if (updatedTenants[index]?.odss) {
-                                                            updatedTenants[index].odss.splice(odsIndex, 1);
-                                                          }
-                                                          setValue('tenants', updatedTenants);
-                                                        }}
-                                                      >
-                                                        Remove
-                                                      </Button>
-                                                    </Td>
-                                                  </Tr>
-                                                ))}
-                                              </Tbody>
-                                            )}
-                                          </Table>
-                                        </Box>
-                                      </FormControl>
-                                    </Stack>
-                                  </Box>
-                                </AccordionPanel>
-                              </AccordionItem>
-                            ))}
-                          </Accordion>
-                        )}
-                      </Stack>
+                      <Input {...register('edOrgIds')} placeholder="1, 255901, 25590100" />
+                      <FormErrorMessage>{errors.edOrgIds?.message}</FormErrorMessage>
                     </FormControl>
                   </Box>
                 )
-                  :
-                  (
-                    <Box>
-                      <FormControl isInvalid={!!errors.edOrgIds}>
-                        <FormLabel>
-                          Education Organization Identifier(s){' '}
-                          <Tooltip
-                            label="Comma separated list of Education Organization IDs managed in this instance"
-                            hasArrow
-                          >
-                            <chakra.span>
-                              <Icons.InfoCircle />
-                            </chakra.span>
-                          </Tooltip>
-                        </FormLabel>
-                        <Input {...register('edOrgIds')} placeholder="1, 255901, 25590100" />
-                        <FormErrorMessage>{errors.edOrgIds?.message}</FormErrorMessage>
-                      </FormControl>
-                    </Box>)
               }
             </Box>
           ) : null}

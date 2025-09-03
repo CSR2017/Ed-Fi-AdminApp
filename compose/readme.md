@@ -157,8 +157,10 @@ In Global Scope, complete the following setup:
 
 ### URLs
 
-- [ODS/API 7.x](https://localhost:4443/v7-ods)
-  - [Admin API 2.x](https://localhost:4443/v7-adminapi)
+- Multi-Tenant: [ODS/API 7.x](https://localhost:4443/v7-ods)
+  - Multi-Tenant: [Admin API 2.x](https://localhost:4443/v7-adminapi)
+- Single-Tenant: [ODS/API 7.x](https://localhost:4443/v7-ods-single-tenant)
+  - Single-Tenant: [Admin API 2.x](https://localhost:4443/v7-adminapi-single-tenant)
 - [ODS/API 6.x](https://localhost:5443/v6-ods)
   - [Admin API 1.x](https://localhost:5443/v6-adminapi)
 - [Keycloak](http://localhost:8045)

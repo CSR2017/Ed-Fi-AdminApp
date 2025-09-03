@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ValidationHttpException } from '../utils';
+import { ValidationHttpException, determineVersionFromMetadata, determineTenantModeFromMetadata, fetchOdsApiMetadata } from '../utils';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { addUserCreating, EdfiTenant, SbEnvironment } from '@edanalytics/models-server';
 import { EntityManager, Repository } from 'typeorm';
@@ -7,7 +7,7 @@ import {
   StartingBlocksServiceV1,
   StartingBlocksServiceV2,
 } from '../teams/edfi-tenants/starting-blocks';
-import { PostSbEnvironmentDto, SbV1MetaEnv, EdorgType, SbV2MetaEnv, SbV2MetaOds, PostSbEnvironmentTenantDTO, OdsApiMeta, GetUserDto } from '@edanalytics/models';
+import { PostSbEnvironmentDto, SbV1MetaEnv, EdorgType, SbV2MetaEnv, SbV2MetaOds, PostSbEnvironmentTenantDTO, GetUserDto } from '@edanalytics/models';
 import axios from 'axios';
 import { persistSyncTenant, SyncableOds } from '../sb-sync/sync-ods';
 import { randomUUID } from 'crypto';
@@ -32,13 +32,17 @@ export class SbEnvironmentsEdFiService {
     if (createSbEnvironmentDto.odsApiDiscoveryUrl) {
       try {
         // Fetch ODS API metadata
-        const odsApiMetaResponse = await this.fetchOdsApiMetadata(createSbEnvironmentDto);
+        const odsApiMetaResponse = await fetchOdsApiMetadata(createSbEnvironmentDto);
 
         // Auto-detect version from metadata
-        const detectedVersion = this.determineVersionFromMetadata(odsApiMetaResponse);
+        const detectedVersion = determineVersionFromMetadata(odsApiMetaResponse);
 
         // Override the version with detected version
         createSbEnvironmentDto.version = detectedVersion;
+
+        // Determine tenant mode
+        const tenantMode = determineTenantModeFromMetadata(odsApiMetaResponse);
+        createSbEnvironmentDto.isMultitenant = tenantMode === 'MultiTenant';
 
         // Replace the current configPublic logic with this:
         const configPublic = createSbEnvironmentDto.version === 'v1'
@@ -60,7 +64,7 @@ export class SbEnvironmentsEdFiService {
             values: {
               meta: {
                 envlabel: createSbEnvironmentDto.environmentLabel,
-                mode: 'MultiTenant' as const,
+                mode: tenantMode,
                 domainName: createSbEnvironmentDto.odsApiDiscoveryUrl,
                 adminApiUrl: createSbEnvironmentDto.adminApiUrl,
                 tenantManagementFunctionArn: '',
@@ -73,7 +77,6 @@ export class SbEnvironmentsEdFiService {
             },
           };
         Logger.log(`Auto-detected API version: ${detectedVersion} from ODS version: ${odsApiMetaResponse.version}`);
-        // const multitenantMode = createSbEnvironmentDto.isMultitenant ? "MultiTenant" : "SingleTenant";
         const sbEnvironment = await this.sbEnvironmentsRepository.save(
           addUserCreating(
             this.sbEnvironmentsRepository.create({
@@ -141,44 +144,6 @@ export class SbEnvironmentsEdFiService {
     }
   }
 
-  public determineVersionFromMetadata(odsApiMeta: OdsApiMeta): 'v1' | 'v2' {
-    try {
-      // Extract version from metadata
-      const version = odsApiMeta.version;
-
-      if (!version) {
-        Logger.warn('No version found in ODS API metadata, defaulting to v1');
-        return 'v1';
-      }
-
-      // Parse the major version number correctly from semantic version string
-      const majorVersion = parseInt(version.split('.')[0], 10);
-
-      if (majorVersion >= 7) {
-        return 'v2';
-      } else {
-        return 'v1';
-      }
-    } catch (error) {
-      Logger.warn('Failed to parse version from metadata, defaulting to v1:', error);
-      return 'v1';
-    }
-  }
-
-  public async fetchOdsApiMetadata(createSbEnvironmentDto: PostSbEnvironmentDto) {
-    const response = await axios.get(createSbEnvironmentDto.odsApiDiscoveryUrl, {
-      headers: {
-        Accept: 'application/json',
-      },
-    });
-    if (response.status !== 200) {
-      throw new Error(`Failed to fetch ODS API metadata: ${response.statusText}`);
-    }
-    // Optionally validate the response contains expected discovery document structure
-    const odsApiMetaResponse = response.data;
-    return odsApiMetaResponse;
-  }
-
   private async syncv1Environment(sbEnvironment: SbEnvironment, createSbEnvironmentDto: PostSbEnvironmentDto) {
     const metaV1 = {
       envlabel: sbEnvironment.envLabel,
@@ -222,43 +187,14 @@ export class SbEnvironmentsEdFiService {
   }
 
   private async syncv2Environment(sbEnvironment: SbEnvironment, createSbEnvironmentDto: PostSbEnvironmentDto) {
-    /*
-        - Call a lambda to get some configuration like the ODS/API, adminapi and other lambda urls
-        - Get the metadata from ODS/API
-        - Save the sb env in the local database
-        - Get the tenants from a lambda where they return the name and a list of edorgids number[] per tenant.
-        depending on that, it has to be created or removed from the local tenants table
-    */
     try {
-      if (createSbEnvironmentDto.tenants && createSbEnvironmentDto.tenants.length > 0) {
-        for (const tenant of createSbEnvironmentDto.tenants) {
-          // Let's create the tenant in the localDB
-          const tenantEntity = await this.edfiTenantsRepository.save({
-            name: tenant.name,
-            sbEnvironmentId: sbEnvironment.id,
-          });
-          // Create the object
-          const metaOds: SbV2MetaOds[] = this.createODSObject(tenant);
-
-          // Let's create the ODS and Edorgs
-          await this.saveSyncableOds(metaOds, tenantEntity);
-          // Let's create the Admin API credentials
-          await this.createAdminAPICredentialsV2(createSbEnvironmentDto, tenantEntity, sbEnvironment);
-
-        }
-        return {
-          status: 'SUCCESS' as const,
-        };
+      if (createSbEnvironmentDto.isMultitenant) {
+        return await this.syncMultiTenantEnvironment(sbEnvironment, createSbEnvironmentDto);
+      } else {
+        return await this.syncSingleTenantEnvironment(sbEnvironment, createSbEnvironmentDto);
       }
-      else {
-        throw new ValidationHttpException({
-          field: 'tenants',
-          message: 'At least one tenant is required for multi-tenant deployment',
-        });
-      }
-    }
-    catch (operationError) {
-      this.logger.error(operationError);
+    } catch (operationError) {
+      this.logger.error('Failed to sync v2 environment:', operationError);
       throw new ValidationHttpException({
         field: 'tenants',
         message: operationError.message
@@ -268,9 +204,89 @@ export class SbEnvironmentsEdFiService {
     }
   }
 
+  private async syncMultiTenantEnvironment(sbEnvironment: SbEnvironment, createSbEnvironmentDto: PostSbEnvironmentDto) {
+    if (!createSbEnvironmentDto.tenants || createSbEnvironmentDto.tenants.length === 0) {
+      throw new ValidationHttpException({
+        field: 'tenants',
+        message: 'At least one tenant is required for multi-tenant deployment',
+      });
+    }
+
+    for (const tenant of createSbEnvironmentDto.tenants) {
+      await this.createAndSyncTenant(sbEnvironment, createSbEnvironmentDto, tenant);
+    }
+
+    return { status: 'SUCCESS' as const };
+  }
+
+  private async syncSingleTenantEnvironment(sbEnvironment: SbEnvironment, createSbEnvironmentDto: PostSbEnvironmentDto) {
+    // For single-tenant, use the first tenant from the frontend data
+    if (!createSbEnvironmentDto.tenants || createSbEnvironmentDto.tenants.length === 0) {
+      throw new ValidationHttpException({
+        field: 'tenants',
+        message: 'At least one tenant is required for single-tenant deployment',
+      });
+    }
+
+    const defaultTenantDto = createSbEnvironmentDto.tenants[0];
+
+    // Find or create the default tenant
+    const edfiTenant = await this.findOrCreateTenant(sbEnvironment, defaultTenantDto.name);
+
+    // Sync the tenant data
+    await this.syncTenantData(sbEnvironment, createSbEnvironmentDto, defaultTenantDto, edfiTenant);
+
+    return { status: 'SUCCESS' as const };
+  }
+
+  private async createAndSyncTenant(
+    sbEnvironment: SbEnvironment,
+    createSbEnvironmentDto: PostSbEnvironmentDto,
+    tenantDto: PostSbEnvironmentTenantDTO
+  ) {
+    // Create the tenant in the local database
+    const tenantEntity = await this.edfiTenantsRepository.save({
+      name: tenantDto.name,
+      sbEnvironmentId: sbEnvironment.id,
+    });
+
+    await this.syncTenantData(sbEnvironment, createSbEnvironmentDto, tenantDto, tenantEntity);
+  }
+
+  private async findOrCreateTenant(sbEnvironment: SbEnvironment, tenantName: string): Promise<EdfiTenant> {
+    const existingTenants = await this.edfiTenantsRepository.find({
+      where: { sbEnvironmentId: sbEnvironment.id },
+    });
+
+    if (existingTenants.length === 0) {
+      return await this.edfiTenantsRepository.save({
+        name: tenantName,
+        sbEnvironmentId: sbEnvironment.id,
+      });
+    }
+
+    return existingTenants[0];
+  }
+
+  private async syncTenantData(
+    sbEnvironment: SbEnvironment,
+    createSbEnvironmentDto: PostSbEnvironmentDto,
+    tenantDto: PostSbEnvironmentTenantDTO,
+    tenantEntity: EdfiTenant
+  ) {
+    // Create ODS metadata objects
+    const metaOds: SbV2MetaOds[] = this.createODSObject(tenantDto);
+
+    // Sync ODS and EdOrgs
+    await this.saveSyncableOds(metaOds, tenantEntity);
+
+    // Create Admin API credentials
+    await this.createAdminAPICredentialsV2(createSbEnvironmentDto, tenantEntity, sbEnvironment);
+  }
+
 
   private async createAdminAPICredentialsV2(createSbEnvironmentDto: PostSbEnvironmentDto, tenantEntity: { name: string; sbEnvironmentId: number; } & EdfiTenant, sbEnvironment: SbEnvironment) {
-    const { clientId, displayName, clientSecret } = await this.createClientCredentials(createSbEnvironmentDto, tenantEntity.name);
+    const { clientId, clientSecret } = await this.createClientCredentials(createSbEnvironmentDto, tenantEntity.name);
     await this.startingBlocksServiceV2.saveAdminApiCredentials(tenantEntity, sbEnvironment, { ClientId: clientId, ClientSecret: clientSecret, url: createSbEnvironmentDto.adminApiUrl });
   }
 
@@ -335,6 +351,4 @@ export class SbEnvironmentsEdFiService {
     }
     return { clientId, displayName, clientSecret };
   }
-
-  
 }

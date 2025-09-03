@@ -25,7 +25,7 @@ export interface SbV2TenantResourceTree {
 
 export interface SbV2MetaEnv {
   envlabel: string;
-  mode: 'MultiTenant';
+  mode: 'MultiTenant' | 'SingleTenant';
   domainName: string;
   adminApiUrl: string;
   tenantManagementFunctionArn: string;

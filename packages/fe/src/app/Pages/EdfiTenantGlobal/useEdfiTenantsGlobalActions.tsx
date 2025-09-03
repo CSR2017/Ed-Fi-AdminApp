@@ -14,13 +14,12 @@ export const useEdfiTenantsGlobalActions = (): ActionsType => {
     globalEdfiTenantAuthConfig('__filtered__', 'sb-environment.edfi-tenant:create')
   );
 
-  return canCreate && sbEnvironment.version === 'v2'
-    ? {
-        Create: {
-          icon: Icons.Plus,
-          text: 'Create',
-          title: 'Create new tenant.',
-          to: `/sb-environments/${sbEnvironmentId}/edfi-tenants/create`,
+  return canCreate && sbEnvironment.version === 'v2' && sbEnvironment.multiTenant ? {
+      Create: {
+        icon: Icons.Plus,
+        text: 'Create',
+        title: 'Create new tenant.',
+        to: `/sb-environments/${sbEnvironmentId}/edfi-tenants/create`,
           onClick: () => navigate(`/sb-environments/${sbEnvironmentId}/edfi-tenants/create`),
         },
       }
