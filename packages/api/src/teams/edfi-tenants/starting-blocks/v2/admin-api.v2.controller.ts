@@ -16,8 +16,11 @@ import {
   PutClaimsetDtoV2,
   PutProfileDtoV2,
   PutVendorDtoV2,
+  SecretSharingMethod,
   edorgKeyV2,
   toApplicationYopassResponseDto,
+  toPostApplicationResponseDto,
+  toPostApplicationResponseDtoV2,
 } from '@edanalytics/models';
 import { EdfiTenant, Edorg, Ods, SbEnvironment } from '@edanalytics/models-server';
 import {
@@ -67,6 +70,7 @@ import {
 import { AdminApiV1xExceptionFilter } from '../v1/admin-api-v1x-exception.filter';
 import { AdminApiServiceV2 } from './admin-api.v2.service';
 import { IntegrationAppsTeamService } from '../../../../integration-apps-team/integration-apps-team.service';
+import config from 'config';
 
 @Injectable()
 class AdminApiV2Interceptor implements NestInterceptor {
@@ -93,7 +97,7 @@ export class AdminApiControllerV2 {
     private readonly sbService: AdminApiServiceV2,
     @InjectRepository(Edorg) private readonly edorgRepository: Repository<Edorg>,
     @InjectRepository(Ods) private readonly odsRepository: Repository<Ods>
-  ) {}
+  ) { }
 
   /** Check application edorg IDs against auth cache for _safe_ operations (GET). Requires `some` ID to be authorized. */
   private checkApplicationEdorgsForSafeOperations(
@@ -530,19 +534,26 @@ export class AdminApiControllerV2 {
           sbEnvironmentId: sbEnvironment.id,
         });
       }
-
-      const yopass = await postYopassSecret({
-        ...adminApiResponse,
-        url: GetApplicationDtoV2.apiUrl(
-          sbEnvironment.domain,
-          application.applicationName,
-          edfiTenant.name
-        ),
-      });
-      return toApplicationYopassResponseDto({
-        link: yopass.link,
-        applicationId: adminApiResponse.id,
-      });
+      if (config.USE_YOPASS) {
+        const yopass = await postYopassSecret({
+          ...adminApiResponse,
+          url: GetApplicationDtoV2.apiUrl(
+            sbEnvironment.domain,
+            application.applicationName,
+            edfiTenant.name
+          ),
+        });
+        return toApplicationYopassResponseDto({
+          link: yopass.link,
+          applicationId: adminApiResponse.id,
+          secretSharingMethod: SecretSharingMethod.Yopass,
+        });
+      } else {
+        return toPostApplicationResponseDtoV2({
+          ...adminApiResponse,
+          secretSharingMethod: SecretSharingMethod.Direct,
+        });
+      }
     } else {
       throw new ValidationHttpException({
         field: 'educationOrganizationId',
@@ -617,18 +628,27 @@ export class AdminApiControllerV2 {
         edfiTenant,
         applicationId
       );
-      const yopass = await postYopassSecret({
-        ...adminApiResponse,
-        url: GetApplicationDtoV2.apiUrl(
-          sbEnvironment.domain,
-          application.applicationName,
-          edfiTenant.name
-        ),
-      });
-      return toApplicationYopassResponseDto({
-        link: yopass.link,
-        applicationId: adminApiResponse.id,
-      });
+
+      if (config.USE_YOPASS) {
+        const yopass = await postYopassSecret({
+          ...adminApiResponse,
+          url: GetApplicationDtoV2.apiUrl(
+            sbEnvironment.domain,
+            application.applicationName,
+            edfiTenant.name
+          ),
+        });
+        return toApplicationYopassResponseDto({
+          link: yopass.link,
+          applicationId: adminApiResponse.id,
+          secretSharingMethod: SecretSharingMethod.Yopass,
+        });
+      } else {
+        return toPostApplicationResponseDtoV2({
+          ...adminApiResponse,
+          secretSharingMethod: SecretSharingMethod.Direct,
+        });
+      }
     } else {
       throw new HttpException('You do not have control of all implicated Ed-Orgs', 403);
     }

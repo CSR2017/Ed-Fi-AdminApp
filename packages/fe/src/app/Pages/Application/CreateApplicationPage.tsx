@@ -62,7 +62,7 @@ export const CreateApplicationPage = () => {
                   navigate(
                     `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/applications/${data.applicationId}`,
                     {
-                      state: data.link,
+                      state: data,
                     }
                   );
                 },

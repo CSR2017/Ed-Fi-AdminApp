@@ -1,5 +1,5 @@
 import {
-  OneTimeShareLink,
+  OneTimeShareCredentials,
   PageActions,
   PageContentCard,
   PageTemplate,
@@ -36,7 +36,7 @@ export const ApplicationPageV2 = () => {
       <PageContentCard>
         <ApplicationPageContent />
       </PageContentCard>
-      <OneTimeShareLink />
+      <OneTimeShareCredentials />
     </PageTemplate>
   );
 };

@@ -5,7 +5,7 @@ import { IntegrationAppsTeamService } from './integration-apps-team.service';
 import { AdminApiServiceV2 } from '../teams/edfi-tenants/starting-blocks';
 import { EdfiTenant, SbEnvironment } from '@edanalytics/models-server';
 import { InjectRepository } from '@nestjs/typeorm';
-import { GetApplicationDtoV2, Ids, toApplicationYopassResponseDto } from '@edanalytics/models';
+import { GetApplicationDtoV2, Ids, SecretSharingMethod, toApplicationYopassResponseDto } from '@edanalytics/models';
 import { Repository } from 'typeorm';
 import { CustomHttpException, postYopassSecret } from '../utils';
 
@@ -97,6 +97,7 @@ export class IntegrationAppsTeamController {
       return toApplicationYopassResponseDto({
         link: yopass.link,
         applicationId: adminApiResponse.id,
+        secretSharingMethod: SecretSharingMethod.Yopass,
       });
     } else {
       return body;

@@ -10,6 +10,7 @@ import {
   PutApplicationForm,
   PutClaimsetDto,
   PutVendorDto,
+  SecretSharingMethod,
   edorgCompositeKey,
   toApplicationYopassResponseDto,
   toPostApplicationResponseDto,
@@ -60,6 +61,7 @@ import {
   ReqSbEnvironment,
   SbEnvironmentEdfiTenantInterceptor,
 } from '../../../../app/sb-environment-edfi-tenant.interceptor';
+import config from 'config';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const uppercaseFirstLetterOfKeys = (input: any): any => {
@@ -425,14 +427,22 @@ export class AdminApiControllerV1 {
       if (returnRaw) {
         return toPostApplicationResponseDto(adminApiResponse);
       } else {
-        const yopass = await postYopassSecret({
-          ...adminApiResponse,
-          url: GetApplicationDto.apiUrl(sbEnvironment.domain, application.applicationName),
-        });
-        return toApplicationYopassResponseDto({
-          link: yopass.link,
-          applicationId: adminApiResponse.applicationId,
-        });
+        if (config.USE_YOPASS) {
+          const yopass = await postYopassSecret({
+            ...adminApiResponse,
+            url: GetApplicationDto.apiUrl(sbEnvironment.domain, application.applicationName),
+          });
+          return toApplicationYopassResponseDto({
+            link: yopass.link,
+            applicationId: adminApiResponse.applicationId,
+            secretSharingMethod: SecretSharingMethod.Yopass,
+          });
+        } else {
+          return toPostApplicationResponseDto({
+            ...adminApiResponse,
+            secretSharingMethod: SecretSharingMethod.Direct,
+          });
+        }
       }
     } else {
       throw new ValidationHttpException({
@@ -500,14 +510,23 @@ export class AdminApiControllerV1 {
           edfiTenant,
           applicationId
         );
-        const yopass = await postYopassSecret({
-          ...adminApiResponse,
-          url: GetApplicationDto.apiUrl(sbEnvironment.domain, application.applicationName),
-        });
-        return toApplicationYopassResponseDto({
-          link: yopass.link,
-          applicationId: adminApiResponse.applicationId,
-        });
+        if (config.USE_YOPASS) {
+          const yopass = await postYopassSecret({
+            ...adminApiResponse,
+            url: GetApplicationDto.apiUrl(sbEnvironment.domain, application.applicationName),
+          });
+          return toApplicationYopassResponseDto({
+            link: yopass.link,
+            applicationId: adminApiResponse.applicationId,
+            secretSharingMethod: SecretSharingMethod.Yopass,
+          });
+        }
+        else {
+          return toPostApplicationResponseDto({
+            ...adminApiResponse,
+            secretSharingMethod: SecretSharingMethod.Direct,
+          });
+        }
       } else {
         throw new ForbiddenException();
       }

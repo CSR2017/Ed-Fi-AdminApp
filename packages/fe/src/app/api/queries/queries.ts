@@ -47,6 +47,8 @@ import {
   PutVendorDto,
   SbSyncQueueDto,
   SpecificIds,
+  ApplicationResponseV1,
+  PostApplicationResponseDto
 } from '@edanalytics/models';
 import { QueryKey, UseQueryOptions, useQueries } from '@tanstack/react-query';
 import kebabCase from 'kebab-case';
@@ -443,7 +445,7 @@ export const applicationQueriesV1 = new EntityQueryBuilder({
       }),
     ],
   })
-  .put('resetCredential', { ResDto: ApplicationYopassResponseDto, ReqDto: Id }, (base) =>
+  .put('resetCredential', { ResDto: undefined as unknown as ApplicationResponseV1, ReqDto: Id }, (base) =>
     standardPath({
       edfiTenant: base.edfiTenant,
       teamId: base.teamId,
@@ -452,7 +454,7 @@ export const applicationQueriesV1 = new EntityQueryBuilder({
       id: `${base.entity.id}/reset-credential`,
     })
   )
-  .post('post', { ResDto: ApplicationYopassResponseDto, ReqDto: PostApplicationForm })
+  .post('post', { ResDto: undefined as unknown as ApplicationResponseV1, ReqDto: PostApplicationForm })
   .delete('delete')
   .build();
 

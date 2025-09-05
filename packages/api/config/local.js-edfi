@@ -7,6 +7,7 @@ module.exports = {
   AWS_REGION: 'us-east-2',
   FE_URL: 'http://localhost:4200',
   MY_URL: 'http://localhost:3333',
+  USE_YOPASS: false,
   YOPASS_URL: 'http://localhost:8082',
 
 

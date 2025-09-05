@@ -14,6 +14,8 @@ import {
 import { TrimWhitespace } from '../utils';
 import { makeSerializer } from '../utils/make-serializer';
 import { SbaaAdminApiVersion } from '../interfaces';
+import { SecretSharingMethod } from '../enums';
+import { PostApplicationResponseDtoV2 } from './edfi-admin-api.v2.dto';
 
 export class PostVendorDto {
   @Expose()
@@ -229,8 +231,12 @@ export class PostApplicationForm extends PostApplicationFormBase {
 export class PostApplicationResponseDtoBase {
   @Expose()
   key: string;
+  
   @Expose()
   secret: string;
+
+  @Expose()
+  secretSharingMethod: SecretSharingMethod;
 }
 
 export class PostApplicationResponseDto extends PostApplicationResponseDtoBase {
@@ -248,6 +254,10 @@ export class ApplicationYopassResponseDto {
   @Expose()
   link: string;
 
+  @Expose()
+  secretSharingMethod: SecretSharingMethod;
+
+  @Expose()
   get id() {
     return this.applicationId;
   }
@@ -345,3 +355,9 @@ export const importantAdminApiVersions: Record<AdminApiMeta['version'], SbaaAdmi
   '1.3': 'v1',
   '2.0': 'v2',
 };
+
+// Union types for AdminAPI v1 - Yopass Link & ID OR Ed-Fi Application Key & Secret
+export type ApplicationResponseV1 = ApplicationYopassResponseDto | PostApplicationResponseDto;
+
+// Union types for AdminAPI v2 - Yopass Link & ID OR Ed-Fi Application Key & Secret
+export type ApplicationResponseV2 = ApplicationYopassResponseDto | PostApplicationResponseDtoV2;

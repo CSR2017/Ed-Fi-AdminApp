@@ -23,8 +23,14 @@ if (config.FE_URL === undefined) {
 if (config.MY_URL === undefined) {
   errs.push('MY_URL not defined.');
 }
-if (config.YOPASS_URL === undefined) {
-  errs.push('YOPASS_URL not defined.');
+
+if (config.USE_YOPASS === undefined) {
+  errs.push('USE_YOPASS not defined.');
+}
+else if (config.USE_YOPASS) {
+  if (config.YOPASS_URL === undefined) {
+    errs.push('YOPASS_URL not defined.');
+  }
 }
 
 if (errs.length > 0) {

@@ -131,8 +131,8 @@ export const CreateApplicationPageV2 = () => {
     return postApplication(
       { entity: data },
       {
-        onSuccess({ id: appId, link: state }) {
-          if (!!data.integrationProviderId) {
+        onSuccess(response) {
+          if (data.integrationProviderId) {
             queryClient.invalidateQueries({
               queryKey: [
                 QUERY_KEYS.integrationProviders,
@@ -145,13 +145,13 @@ export const CreateApplicationPageV2 = () => {
             queryKey: [QUERY_KEYS.edfiTenants, edfiTenantId, QUERY_KEYS.applications],
           });
           navigate(
-            `/as/${asId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenantId}/applications/${appId}`,
-            { state }
+            `/as/${asId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenantId}/applications/${response.id}`,
+            { state: response }
           );
         },
         ...mutationErrCallback({ popGlobalBanner, setFormError }),
       }
-    ).catch(() => {});
+    );
   };
 
   return (

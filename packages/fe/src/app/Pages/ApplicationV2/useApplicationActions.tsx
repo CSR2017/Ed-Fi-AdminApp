@@ -145,7 +145,7 @@ export const useSingleApplicationActions = ({
                         navigate(
                           `/as/${asId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenantId}/applications/${application?.id}`,
                           {
-                            state: result.link,
+                            state: result,
                           }
                         );
                       },
@@ -191,7 +191,7 @@ export const useSingleApplicationActions = ({
                         queryClient.invalidateQueries({
                           queryKey: [QUERY_KEYS.edfiTenants, edfiTenantId, QUERY_KEYS.applications],
                         });
-                        if (!!application.integrationProviderId) {
+                        if (application.integrationProviderId) {
                           queryClient.invalidateQueries({
                             queryKey: [
                               QUERY_KEYS.integrationProviders,

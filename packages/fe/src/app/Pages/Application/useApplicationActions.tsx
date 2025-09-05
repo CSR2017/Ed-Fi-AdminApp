@@ -130,7 +130,7 @@ export const useSingleApplicationActions = ({
                         navigate(
                           `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/applications/${application?.id}`,
                           {
-                            state: result.link,
+                            state: result,
                           }
                         );
                       },

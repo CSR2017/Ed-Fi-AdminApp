@@ -41,10 +41,10 @@ export const ViewVendor = () => {
           {vendor.namespacePrefixes === ''
             ? '-'
             : vendor.namespacePrefixes.split(/,\s*/g).map((ns) => (
-                <p key={ns}>
+                <div key={ns}>
                   <CopyButton value={ns} />
                   {ns}
-                </p>
+                </div>
               ))}
         </AttributeContainer>
       </AttributesGrid>

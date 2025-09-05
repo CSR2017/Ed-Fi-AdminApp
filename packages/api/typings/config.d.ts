@@ -41,6 +41,7 @@ declare module 'config' {
     DB_SYNCHRONIZE: boolean;
     FE_URL: string;
     MY_URL: string;
+    USE_YOPASS: boolean;
     YOPASS_URL: string;
     API_PORT: number;
     SB_SYNC_CRON: string;

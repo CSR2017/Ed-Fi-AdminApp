@@ -1,5 +1,5 @@
 import {
-  ApplicationYopassResponseDto,
+  ApplicationResponseV2,
   CopyClaimsetDtoV2,
   GetApplicationDtoV2,
   GetClaimsetMultipleDtoV2,
@@ -32,7 +32,7 @@ export const applicationQueriesV2 = new EntityQueryBuilder({
   .put(
     'resetCreds',
     {
-      ResDto: ApplicationYopassResponseDto,
+      ResDto: undefined as unknown as ApplicationResponseV2,
       ReqDto: Id,
     },
     (base) =>
@@ -44,7 +44,7 @@ export const applicationQueriesV2 = new EntityQueryBuilder({
         id: `${base.entity.id}/reset-credential`,
       })
   )
-  .post('post', { ResDto: ApplicationYopassResponseDto, ReqDto: PostApplicationFormDtoV2 })
+  .post('post', { ResDto: undefined as unknown as ApplicationResponseV2, ReqDto: PostApplicationFormDtoV2 })
   .delete('delete')
   .build();
 

@@ -11,7 +11,7 @@ import {
   chakra,
 } from '@chakra-ui/react';
 import { Icons, PageTemplate } from '@edanalytics/common-ui';
-import { PostVendorDtoV2 } from '@edanalytics/models';
+import { Id, PostVendorDtoV2 } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { useQueryClient } from '@tanstack/react-query';
 import { noop } from '@tanstack/react-table';
@@ -57,9 +57,12 @@ export const CreateVendorV2 = () => {
                 { entity: data },
                 {
                   ...mutationErrCallback({ popGlobalBanner: popBanner, setFormError: setError }),
-                  onSuccess: (data) => {
+                  onSuccess: (data: typeof Id) => {
+                    // The npm run build:fe failed for some reason in github action, so I included this change
                     queryClient.invalidateQueries({ queryKey: ['me', 'vendors'] });
-                    goToView(data.id);
+                    // If data is a class, instantiate it; otherwise, access id directly
+                    const id = (data instanceof Id) ? data.id : 0;
+                    goToView(id);
                   },
                 }
               )

@@ -495,6 +495,54 @@ export class EntityQueryBuilder<
       >,
     ConfigType
   >;
+
+  put<K extends string, ResType, ReqType extends BaseGetDto, PathExtraParamsType>(
+    key: K,
+    args: {
+      ResDto: ResType,
+      ReqDto: ClassConstructor<ReqType>;
+      keysToInvalidate?: (
+        base: BaseParams<
+          ConfigType['includeTeam'],
+          ConfigType['includeEdfiTenant'],
+          ConfigType['includeSbEnvironment']
+        > & {
+          entity: ReqType;
+          standard: QueryKey;
+          standardQueryKeyParams: StandardQueryKeyParams;
+        }
+      ) => QueryKey[];
+    },
+    path: (
+      base: BaseParams<
+        ConfigType['includeTeam'],
+        ConfigType['includeEdfiTenant'],
+        ConfigType['includeSbEnvironment']
+      > & {
+        entity: ReqType;
+      },
+      extras: PathExtraParamsType
+    ) => string
+  ): EntityQueryBuilder<
+    T &
+      Record<
+        K,
+        (
+          queryParams: BaseParams<
+            ConfigType['includeTeam'],
+            ConfigType['includeEdfiTenant'],
+            ConfigType['includeSbEnvironment']
+          >
+        ) => UseMutationResult<
+          ResType,
+          unknown,
+          { entity: ReqType; pathParams: PathExtraParamsType },
+          unknown
+        >
+      >,
+    ConfigType
+  >;
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   put(key: any, extraConfig: any, pathConfig?: any) {
     const { ResDto, ReqDto, keysToInvalidate } = extraConfig;
@@ -599,6 +647,37 @@ export class EntityQueryBuilder<
       >,
     ConfigType
   >;
+  post<K extends string, ResType, ReqType extends object>(
+    key: K,
+    args: {
+      ResDto: ResType;
+      ReqDto: ClassConstructor<ReqType>;
+      keysToInvalidate?: (
+        base: BaseParams<
+          ConfigType['includeTeam'],
+          ConfigType['includeEdfiTenant'],
+          ConfigType['includeSbEnvironment']
+        > & {
+          entity: ReqType;
+          standard: QueryKey;
+          standardQueryKeyParams: StandardQueryKeyParams;
+        }
+      ) => QueryKey[];
+    }
+  ): EntityQueryBuilder<
+    T &
+      Record<
+        K,
+        (
+          queryParams: BaseParams<
+            ConfigType['includeTeam'],
+            ConfigType['includeEdfiTenant'],
+            ConfigType['includeSbEnvironment']
+          >
+        ) => UseMutationResult<ResType, unknown, { entity: ReqType }, unknown>
+      >,
+    ConfigType
+  >;
   post<K extends string, ResType extends object, ReqType extends object, PathExtraParamsType>(
     key: K,
     args: {
@@ -653,6 +732,7 @@ export class EntityQueryBuilder<
       >,
     ConfigType
   >;
+  
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   post(key: any, extraConfig: any, pathConfig?: any) {
     const { ResDto, ReqDto, keysToInvalidate } = extraConfig;

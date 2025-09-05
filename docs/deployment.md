@@ -81,3 +81,122 @@ NODE_OPTIONS="--no-deprecation" node dist/main.js
 export NODE_OPTIONS="--no-deprecation"
 npm run start:api
 ```
+
+## Yopass Integration Configuration
+
+### Overview
+
+The Admin App v4 includes optional Yopass integration for securely transmitting ODS API keys and secrets. By default, Yopass is enabled, but you can configure the system to display credentials directly in the UI instead.
+
+### Configuration Options
+
+#### Option 1: Enable Yopass (Default)
+
+When Yopass is enabled, API keys and secrets are transmitted through secure one-time links:
+
+```bash
+# Environment variable
+USE_YOPASS=true
+YOPASS_URL=https://your-yopass-instance.com
+```
+
+**Benefits:**
+
+- Enhanced security through encrypted one-time links
+- Credentials are never displayed directly in the UI
+- Automatic expiration of shared secrets
+
+**Requirements:**
+
+- A running Yopass instance
+- Network connectivity to the Yopass service
+
+#### Option 2: Disable Yopass (Direct Display)
+
+When Yopass is disabled, keys and secrets are displayed directly in the UI:
+
+```bash
+# Environment variable
+USE_YOPASS=false
+# YOPASS_URL is not required when disabled
+```
+
+**Benefits:**
+
+- Eliminates dependency on external Yopass service
+- Simpler deployment architecture
+- Immediate credential access without additional clicks
+
+**Security Considerations:**
+
+- Credentials are temporarily visible in the browser
+- Ensure proper HTTPS encryption
+- Consider network security and screen recording policies
+
+### Implementation Details
+
+The system uses TypeScript union types to handle both response formats:
+
+- **V1 API**: `ApplicationResponseV1` union type
+- **V2 API**: `ApplicationResponseV2` union type
+
+Each response includes a `secretSharingMethod` property with values:
+
+- `SecretSharingMethod.Yopass` - One-time link response
+- `SecretSharingMethod.Direct` - Key/secret response
+
+### UI Behavior
+
+#### With Yopass Enabled
+
+- Users receive a secure link to view credentials
+- Link expires after first use or timeout
+- Standard Yopass interface for credential retrieval
+
+#### With Yopass Disabled
+
+- Credentials display directly after application creation/reset
+- Warning message about credential sensitivity
+- Limited display time for security
+
+### Migration Guide
+
+To switch from Yopass to direct display:
+
+1. **Update environment configuration:**
+
+   ```bash
+   USE_YOPASS=false
+   ```
+
+2. **Remove Yopass URL** (optional):
+
+   ```bash
+   # YOPASS_URL=https://your-yopass-instance.com
+   ```
+
+3. **Restart the application services**
+
+4. **Verify functionality** by creating a new application or resetting credentials
+
+### Troubleshooting
+
+#### Yopass integration failing
+
+- Verify `YOPASS_URL` is accessible
+- Check network connectivity
+- Consider switching to direct display mode
+
+#### Credentials not displaying with direct mode
+
+- Confirm `USE_YOPASS=false` is set
+- Check browser console for JavaScript errors
+- Verify API responses include `secretSharingMethod: 'Direct'`
+
+### Security Recommendations
+
+- **Production environments**: Use HTTPS for all communications
+- **Direct display mode**: Implement screen recording policies
+- **Network security**: Ensure secure transmission channels
+- **Access logging**: Monitor credential access patterns
+- **Regular rotation**: Implement credential rotation policies
