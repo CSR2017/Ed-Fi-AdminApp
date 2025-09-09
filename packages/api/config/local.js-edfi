@@ -1,11 +1,12 @@
 // packages/api/config/local-development.js
+const FE_URL = 'http://localhost:4200';
 
 module.exports = {
   _OPEN_API: true,
   API_PORT: 3333,
   DB_SSL: false,
   AWS_REGION: 'us-east-2',
-  FE_URL: 'http://localhost:4200',
+  FE_URL: FE_URL,
   MY_URL: 'http://localhost:3333',
   USE_YOPASS: false,
   YOPASS_URL: 'http://localhost:8082',
@@ -45,6 +46,8 @@ module.exports = {
     MANAGEMENT_CLIENT_ID: '<your value>',
     MANAGEMENT_CLIENT_SECRET: '<your value>',
   },
+  
+  WHITELISTED_REDIRECTS: [FE_URL],
 
   // There are other defaults you can override if you want to. See default.js.
 };

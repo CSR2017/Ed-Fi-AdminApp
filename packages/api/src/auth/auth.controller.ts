@@ -58,9 +58,13 @@ export class AuthController {
   oidcLogin(@Param('oidcId') oidcId: number, @Req() request: Request, @Res() response: Response) {
     this.throwOnBearerToken({ request, route: 'oidc login' });
 
+    // Validate and whitelist redirect URL
+    const requestedRedirect = request.query?.redirect as string;
+    const safeRedirect = this.validateRedirectUrl(requestedRedirect);
+    Logger.log(`Using safe redirect URL: ${safeRedirect}`);
     passport.authenticate(`oidc-${oidcId}`, {
       state: JSON.stringify({
-        redirect: request.query?.redirect ?? '/',
+        redirect: safeRedirect,
         random: randomUUID(),
       }),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,9 +88,11 @@ export class AuthController {
 
     let redirect = '/';
     try {
-      redirect = JSON.parse(request.query.state as string).redirect;
+      const state = JSON.parse(request.query.state as string);
+      // Validate redirect URL again in callback for extra security
+      redirect = this.validateRedirectUrl(state.redirect);
     } catch (error) {
-      // no redirect
+      // Use default redirect
     }
     passport.authenticate(`oidc-${oidcId}`, {
       successRedirect: `${config.FE_URL}${redirect}`,
@@ -190,5 +196,39 @@ export class AuthController {
   async logout(@Req() request: Request) {
     this.throwOnBearerToken({ request, route: 'logout' });
     return request.session.destroy(async () => undefined);
+  }
+
+  private validateRedirectUrl(redirect: string): string {
+    // Default safe redirect
+    const defaultRedirect = '/';
+
+    if (!redirect || typeof redirect !== 'string') {
+      return defaultRedirect;
+    }
+
+    // Allow only relative URLs that start with '/'
+    if (redirect.startsWith('/') && !redirect.startsWith('//')) {
+      // Additional validation to prevent protocol-relative URLs and malicious paths
+      if (redirect.match(/^\/[a-zA-Z0-9\-._~!$&'()*+,;=:@%/?#[\]]*$/) && !/[<>]/.test(redirect)) {
+        return redirect;
+      }
+    }
+
+    // Allow whitelisted absolute URLs (frontend URL from config)
+    const allowedHosts = config.WHITELISTED_REDIRECTS || [];
+
+    try {
+      const url = new URL(redirect);
+      const baseUrl = `${url.protocol}//${url.host}`;
+
+      if (allowedHosts.includes(baseUrl)) {
+        return redirect;
+      }
+    } catch (error) {
+      // Invalid URL format
+    }
+
+    // Return default redirect for any invalid or non-whitelisted URLs
+    return defaultRedirect;
   }
 }

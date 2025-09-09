@@ -110,4 +110,5 @@ module.exports = {
     return out;
   }),
   USE_YOPASS: false,
+  WHITELISTED_REDIRECTS: [this.FE_URL],
 };

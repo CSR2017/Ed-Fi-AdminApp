@@ -1,14 +1,14 @@
 // packages/api/config/local-development.js
+const FE_URL = 'http://localhost:4200';
 
 module.exports = {
   _OPEN_API: true,
   API_PORT: 3333,
   DB_SSL: false,
   AWS_REGION: 'us-east-2',
-  FE_URL: 'http://localhost:4200',
+  FE_URL: FE_URL,
   MY_URL: 'http://localhost:3333',
   YOPASS_URL: 'https://i2970wh4a8.execute-api.us-east-2.amazonaws.com/prod/',
-
 
   DB_SECRET_VALUE: {
     DB_HOST: 'localhost',
@@ -39,6 +39,8 @@ module.exports = {
     CLIENT_SECRET: '<your value>',
     MACHINE_AUDIENCE: 'sbaa-local',
   },
+
+  WHITELISTED_REDIRECTS: [FE_URL],
 
   // There are other defaults you can override if you want to. See default.js.
 };

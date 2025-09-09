@@ -1,0 +1,107 @@
+### Test OIDC Authentication Redirect URL Validation
+### This file tests the security fixes for redirect URL validation
+
+@frontend_url = http://localhost:4200
+@api_base_url = http://localhost:3333/api
+@oidc_id = 1
+
+##
+## Valid Redirect URL Tests
+##
+
+### Test 1: Valid relative redirect URL
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=/dashboard
+Accept: text/html
+
+### Test 2: Valid relative redirect with query params
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=/users?page=1&limit=10
+Accept: text/html
+
+### Test 3: Valid relative redirect with hash
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=/settings#profile
+Accept: text/html
+
+### Test 4: Empty redirect (should default to '/')
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=
+Accept: text/html
+
+### Test 5: No redirect parameter (should default to '/')
+GET {{api_base_url}}/auth/login/{{oidc_id}}
+Accept: text/html
+
+##
+## Invalid Redirect URL Tests (Should be blocked/sanitized)
+##
+
+### Test 6: Protocol-relative URL (should be blocked)
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=//evil.com/malicious
+Accept: text/html
+
+### Test 7: Absolute URL to external domain (should be blocked)
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=https://evil.com/malicious
+Accept: text/html
+
+### Test 8: JavaScript protocol (should be blocked)
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=javascript:alert('xss')
+Accept: text/html
+
+### Test 9: Data protocol (should be blocked)
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=data:text/html,<script>alert('xss')</script>
+Accept: text/html
+
+### Test 10: FTP protocol (should be blocked)
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=ftp://evil.com/file
+Accept: text/html
+
+### Test 11: Invalid characters in path (should be blocked)
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=/path<script>alert('xss')</script>
+Accept: text/html
+
+### Test 12: Null byte injection (should be blocked)
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=/path%00.evil.com
+Accept: text/html
+
+##
+## Whitelisted Absolute URL Tests
+##
+
+### Test 13: Valid absolute URL to frontend (should be allowed if whitelisted)
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect={{frontend_url}}/dashboard
+Accept: text/html
+
+### Test 14: Valid absolute URL to frontend with path (should be allowed if whitelisted)
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect={{frontend_url}}/users/profile
+Accept: text/html
+
+##
+## Callback Testing (Manual - requires actual OIDC flow)
+##
+
+### Test 15: Test callback with malicious state
+### This would need to be tested manually during actual OIDC flow
+### The state parameter should contain: {"redirect":"//evil.com","random":"..."}
+# GET {{api_base_url}}/auth/callback/{{oidc_id}}?state={"redirect":"//evil.com","random":"uuid"}
+
+##
+## Additional Edge Cases
+##
+
+### Test 16: Array injection (should be blocked)
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect[]=/malicious
+Accept: text/html
+
+### Test 17: Object injection (should be blocked)
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect[evil]=malicious
+Accept: text/html
+
+### Test 18: Very long redirect (should be handled gracefully)
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=/very/long/path/that/goes/on/and/on/and/on/and/on/and/on/and/on/and/on/and/on/and/on/and/on/and/on/and/on/and/on/and/on/and/on/and/on/and/on/and/on
+Accept: text/html
+
+### Test 19: Unicode/encoded characters
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=%2Fdashboard%3Ftest%3D1
+Accept: text/html
+
+### Test 20: Case sensitivity test
+GET {{api_base_url}}/auth/login/{{oidc_id}}?redirect=HTTP://EVIL.COM
+Accept: text/html
