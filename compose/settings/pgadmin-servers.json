@@ -1,7 +1,7 @@
 {
   "Servers": {
     "1": {
-      "Name": "v7-db-ods-tenant1",
+      "Name": "v7 Multi Tenant - Tenant 1 ODS",
       "Group": "ODS-API-7x",
       "Host": "v7-db-ods-tenant1",
       "Port": 5432,
@@ -10,7 +10,7 @@
       "SSLMode": "prefer"
     },
     "2": {
-      "Name": "v7-db-ods-tenant2",
+      "Name": "v7 Multi Tenant - Tenant 2 ODS",
       "Group": "ODS-API-7x",
       "Host": "v7-db-ods-tenant2",
       "Port": 5432,
@@ -19,7 +19,7 @@
       "SSLMode": "prefer"
     },
     "3": {
-      "Name": "v7-db-admin-tenant1",
+      "Name": "v7 Multi Tenant - Tenant 1 Admin",
       "Group": "ODS-API-7x",
       "Host": "v7-db-admin-tenant1",
       "Port": 5432,
@@ -28,7 +28,7 @@
       "SSLMode": "prefer"
     },
     "4": {
-      "Name": "v7-db-admin-tenant2",
+      "Name": "v7 Multi Tenant - Tenant 2 Admin",
       "Group": "ODS-API-7x",
       "Host": "v7-db-admin-tenant2",
       "Port": 5432,
@@ -64,11 +64,29 @@
       "SSLMode": "prefer"
     },
     "8": {
-      "Name": "sbaa",
-      "Group": "",
-      "Host": "sbaa-db",
+      "Name": "edfiadminapp-db",
+      "Group": "AdminApp",
+      "Host": "edfiadminapp-db",
       "Port": 5432,
       "MaintenanceDB": "sbaa",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    },
+    "9": {
+      "Name": "v7 Single Tenant - ODS 1",
+      "Group": "ODS-API-7x",
+      "Host": "v7-db-ods",
+      "Port": 5432,
+      "MaintenanceDB": "EdFi_Ods",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    },
+    "10": {
+      "Name": "v7 Single Tenant - Admin",
+      "Group": "ODS-API-7x",
+      "Host": "v7-db-admin",
+      "Port": 5432,
+      "MaintenanceDB": "EdFi_Admin",
       "Username": "postgres",
       "SSLMode": "prefer"
     }

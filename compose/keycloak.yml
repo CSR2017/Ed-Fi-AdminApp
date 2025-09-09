@@ -1,9 +1,9 @@
 services:
   keycloak:
     image: quay.io/keycloak/keycloak:${KEYCLOAK_TAG:-26.1}
-    container_name: sbaa-keycloak
+    container_name: edfiadminapp-keycloak
     volumes:
-      - vol-sbaa-keycloak:/var/lib/keycloak/data
+      - vol-edfiadminapp-keycloak:/var/lib/keycloak/data
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
@@ -15,12 +15,13 @@ services:
     command:
       - start-dev
     networks:
-      - sbaa-network
+      - edfiadminapp-network
+
 networks:
-  sbaa-network:
+  edfiadminapp-network:
     external: true
 
 volumes:
-  vol-sbaa-keycloak:
+  vol-edfiadminapp-keycloak:
     driver: local
-    name: vol-sbaa-keycloak
+    name: vol-edfiadminapp-keycloak

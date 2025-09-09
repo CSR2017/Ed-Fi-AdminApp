@@ -1,14 +1,14 @@
-# Reference System Architecture for General Ed-Fi Deployments
+# Reference System Architecture for Ed-Fi Technology Suite Deployments
 
 > [!TIP]
-> This document describes the system architecture for using this Admin App tool to
+> This document describes the system architecture for using this Ed-Fi Admin App tool to
 > manage Ed-Fi deployments _outside_ of a Starting Blocks Environment (SBE). See
 > [System Architecture](./system-architecture.md) for more information on the
 > application design that supports SBE.
 
 ## Terminology
 
-- **Environment**: the group of one instance of the ODS/API, one Admin API, and one or more `EdFi_Admin`, `EdFi_Security`, and `EdFi_ODS` databases. An environment can include multiple ODS databases, for example to support different deployment stages and/or different years.
+- **Environment**: the group of one instance of the Ed-Fi ODS/API, one Ed-Fi Admin API, and one or more `EdFi_Admin`, `EdFi_Security`, and `EdFi_ODS` databases. An environment can include multiple ODS databases, for example to support different deployment stages and/or different years.
 - **Tenant**: a grouping of one or more `EdFi_ODS` databases with a single pairing of `EdFi_Admin` and `EdFi_Security` databases. A single instance of the ODS/API and AdminAPI can support multiple tenants, although this is not the default mode.
 
   > [!WARNING]
@@ -30,8 +30,7 @@ C4Context
     Enterprise_Boundary(b0, "Starting Blocks Environment (SBE)") {
         Person(sysAdmin, "System Administrator")
 
-        System(sbaa, "SBAA", "Starting Blocks Admin App")
-        System(workers, "Admin API Workers", ".NET Applications")
+        System(edfiadminapp, "edfiadminapp", "Ed-Fi Admin App")
 
         System(edfi1, "Ed-Fi Env 1", "ODS/API, AdminApi, databases")
         System(edfi2, "Ed-Fi Env 2", "ODS/API, AdminApi, databases")
@@ -39,25 +38,22 @@ C4Context
     }
 
     Rel(leaAdmin, auth, "https")
-    Rel(leaAdmin, sbaa, "https")
+    Rel(leaAdmin, edfiadminapp, "https")
 
     Rel(sysAdmin, auth, "https")
-    Rel(sysAdmin, sbaa, "https")
+    Rel(sysAdmin, edfiadminapp, "https")
 
-    BiRel(sbaa, workers, "https")
-    Rel(sbaa, edfi1, "https")
-    Rel(workers, edfi1, "https<br/>postgresql")
-    Rel(sbaa, edfi2, "https")
-    Rel(workers, edfi2, "https<br/>postgresql")
-    Rel(sbaa, edfi3, "https")
-    Rel(workers, edfi3, "https<br/>postgresql")
+    BiRel(edfiadminapp, workers, "https")
+    Rel(edfiadminapp, edfi1, "https")
+    Rel(edfiadminapp, edfi2, "https")
+    Rel(edfiadminapp, edfi3, "https")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
 
-The Admin App (AA) is a centralized management system for managing Ed-Fi deployments. The system serves two primary user types: LEA Administrators who manage local educational data environments, and System Administrators who oversee the entire infrastructure.
+The Ed-Fi Admin App (AA) is a centralized management system for managing Ed-Fi deployments. The system serves two primary user types: LEA Administrators who manage local educational data environments, and System Administrators who oversee the entire infrastructure.
 
-The Admin App acts as a control plane that communicates with various Ed-Fi environments (each containing ODS/API, Admin API, and associated databases). It leverages custom .NET "worker" applications to perform automated operations across these environments, including creation and deletion of database instances.
+The Admin App acts as a control plane that communicates with various Ed-Fi API environments (each containing ODS/API, Admin API, and associated databases). It leverages custom .NET "worker" applications to perform automated operations across these environments, including creation and deletion of database instances.
 
 Authentication is handled through an external OpenID Connect-compatible Identity Provider, ensuring secure access for all users. The system provides a unified interface for managing multiple Ed-Fi instances while maintaining isolation between different educational environments, enabling scalable administration of educational data systems across multiple tenants or organizations.
 
@@ -71,12 +67,10 @@ Authentication is handled through an external OpenID Connect-compatible Identity
 ```mermaid
 C4Container
 
-    Container_Boundary(b0, "Admin App") {
+    Container_Boundary(b0, "Ed-Fi Admin App") {
         Container(sbaaUI, "AA UI", "Node.js / static site")
         Container(sbaaApi, "AA API", "Node.js")
         ContainerDb(sbaaDb, "AA DB", "PostgreSQL")
-        %%Container(instance, "Instance Management Worker", ".NET")
-        %%Container(health, "Health Check Worker", ".NET")
     }
 
     Container_Boundary(b1, "Ed-Fi Deployment") {
@@ -114,32 +108,31 @@ C4Container
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
 
-For simplicity, the Containers diagram only shows a single Ed-Fi deployment. The AA API application serves as a dedicated backend-for-frontend (BFF) application for the AA user interfaces. It handles user authorization logic and various tasks. Creation of new database instances for an environment will be handled by Admin API, which will also be responsible for performing a health check with query against the ODS database(s).
+For simplicity, the Containers diagram only shows a single Ed-Fi API deployment. The Admin App's API application serves as a dedicated backend-for-frontend (BFF) application for the Admin App user interfaces. It handles user authorization logic and various tasks. Creation of new database instances for an environment will be handled by the Ed-Fi Admin API, which will also be responsible for performing a health check with query against the Ed-Fi ODS database(s).
 
 Both the custom frontend user interface and the backend API are fully configurable. Sensitive data such as OpenId Connect provider credentials can be configured through environment variables at runtime.
 
-SBAA provides secure password sharing through use of [Yopass](https://github.com/jhaals/yopass), a basic web application for creating one-time use URLs for securely sharing passwords and other secrets. Yopass caches information in either Memcached or Redis; the out-of-the-box stack uses Memcached. The interaction works something like this:
+Optionally, Admin App provides secure password sharing through use of [Yopass](https://github.com/jhaals/yopass), a basic web application for creating one-time use URLs for securely sharing passwords and other secrets. Yopass caches information in either Memcached or Redis; the out-of-the-box stack uses Memcached. The interaction works something like this:
 
 ```mermaid
 sequenceDiagram
-    SBAA-FE->>SBAA-API: POST /applications
-    SBAA-API->>AdminAPI: POST /v2/application
-    AdminAPI-->>SBAA-API: credentials
+    AA-FE->>AA-API: POST /applications
+    AA-API->>AdminAPI: POST /v2/application
+    AdminAPI-->>AA-API: credentials
 
-    SBAA-API->>Yopass: POST /secret
-    Yopass-->>SBAA-API: uuid, password
-    SBAA-API->>SBAA-API: createLink(uuid, password)
+    AA-API->>Yopass: POST /secret
+    Yopass-->>AA-API: uuid, password
+    AA-API->>AA-API: createLink(uuid, password)
 
-    SBAA-API-->>SBAA-FE: secureLink
+    AA-API-->>AA-FE: secureLink
 
-    SBAA-FE->>SBAA-FE: display secureLink to user
+    AA-FE->>AA-FE: display secureLink to user
 ```
 
 > [!WARNING]
 > To be determined:
 >
-> - Communication mechanism with worker applications, and deployment paradigm.
-> - Should the health check worker adopt SBAA's highly optimized row count query?
+> - Should the health check process adopt SBAA's highly optimized row count query?
 >   - Can/should it also perform more like the SBAA tool?
 >   - What if someone wanted to write their own health check?
 > - Environment variable override of config settings.

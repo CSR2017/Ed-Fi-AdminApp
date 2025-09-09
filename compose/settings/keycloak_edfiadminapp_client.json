@@ -1,6 +1,6 @@
 {
-  "clientId": "sbaa",
-  "name": "Starting Blocks Admin App",
+  "clientId": "edfiadminapp",
+  "name": "Ed-Fi Admin App",
   "enabled": true,
   "rootUrl": "http://localhost:3333",
   "adminUrl": "http://localhost:3333",

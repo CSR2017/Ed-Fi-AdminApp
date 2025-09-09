@@ -2,20 +2,20 @@
 
 ## About
 
-This directory includes a Docker Compose file for starting a collection of services needed for running and testing Starting Blocks Admin App. It includes a deployment of ODS/API 7.3 and Admin API 2.2 in multi-tenant mode, and a deployment of ODS/API 6.2 and Admin API 1.4 in district-specific mode.
+This directory includes a Docker Compose file for starting a collection of services needed for running and testing Ed-Fi Admin App. It includes a deployment of ODS/API 7.3 and Admin API 2.2 in multi-tenant mode, and a deployment of ODS/API 6.2 and Admin API 1.4 in district-specific mode.
 
-### Containers for SBAA Support
+### Containers for Supporting Ed-Fi Admin App
 
 ```mermaid
 graph TD
-  sbaa-db
+  edfiadminapp-db
   pgadmin4
   keycloak
   memcached
   yopass --> memcached
 ```
 
-- **sbaa-db**: PostgreSQL database instance for the SBAA API.
+- **edfiadminapp-db**: PostgreSQL database instance for the SBAA API.
 - **pgadmin4**: Standard PGAdmin4 deploy, preconfigured with links to the various PostgreSQL databases.
 - **keycloak**: For user authentication.
 - **yopass**: A web application for sharing one-time encrypted secrets, such as a ODS/API `client_secret`.
@@ -25,22 +25,37 @@ graph TD
 
 ```mermaid
 graph TD
-  v7-db-ods-tenant1
-  v7-db-ods-tenant2
-  v7-db-admin-tenant1 --> v7-db-ods-tenant1
-  v7-db-admin-tenant2 --> v7-db-ods-tenant2
-  v7-api --> v7-db-ods-tenant1
-  v7-api --> v7-db-ods-tenant2
-  v7-api --> v7-db-admin-tenant1
-  v7-api --> v7-db-admin-tenant2
-  v7-adminapi --> v7-db-admin-tenant1
-  v7-adminapi --> v7-db-admin-tenant2
+    subgraph Multi-tenant
+        v7-db-ods-tenant1
+        v7-db-ods-tenant2
+        v7-db-admin-tenant1
+        v7-db-admin-tenant2
+        v7-api --> v7-db-ods-tenant1
+        v7-api --> v7-db-ods-tenant2
+        v7-api --> v7-db-admin-tenant1
+        v7-api --> v7-db-admin-tenant2
+        v7-adminapi --> v7-db-admin-tenant1
+        v7-adminapi --> v7-db-admin-tenant2
+    end
+
+    subgraph Single-tenant
+        v7-db-ods
+        v7-db-admin
+        v7-api-single-tenant
+        v7-api-single-tenant --> v7-db-ods
+        v7-api-single-tenant --> v7-db-admin
+        v7-adminapi-single-tenant --> v7-db-admin
+    end
+
   v7-nginx --> v7-api
   v7-nginx --> v7-adminapi
+
+  v7-nginx --> v7-api-single-tenant
+  v7-nginx --> v7-adminapi-single-tenant
 ```
 
-- Includes two tenancies, each with own combination of "ODS" and "Admin" databases.
-- There is only one ODS/API and one Admin API installation, supporting both tenants.
+- Two ODS/API instances, supporting single and multi-tenant configurations.
+- The multi-tenant configuration includes two tenancies, each with own combination of "ODS" and "Admin" databases.
 - **NGiNX** serves as a reverse proxy.
 
 ### Containers for ODS/API 6.2
@@ -78,7 +93,7 @@ There are two Docker Compose files: `docker-compose.yml` and `keycloak.yml`. Thi
 4. Else:
 
    - Be sure to create the `logs` directory before starting services
-   - And create the external `sbaa-network`.
+   - And create the external `edfiadminapp-network`.
 
    ```shell
    mkdir logs > /dev/null
@@ -93,10 +108,10 @@ There are two Docker Compose files: `docker-compose.yml` and `keycloak.yml`. Thi
 4. Create a new non-admin client:
    1. Click on Clients.
    2. Click the Import client button.
-   3. Browse to load the file `keycloak_sbaa_client.json` from the `settings` directory.
+   3. Browse to load the file `keycloak_edfiadminapp_client.json` from the `settings` directory.
    4. Save.
 5. Create a new user in Keycloak.
-   1. Default email address: `sbaa-admin@example.com`
+   1. Default email address: `admin@example.com`
 
 > [!TIP]
 > You can sign-in as the new user without generating a password: on the user page, click the `Action` drop down (upper right corner) and choose `Impersonate`.
@@ -166,8 +181,8 @@ In Global Scope, complete the following setup:
 - [Keycloak](http://localhost:8045)
 - [Yopass](http://localhost:8082)
 - [PGAdmin4](http://localhost:5050)
-- [SBAA API Swagger](http://localhost:3333/api/)
-- [SBAA UI](http://localhost:4200/)
+- [Admin App API Swagger](http://localhost:3333/api/)
+- [Admin App UI](http://localhost:4200/)
 
 ## Troubleshooting
 

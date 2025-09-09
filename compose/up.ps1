@@ -7,10 +7,10 @@
     Starts the Docker Compose services
 #>
 
-$networkExists = docker network ls --filter name=sbaa-network --format '{{.Name}}' | Select-String -Pattern 'sbaa-network'
+$networkExists = docker network ls --filter name=edfiadminapp-network --format '{{.Name}}' | Select-String -Pattern 'edfiadminapp-network'
 if (-not $networkExists) {
-    Write-Host "Creating sbaa-network..." -ForegroundColor Yellow
-    docker network create sbaa-network --driver bridge
+    Write-Host "Creating edfiadminapp-network..." -ForegroundColor Yellow
+    docker network create edfiadminapp-network --driver bridge
 }
 
 Write-Host "Starting Docker Compose services..." -ForegroundColor Green

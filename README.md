@@ -1,8 +1,6 @@
-# Starting Blocks Admin App
+# Ed-Fi Admin App
 
-Starting Blocks Admin App is a user interface for managing [Ed-Fi deployments](https://docs.ed-fi.org)
-in a [Starting Blocks](https://github.com/edanalytics/startingblocks_oss)
-environment.
+Ed-Fi Admin App is a user interface for managing [Ed-Fi Technology Suite deployments](https://docs.ed-fi.org) on-premises, in the cloud, or in [Starting Blocks (Education Analytics)](https://github.com/edanalytics/startingblocks_oss) environment.
 
 ## Documentation
 
@@ -13,7 +11,7 @@ environment.
 
 ## Legal Information
 
-Copyright (c) 2025 Education Analytics, Inc. and contributors.
+Copyright (c) 2025 Education Analytics, Inc., Ed-Fi Alliance, LLC, and contributors.
 
 Licensed under the [Apache License, Version 2.0](LICENSE) (the "License").
 

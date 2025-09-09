@@ -192,7 +192,7 @@ export class AdminApiServiceV2 {
     }
     const ClientId = crypto.randomBytes(16).toString('hex');
     const ClientSecret = crypto.randomBytes(128).toString('base64');
-    const DisplayName = `SBAA ${Number(new Date())}ms`;
+    const DisplayName = `Ed-Fi Admin App ${Number(new Date())}ms`;
     const credentials = {
       ClientId,
       ClientSecret,

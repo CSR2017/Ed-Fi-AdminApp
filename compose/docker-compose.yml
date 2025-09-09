@@ -1,22 +1,21 @@
-name: aa-dev-environment
+name: edfiadminapp-dev-environment
 
 services:
-  # Use sbaa-db for the SBAA api's data store
-  sbaa-db:
+  # Use edfiadminapp-db for the Admin App api's data store
+  edfiadminapp-db:
     image: postgres:${POSTGRESQL_IMAGE_TAG:-16.2}
     ports:
       - '127.0.0.1:${POSTGRES_PORT_EXPOSED:-5432}:5432'
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: sbaa
+      POSTGRES_DB: ${ADMIN_APP_DB_NAME:-sbaa}
     volumes:
-      - vol-sbaa-db:/var/lib/postgresql/data
+      - vol-edfiadminapp-db:/var/lib/postgresql/data
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
-  # Edfi v7.x - Single tenant
-
+  # Ed-Fi v7.x - Single tenant
   v7-db-ods:
     image: edfialliance/ods-api-db-ods-minimal:${ODS_TAG_7X}
     environment:
@@ -32,7 +31,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   v7-db-admin:
     image: edfialliance/ods-admin-api-db:${ADMIN_DB_TAG_7X}
@@ -54,7 +53,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   v7-api-single-tenant:
     image: edfialliance/ods-api-web-api:${ODS_API_TAG_7X}
@@ -85,7 +84,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   v7-adminapi-single-tenant:
     image: edfialliance/ods-admin-api:${ADMIN_API_TAG_7X}
@@ -124,10 +123,10 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
 
-  # Edfi v7.x - Multi tenants
+  # Ed-Fi v7.x - Multi tenants
   v7-db-ods-tenant1:
     image: edfialliance/ods-api-db-ods-minimal:${ODS_TAG_7X}
     environment:
@@ -143,7 +142,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   v7-db-ods-tenant2:
     image: edfialliance/ods-api-db-ods-minimal:${ODS_TAG_7X}
@@ -160,7 +159,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   v7-db-admin-tenant1:
     image: edfialliance/ods-admin-api-db:${ADMIN_DB_TAG_7X}
@@ -184,7 +183,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   v7-db-admin-tenant2:
     image: edfialliance/ods-admin-api-db:${ADMIN_DB_TAG_7X}
@@ -208,7 +207,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   v7-api:
     image: edfialliance/ods-api-web-api:${ODS_API_TAG_7X}
@@ -248,7 +247,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   v7-adminapi:
     image: edfialliance/ods-admin-api:${ADMIN_API_TAG_7X}
@@ -267,7 +266,7 @@ services:
       AppSettings__DefaultPageSizeOffset: ${PAGING_OFFSET:-0}
       AppSettings__DefaultPageSizeLimit: ${PAGING_LIMIT:-25}
       AppSettings__MultiTenancy: ${MULTITENANCY_ENABLED:-true}
-      AppSettings__EnableApplicationResetEndpoint: ${ENABLE_APPLICATION_RESET_ENDPOINT:-true} 
+      AppSettings__EnableApplicationResetEndpoint: ${ENABLE_APPLICATION_RESET_ENDPOINT:-true}
       SwaggerSettings__EnableSwagger: true
       SwaggerSettings__DefaultTenant: ${SWAGGER_DEFAULT_TENANT:-tenant1}
       Log4NetCore__Log4NetConfigFileName: ./log4net/log4net.config
@@ -294,7 +293,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   v7-nginx:
     image: edfialliance/ods-api-web-gateway:${GATEWAY_TAG_7X}
@@ -319,9 +318,9 @@ services:
       - v7-api-single-tenant
       - v7-adminapi-single-tenant
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
-  # EdFi v6.x
+  # Ed-Fi ODS/API v6.x
   v6-db-admin:
     image: edfialliance/ods-admin-api-db:${ADMIN_DB_TAG_6X}
     environment:
@@ -346,7 +345,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   # Note: this host name _must_ have `ods_` before the district number. Cannot be `ods-`.
   v6-edfi-ods_255901:
@@ -365,7 +364,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   # Note: this host name _must_ have `ods_` before the district number. Cannot be `ods-`.
   v6-edfi-ods_255902:
@@ -384,7 +383,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   v6-api:
     image: edfialliance/ods-api-web-api:${ODS_API_TAG_6x}
@@ -418,7 +417,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   v6-adminapi:
     image: edfialliance/ods-admin-api:${ADMIN_TAG_6X}
@@ -453,7 +452,7 @@ services:
       retries: 30
       interval: 3s
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   v6-nginx:
     image: edfialliance/ods-api-web-gateway:${GATEWAY_TAG_6X}
@@ -474,7 +473,7 @@ services:
       - v6-api
       - v6-adminapi
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   pgadmin4:
     image: dpage/pgadmin4:9.5.0@sha256:2a830466aafd9cbc2aea0f76ff81a80dbbba819f2f5db7e69cb40e9cbdb6bc7b
@@ -488,13 +487,13 @@ services:
       - ./settings/pgadmin-servers.json:/pgadmin4/servers.json
     restart: always
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   memcached:
     image: memcached
     restart: always
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
   yopass:
     image: jhaals/yopass
@@ -503,10 +502,10 @@ services:
       - '127.0.0.1:8082:80'
     command: '--memcached=memcached:11211 --port 80'
     networks:
-      - sbaa-network
+      - edfiadminapp-network
 
 networks:
-  sbaa-network:
+  edfiadminapp-network:
     external: true
 
 volumes:
@@ -540,6 +539,6 @@ volumes:
   pgadmin-data:
     driver: local
     name: pgadmin-data
-  vol-sbaa-db:
+  vol-edfiadminapp-db:
     driver: local
-    name: vol-sbaa-db
+    name: vol-edfiadminapp-db

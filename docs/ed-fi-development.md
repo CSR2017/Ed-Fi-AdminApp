@@ -1,4 +1,4 @@
-# Ed-Fi Developer's Guide
+# Ed-Fi Admin App Developer's Guide
 
 First, read the [SBAA Developer's Guide](./development.md) - but ignore anything about AWS. Take that as the appropriate starting point. Where typical Ed-Fi practices have differed from the SBAA practices, the Alliance will try to adapt to the "SBAA way" for consistency with the existing source code.
 

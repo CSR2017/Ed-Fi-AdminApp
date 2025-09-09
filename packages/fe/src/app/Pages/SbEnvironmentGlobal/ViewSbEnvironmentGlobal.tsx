@@ -44,7 +44,7 @@ export const ViewSbEnvironmentGlobal = (props: { sbEnvironment: GetSbEnvironment
             />
             <Attribute
               isCopyable
-              label="SBAA system version"
+              label="Admin App system version"
               value={sbEnvironment.configPublic?.version}
             />
             {sbEnvironment.startingBlocks && (

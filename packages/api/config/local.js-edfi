@@ -27,13 +27,13 @@ module.exports = {
   // Optional (can delete): seed IdP configs for your local Keycloak. You'll need to use these values for the appropriate things in keycloak itself.
   SAMPLE_OIDC_CONFIG: {
     issuer: 'http://localhost:8045/realms/edfi',
-    clientId: 'sbaa',
+    clientId: 'edfiadminapp',
     clientSecret: 'big-secret-123',
     scope: '',
   },
 
   // Optional: seed an initial user.
-  ADMIN_USERNAME: 'sbaa-admin@example.com', // use an email address in the future
+  ADMIN_USERNAME: 'admin@example.com', // use an email address in the future
 
   // Do not comment this out! Even though Ed-Fi environments do not use Auth0, the code is looking for this object
   AUTH0_CONFIG_SECRET_VALUE: {
