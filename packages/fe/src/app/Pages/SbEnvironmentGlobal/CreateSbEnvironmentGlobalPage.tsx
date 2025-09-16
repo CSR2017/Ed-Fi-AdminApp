@@ -12,7 +12,7 @@ import {
   chakra,
 } from '@chakra-ui/react';
 import { Icons, PageTemplate } from '@edanalytics/common-ui';
-import { PostSbEnvironmentDto } from '@edanalytics/models';
+import { PostSbEnvironmentDto, PostSbEnvironmentTenantDTO } from '@edanalytics/models';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
@@ -113,6 +113,16 @@ export const CreateSbEnvironmentGlobalPage = () => {
     };
   }
 
+  // Helper function to validate that the first tenant has at least one ODS instance
+  const validateFirstTenantHasOds = (tenants: PostSbEnvironmentTenantDTO[] | undefined): boolean => {
+    return Boolean(tenants?.length && tenants[0]?.odss?.length);
+  };
+
+  // Helper function to validate basic tenant structure exists
+  const validateTenantsExist = (tenants: PostSbEnvironmentTenantDTO[] | undefined): boolean => {
+    return Boolean(tenants?.length);
+  };
+
   // Manual validation function
   const validateForm = (data: PostSbEnvironmentDto): boolean => {
     let isValid = true;
@@ -152,27 +162,29 @@ export const CreateSbEnvironmentGlobalPage = () => {
       }
 
       if (currentVersion === 'v1') {
-        // Validate v1 specific fields
-        if (!data.edOrgIds || data.edOrgIds.trim() === '') {
-          setError('edOrgIds', { message: 'Education Organization Identifier(s) is required' });
+        // v1 is always single-tenant, ensure we have at least one tenant with ODS instances
+        if (!validateFirstTenantHasOds(tenants)) {
+          setError('tenants.0.odss', { message: 'At least one ODS instance is required for v1 deployment' });
           isValid = false;
         }
       } else if (currentVersion === 'v2') {
         // Validate v2 specific fields
-        if (data.isMultitenant && (!tenants || tenants.length === 0)) {
+        if (data.isMultitenant && !validateTenantsExist(tenants)) {
           setError('tenants', { message: 'At least one tenant is required for multi-tenant deployment' });
           isValid = false;
         }
 
         // For single-tenant v2, ensure we have at least one ODS instance in the default tenant
         if (!data.isMultitenant) {
-          if (!tenants || tenants.length === 0 || !tenants[0] || !tenants[0].odss || tenants[0].odss.length === 0) {
+          if (!validateFirstTenantHasOds(tenants)) {
             setError('tenants.0.odss', { message: 'At least one ODS instance is required for single-tenant deployment' });
             isValid = false;
           }
         }
+      }
 
-        // Validate tenant data
+      // Validate tenant data for both v1 and v2
+      if (currentVersion === 'v1' || currentVersion === 'v2') {
         tenants.forEach((tenant, tenantIndex) => {
           if (!tenant.name || tenant.name.trim() === '') {
             setError(`tenants.${tenantIndex}.name`, { message: 'Tenant name is required' });
@@ -327,9 +339,9 @@ export const CreateSbEnvironmentGlobalPage = () => {
                 <FormErrorMessage>{errors.environmentLabel?.message}</FormErrorMessage>
               </FormControl>
               {
-                currentVersion === 'v2' ? (
+                (currentVersion === 'v1' || currentVersion === 'v2') ? (
                   <TenantManagementSection
-                    isMultitenant={isMultitenant || false}
+                    isMultitenant={currentVersion === 'v2' ? (isMultitenant || false) : false}
                     tenants={tenants}
                     register={register}
                     setValue={setValue}
@@ -337,25 +349,7 @@ export const CreateSbEnvironmentGlobalPage = () => {
                     errors={errors}
                     clearErrors={clearErrors}
                   />
-                ) : (
-                  <Box>
-                    <FormControl isInvalid={!!errors.edOrgIds}>
-                      <FormLabel>
-                        Education Organization Identifier(s){' '}
-                        <Tooltip
-                          label="Comma separated list of Education Organization IDs managed in this instance"
-                          hasArrow
-                        >
-                          <chakra.span>
-                            <Icons.InfoCircle />
-                          </chakra.span>
-                        </Tooltip>
-                      </FormLabel>
-                      <Input {...register('edOrgIds')} placeholder="1, 255901, 25590100" />
-                      <FormErrorMessage>{errors.edOrgIds?.message}</FormErrorMessage>
-                    </FormControl>
-                  </Box>
-                )
+                ) : null
               }
             </Box>
           ) : null}
