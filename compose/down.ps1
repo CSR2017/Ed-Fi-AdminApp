@@ -9,25 +9,51 @@ param(
 
     # Drop Keycloak's volume as well
     [Switch]
-    $Keycloak
+    $Keycloak,
+
+    # Only Admin App's services
+    [Switch]
+    $AdminApp
 )
 
-if ($V) {
-    # Drop existing volumes
-    docker compose down --volumes
+try {
+    if ($AdminApp) {
+        Push-Location adminapp
+        .\down.ps1
+        Pop-Location
+    }
+    else {
+        if ($V) {
+            # Drop existing volumes
+            docker compose down --volumes
+        }
+        else {
+            # Shuts down the Docker Compose services without dropping volumes
+            docker compose down
+        }
+
+        if ($Keycloak) {
+            if ($V) {
+                # Shut down Keycloak and remove its volume
+                docker compose --project-name edfiadminapp-dev-environment -f keycloak.yml down --volumes
+            }
+            else {
+                # Shut down Keycloak without removing its volume
+                docker compose --project-name edfiadminapp-dev-environment -f keycloak.yml down
+            }
+        }
+        
+        Push-Location adminapp
+        .\down.ps1
+        Pop-Location
+    }
+    Write-Host "SUCCESS! Services stopped successfully." -ForegroundColor Green
+    exit 0
 }
-else {
-    # Shuts down the Docker Compose services without dropping volumes
-    docker compose down
+catch {
+    Write-Host "ERROR! Services failed to stop." -ForegroundColor Red
+    exit 1
 }
 
-if ($Keycloak) {
-  if ($V) {
-    # Shut down Keycloak and remove its volume
-    docker compose --project-name edfiadminapp-dev-environment -f keycloak.yml down --volumes
-  }
-  else {
-      # Shut down Keycloak without removing its volume
-      docker compose --project-name edfiadminapp-dev-environment -f keycloak.yml down
-  }
-}
+
+

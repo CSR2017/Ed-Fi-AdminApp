@@ -173,7 +173,7 @@ const Login = memo(() => {
   const { redirect } = useSearchParamsObject() as any;
   useEffect(() => {
     // TODO the backend supports multiple (trusted) IdPs, so maybe we should support that here with some kind of login screen
-    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/login/1${
+    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/login/${import.meta.env.VITE_OIDC_ID || 1}${
       redirect ? `?redirect=${redirect}` : ''
     }`;
   }, []);
@@ -366,7 +366,9 @@ const addPathToHandle = (r: RouteObject) => {
 routes.forEach(addPathToHandle);
 const flattenRoute = (r: RouteObject): RouteObject[] =>
   [r, ...(r.children ?? []).map((route) => flattenRoute(route))].flat();
-const router = createBrowserRouter(routes);
+const router = createBrowserRouter(routes, {
+  basename: import.meta.env.VITE_BASE_PATH || '/'
+});
 export const flatRoutes = routes.flatMap(flattenRoute);
 export const Routes = () => {
   return <RouterProvider router={router} />;

@@ -29,7 +29,7 @@ module.exports = {
   // Optional (can delete): seed IdP configs for your local Keycloak. You'll need to use these values for the appropriate things in keycloak itself.
   SAMPLE_OIDC_CONFIG: {
     issuer: 'https://localhost/auth/realms/edfi',
-    clientId: 'edfiadminapp',
+    clientId: 'edfiadminapp-dev',
     clientSecret: 'big-secret-123',
     scope: '',
   },

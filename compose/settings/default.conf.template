@@ -19,6 +19,104 @@ server {
     ssl_certificate_key /ssl/server.key;
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
+    # AdminApp Frontend - use variable to resolve at request time
+    location /adminapp/ {
+        resolver 127.0.0.11 valid=30s;
+        set $adminapp_fe edfiadminapp-fe:4200;
+        
+        # Strip /adminapp prefix and proxy to the container
+        rewrite ^/adminapp/(.*)$ /$1 break;
+        proxy_pass http://$adminapp_fe;
+        
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port ${EXTERNAL_PORT};
+        proxy_redirect off;
+        
+        # Return 503 if service is not available
+        proxy_intercept_errors on;
+        error_page 502 503 504 = @adminapp_unavailable;
+    }
+    
+    # Handle /adminapp without trailing slash
+    location = /adminapp {
+        return 301 $scheme://$host/adminapp/;
+    }
+    
+    location @adminapp_unavailable {
+        return 503 "AdminApp frontend service unavailable";
+        add_header Content-Type text/plain;
+    }
+
+    # AdminApp API - use variable to resolve at request time
+    location /adminapp-api/ {
+        resolver 127.0.0.11 valid=30s;
+        set $adminapp_api edfiadminapp-api:3333;
+        
+        # Remove /adminapp-api prefix, everything else passes through
+        rewrite ^/adminapp-api/(.*)$ /$1 break;
+        proxy_pass http://$adminapp_api;
+        
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port ${EXTERNAL_PORT};
+        proxy_redirect off;
+        client_max_body_size 20M;
+        
+        # Return 503 if service is not available
+        proxy_intercept_errors on;
+        error_page 502 503 504 = @adminapp_api_unavailable;
+    }
+    
+    # Handle /adminapp-api without trailing slash - redirect to API root
+    location = /adminapp-api {
+        resolver 127.0.0.11 valid=30s;
+        set $adminapp_api edfiadminapp-api:3333;
+        proxy_pass http://$adminapp_api/api;
+        
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port ${EXTERNAL_PORT};
+        proxy_redirect off;
+        client_max_body_size 20M;
+    }
+    
+    # Handle hardcoded /api/ calls from React app
+    location /api/ {
+        resolver 127.0.0.11 valid=30s;
+        set $adminapp_api edfiadminapp-api:3333;
+        
+        # Proxy directly to the API container
+        proxy_pass http://$adminapp_api;
+        
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port ${EXTERNAL_PORT};
+        proxy_redirect off;
+        client_max_body_size 20M;
+        
+        # Return 503 if service is not available
+        proxy_intercept_errors on;
+        error_page 502 503 504 = @adminapp_api_unavailable;
+    }
+
+    location @adminapp_api_unavailable {
+        return 503 "AdminApp API service unavailable";
+        add_header Content-Type text/plain;
+    }
+
     # Sourced from https://enable-cors.org/server_nginx.html with modifications
     location /${ODS_VIRTUAL_NAME} {
         resolver 127.0.0.11;
@@ -61,7 +159,6 @@ server {
         proxy_set_header X-Forwarded-Port ${EXTERNAL_PORT};
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
-
 
     # ODS/API v6 support
     location /${ODS_v6_VIRTUAL_NAME}{

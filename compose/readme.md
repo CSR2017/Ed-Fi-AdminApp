@@ -88,7 +88,7 @@ There are two Docker Compose files: `docker-compose.yml` and `keycloak.yml`. Thi
 2. Create a self-signed certificate using script `ssl/generate-certificate.sh`, which will be used by the "gateway" container (NGiNX)
    1. TIP: Windows users can use WSL or Git-bash to run this.
 3. If using PowerShell:
-   - Run `up.ps1` to start all services
+   - Run `up.ps1` to start all services.
    - Run `down.ps1` to shut them down again; add `-v` to drop volumes; add `-Keycloak` to drop Keycloak's volume.
 4. Else:
 
@@ -108,7 +108,7 @@ There are two Docker Compose files: `docker-compose.yml` and `keycloak.yml`. Thi
 4. Create a new non-admin client:
    1. Click on Clients.
    2. Click the Import client button.
-   3. Browse to load the file `keycloak_edfiadminapp_client.json` from the `settings` directory.
+   3. Browse to load the file `keycloak_edfiadminapp_client.json` from the `settings` directory. As a developer you will need to import `keycloak_edfiadminapp_client_dev.json` from the `settings` directory.
    4. Save.
 5. Create a new user in Keycloak.
    1. Default email address: `admin@example.com`
@@ -116,50 +116,24 @@ There are two Docker Compose files: `docker-compose.yml` and `keycloak.yml`. Thi
 > [!TIP]
 > You can sign-in as the new user without generating a password: on the user page, click the `Action` drop down (upper right corner) and choose `Impersonate`.
 
-### Setup Local Configuration for SBAA
-
-In `packages/api/config`, copy `local.js-edfi` to create `local.js`.
-
-- If you changed anything in your `.env` or `keycloak_sbaa_client.json`, then be sure to update those values in this file as well.
-- Ensure that `ADMIN_USERNAME` matches the email address you used when creating a new user in Keycloak (above).
+### Start/Stop Admin App services
 
 > [!NOTE]
-> `local.js` should not be kept in source control.
+> This step is optional for developers
 
-In `packages/fe`, copy `.copyme.env.local` to create `.env`.
+- `.\up.ps1 -AdminApp` will build and start the Admin App and Admin App backend containers
+- `.\up.ps1 -AdminApp -Rebuild` will rebuild (if you add new changes to the source or `.env` file) and start the Admin App and Admin App backend containers
+- Run `down.ps1 -AdminApp` to shut down only the Admin App Services
 
-### Install Node Dependencies
+The Dockerfiles, docker-compose and scripts used for this are in the `/adminapp/` folder.
 
-```shell
-npm i
-```
+## Developer Guide
 
-See [Ed-Fi Developer's Guide](../docs/ed-fi-development.md) for troublshooting tips.
-
-### Start the SBAA Services in Development Mode
-
-If you are signed into Keycloak with the default `admin` user, then either impersonate the new user or sign out and sign-in as that user.
-
-Run each application in separate terminal windows. In the API terminal, setup Node to trust the self-signed cert.
-
-```pwsh
-# Terminal 1
-$env:NODE_EXTRA_CA_CERTS="d:\ed-fi\AdminApp-v4\compose\ssl\server.crt"
-npm run start:api:dev
-
-# Terminal 2
-npm run start:fe:dev
-```
-
-To verify the API service is running, call the [Healthcheck endpoint](http://localhost:3333/api/healthcheck).
-
-```http
-GET http://localhost:3333/api/healthcheck
-```
+See [Ed-Fi Developer's Guide](../docs/ed-fi-development.md) for troublshooting tips, and running the application for local development.
 
 ### Global Setup
 
-If all went well, you can open [http://localhost:4200/](http://localhost:4200/) with your bootstrapped initial user. This will start you in "Global scope" mode for initial configuration.
+If all went well, you can open [https://localhost/adminapp](https://localhost/adminapp/) with your bootstrapped initial user. This will start you in "Global scope" mode for initial configuration.
 
 In Global Scope, complete the following setup:
 
@@ -184,8 +158,8 @@ These are the default URLs. The last path segment must match your environment va
 - [Keycloak](https://localhost/auth)
 - [Yopass](http://localhost:8082)
 - [PGAdmin4](https://localhost/pgadmin)
-- [SBAA API Swagger](http://localhost:3333/api/)
-- [SBAA UI](http://localhost:4200/)
+- [SBAA API Swagger](https://localhost/adminapp-api/api/)
+- [SBAA UI](https://localhost/adminapp)
 
 ## Authentication Flows
 
@@ -273,8 +247,39 @@ authentication flow:
 
 ## Troubleshooting
 
+### Error registering OIDC provider
+
+If the `edfiadminapp-api` container is displaying the following error in the log:
+
+``` shell
+[Nest] 185  - 09/15/2025, 6:20:40 PM   ERROR Error registering OIDC provider https://localhost/auth/realms/edfi: OPError: Realm does not exist
+```
+
+- Run `down.ps1 -AdminApp` to shut them down the AdminApp services only.
+- Then follow the instructions [Setup Keycloak](./readme.md#setup-keycloak).
+- Start the services using the `.\up.ps1`.
+
+> [!NOTE]
+> If the error persist see the topic [Unable to connect to OpenID Connect Provider](./readme.md#unable-to-connect-to-openid-connect-provider).
+
 ### Unable to connect to OpenID Connect Provider
 
-Did you change something about the OpenID Connect Provider configuration after first startup?
+The initial API startup process copies the OIDC configuration from the configuration file into the database. Either follow the next steps.
 
-The initial API startup process copies the OIDC configuration from the configuration file into the database. Either find it in the DB and update manually, or simply shut down all services while dropping volumes, and startup again.
+- Run `down.ps1 -AdminApp` to shut them down the AdminApp services only.
+- Run the script `.\settings\populate-oidc.ps1` and wait for the results. It should display the following values:
+
+```shell
+ id |               issuer               |     clientId     |  clientSecret  | scope
+----+------------------------------------+------------------+----------------+-------
+  1 | https://localhost/auth/realms/edfi | edfiadminapp     | big-secret-123 |
+  2 | https://localhost/auth/realms/edfi | edfiadminapp-dev | big-secret-123 |
+```
+
+- The clientId we will use in Keycloak is `edfiadminapp`, so make sure the `id` match what you have in the `VITE_OIDC_ID` variable in file `.env`. In our example we have to set `VITE_OIDC_ID=1` since that one contains the right configuration
+- The same value you set in variable `VITE_OIDC_ID` has to be checked in Keycloak.
+  1. Open [Keycloak](https://localhost/auth).
+  2. Sign-in with the credentials from your `.env` file.
+  3. Select the realm called `edfi`.
+  4. Go the clients and select `edfiadminapp`, make sure the `Valid redirect URIs` has the correct url included `https://localhost/adminapp-api/api/auth/callback/{your_oidc_id}`, in this case should be `https://localhost/adminapp-api/api/auth/callback/1`
+- Start the services using the `.\up.ps1 -Rebuild`.

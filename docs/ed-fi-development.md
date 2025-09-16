@@ -12,7 +12,54 @@ Two differences to highlight:
 
 ## Running Locally
 
-See [compose/readme.md](../compose/readme.md).
+Use the [compose/readme.md](../compose/readme.md) to start the main services, using the `.\up.ps1` command.
+
+Once you have it, import the file `keycloak_edfiadminapp_client_dev.json` from the `settings` directory in Keycloak as this instructions [compose/readme.md#setup-keycloak](../compose/readme.md#setup-keycloak).
+
+### Setup Local Configuration for Admin App
+
+In `packages/api/config`, copy `local.js-edfi` to create `local.js`.
+
+- If you changed anything in your `.env` or `keycloak_edfiadminapp_client_dev.json`, then be sure to update those values in this file as well.
+- Ensure that `ADMIN_USERNAME` matches the email address you used when creating a new user in Keycloak (above).
+
+> [!NOTE]
+> `local.js` should not be kept in source control.
+
+In `packages/fe`, copy `.copyme.env.local` to create `.env`.
+
+### Install Node Dependencies
+
+```shell
+npm i
+```
+
+See [section](../docs/ed-fi-development.md#troubleshooting) for troublshooting tips.
+
+### Start the Admin App Services in Development Mode
+
+If you are signed into Keycloak with the default `admin` user, then either impersonate the new user or sign out and sign-in as that user.
+
+Run each application in separate terminal windows. In the API terminal, setup Node to trust the self-signed cert.
+
+```pwsh
+# Terminal 1
+$env:NODE_EXTRA_CA_CERTS="d:\ed-fi\AdminApp-v4\compose\ssl\server.crt"
+npm run start:api:dev
+
+# Terminal 2
+npm run start:fe:dev
+```
+
+To verify the API service is running, call the [Healthcheck endpoint](http://localhost:3333/api/healthcheck).
+
+```http
+GET http://localhost:3333/api/healthcheck
+```
+
+If all went well, you can open [http://localhost:4200](http://localhost:4200) with your bootstrapped initial user. This will start you in "Global scope" mode for initial configuration.
+
+If you have any issue, See [section](../docs/ed-fi-development.md#troubleshooting) for troublshooting tips.
 
 ## File Headers
 
@@ -69,6 +116,34 @@ Although it is not ideal, go ahead and run:
 ```shell
 npm install --legacy-peer-deps
 ```
+
+### Login page is not working or redirecting to `Not found`
+
+- Run the script `.\compose\settings\populate-oidc.ps1` and wait for the results. It should display something similar to this:
+
+  ```shell
+  id |               issuer               |     clientId     |  clientSecret  | scope
+  ----+------------------------------------+------------------+----------------+-------
+    1 | https://localhost/auth/realms/edfi | edfiadminapp     | big-secret-123 |
+    2 | https://localhost/auth/realms/edfi | edfiadminapp-dev | big-secret-123 |
+  ```
+
+- The clientId we will use in Keycloak is `edfiadminapp-dev`, so make sure the `id` match what you have in the `VITE_OIDC_ID` variable in file `packages/fe/.env`. In our example we need to set `VITE_OIDC_ID=2` since that one contains the right configuration
+- The same value you set in variable `VITE_OIDC_ID` has to be checked in Keycloak.
+  1. Open [Keycloak](https://localhost/auth).
+  2. Sign-in with the credentials from your `.env` file.
+  3. Select the realm called `edfi`.
+  4. Go the clients and select `edfiadminapp-dev`, make sure the `Valid redirect URIs` has the correct url included `http://localhost:3333/api/auth/callback/{your_oidc_id}`, in this case should be `http://localhost:3333/api/auth/callback/2`
+- Start the services again
+
+  ```pwsh
+  # Terminal 1
+  $env:NODE_EXTRA_CA_CERTS="d:\ed-fi\AdminApp-v4\compose\ssl\server.crt"
+  npm run start:api:dev
+
+  # Terminal 2
+  npm run start:fe:dev
+  ```
 
 ## Tips for Understanding the Repository
 

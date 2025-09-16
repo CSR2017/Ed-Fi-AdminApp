@@ -28,51 +28,53 @@ export class RegisterOidcIdpsService {
           });
         } catch (err) {
           Logger.error(`Error registering OIDC provider ${oidcConfig.issuer}: ${err}`);
-          return;
         }
-        const strategy = new Strategy(
-          {
-            client,
-            params: {
-              redirect_uri: `${config.MY_URL}/api/auth/callback/${oidcConfig.id}`,
-              scope: oidcConfig.scope,
+        if (client) {
+          const strategy = new Strategy(
+            {
+              client,
+              params: {
+                redirect_uri: `${config.MY_URL}/api/auth/callback/${oidcConfig.id}`,
+                scope: oidcConfig.scope,
+              },
+              usePKCE: false,
             },
-            usePKCE: false,
-          },
-          async (_: TokenSet, userinfo, done) => {
-            let username: string | undefined = undefined;
-            if (typeof userinfo.email !== 'string' || userinfo.email === '') {
-              throw new Error('Invalid email from IdP');
-            } else {
-              username = userinfo.email;
-            }
-            const user: User = await this.authService.validateUser({ username }).catch((err) => {
-              Logger.error(err);
-              return done(err, false);
-            });
+            async (_: TokenSet, userinfo, done) => {
+              let username: string | undefined = undefined;
+              if (typeof userinfo.email !== 'string' || userinfo.email === '') {
+                throw new Error('Invalid email from IdP');
+              } else {
+                username = userinfo.email;
+              }
+              const user: User = await this.authService.validateUser({ username }).catch((err) => {
+                Logger.error(err);
+                return done(err, false);
+              });
 
-            const isEaUser = username.includes('edanalytics.org');
-            if (user === null) {
-              if (!isEaUser) {
-                Logger.warn(`LOGIN_ERROR User [${username}] not found in database`);
-              }
-              return done(new Error(USER_NOT_FOUND), false);
-            } else if (user.roleId === null || user.roleId === undefined) {
-              if (!isEaUser) {
-                Logger.warn(`LOGIN_ERROR No role assigned for User [${username}]`);
-              }
-              return done(new Error(NO_ROLE), false);
-            } else {
-              if (!user.userTeamMemberships || user.userTeamMemberships.length === 0) {
+              const isEaUser = username.includes('edanalytics.org');
+              if (user === null) {
                 if (!isEaUser) {
-                  Logger.warn(`LOGIN_ERROR No team memberships assigned for User [${username}]`);
+                  Logger.warn(`LOGIN_ERROR User [${username}] not found in database`);
                 }
+                return done(new Error(USER_NOT_FOUND), false);
+              } else if (user.roleId === null || user.roleId === undefined) {
+                if (!isEaUser) {
+                  Logger.warn(`LOGIN_ERROR No role assigned for User [${username}]`);
+                }
+                return done(new Error(NO_ROLE), false);
+              } else {
+                if (!user.userTeamMemberships || user.userTeamMemberships.length === 0) {
+                  if (!isEaUser) {
+                    Logger.warn(`LOGIN_ERROR No team memberships assigned for User [${username}]`);
+                  }
+                }
+                return done(null, user);
               }
-              return done(null, user);
             }
-          }
-        );
-        passport.use(`oidc-${oidcConfig.id}`, strategy);
+          );
+          Logger.log(`Registering OIDC provider ${oidcConfig.issuer} with id ${oidcConfig.id}`);
+          passport.use(`oidc-${oidcConfig.id}`, strategy);
+        }
       });
     });
   }

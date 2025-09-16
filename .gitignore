@@ -48,6 +48,7 @@ db.sqlite
 *.local
 !sbaa-keycloak-config.local.yml
 !local.js-edfi
+!local.js-edfi-docker
 
 packages/api/config/local*
 !*.copyme*
