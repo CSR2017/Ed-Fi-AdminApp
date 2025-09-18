@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { PostSbEnvironmentDto, OdsApiMeta } from '@edanalytics/models';
 import axios from 'axios';
+import { ValidationHttpException } from './customExceptions';
 
 /**
  * Determines the API version (v1 or v2) from ODS API metadata
@@ -70,3 +71,39 @@ export const fetchOdsApiMetadata = async (createSbEnvironmentDto: PostSbEnvironm
   const odsApiMetaResponse = response.data;
   return odsApiMetaResponse;
 };
+
+/**
+ * Validates the Management API Discovery URL.
+ * @param adminApiUrl The URL to validate.
+ * @returns A promise that resolves if the URL is valid, or rejects with a ValidationHttpException if it is not.
+ */
+
+export const validateAdminApiUrl = async (adminApiUrl: string): Promise<void> => {
+  if (!adminApiUrl) {
+    throw new ValidationHttpException({
+      field: 'adminApiUrl',
+      message: 'Management API Discovery URL is required',
+    });
+  }
+
+  try {
+    const response = await axios.get(`${adminApiUrl}/health`, {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+    
+    if (response.status !== 200) {
+      throw new ValidationHttpException({
+        field: 'adminApiUrl',
+        message: `Failed to validate Management API Discovery URL: ${response.statusText}`,
+      });
+    }
+  } catch (error) {
+    throw new ValidationHttpException({
+      field: 'adminApiUrl',
+      message: 'Failed to connect to Management API Discovery URL. Please check the URL and ensure it is valid.',
+    });
+  }
+};
+

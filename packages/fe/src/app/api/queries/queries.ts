@@ -305,6 +305,7 @@ export const sbEnvironmentQueries = new EntityQueryBuilder({
   .put('registerMeta', { ReqDto: PutSbEnvironmentMeta, ResDto: GetSbEnvironmentDto })
   .post('post', { ReqDto: PostSbEnvironmentDto, ResDto: PostSbEnvironmentResponseDto })
   .post('checkEdFiVersionAndTenantMode', { ReqDto: Object, ResDto: Object }, () => `${baseUrl}/sb-environments/checkEdFiVersionAndTenantMode`)
+  .post('validateAdminApiUrl', { ReqDto: Object, ResDto: Object }, () => `${baseUrl}/sb-environments/validateAdminApiUrl`)
   .delete('delete')
   .build();
 

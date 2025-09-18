@@ -1,9 +1,10 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import {
-  ValidationHttpException,
-  determineVersionFromMetadata,
   determineTenantModeFromMetadata,
+  determineVersionFromMetadata,
   fetchOdsApiMetadata,
+  validateAdminApiUrl,
+  ValidationHttpException,
 } from '../utils';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { addUserCreating, EdfiTenant, SbEnvironment } from '@edanalytics/models-server';
@@ -135,6 +136,11 @@ export class SbEnvironmentsEdFiService {
   }
 
   async create(createSbEnvironmentDto: PostSbEnvironmentDto, user: GetUserDto | undefined) {
+    // First validate the Admin API URL before proceeding with any operations
+    if (createSbEnvironmentDto.adminApiUrl) {
+      await validateAdminApiUrl(createSbEnvironmentDto.adminApiUrl);
+    }
+
     // Validate ODS Discovery URL if provided
     if (createSbEnvironmentDto.odsApiDiscoveryUrl) {
       try {
@@ -157,6 +163,7 @@ export class SbEnvironmentsEdFiService {
           // Determine tenant mode
           tenantMode = determineTenantModeFromMetadata(odsApiMetaResponse);
           createSbEnvironmentDto.isMultitenant = tenantMode === 'MultiTenant';
+
         } catch (metadataError) {
           // Handle ODS Discovery URL specific errors
           this.logger.error('ODS metadata fetch error:', metadataError);
@@ -496,9 +503,14 @@ export class SbEnvironmentsEdFiService {
       return { clientId, displayName, clientSecret };
     } catch (error) {
       this.logger.error('Failed to register client credentials:', error);
+
+      // Get enhanced error message
+      const errorMessage = `Failed to register client with Admin API: ${error.message}`;
+      const message = this.errorMessageEnhancer(errorMessage);
+
       throw new ValidationHttpException({
         field: 'adminApiUrl',
-        message: error.message,
+        message: message,
       });
     }
   }

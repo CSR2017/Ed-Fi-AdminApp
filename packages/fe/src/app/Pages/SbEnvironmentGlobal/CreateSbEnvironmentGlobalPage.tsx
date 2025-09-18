@@ -26,6 +26,7 @@ export const CreateSbEnvironmentGlobalPage = () => {
   const navToParentOptions = useNavToParent();
   const navigate = useNavigate();
   const checkEdFiVersionAndTenantMode = sbEnvironmentQueries.checkEdFiVersionAndTenantMode({});
+  const checkAdminApiUrl = sbEnvironmentQueries.validateAdminApiUrl({});
   const postSbEnvironment = sbEnvironmentQueries.post({});
   const {
     register,
@@ -109,6 +110,35 @@ export const CreateSbEnvironmentGlobalPage = () => {
           setError('odsApiDiscoveryUrl', { message: errorMessage });
           setValue('version', undefined);
           console.error('Error fetching version:', error);
+        });
+    };
+  }
+
+  const validateAdminApiUrl = (adminApiUrl: string) => {
+    const errorMessage = 'Management API is not responding. Please check the URL and ensure it is valid.';
+    if (!isStartingBlocks && adminApiUrl && adminApiUrl.trim() !== '') {
+      // To validate Admin API URL availability
+      checkAdminApiUrl.mutateAsync(
+        { entity: { adminApiUrl: adminApiUrl }, pathParams: null },
+        {
+          onSuccess: (result) => {
+            if (result) {
+              const response = result as { valid: boolean; message: string };
+              // If valid, just clear any existing errors - no other action needed
+              if (response.valid) {
+                clearErrors(['adminApiUrl']);
+              }
+            }
+          },
+          onError: (error) => {
+            setError('adminApiUrl', { message: errorMessage });
+            console.error('Error validating Admin API URL:', error);
+          },
+        }
+      )
+        .catch((error) => {
+          setError('adminApiUrl', { message: errorMessage });
+          console.error('Error validating Admin API URL:', error);
         });
     };
   }
@@ -323,7 +353,16 @@ export const CreateSbEnvironmentGlobalPage = () => {
                     </chakra.span>
                   </Tooltip>
                 </FormLabel>
-                <Input {...register('adminApiUrl')} placeholder="https://..." />
+                <Input {...register('adminApiUrl')} placeholder="https://..."
+                  onBlur={async (e) => {
+                    const value = e.target.value;
+                    setValue('adminApiUrl', value);
+                    // Validate API URL if not Starting Blocks and value is present
+                    if (!isStartingBlocks && value.trim() !== '') {
+                      validateAdminApiUrl(value);
+                    }
+                  }}
+                />
                 <FormErrorMessage>{errors.adminApiUrl?.message}</FormErrorMessage>
               </FormControl>
               <FormControl isInvalid={!!errors.environmentLabel}>

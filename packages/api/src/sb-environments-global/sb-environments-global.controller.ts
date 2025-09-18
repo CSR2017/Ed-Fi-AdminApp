@@ -40,7 +40,15 @@ import {
 import { Authorize } from '../auth/authorization';
 import { ReqUser } from '../auth/helpers/user.decorator';
 import { ENV_SYNC_CHNL, PgBossInstance } from '../sb-sync/sb-sync.module';
-import { CustomHttpException, ValidationHttpException, throwNotFound, fetchOdsApiMetadata, determineVersionFromMetadata, determineTenantModeFromMetadata } from '../utils';
+import { 
+  CustomHttpException, 
+  determineTenantModeFromMetadata,
+  determineVersionFromMetadata, 
+  fetchOdsApiMetadata, 
+  throwNotFound, 
+  validateAdminApiUrl,
+  ValidationHttpException, 
+} from '../utils';
 import { SbEnvironmentsGlobalService } from './sb-environments-global.service';
 import { StartingBlocksServiceV2 } from '../teams/edfi-tenants/starting-blocks';
 import { Operation, SbVersion } from '../auth/authorization/sbVersion.decorator';
@@ -158,6 +166,19 @@ export class SbEnvironmentsGlobalController {
       version: detectedVersion,
       isMultiTenant: isMultiTenant
     };
+  }
+
+  @Post('validateAdminApiUrl')
+  @Authorize({
+    privilege: 'sb-environment:create',
+    subject: {
+      id: '__filtered__',
+    },
+  })
+  async validateAdminApiUrl(@Body() body: { adminApiUrl: string }) {
+    const { adminApiUrl } = body;
+    await validateAdminApiUrl(adminApiUrl);
+    return { valid: true, message: 'Management API URL is valid' };
   }
 
   @Get(':sbEnvironmentId')
