@@ -58,6 +58,9 @@ export const TenantManagementSection = ({
               </chakra.span>
             </Tooltip>
           </FormLabel>
+          <Text fontSize="sm" color="orange.600" mb={2}>
+            ⚠️ Ensure all tenant names entered below are properly configured in your Admin API before proceeding
+          </Text>
           <Stack spacing={2}>
             <ButtonGroup size="sm">
               <Button

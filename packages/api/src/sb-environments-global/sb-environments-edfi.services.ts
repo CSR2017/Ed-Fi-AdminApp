@@ -77,7 +77,7 @@ export class SbEnvironmentsEdFiService {
         field?: string;
         message?: string;
         data?: {
-          errors?: Record<string, { message?: string; type?: string }>
+          errors?: Record<string, { message?: string; type?: string }>;
         }
       };
       let originalField = 'general';
@@ -504,13 +504,18 @@ export class SbEnvironmentsEdFiService {
     } catch (error) {
       this.logger.error('Failed to register client credentials:', error);
 
-      // Get enhanced error message
-      const errorMessage = `Failed to register client with Admin API: ${error.message}`;
-      const message = this.errorMessageEnhancer(errorMessage);
+      // For multi-tenant v2 with tenant header, assume 400 errors are wrong tenant names
+      if (createSbEnvironmentDto.isMultitenant && createSbEnvironmentDto.version === 'v2' && tenant && error.response?.status === 400) {
+        throw new ValidationHttpException({
+          field: 'tenants',
+          message: `Tenant '${tenant}' does not exist or is not properly configured in the Admin API`,
+        });
+      }
 
+      // For all other errors, treat as Admin API URL issues
       throw new ValidationHttpException({
         field: 'adminApiUrl',
-        message: message,
+        message: error.message,
       });
     }
   }

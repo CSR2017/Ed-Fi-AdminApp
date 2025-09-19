@@ -91,7 +91,7 @@ services:
   v7-adminapi-single-tenant:
     image: edfialliance/ods-admin-api:${ADMIN_API_TAG_7X}
     environment:
-      ADMIN_WAIT_POSTGRES_HOSTS: 'v7-db-admin'
+      ADMIN_POSTGRES_HOST: v7-db-admin
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -110,6 +110,7 @@ services:
       Log4NetCore__Log4NetConfigFileName: ./log4net/log4net.config
       EnableDockerEnvironment: true
       AppSettings__AllowedOrigins: ${ALLOWED_ORIGINS:-https://localhost}
+      AppSettings__EnableApplicationResetEndpoint: ${ENABLE_APPLICATION_RESET_ENDPOINT:-true}
       ConnectionStrings__EdFi_Admin: "host=v7-db-admin;port=5432;username=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=EdFi_Admin;pooling=false"
       ConnectionStrings__EdFi_Security: "host=v7-db-admin;port=5432;username=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=EdFi_Security;pooling=false"
     volumes:

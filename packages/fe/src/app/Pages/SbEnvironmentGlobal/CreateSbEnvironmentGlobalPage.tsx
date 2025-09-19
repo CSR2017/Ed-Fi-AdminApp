@@ -379,15 +379,26 @@ export const CreateSbEnvironmentGlobalPage = () => {
               </FormControl>
               {
                 (currentVersion === 'v1' || currentVersion === 'v2') ? (
-                  <TenantManagementSection
-                    isMultitenant={currentVersion === 'v2' ? (isMultitenant || false) : false}
-                    tenants={tenants}
-                    register={register}
-                    setValue={setValue}
-                    getValues={getValues}
-                    errors={errors}
-                    clearErrors={clearErrors}
-                  />
+                  <Box>
+                    {/* Hidden field for tenant-level errors */}
+                    <FormControl isInvalid={!!errors.tenants} display="none">
+                      <Input {...register('tenants')} type="hidden" />
+                    </FormControl>
+                    {errors.tenants?.message && (
+                      <Text color="red.500" fontSize="sm" mb={2}>
+                        {errors.tenants.message}
+                      </Text>
+                    )}
+                    <TenantManagementSection
+                      isMultitenant={currentVersion === 'v2' ? (isMultitenant || false) : false}
+                      tenants={tenants}
+                      register={register}
+                      setValue={setValue}
+                      getValues={getValues}
+                      errors={errors}
+                      clearErrors={clearErrors}
+                    />
+                  </Box>
                 ) : null
               }
             </Box>
