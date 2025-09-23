@@ -91,7 +91,7 @@ export const useEdfiTenantGlobalActions = (
           },
         }
       : {}),
-    ...(canDelete
+    ...(canDelete && sbEnvironment.startingBlocks
       ? {
           Delete: {
             icon: Icons.Delete,
@@ -112,7 +112,7 @@ export const useEdfiTenantGlobalActions = (
           },
         }
       : {}),
-    ...(canUpdate && sbEnvironment.version === 'v1'
+    ...(canUpdate && sbEnvironment.version === 'v1' && sbEnvironment.startingBlocks
       ? {
           RegisterAdminApi: {
             isIrrelevant: adminApiConfigExists,
@@ -128,7 +128,7 @@ export const useEdfiTenantGlobalActions = (
           },
         }
       : {}),
-    ...(canUpdate && sbEnvironment.version === 'v2'
+    ...(canUpdate && sbEnvironment.version === 'v2' && sbEnvironment.startingBlocks
       ? {
           AdminApiV2Keygen: {
             isIrrelevant: adminApiConfigExists,

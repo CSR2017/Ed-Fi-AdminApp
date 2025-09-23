@@ -14,7 +14,7 @@ export const useEdfiTenantsGlobalActions = (): ActionsType => {
     globalEdfiTenantAuthConfig('__filtered__', 'sb-environment.edfi-tenant:create')
   );
 
-  return canCreate && sbEnvironment.version === 'v2' && sbEnvironment.multiTenant ? {
+  return canCreate && sbEnvironment.startingBlocks ? {
       Create: {
         icon: Icons.Plus,
         text: 'Create',
