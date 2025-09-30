@@ -1,36 +1,36 @@
 {
   "Servers": {
     "1": {
-      "Name": "v7 Multi Tenant - Tenant 1 ODS",
+      "Name": "v7-tenant1-db-ods",
       "Group": "ODS-API-7x",
-      "Host": "v7-db-ods-tenant1",
+      "Host": "v7-tenant1-db-ods",
       "Port": 5432,
-      "MaintenanceDB": "EdFi_Ods",
+      "MaintenanceDB": "postgres",
       "Username": "postgres",
       "SSLMode": "prefer"
     },
     "2": {
-      "Name": "v7 Multi Tenant - Tenant 2 ODS",
+      "Name": "v7-tenant2-db-ods",
       "Group": "ODS-API-7x",
-      "Host": "v7-db-ods-tenant2",
+      "Host": "v7-tenant2-db-ods",
       "Port": 5432,
-      "MaintenanceDB": "EdFi_Ods",
+      "MaintenanceDB": "postgres",
       "Username": "postgres",
       "SSLMode": "prefer"
     },
     "3": {
-      "Name": "v7 Multi Tenant - Tenant 1 Admin",
+      "Name": "v7-tenant1-db-admin",
       "Group": "ODS-API-7x",
-      "Host": "v7-db-admin-tenant1",
+      "Host": "v7-tenant1-db-admin",
       "Port": 5432,
       "MaintenanceDB": "EdFi_Admin",
       "Username": "postgres",
       "SSLMode": "prefer"
     },
     "4": {
-      "Name": "v7 Multi Tenant - Tenant 2 Admin",
+      "Name": "v7-tenant2-db-admin",
       "Group": "ODS-API-7x",
-      "Host": "v7-db-admin-tenant2",
+      "Host": "v7-tenant2-db-admin",
       "Port": 5432,
       "MaintenanceDB": "EdFi_Admin",
       "Username": "postgres",
@@ -50,7 +50,7 @@
       "Group": "ODS-API-6x",
       "Host": "v6-edfi-ods_255901",
       "Port": 5432,
-      "MaintenanceDB": "EdFi_Ods_255901",
+      "MaintenanceDB": "postgres",
       "Username": "postgres",
       "SSLMode": "prefer"
     },
@@ -59,7 +59,7 @@
       "Group": "ODS-API-6x",
       "Host": "v6-edfi-ods_255902",
       "Port": 5432,
-      "MaintenanceDB": "EdFi_Ods_255902",
+      "MaintenanceDB": "postgres",
       "Username": "postgres",
       "SSLMode": "prefer"
     },
@@ -73,7 +73,7 @@
       "SSLMode": "prefer"
     },
     "9": {
-      "Name": "v7 Single Tenant - ODS 1",
+      "Name": "v7-single-db-ods",
       "Group": "ODS-API-7x",
       "Host": "v7-db-ods",
       "Port": 5432,
@@ -82,9 +82,9 @@
       "SSLMode": "prefer"
     },
     "10": {
-      "Name": "v7 Single Tenant - Admin",
+      "Name": "v7-single-db-admin",
       "Group": "ODS-API-7x",
-      "Host": "v7-db-admin",
+      "Host": "v7-single-db-admin",
       "Port": 5432,
       "MaintenanceDB": "EdFi_Admin",
       "Username": "postgres",

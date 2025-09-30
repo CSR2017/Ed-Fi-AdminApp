@@ -92,7 +92,7 @@ export const validateAdminApiUrl = async (adminApiUrl: string): Promise<void> =>
         Accept: 'application/json',
       },
     });
-    
+
     if (response.status !== 200) {
       throw new ValidationHttpException({
         field: 'adminApiUrl',
@@ -100,9 +100,10 @@ export const validateAdminApiUrl = async (adminApiUrl: string): Promise<void> =>
       });
     }
   } catch (error) {
+    Logger.warn(`Error validating Management API Discovery URL ${adminApiUrl}:`, error);
     throw new ValidationHttpException({
       field: 'adminApiUrl',
-      message: 'Failed to connect to Management API Discovery URL. Please check the URL and ensure it is valid.',
+      message: `Failed to connect to Management API Discovery URL. Please check the URL and ensure it is valid.`,
     });
   }
 };

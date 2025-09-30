@@ -3,7 +3,7 @@
 # only one ODS instance.
 
 @adminapi_url=https://localhost/v6-adminapi
-@odsapi_url=https://localhost/v6-ods
+@odsapi_url=https://localhost/v6-api
 @adminapi_client=adminapi_client
 @adminapi_secret=adminapi_SECRET_2025_rftyguhijkotgyhuijok
 

@@ -3,16 +3,17 @@ services:
     image: quay.io/keycloak/keycloak:${KEYCLOAK_TAG:-26.1}
     container_name: edfiadminapp-keycloak
     volumes:
-      - vol-edfiadminapp-keycloak:/var/lib/keycloak/data
+      - vol-edfiadminapp-keycloak:/opt/keycloak/data
     environment:
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: false
       KC_HOSTNAME_STRICT: false
       KC_HTTP_RELATIVE_PATH: /auth
       KC_HTTP_ENABLED: true
       KC_PROXY_HEADERS: xforwarded
       KC_LOG_CONSOLE_LEVEL: ${KC_LOG_CONSOLE_LEVEL:-error}
+      KC_LOG: file,console
     command:
       - start
     networks:

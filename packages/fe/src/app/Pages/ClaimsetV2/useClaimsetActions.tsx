@@ -4,7 +4,7 @@ import { GetClaimsetMultipleDtoV2 } from '@edanalytics/models';
 import { RowSelectionState } from '@tanstack/react-table';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { claimsetQueriesV2 } from '../../api';
+import { claimsetQueriesV2, API_URL } from '../../api';
 import { claimsetAuthConfig, useAuthorize, useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
@@ -74,9 +74,7 @@ export const useClaimsetActions = ({
                                 textDecor="underline"
                                 target="_blank"
                                 as={RouterLink}
-                                to={`${
-                                  import.meta.env.VITE_API_URL
-                                }/api/teams/${teamId}/edfi-tenants/${
+                                to={`${API_URL}/teams/${teamId}/edfi-tenants/${
                                   edfiTenant.id
                                 }/admin-api/v2/claimsets/export/${data.id}`}
                               >
@@ -205,7 +203,7 @@ export const useManyClaimsetActions = ({
                             textDecor="underline"
                             target="_blank"
                             as={RouterLink}
-                            to={`${import.meta.env.VITE_API_URL}/api/teams/${teamId}/edfi-tenants/${
+                            to={`${API_URL}/teams/${teamId}/edfi-tenants/${
                               edfiTenant.id
                             }/admin-api/v2/claimsets/export/${data.id}`}
                           >

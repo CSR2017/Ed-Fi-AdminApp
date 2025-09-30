@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_API_URL: string;
   readonly VITE_OIDC_ID: number;
   readonly VITE_HELP_GUIDE: string;
+  readonly VITE_APPLICATION_NAME: string;
 }
 interface ImportMeta {
   readonly env: ImportMetaEnv;

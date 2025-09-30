@@ -69,6 +69,7 @@ export class AuthController {
       }),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     })(request, response, (error: any) => {
+      Logger.error(error);
       if (error?.message.includes('Unknown authentication strategy')) {
         throw new NotFoundException();
       } else {

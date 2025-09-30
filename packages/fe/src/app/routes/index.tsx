@@ -129,6 +129,7 @@ import {
   vendorsIndexRoute,
   vendorsRoute,
 } from './vendor.routes';
+import { API_URL } from '../api/methods';
 
 import { GlobalHome } from '../Pages/Home/GlobalHome';
 import { UnauthenticatedPage } from '../Layout/Unauthenticated';
@@ -173,7 +174,7 @@ const Login = memo(() => {
   const { redirect } = useSearchParamsObject() as any;
   useEffect(() => {
     // TODO the backend supports multiple (trusted) IdPs, so maybe we should support that here with some kind of login screen
-    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/login/${import.meta.env.VITE_OIDC_ID || 1}${
+    window.location.href = `${API_URL}/auth/login/${import.meta.env.VITE_OIDC_ID || 1}${
       redirect ? `?redirect=${redirect}` : ''
     }`;
   }, []);

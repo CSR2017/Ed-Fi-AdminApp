@@ -29,6 +29,7 @@ module.exports = {
   // Optional (can delete): seed IdP configs for your local Keycloak. You'll need to use these values for the appropriate things in keycloak itself.
   SAMPLE_OIDC_CONFIG: {
     issuer: 'https://localhost/auth/realms/edfi',
+    // use `-dev` for localhost development, leave off `-dev` when running the API in docker
     clientId: 'edfiadminapp-dev',
     clientSecret: 'big-secret-123',
     scope: '',
@@ -51,6 +52,8 @@ module.exports = {
   },
 
   WHITELISTED_REDIRECTS: [FE_URL],
+  OPENAPI_TITLE: 'Ed-Fi Admin App',
+  OPENAPI_DESCRIPTION: 'OpenAPI spec for the Ed-Fi Admin App backend application',
 
   // There are other defaults you can override if you want to. See default.js.
 };

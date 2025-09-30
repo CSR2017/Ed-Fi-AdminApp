@@ -26,32 +26,32 @@ graph TD
 ```mermaid
 graph TD
     subgraph Multi-tenant
-        v7-db-ods-tenant1
-        v7-db-ods-tenant2
-        v7-db-admin-tenant1
-        v7-db-admin-tenant2
-        v7-api --> v7-db-ods-tenant1
-        v7-api --> v7-db-ods-tenant2
-        v7-api --> v7-db-admin-tenant1
-        v7-api --> v7-db-admin-tenant2
-        v7-adminapi --> v7-db-admin-tenant1
-        v7-adminapi --> v7-db-admin-tenant2
+        v7-tenant1-db-ods
+        v7-tenant2db-ods
+        v7-tenant1-db-admin
+        v7-tenant2-db-admin
+        v7-multi-api --> v7-tenant1-db-ods
+        v7-multi-api --> v7-tenant2-db-ods
+        v7-multi-api --> v7-tenant1-db-admin
+        v7-multi-api --> v7-tenant2-db-admin
+        v7-multi-adminapi --> v7-tenant1-db-admin
+        v7-multi-adminapi --> v7-tenant2-db-admin
     end
 
     subgraph Single-tenant
-        v7-db-ods
-        v7-db-admin
-        v7-api-single-tenant
-        v7-api-single-tenant --> v7-db-ods
-        v7-api-single-tenant --> v7-db-admin
-        v7-adminapi-single-tenant --> v7-db-admin
+        v7-single-db-ods
+        v7-single-db-admin
+        v7-single-api
+        v7-single-api --> v7-single-db-ods
+        v7-single-api --> v7-single-db-admin
+        v7-single-adminapi --> v7-single-db-admin
     end
 
-  v7-nginx --> v7-api
-  v7-nginx --> v7-adminapi
+  v7-nginx --> v7-multi-api
+  v7-nginx --> v7-multi-adminapi
 
-  v7-nginx --> v7-api-single-tenant
-  v7-nginx --> v7-adminapi-single-tenant
+  v7-nginx --> v7-single-api
+  v7-nginx --> v7-single-adminapi
 ```
 
 - Two ODS/API instances, supporting single and multi-tenant configurations.
@@ -99,6 +99,33 @@ There are two Docker Compose files: `docker-compose.yml` and `keycloak.yml`. Thi
    mkdir logs > /dev/null
    docker network create sbaa-network --driver bridge
    ```
+
+### Choosing a Database Template
+
+The ODS database can use the "sandbox" or "minimal" container. When using the sandbox image, you must login to the server (e.g. using PgAdmin) and create a new `EdFi_Ods_??` database, choosing either the populated or minimal template.
+
+### Setup Ods Instances
+
+The ODS/API in multi-instance mode reads connection strings and routing information from the EdFi_Admin database. Currently the Admin App does not support configuring this information, so it needs to be handled manually.
+
+Direct database insert in the single tenant `EdFi_Admin` database (be sure to replace the string "YOUR_PASSWORD")
+
+```sql
+INSERT INTO dbo.odsinstances ("name", instancetype, connectionstring)
+VALUES
+	('EdFi_Ods_255901', 'DistrictSpecific', 'host=v7-db-ods-1;port=5432;username=postgres;password=YOUR_PASSWORD;database=EdFi_Ods_255901'),
+	('EdFi_Ods_255902', 'DistrictSpecific', 'host=v7-db-ods-2;port=5432;username=postgres;password=YOUR_PASSWORD;database=EdFi_Ods_255902');
+
+select * from dbo.odsinstances;
+
+
+INSERT INTO dbo.odsinstancecontexts (odsinstance_odsinstanceid, contextkey, contextvalue)
+SELECT odsinstanceid, 'instanceid', '255901' FROM dbo.odsinstances WHERE "name" = 'EdFi_Ods_255901'
+UNION
+SELECT odsinstanceid, 'instanceid', '255902' FROM dbo.odsinstances WHERE "name" = 'EdFi_Ods_255902';
+```
+
+Or alternatively use Admin API: [adminapi-odsinstance.http](./adminapi-odsinstance.http)
 
 ### Setup Keycloak
 
@@ -149,12 +176,12 @@ In Global Scope, complete the following setup:
 
 These are the default URLs. The last path segment must match your environment variable settings.
 
-- Multi-Tenant: [ODS/API 7.x](https://localhost/v7-ods)
-  - Multi-Tenant: [Admin API 2.x](https://localhost/v7-adminapi)
-- Single-Tenant: [ODS/API 7.x](https://localhost/v7-ods-single-tenant)
-  - Single-Tenant: [Admin API 2.x](https://localhost/v7-adminapi-single-tenant)
-- [ODS/API 6.x](https://localhost/v6-ods)
-  - [Admin API 1.x](https://localhost/v6-adminapi)
+- Multi-Tenant: [ODS/API 7.x](https://localhost/v7-multi-api)
+  - Multi-Tenant: [Admin API 2.x in v2 mode](https://localhost/v7-multi-adminapi)
+- Single-Tenant: [ODS/API 7.x](https://localhost/v7-single-api)
+  - Single-Tenant: [Admin API 2.x in v2 mode](https://localhost/v7-single-adminapi)
+- [ODS/API 6.x](https://localhost/v6-api)
+  - [Admin API 2.x in v1 mode](https://localhost/v6-adminapi)
 - [Keycloak](https://localhost/auth)
 - [Yopass](http://localhost:8082)
 - [PGAdmin4](https://localhost/pgadmin)
@@ -207,43 +234,42 @@ authentication flow:
    any configuration values are changed in
    `keycloak_edfiadminapp_machine_client.json`, make sure they match
    accordingly.
-  
-   ```js
 
-    AUTH0_CONFIG_SECRET_VALUE: 
-    {
-    ISSUER: 'https://localhost/auth/realms/edfi'
-    CLIENT_ID: 'edfiadminapp'
-    CLIENT_SECRET: 'big-secret-123'
-    MACHINE_AUDIENCE: 'edfiadminapp-api'
-    MANAGEMENT_DOMAIN: 'localhost'
-    MANAGEMENT_CLIENT_ID: 'edfiadminapp-machine'
-    MANAGEMENT_CLIENT_SECRET: 'edfi-machine-secret-456'
-    }
+   ```js
+   AUTH0_CONFIG_SECRET_VALUE: {
+     ISSUER: 'https://localhost/auth/realms/edfi';
+     CLIENT_ID: 'edfiadminapp';
+     CLIENT_SECRET: 'big-secret-123';
+     MACHINE_AUDIENCE: 'edfiadminapp-api';
+     MANAGEMENT_DOMAIN: 'localhost';
+     MANAGEMENT_CLIENT_ID: 'edfiadminapp-machine';
+     MANAGEMENT_CLIENT_SECRET: 'edfi-machine-secret-456';
+   }
    ```
 
-4. **Create Machine User In Admin App frontend**:  
-    1. Open AdminApp frontend (http://localhost:4200)
-    2. Navigate to Home page → Users
-    3. Click "Create New" user
-    4. Fill in the form:
-       - Username: edfiadminapp-machine (must be unique)
-       - User Type: Select "Machine" from dropdown
-       - Description: "Machine-to-Machine Authentication User" (or your preferred description)
-       - Client ID: edfiadminapp-machine (CRITICAL: must match Keycloak client ID)
-       - Is Active: ✓ Check this box
-       - Role: Select appropriate role (e.g., GlobalAdmin, GlobalViewer, etc.)
-       - Add to Team: Select "Yes" if you want to assign to a team
-       - If yes: Select team and role for team membership
-    5. Click "Save"
-    >[!NOTE]
-    > 1. The Client ID MUST exactly match the Keycloak client ID:
-    >    edfiadminapp-machine
-    > 2. The Username should be descriptive and unique
-    > 3. Machine users don't need Given Name or Family Name
-    > 4. Ensure "Is Active" is checked or authentication will fail
-    > 5. Role assignment determines what API endpoints the machine user can
-    >    access
+4. **Create Machine User In Admin App frontend**:
+   1. Open AdminApp frontend (http://localhost:4200)
+   2. Navigate to Home page → Users
+   3. Click "Create New" user
+   4. Fill in the form:
+      - Username: edfiadminapp-machine (must be unique)
+      - User Type: Select "Machine" from dropdown
+      - Description: "Machine-to-Machine Authentication User" (or your preferred description)
+      - Client ID: edfiadminapp-machine (CRITICAL: must match Keycloak client ID)
+      - Is Active: ✓ Check this box
+      - Role: Select appropriate role (e.g., GlobalAdmin, GlobalViewer, etc.)
+      - Add to Team: Select "Yes" if you want to assign to a team
+      - If yes: Select team and role for team membership
+   5. Click "Save"
+      > [!NOTE]
+      >
+      > 1. The Client ID MUST exactly match the Keycloak client ID:
+      >    edfiadminapp-machine
+      > 2. The Username should be descriptive and unique
+      > 3. Machine users don't need Given Name or Family Name
+      > 4. Ensure "Is Active" is checked or authentication will fail
+      > 5. Role assignment determines what API endpoints the machine user can
+      >    access
 
 ## Troubleshooting
 
@@ -251,7 +277,7 @@ authentication flow:
 
 If the `edfiadminapp-api` container is displaying the following error in the log:
 
-``` shell
+```shell
 [Nest] 185  - 09/15/2025, 6:20:40 PM   ERROR Error registering OIDC provider https://localhost/auth/realms/edfi: OPError: Realm does not exist
 ```
 

@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { API_URL } from '../api/methods';
 
-axios.defaults.baseURL = `${import.meta.env.VITE_API_URL}/api/`;
+axios.defaults.baseURL = API_URL;
 
 export const apiClient = axios.create({
   withCredentials: true,

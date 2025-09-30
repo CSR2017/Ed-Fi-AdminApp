@@ -27,7 +27,7 @@ async function bootstrap() {
 
   // Optimize response headers for security
   app.disable('x-powered-by');
-  app.use(function(_, res, next) {
+  app.use(function (_, res, next) {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'deny');
     next();
@@ -91,14 +91,14 @@ async function bootstrap() {
 
   if (config.OPEN_API) {
     const swaggerConfig = new DocumentBuilder()
-      .setTitle('Starting Blocks Admin App')
-      .setDescription('OpenAPI spec for the EA Starting Blocks admin application.')
+      .setTitle(config.OPENAPI_TITLE)
+      .setDescription(config.OPENAPI_DESCRIPTION)
       .setVersion('1.0')
       .build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('api', app, document);
     writeFileSync('./sbaa-swagger.json', JSON.stringify(document, null, 2));
-    Logger.verbose(`OpenAPI spec available at ${config.MY_URL}/api or file:./sbaa-swagger.json`);
+    Logger.verbose(`OpenAPI spec available at ${config.MY_URL_API_PATH} or file:./sbaa-swagger.json`);
   }
   await app.listen(port);
   if (config.FE_URL.includes('localhost')) {

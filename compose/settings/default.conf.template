@@ -149,9 +149,9 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-   location /${ODS_ST_VIRTUAL_NAME} {
+   location /${V7_SINGLE_API_VIRTUAL_NAME} {
         resolver 127.0.0.11;
-        set $path ${ODS_ST_VIRTUAL_NAME};
+        set $path ${V7_SINGLE_API_VIRTUAL_NAME};
         proxy_pass http://$path;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-Host $host;
@@ -159,10 +159,10 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-   location /${ADMIN_API_ST_VIRTUAL_NAME} {
+   location /${V7_SINGLE_ADMIN_API_VIRTUAL} {
         client_max_body_size 20M;
         resolver 127.0.0.11;
-        set $path ${ADMIN_API_ST_VIRTUAL_NAME};
+        set $path ${V7_SINGLE_ADMIN_API_VIRTUAL};
         proxy_pass http://$path;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-Host $host;

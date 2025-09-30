@@ -73,8 +73,8 @@ Below are the test cases for Admin App and using Gherkin to define the test case
 
 | name | edfiApi                       | edfiManagement                     | label      | orgIdentifier |
 | ---- | ----------------------------- | ---------------------------------- | ---------- | ------------- |
-| EnvA | https://localhost:5443/v6-ods | https://localhost:5443/v6-adminapi | production | 1             |
-| EnvB | https://localhost:5443/v6-ods | https://localhost:5443/v6-adminapi | production | 1010, 2540    |
+| EnvA | https://localhost:5443/v6-api | https://localhost:5443/v6-adminapi | production | 1             |
+| EnvB | https://localhost:5443/v6-api | https://localhost:5443/v6-adminapi | production | 1010, 2540    |
 
 #### Scenario Outline: Create Environment Management v2
 

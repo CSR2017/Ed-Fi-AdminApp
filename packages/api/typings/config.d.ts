@@ -59,8 +59,11 @@ declare module 'config' {
 
     // over-arching application to access auth0 management API
     AUTH0_CONFIG_SECRET: IAuth0Secret | Promise<IAuth0Secret>;
-    
+
     WHITELISTED_REDIRECTS: string[];
+    MY_URL_API_PATH: string;
+    OPENAPI_TITLE: string;
+    OPENAPI_DESCRIPTION: string;
   }
 
   const config: IConfig;

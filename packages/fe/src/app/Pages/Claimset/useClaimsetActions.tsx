@@ -3,7 +3,7 @@ import { GetClaimsetDto } from '@edanalytics/models';
 import { RowSelectionState } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { claimsetQueriesV1 } from '../../api';
+import { claimsetQueriesV1, API_URL } from '../../api';
 import { claimsetAuthConfig, useAuthorize, useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 
@@ -53,7 +53,7 @@ export const useClaimsetActions = ({
                 title: 'Export ' + claimset.displayName,
                 onClick: () => {
                   window.open(
-                    `${import.meta.env.VITE_API_URL}/api/teams/${teamId}/edfi-tenants/${
+                    `${API_URL}/teams/${teamId}/edfi-tenants/${
                       edfiTenant.id
                     }/admin-api/v1/claimsets/export?id=${claimset.id}`,
                     '_blank'
@@ -144,7 +144,7 @@ export const useManyClaimsetActions = ({
             title: 'Export selected claimsets',
             onClick: () => {
               window.open(
-                `${import.meta.env.VITE_API_URL}/api/teams/${teamId}/edfi-tenants/${
+                `${API_URL}/teams/${teamId}/edfi-tenants/${
                   edfiTenant.id
                 }/admin-api/v1/claimsets/export?id=${Object.keys(selectionState).join('&id=')}`,
                 '_blank'

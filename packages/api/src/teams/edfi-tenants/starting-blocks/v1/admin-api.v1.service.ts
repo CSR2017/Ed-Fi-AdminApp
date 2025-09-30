@@ -216,7 +216,7 @@ export class AdminApiServiceV1 {
         if (err.status === 401) {
           this.adminApiTokens.del(edfiTenant.id);
         }
-        Logger.error(err);
+        Logger.error(`Unable to create client on ${edfiTenant.sbEnvironment.adminApiUrl}: ${err}`);
         throw err;
       }
     );
@@ -244,51 +244,93 @@ export class AdminApiServiceV1 {
 
   async getVendors(edfiTenant: EdfiTenant) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return toGetVendorDto(await this.getAdminApiClient(edfiTenant).get<any, any[]>(`v1/vendors`));
+    return toGetVendorDto(
+      await this.getAdminApiClient(edfiTenant)
+        .get<any, any[]>(`v1/vendors`)
+        .catch((err) => {
+          Logger.error(`Error getting vendors for tenant ${edfiTenant.id}: ${err}`);
+          throw err;
+        })
+    );
   }
   async getVendor(edfiTenant: EdfiTenant, vendorId: number) {
     return toGetVendorDto(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await this.getAdminApiClient(edfiTenant).get<any, any>(`v1/vendors/${vendorId}`)
+      await this.getAdminApiClient(edfiTenant)
+        .get<any, any>(`v1/vendors/${vendorId}`)
+        .catch((err) => {
+          Logger.error(`Error getting vendor ${vendorId} for tenant ${edfiTenant.id}: ${err}`);
+          throw err;
+        })
     );
   }
   async putVendor(edfiTenant: EdfiTenant, vendorId: number, vendor: PutVendorDto) {
     vendor.vendorId = vendorId;
     return toGetVendorDto(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await this.getAdminApiClient(edfiTenant).put<any, any>(`v1/vendors/${vendorId}`, vendor)
+      await this.getAdminApiClient(edfiTenant)
+        .put<any, any>(`v1/vendors/${vendorId}`, vendor)
+        .catch((err) => {
+          Logger.error(`Error updating vendor ${vendorId} for tenant ${edfiTenant.id}: ${err}`);
+          throw err;
+        })
     );
   }
   async postVendor(edfiTenant: EdfiTenant, vendor: PostVendorDto) {
     return toGetVendorDto(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await this.getAdminApiClient(edfiTenant).post<any, any>(`v1/vendors`, vendor)
+      await this.getAdminApiClient(edfiTenant)
+        .post<any, any>(`v1/vendors`, vendor)
+        .catch((err) => {
+          Logger.error(`Error creating vendor for tenant ${edfiTenant.id}: ${err}`);
+          throw err;
+        })
     );
   }
   async deleteVendor(edfiTenant: EdfiTenant, vendorId: number) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await this.getAdminApiClient(edfiTenant).delete<any, any>(`v1/vendors/${vendorId}`);
+    await this.getAdminApiClient(edfiTenant)
+      .delete<any, any>(`v1/vendors/${vendorId}`)
+      .catch((err) => {
+        Logger.error(`Error deleting vendor ${vendorId} for tenant ${edfiTenant.id}: ${err}`);
+        throw err;
+      });
     return undefined;
   }
   async getVendorApplications(edfiTenant: EdfiTenant, vendorId: number) {
     return toGetApplicationDto(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await this.getAdminApiClient(edfiTenant).get<any, any[]>(
-        `v1/vendors/${vendorId}/applications`
-      )
+      await this.getAdminApiClient(edfiTenant)
+        .get<any, any[]>(`v1/vendors/${vendorId}/applications`)
+        .catch((err) => {
+          Logger.error(`Error getting vendor applications for tenant ${edfiTenant.id}: ${err}`);
+          throw err;
+        })
     );
   }
 
   async getApplications(edfiTenant: EdfiTenant) {
     return toGetApplicationDto(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await this.getAdminApiClient(edfiTenant).get<any, any[]>(`v1/applications`)
+      await this.getAdminApiClient(edfiTenant)
+        .get<any, any[]>(`v1/applications`)
+        .catch((err) => {
+          Logger.error(`Error getting applications for tenant ${edfiTenant.id}: ${err}`);
+          throw err;
+        })
     );
   }
   async getApplication(edfiTenant: EdfiTenant, applicationId: number) {
     return toGetApplicationDto(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await this.getAdminApiClient(edfiTenant).get<any, any>(`v1/applications/${applicationId}`)
+      await this.getAdminApiClient(edfiTenant)
+        .get<any, any>(`v1/applications/${applicationId}`)
+        .catch((err) => {
+          Logger.error(
+            `Error getting application ${applicationId} for tenant ${edfiTenant.id}: ${err}`
+          );
+          throw err;
+        })
     );
   }
   async putApplication(
@@ -298,45 +340,70 @@ export class AdminApiServiceV1 {
   ) {
     return toGetApplicationDto(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await this.getAdminApiClient(edfiTenant).put<any, any>(
-        `v1/applications/${applicationId}`,
-        application
-      )
+      await this.getAdminApiClient(edfiTenant)
+        .put<any, any>(`v1/applications/${applicationId}`, application)
+        .catch((err) => {
+          Logger.error(
+            `Error updating application ${applicationId} for tenant ${edfiTenant.id}: ${err}`
+          );
+          throw err;
+        })
     );
   }
   async postApplication(edfiTenant: EdfiTenant, application: PostApplicationDto) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.getAdminApiClient(edfiTenant).post<any, PostApplicationResponseDto>(
-      `v1/applications`,
-      application
-    );
+    return this.getAdminApiClient(edfiTenant)
+      .post<any, PostApplicationResponseDto>(`v1/applications`, application)
+      .catch((err) => {
+        Logger.error(`Error creating application for tenant ${edfiTenant.id}: ${err}`);
+        throw err;
+      });
   }
   async deleteApplication(edfiTenant: EdfiTenant, applicationId: number) {
     return (
       this.getAdminApiClient(edfiTenant)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .delete<any, any>(`v1/applications/${applicationId}`)
+        .catch((err) => {
+          Logger.error(
+            `Error deleting application ${applicationId} for tenant ${edfiTenant.id}: ${err}`
+          );
+          throw err;
+        })
         .then(() => undefined)
     );
   }
   async resetApplicationCredentials(edfiTenant: EdfiTenant, applicationId: number) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.getAdminApiClient(edfiTenant).put<any, any>(
-      `v1/applications/${applicationId}/reset-credential`
-    );
+    return this.getAdminApiClient(edfiTenant)
+      .put<any, any>(`v1/applications/${applicationId}/reset-credential`)
+      .catch((err) => {
+        Logger.error(
+          `Error resetting application credentials for application ${applicationId} for tenant ${edfiTenant.id}: ${err}`
+        );
+        throw err;
+      });
   }
 
   async getClaimsets(edfiTenant: EdfiTenant) {
     return toGetClaimsetDto(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await this.getAdminApiClient(edfiTenant).get<any, any[]>(`v1/claimsets`)
+      await this.getAdminApiClient(edfiTenant)
+        .get<any, any[]>(`v1/claimsets`)
+        .catch((err) => {
+          Logger.error(`Error getting claimsets for tenant ${edfiTenant.id}: ${err}`);
+          throw err;
+        })
     );
   }
   async getClaimset(edfiTenant: EdfiTenant, claimsetId: number) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const value: GetClaimsetDto = await this.getAdminApiClient(edfiTenant).get<any, any>(
-      `v1/claimsets/${claimsetId}`
-    );
+    const value: GetClaimsetDto = await this.getAdminApiClient(edfiTenant)
+      .get<any, any>(`v1/claimsets/${claimsetId}`)
+      .catch((err) => {
+        Logger.error(`Error getting claimset ${claimsetId} for tenant ${edfiTenant.id}: ${err}`);
+        throw err;
+      });
     value.resourceClaims.forEach((rc, i) => {
       const authStratKeys = ['defaultAuthStrategiesForCRUD', 'authStrategyOverridesForCRUD'];
       authStratKeys.forEach((askey) => {
@@ -356,18 +423,33 @@ export class AdminApiServiceV1 {
   }
   async getClaimsetRaw(edfiTenant: EdfiTenant, claimsetId: number) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.getAdminApiClient(edfiTenant).get<any, any>(`v1/claimsets/${claimsetId}`);
+    return this.getAdminApiClient(edfiTenant)
+      .get<any, any>(`v1/claimsets/${claimsetId}`)
+      .catch((err) => {
+        Logger.error(`Error getting claimset ${claimsetId} for tenant ${edfiTenant.id}: ${err}`);
+        throw err;
+      });
   }
   async putClaimset(edfiTenant: EdfiTenant, claimsetId: number, claimset: PutClaimsetDto) {
     return toGetClaimsetDto(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await this.getAdminApiClient(edfiTenant).put<any, any>(`v1/claimsets/${claimsetId}`, claimset)
+      await this.getAdminApiClient(edfiTenant)
+        .put<any, any>(`v1/claimsets/${claimsetId}`, claimset)
+        .catch((err) => {
+          Logger.error(`Error updating claimset ${claimsetId} for tenant ${edfiTenant.id}: ${err}`);
+          throw err;
+        })
     );
   }
   async postClaimset(edfiTenant: EdfiTenant, claimset: PostClaimsetDto) {
     return toGetClaimsetDto(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await this.getAdminApiClient(edfiTenant).post<any, any>(`v1/claimsets`, claimset)
+      await this.getAdminApiClient(edfiTenant)
+        .post<any, any>(`v1/claimsets`, claimset)
+        .catch((err) => {
+          Logger.error(`Error creating claimset for tenant ${edfiTenant.id}: ${err}`);
+          throw err;
+        })
     );
   }
   async deleteClaimset(edfiTenant: EdfiTenant, claimsetId: number) {
@@ -375,6 +457,10 @@ export class AdminApiServiceV1 {
       this.getAdminApiClient(edfiTenant)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .delete<any, any>(`v1/claimsets/${claimsetId}`)
+        .catch((err) => {
+          Logger.error(`Error deleting claimset ${claimsetId} for tenant ${edfiTenant.id}: ${err}`);
+          throw err;
+        })
         .then(() => undefined)
     );
   }

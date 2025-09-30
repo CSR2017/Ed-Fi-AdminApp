@@ -34,7 +34,7 @@ export class RegisterOidcIdpsService {
             {
               client,
               params: {
-                redirect_uri: `${config.MY_URL}/api/auth/callback/${oidcConfig.id}`,
+                redirect_uri: `${config.MY_URL_API_PATH}/auth/callback/${oidcConfig.id}`,
                 scope: oidcConfig.scope,
               },
               usePKCE: false,
