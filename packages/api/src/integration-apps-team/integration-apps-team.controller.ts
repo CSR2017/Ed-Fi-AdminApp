@@ -1,13 +1,13 @@
-import { Controller, Get, Param, ParseIntPipe, Put, Query } from '@nestjs/common';
+import { Controller, Get, Logger, Param, ParseIntPipe, Put, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Authorize } from '../auth/authorization';
 import { IntegrationAppsTeamService } from './integration-apps-team.service';
 import { AdminApiServiceV2 } from '../teams/edfi-tenants/starting-blocks';
 import { EdfiTenant, SbEnvironment } from '@edanalytics/models-server';
 import { InjectRepository } from '@nestjs/typeorm';
-import { GetApplicationDtoV2, Ids, SecretSharingMethod, toApplicationYopassResponseDto } from '@edanalytics/models';
+import { GetApplicationDtoV2, SecretSharingMethod, toApplicationYopassResponseDto } from '@edanalytics/models';
 import { Repository } from 'typeorm';
-import { CustomHttpException, postYopassSecret } from '../utils';
+import { postYopassSecret } from '../utils';
 
 // integrationAppId in these routes is the ID of the integration app not the EdFi application ID
 
@@ -94,12 +94,17 @@ export class IntegrationAppsTeamController {
     };
 
     if (shouldGetOneTimeShareLink) {
-      const yopass = await postYopassSecret(body);
-      return toApplicationYopassResponseDto({
-        link: yopass.link,
-        applicationId: adminApiResponse.id,
-        secretSharingMethod: SecretSharingMethod.Yopass,
-      });
+      try {
+        const yopassResult = await postYopassSecret(body);
+        return toApplicationYopassResponseDto({
+          link: yopassResult.link,
+          applicationId: adminApiResponse.id,
+          secretSharingMethod: SecretSharingMethod.Yopass,
+        });
+      } catch (error) {
+        Logger.error('Yopass failed for resetApplicationCredentials:', error);
+        throw error; // Re-throw the original error
+      }
     } else {
       return body;
     }

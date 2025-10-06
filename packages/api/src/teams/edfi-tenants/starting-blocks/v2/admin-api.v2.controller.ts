@@ -535,20 +535,26 @@ export class AdminApiControllerV2 {
         });
       }
       if (config.USE_YOPASS) {
-        const yopass = await postYopassSecret({
-          ...adminApiResponse,
-          url: GetApplicationDtoV2.apiUrl(
-            sbEnvironment.startingBlocks,
-            sbEnvironment.domain,
-            application.applicationName,
-            edfiTenant.name
-          ),
-        });
-        return toApplicationYopassResponseDto({
-          link: yopass.link,
-          applicationId: adminApiResponse.id,
-          secretSharingMethod: SecretSharingMethod.Yopass,
-        });
+        try {
+          const yopassResult = await postYopassSecret({
+            ...adminApiResponse,
+            url: GetApplicationDtoV2.apiUrl(
+              sbEnvironment.startingBlocks,
+              sbEnvironment.domain,
+              application.applicationName,
+              edfiTenant.name
+            ),
+          });
+
+          return toApplicationYopassResponseDto({
+            link: yopassResult.link,
+            applicationId: adminApiResponse.id,
+            secretSharingMethod: SecretSharingMethod.Yopass,
+          });
+        } catch (error) {
+          Logger.error('Yopass failed for postApplication:', error);
+          throw error; // Re-throw the original error
+        }
       } else {
         return toPostApplicationResponseDtoV2({
           ...adminApiResponse,
@@ -631,20 +637,26 @@ export class AdminApiControllerV2 {
       );
 
       if (config.USE_YOPASS) {
-        const yopass = await postYopassSecret({
-          ...adminApiResponse,
-          url: GetApplicationDtoV2.apiUrl(
-            sbEnvironment.startingBlocks,
-            sbEnvironment.domain,
-            application.applicationName,
-            edfiTenant.name
-          ),
-        });
-        return toApplicationYopassResponseDto({
-          link: yopass.link,
-          applicationId: adminApiResponse.id,
-          secretSharingMethod: SecretSharingMethod.Yopass,
-        });
+        try {
+          const yopassResult = await postYopassSecret({
+            ...adminApiResponse,
+            url: GetApplicationDtoV2.apiUrl(
+              sbEnvironment.startingBlocks,
+              sbEnvironment.domain,
+              application.applicationName,
+              edfiTenant.name
+            ),
+          });
+
+          return toApplicationYopassResponseDto({
+            link: yopassResult.link,
+            applicationId: adminApiResponse.id,
+            secretSharingMethod: SecretSharingMethod.Yopass,
+          });
+        } catch (error) {
+          Logger.error('Yopass failed for resetApplicationCredentials:', error);
+          throw error; // Re-throw the original error
+        }
       } else {
         return toPostApplicationResponseDtoV2({
           ...adminApiResponse,

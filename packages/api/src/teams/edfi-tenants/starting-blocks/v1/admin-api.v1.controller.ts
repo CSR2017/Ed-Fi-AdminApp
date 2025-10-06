@@ -428,15 +428,21 @@ export class AdminApiControllerV1 {
         return toPostApplicationResponseDto(adminApiResponse);
       } else {
         if (config.USE_YOPASS) {
-          const yopass = await postYopassSecret({
-            ...adminApiResponse,
-            url: GetApplicationDto.apiUrl(sbEnvironment.startingBlocks, sbEnvironment.domain, application.applicationName),
-          });
-          return toApplicationYopassResponseDto({
-            link: yopass.link,
-            applicationId: adminApiResponse.applicationId,
-            secretSharingMethod: SecretSharingMethod.Yopass,
-          });
+          try {
+            const yopassResult = await postYopassSecret({
+              ...adminApiResponse,
+              url: GetApplicationDto.apiUrl(sbEnvironment.startingBlocks, sbEnvironment.domain, application.applicationName),
+            });
+
+            return toApplicationYopassResponseDto({
+              link: yopassResult.link,
+              applicationId: adminApiResponse.applicationId,
+              secretSharingMethod: SecretSharingMethod.Yopass,
+            });
+          } catch (error) {
+            Logger.error('Yopass failed for postApplication:', error);
+            throw error; // Re-throw the original error
+          }
         } else {
           return toPostApplicationResponseDto({
             ...adminApiResponse,
@@ -511,15 +517,21 @@ export class AdminApiControllerV1 {
           applicationId
         );
         if (config.USE_YOPASS) {
-          const yopass = await postYopassSecret({
-            ...adminApiResponse,
-            url: GetApplicationDto.apiUrl(sbEnvironment.startingBlocks, sbEnvironment.domain, application.applicationName),
-          });
-          return toApplicationYopassResponseDto({
-            link: yopass.link,
-            applicationId: adminApiResponse.applicationId,
-            secretSharingMethod: SecretSharingMethod.Yopass,
-          });
+          try {
+            const yopassResult = await postYopassSecret({
+              ...adminApiResponse,
+              url: GetApplicationDto.apiUrl(sbEnvironment.startingBlocks, sbEnvironment.domain, application.applicationName),
+            });
+
+            return toApplicationYopassResponseDto({
+              link: yopassResult.link,
+              applicationId: adminApiResponse.applicationId,
+              secretSharingMethod: SecretSharingMethod.Yopass,
+            });
+          } catch (error) {
+            Logger.error('Yopass failed for resetApplicationCredentials:', error);
+            throw error; // Re-throw the original error
+          }
         }
         else {
           return toPostApplicationResponseDto({

@@ -1,8 +1,13 @@
 import { PostApplicationResponseDtoBase } from '@edanalytics/models';
 import axios, { AxiosResponse } from 'axios';
 import config from 'config';
+import { BadRequestException, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { webcrypto } from 'crypto';
 import { createMessage, encrypt } from 'openpgp';
+
+const logger = new Logger('Yopass');
+
+const YOPASS_ERROR_MESSAGE = 'Failed to create secure link for credentials. Please contact your administrator for assistance.';
 
 const randomString = (): string => {
   let text = '';
@@ -28,6 +33,11 @@ const randomInt = (min: number, max: number): number => {
 const backendDomain = config.YOPASS_URL;
 
 const getYopassResponse = async (body: object): Promise<{ uuid: string; password: string }> => {
+  // Check if Yopass is configured
+  if (!backendDomain) {
+    throw new BadRequestException(YOPASS_ERROR_MESSAGE);
+  }
+
   const password = randomString();
   const yopassBody = {
     expiration: 7 * 24 * 60 * 60,
@@ -35,15 +45,24 @@ const getYopassResponse = async (body: object): Promise<{ uuid: string; password
     one_time: true,
   };
 
-  const yopassResponse = (await axios.post(
-    [backendDomain, 'secret'].join('/'),
-    yopassBody
-  )) as AxiosResponse<{ message: string }>;
+  try {
+    const yopassResponse = (await axios.post(
+      [backendDomain, 'secret'].join('/'),
+      yopassBody
+    )) as AxiosResponse<{ message: string }>;
 
-  return {
-    uuid: yopassResponse.data.message,
-    password,
-  };
+    return {
+      uuid: yopassResponse.data.message,
+      password,
+    };
+  } catch (error) {
+    logger.error('Yopass service error:', {
+      url: backendDomain,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    throw new ServiceUnavailableException(YOPASS_ERROR_MESSAGE);
+  }
 };
 
 export const postYopassSecret = async (body: PostApplicationResponseDtoBase & { url: string }) => {
