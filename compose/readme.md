@@ -132,6 +132,12 @@ Or alternatively use Admin API: [adminapi-odsinstance.http](./adminapi-odsinstan
 1. Open [Keycloak](https://localhost/auth).
 2. Sign-in with the credentials from your `.env` file.
 3. Create a new realm called `edfi`.
+   1. Configure realm session timeouts:
+      - Go to "Realm Settings" in the left sidebar
+      - Click on the "Sessions" tab
+      - Set "SSO Session Idle" to 2 hours
+      - Set "SSO Session Max" to 2 hours (or longer as needed)
+      - Click "Save" at the bottom of the page
 4. Create a new non-admin client:
    1. Click on Clients.
    2. Click the Import client button.
@@ -142,6 +148,9 @@ Or alternatively use Admin API: [adminapi-odsinstance.http](./adminapi-odsinstan
 
 > [!TIP]
 > You can sign-in as the new user without generating a password: on the user page, click the `Action` drop down (upper right corner) and choose `Impersonate`.
+
+> [!IMPORTANT]
+> The session timeout settings in Keycloak (configured in step 3.1) determine how long a user can remain authenticated without needing to re-login. Configuring these settings to align with your application's express session timeout (set in `main.ts`) ensures consistent authentication behavior.
 
 ### Start/Stop Admin App services
 

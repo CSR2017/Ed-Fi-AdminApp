@@ -13,8 +13,21 @@ apiClient.interceptors.response.use(
   (error) => {
     if ([401].includes(error?.response?.status)) {
       console.log('Redirecting to login');
-      window.location.href = `${window.location.origin}/login?redirect=${encodeURIComponent(
-        window.location.href.replace(window.location.origin, '')
+      // Get the OIDC ID from environment or default to 1
+      const oidcId = import.meta.env.VITE_OIDC_ID || 1;
+
+      // Get the current path relative to the base path
+      const basePath = import.meta.env.VITE_BASE_PATH || '/';
+      let currentPath = window.location.pathname;
+
+      // If current path includes the base path, strip the base path to prevent duplication
+      if (basePath !== '/' && currentPath.startsWith(basePath)) {
+        currentPath = currentPath.substring(basePath.length); // Keep the leading slash
+      }
+
+      // Redirect to the API auth login endpoint with the OIDC ID
+      window.location.href = `${API_URL}/auth/login/${oidcId}?redirect=${encodeURIComponent(
+        currentPath + window.location.search
       )}`;
     } else {
       throw error?.response?.data ?? error;
