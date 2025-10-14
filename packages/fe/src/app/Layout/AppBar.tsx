@@ -14,7 +14,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import logoUrl from '../../assets/ed-fi-logo.png';
 import { apiClient, useMe, useMyTeams } from '../api';
 import { useAsId } from './Nav';
-import { emailUrls } from '../routes/pathConstants';
+import { externalUrls } from '../routes/pathConstants';
 import { Icons } from '@edanalytics/common-ui';
 
 export const AppBar = () => {
@@ -55,7 +55,7 @@ export const AppBar = () => {
       </HStack>
       <HStack>
         <IconButton
-          href={import.meta.env.VITE_HELP_GUIDE || "https://docs.ed-fi.org/"}
+          href={externalUrls.helpGuide()}
           as="a"
           target="_blank"
           rel="noopener noreferrer"
@@ -88,9 +88,7 @@ export const AppBar = () => {
               </MenuItem>
             ) : null}
             <MenuItem
-              href={emailUrls.reportIssue(
-                team?.displayName ? `Team ${team.displayName}` : undefined
-              )}
+              href={externalUrls.supportCommunity()}
               as="a"
               target="_blank"
               rel="noopener noreferrer"
@@ -98,7 +96,7 @@ export const AppBar = () => {
               Report an issue
             </MenuItem>
             <MenuItem
-              href={import.meta.env.VITE_HELP_GUIDE || "https://docs.ed-fi.org/"}
+              href={externalUrls.helpGuide()}
               as="a"
               target="_blank"
               rel="noopener noreferrer"

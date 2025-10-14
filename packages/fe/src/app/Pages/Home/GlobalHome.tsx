@@ -16,6 +16,7 @@ import { LandingContent } from '../../Layout/Landing';
 import { useAsId } from '../../Layout/Nav';
 import { useMe } from '../../api';
 import { TeamHome } from './TeamHome';
+import { externalUrls } from '../../routes/pathConstants';
 
 export const GlobalHome = () => {
   const asId = useAsId();
@@ -91,7 +92,7 @@ const NoUtmCards = () => {
             fontWeight="semibold"
             color="blue.500"
             target="_blank"
-            href="https://docs.startingblocks.org/StartingBlocks%20Admin%20App/getting-started/"
+            href={externalUrls.startingGuide()}
           >
             help page
           </Link>{' '}
@@ -100,7 +101,7 @@ const NoUtmCards = () => {
             fontWeight="semibold"
             color="blue.500"
             target="_blank"
-            href="https://support.startingblocks.org/support/tickets/new"
+            href={externalUrls.supportCommunity()}
           >
             contact
           </Link>
