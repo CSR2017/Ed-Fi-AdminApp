@@ -11,7 +11,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
-import logoUrl from '../../assets/ed-fi-logo.png';
+import logoUrl from '../../assets/ed-fi-logo-light.svg';
 import { apiClient, useMe, useMyTeams } from '../api';
 import { useAsId } from './Nav';
 import { externalUrls } from '../routes/pathConstants';

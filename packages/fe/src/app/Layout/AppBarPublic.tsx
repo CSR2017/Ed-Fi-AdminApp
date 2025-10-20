@@ -1,6 +1,6 @@
 import { Button, HStack, Image } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
-import logoUrl from '../../assets/ed-fi-logo.png';
+import logoUrl from '../../assets/ed-fi-logo-light.svg';
 
 export const AppBarPublic = () => {
   return (
