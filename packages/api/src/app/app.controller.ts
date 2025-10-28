@@ -1,8 +1,15 @@
 import { Controller, Get, Header, Logger, NotFoundException, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { IsUUID } from 'class-validator';
 import axios from 'axios';
 import config from 'config';
 import { Public } from '../auth/authorization/public.decorator';
+import { Throttle } from '@nestjs/throttler';
+
+class SecretIdDto {
+  @IsUUID(4, { message: 'secretId must be a valid UUID' })
+  secretId: string;
+}
 
 @ApiTags('App')
 @Controller()
@@ -13,12 +20,16 @@ export class AppController {
     return "Feelin' great!";
   }
 
+  // Override default configuration for Rate limiting and duration.
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Public()
   @Header('Cache-Control', 'no-store')
   @Get('secret/:secretId/')
-  secret(@Param('secretId') secretId: string) {
+  secret(@Param() params: SecretIdDto) {
+    const yopassUrl = new URL(`/secret/${encodeURIComponent(params.secretId)}`, config.YOPASS_URL);
+
     return axios
-      .get(`${config.YOPASS_URL}/secret/${secretId}`)
+      .get(yopassUrl.toString())
       .then((res) => {
         return res.data;
       })

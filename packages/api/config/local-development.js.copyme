@@ -47,5 +47,11 @@ module.exports = {
 
   WHITELISTED_REDIRECTS: [FE_URL],
 
+  // The time to live in milliseconds
+  RATE_LIMIT_TTL: 60000, 
+
+  // The maximum number of requests within the ttl
+  RATE_LIMIT_LIMIT: 100,
+
   // There are other defaults you can override if you want to. See default.js.
 };

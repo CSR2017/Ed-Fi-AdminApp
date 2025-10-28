@@ -64,6 +64,9 @@ declare module 'config' {
     MY_URL_API_PATH: string;
     OPENAPI_TITLE: string;
     OPENAPI_DESCRIPTION: string;
+
+    RATE_LIMIT_TTL: number; // The time to live in milliseconds
+    RATE_LIMIT_LIMIT: number; // The maximum number of requests within the ttl
   }
 
   const config: IConfig;

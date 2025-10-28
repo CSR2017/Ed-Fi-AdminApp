@@ -117,4 +117,10 @@ module.exports = {
   },
   OPENAPI_TITLE: 'Starting Blocks Admin App',
   OPENAPI_DESCRIPTION: 'OpenAPI spec for the EA Starting Blocks admin application.',
+  
+  // The time to live in milliseconds
+  RATE_LIMIT_TTL: 60000, 
+
+  // The maximum number of requests within the ttl
+  RATE_LIMIT_LIMIT: 100,
 };

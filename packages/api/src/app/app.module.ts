@@ -31,6 +31,7 @@ import { SbEnvironmentsModule } from '../teams/sb-environments/sb-environments.m
 import { SbSyncModule } from '../sb-sync/sb-sync.module';
 import { ServicesModule } from './services.module';
 import { TeamsGlobalModule } from '../teams/teams-global.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { UserTeamMembershipsGlobalModule } from '../user-team-memberships-global/user-team-memberships-global.module';
 import { UserTeamMembershipsModule } from '../teams/user-team-memberships/user-team-memberships.module';
 import { UsersGlobalModule } from '../users-global/users-global.module';
@@ -50,6 +51,14 @@ import { routes } from './routes';
           logging: config.TYPEORM_LOGGING ? JSON.parse(config.TYPEORM_LOGGING) : undefined,
         };
       },
+    }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: config.RATE_LIMIT_TTL,
+          limit: config.RATE_LIMIT_LIMIT,
+        },
+      ],
     }),
     RouterModule.register(routes),
     AdminApiModuleV1,
@@ -95,6 +104,10 @@ import { routes } from './routes';
       provide: APP_GUARD,
       useClass: AuthorizedGuard,
     },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
   ],
   exports: [SbEnvironmentEdfiTenantInterceptor],
 })
