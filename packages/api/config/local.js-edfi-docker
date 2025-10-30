@@ -10,6 +10,7 @@ module.exports = {
   MY_URL: 'https://localhost/adminapp-api',
   USE_YOPASS: true,
   YOPASS_URL: 'http://edfiadminapp-dev-environment-yopass-1:80',
+  EDFI_URLS_TIMEOUT_MS: 5000, // 5 seconds
 
   DB_SECRET_VALUE: {
     DB_HOST: 'edfiadminapp-db',

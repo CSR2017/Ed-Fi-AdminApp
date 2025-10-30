@@ -99,18 +99,9 @@ export const CreateSbEnvironmentGlobalPage = () => {
               }
             }
           },
-          onError: (error) => {
-            setError('odsApiDiscoveryUrl', { message: errorMessage });
-            setValue('version', undefined);
-            console.error('Error fetching version:', error);
-          },
+          ...mutationErrCallback({ setFormError: setError, popGlobalBanner: popBanner }),
         }
-      )
-        .catch((error) => {
-          setError('odsApiDiscoveryUrl', { message: errorMessage });
-          setValue('version', undefined);
-          console.error('Error fetching version:', error);
-        });
+      );
     };
   }
 

@@ -11,6 +11,7 @@ module.exports = {
   MY_URL: 'http://localhost:3333',
   USE_YOPASS: false,
   YOPASS_URL: 'http://localhost:8082',
+  EDFI_URLS_TIMEOUT_MS: 5000, // 5 seconds
 
 
   DB_SECRET_VALUE: {

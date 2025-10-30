@@ -118,61 +118,68 @@ export const EditSbEnvironmentGlobalPage = () => {
     const errorMessage = 'Could not fetch version from API Discovery URL. Please check the URL and try again.';
 
     if (!sbEnvironment?.startingBlocks && normalizedUrl) {
-      try {
         const result = await checkEdFiVersionAndTenantMode.mutateAsync(
-          { entity: { odsApiDiscoveryUrl: normalizedUrl }, pathParams: null }
-        );
+          { entity: { odsApiDiscoveryUrl: normalizedUrl }, pathParams: null },
+          {
+            onSuccess: (result) => {
+              if (result) {
+                // Handle the new response structure with version and isMultiTenant
+                const response = result as { version: string; isMultiTenant: boolean };
+                const version = response.version;
+                const isMultiTenant = response.isMultiTenant;
 
-        if (result) {
-          // Handle the new response structure with version and isMultiTenant
-          const response = result as { version: string; isMultiTenant: boolean };
-          const version = response.version;
-          const isMultiTenant = response.isMultiTenant;
-
-          if (version === 'v1' || version === 'v2') {
-            // Validate that the version hasn't changed
-            if (originalVersion && originalVersion !== version) {
-              setError('odsApiDiscoveryUrl', {
-                message: `Version mismatch: This environment was originally ${originalVersion} but the new URL returns ${version}. Version cannot be changed.`
-              });
-              return false;
-            } else if (version === 'v2') {
-              // For v2, validate that tenant mode hasn't changed
-              const originalMultiTenant = sbEnvironment?.multiTenant;
-              if (originalMultiTenant !== undefined && originalMultiTenant !== isMultiTenant) {
-                const originalMode = originalMultiTenant ? 'multi-tenant' : 'single-tenant';
-                const newMode = isMultiTenant ? 'multi-tenant' : 'single-tenant';
-                setError('odsApiDiscoveryUrl', {
-                  message: `Tenant mode mismatch: This environment was originally ${originalMode} but the new URL requires ${newMode} mode. Tenant mode cannot be changed after creation.`
-                });
-                return false;
-              } else {
-                setValue('isMultitenant', isMultiTenant);
-                clearErrors(['odsApiDiscoveryUrl']);
-                // Update the form with normalized URL
-                setValue('odsApiDiscoveryUrl', normalizedUrl);
-                return true;
+                if (version === 'v1' || version === 'v2') {
+                  // Validate that the version hasn't changed
+                  if (originalVersion && originalVersion !== version) {
+                    setError('odsApiDiscoveryUrl', {
+                      message: `Version mismatch: This environment was originally ${originalVersion} but the new URL returns ${version}. Version cannot be changed.`
+                    });
+                    return false;
+                  } else if (version === 'v2') {
+                    // For v2, validate that tenant mode hasn't changed
+                    const originalMultiTenant = sbEnvironment?.multiTenant;
+                    if (originalMultiTenant !== undefined && originalMultiTenant !== isMultiTenant) {
+                      const originalMode = originalMultiTenant ? 'multi-tenant' : 'single-tenant';
+                      const newMode = isMultiTenant ? 'multi-tenant' : 'single-tenant';
+                      setError('odsApiDiscoveryUrl', {
+                        message: `Tenant mode mismatch: This environment was originally ${originalMode} but the new URL requires ${newMode} mode. Tenant mode cannot be changed after creation.`
+                      });
+                      return false;
+                    } else {
+                      setValue('isMultitenant', isMultiTenant);
+                      clearErrors(['odsApiDiscoveryUrl']);
+                      // Update the form with normalized URL
+                      setValue('odsApiDiscoveryUrl', normalizedUrl);
+                      return true;
+                    }
+                  } else {
+                    // For v1, just clear errors since v1 is always single-tenant
+                    clearErrors(['odsApiDiscoveryUrl']);
+                    // Update the form with normalized URL
+                    setValue('odsApiDiscoveryUrl', normalizedUrl);
+                    return true;
+                  }
+                } else {
+                  setError('odsApiDiscoveryUrl', { message: errorMessage });
+                  return false;
+                }
               }
-            } else {
-              // For v1, just clear errors since v1 is always single-tenant
-              clearErrors(['odsApiDiscoveryUrl']);
-              // Update the form with normalized URL
-              setValue('odsApiDiscoveryUrl', normalizedUrl);
-              return true;
-            }
+            },
+            ...mutationErrCallback({ setFormError: setError, popGlobalBanner: popBanner }),
+          }
+        ).catch((error) => {
+          if (isFormValidationError(error)) {
+            // Errors are already set in the form
+            return false;
           } else {
+            console.error('Error validating Ed-Fi version and tenant mode:', error);
             setError('odsApiDiscoveryUrl', { message: errorMessage });
             return false;
           }
-        }
-        return false;
-      } catch (error) {
-        setError('odsApiDiscoveryUrl', { message: errorMessage });
-        console.error('Error fetching version:', error);
-        return false;
-      }
+        });
+        return Boolean(result);
     }
-    return true; // No validation needed for Starting Blocks
+    return true;
   }
 
   const validateAdminApiUrl = async (adminApiUrl: string): Promise<boolean> => {
@@ -199,17 +206,7 @@ export const EditSbEnvironmentGlobalPage = () => {
                 }
               }
             },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onError: (err: any) => {
-              console.log(err);
-              if (isFormValidationError(err)) {
-                Object.entries(err.data.errors).forEach(([field, error]) => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  setError(field as any, error as any);
-                  return false;
-                });
-              }
-            },
+            ...mutationErrCallback({ setFormError: setError, popGlobalBanner: popBanner }),
           }
         );
       } catch (error) {
