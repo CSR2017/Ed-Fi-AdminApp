@@ -1,5 +1,5 @@
-import { Ids, PostOdsDto, PutOdsDto, toGetOdsDto, toOdsRowCountsDto } from '@edanalytics/models';
-import { EdfiTenant, Ods, SbEnvironment } from '@edanalytics/models-server';
+import { GetSessionDataDto, Ids, PostOdsDto, PutOdsDto, toGetOdsDto, toOdsRowCountsDto } from '@edanalytics/models';
+import { addUserCreating, addUserModifying, EdfiTenant, Ods, SbEnvironment } from '@edanalytics/models-server';
 import {
   Body,
   Controller,
@@ -25,6 +25,7 @@ import { InjectFilter } from '../../../auth/helpers/inject-filter';
 import { whereIds } from '../../../auth/helpers/where-ids';
 import { StartingBlocksServiceV2 } from '../starting-blocks';
 import { OdssService } from './odss.service';
+import { ReqUser } from 'packages/api/src/auth/helpers/user.decorator';
 
 @ApiTags('Ods')
 @UseInterceptors(SbEnvironmentEdfiTenantInterceptor)
@@ -89,9 +90,10 @@ export class OdssController {
     @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
     @ReqSbEnvironment() sbEnvironment: SbEnvironment,
     @ReqEdfiTenant() edfiTenant: EdfiTenant,
-    @Body() dto: PostOdsDto
+    @Body() dto: PostOdsDto,
+    @ReqUser() user: GetSessionDataDto
   ) {
-    return this.odsService.create(sbEnvironment, edfiTenant, dto);
+    return this.odsService.create(sbEnvironment, edfiTenant, addUserCreating(dto, user));
   }
   @Put(':odsId')
   @Authorize({
@@ -108,9 +110,10 @@ export class OdssController {
     @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
     @ReqSbEnvironment() sbEnvironment: SbEnvironment,
     @ReqEdfiTenant() edfiTenant: EdfiTenant,
-    @Body() dto: PutOdsDto
+    @Body() dto: PutOdsDto,
+    @ReqUser() user: GetSessionDataDto
   ) {
-    return this.odsService.UpdateOdsInstanceId(odsId, dto);
+    return this.odsService.UpdateOdsInstanceId(odsId, addUserModifying(dto, user));
   }
   @Delete(':odsId')
   @Authorize({

@@ -1,5 +1,5 @@
-import { Ids, PostEdfiTenantDto, toGetEdfiTenantDto } from '@edanalytics/models';
-import { EdfiTenant, SbEnvironment } from '@edanalytics/models-server';
+import { GetSessionDataDto, Ids, PostEdfiTenantDto, toGetEdfiTenantDto } from '@edanalytics/models';
+import { addUserCreating, EdfiTenant, SbEnvironment } from '@edanalytics/models-server';
 import {
   Body,
   Controller,
@@ -25,6 +25,7 @@ import { EdfiTenantsService } from './edfi-tenants.service';
 import { StartingBlocksServiceV2 } from './starting-blocks';
 import { AuthService } from '../../auth/auth.service';
 import { Operation, SbVersion } from '../../auth/authorization';
+import { ReqUser } from '../../auth/helpers/user.decorator';
 
 @ApiTags('EdfiTenant')
 @UseInterceptors(SbEnvironmentEdfiTenantInterceptor)
@@ -97,9 +98,10 @@ export class EdfiTenantsController {
     @Param('sbEnvironmentId', new ParseIntPipe()) sbEnvironmentId: number,
     @Param('teamId', new ParseIntPipe()) teamId: number,
     @ReqSbEnvironment() sbEnvironment: SbEnvironment,
-    @Body() tenant: PostEdfiTenantDto
+    @Body() tenant: PostEdfiTenantDto,
+    @ReqUser() user: GetSessionDataDto
   ) {
-    const result = await this.edfiTenantService.create(sbEnvironment, tenant);
+    const result = await this.edfiTenantService.create(sbEnvironment, addUserCreating(tenant, user));
     await this.authService.reloadTeamOwnershipCache(teamId);
     return result;
   }

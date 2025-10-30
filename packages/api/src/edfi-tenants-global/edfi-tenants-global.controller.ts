@@ -13,6 +13,7 @@ import {
   EdfiTenant,
   SbEnvironment,
   SbSyncQueue,
+  addUserCreating,
   addUserModifying,
   regarding,
 } from '@edanalytics/models-server';
@@ -79,9 +80,10 @@ export class EdfiTenantsGlobalController {
   async post(
     @Param('sbEnvironmentId', new ParseIntPipe()) sbEnvironmentId: number,
     @ReqSbEnvironment() sbEnvironment: SbEnvironment,
-    @Body() tenant: PostEdfiTenantDto
+    @Body() tenant: PostEdfiTenantDto,
+    @ReqUser() user: GetSessionDataDto
   ) {
-    return this.edfiTenantService.create(sbEnvironment, tenant);
+    return this.edfiTenantService.create(sbEnvironment, addUserCreating(tenant, user));
   }
 
   @Get()

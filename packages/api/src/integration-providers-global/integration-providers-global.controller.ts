@@ -2,8 +2,9 @@ import {
   PutIntegrationProviderDto,
   PostIntegrationProviderDto,
   toGetIntegrationProviderDto,
+  GetSessionDataDto,
 } from '@edanalytics/models';
-import { IntegrationAppDetailed, IntegrationProvider, Ownership } from '@edanalytics/models-server';
+import { addUserCreating, addUserModifying, IntegrationAppDetailed, IntegrationProvider, Ownership } from '@edanalytics/models-server';
 
 import {
   Body,
@@ -22,6 +23,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Not, Repository } from 'typeorm';
 import { ValidationHttpException, throwNotFound } from '../utils';
 import { Authorize } from '../auth/authorization';
+import { ReqUser } from '../auth/helpers/user.decorator';
 
 @ApiTags('IntegrationProvider - Global')
 @Controller()
@@ -59,11 +61,14 @@ export class IntegrationProvidersGlobalController {
     privilege: 'integration-provider:create',
     subject: { id: '__filtered__' },
   })
-  async create(@Body() createIntegrationProviderDto: PostIntegrationProviderDto) {
+  async create(
+    @Body() createIntegrationProviderDto: PostIntegrationProviderDto,
+    @ReqUser() user: GetSessionDataDto
+  ) {
     try {
       return toGetIntegrationProviderDto(
         await this.integrationProvidersRepository.save(
-          this.integrationProvidersRepository.create(createIntegrationProviderDto)
+          this.integrationProvidersRepository.create(addUserCreating(createIntegrationProviderDto, user))
         )
       );
     } catch (error) {
@@ -123,13 +128,14 @@ export class IntegrationProvidersGlobalController {
   })
   async update(
     @Param('id', new ParseIntPipe()) id: number,
-    @Body() updateIntegrationProviderDto: PutIntegrationProviderDto
+    @Body() updateIntegrationProviderDto: PutIntegrationProviderDto,
+    @ReqUser() user: GetSessionDataDto
   ) {
     const old = await this.findOne(id);
     return toGetIntegrationProviderDto(
       await this.integrationProvidersRepository.save({
         ...old,
-        ...updateIntegrationProviderDto,
+        ...addUserModifying(updateIntegrationProviderDto, user),
       })
     );
   }
