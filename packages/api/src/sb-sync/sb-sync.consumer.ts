@@ -44,35 +44,57 @@ export class SbSyncConsumer implements OnModuleInit {
   public async onModuleInit() {
     this.boss.on('error', (error) => Logger.error(error));
 
-    await this.boss.schedule(SYNC_SCHEDULER_CHNL, config.SB_SYNC_CRON, null, {
-      tz: 'America/Chicago',
-    });
+    try {
+      await this.boss.schedule(SYNC_SCHEDULER_CHNL, config.SB_SYNC_CRON, null, {
+        tz: 'America/Chicago',
+      });
+      Logger.log('Sync scheduler job scheduled successfully');
+    } catch (error) {
+      if ((error as Error & { status?: number })?.status === 503) {
+        Logger.warn('Database unavailable - sync scheduler will be set up when database becomes available');
+      } else {
+        Logger.error('Failed to schedule sync job:', error);
+        throw error;
+      }
+    }
 
-    await this.boss.work(SYNC_SCHEDULER_CHNL, async () => {
-      const sbEnvironments = await this.sbEnvironmentsRepository
-        .createQueryBuilder()
-        .select()
-        .where(`"configPublic"->>'sbEnvironmentMetaArn' is not null`)
-        .getMany();
+    try {
+      await this.boss.work(SYNC_SCHEDULER_CHNL, async () => {
+        const sbEnvironments = await this.sbEnvironmentsRepository
+          .createQueryBuilder()
+          .select()
+          .where(`"configPublic"->>'sbEnvironmentMetaArn' is not null`)
+          .getMany();
 
-      Logger.log(`Starting sync for ${sbEnvironments.length} environments.`);
-      await Promise.all(
-        sbEnvironments.map((sbEnvironment) =>
-          this.boss.send(
-            ENV_SYNC_CHNL,
-            { sbEnvironmentId: sbEnvironment.id },
-            { singletonKey: String(sbEnvironment.id), expireInHours: 1 }
+        Logger.log(`Starting sync for ${sbEnvironments.length} environments.`);
+        await Promise.all(
+          sbEnvironments.map((sbEnvironment) =>
+            this.boss.send(
+              ENV_SYNC_CHNL,
+              { sbEnvironmentId: sbEnvironment.id },
+              { singletonKey: String(sbEnvironment.id), expireInHours: 1 }
+            )
           )
-        )
-      );
-    });
+        );
+      });
 
-    await this.boss.work(ENV_SYNC_CHNL, async (job: PgBoss.Job<{ sbEnvironmentId: number }>) => {
-      return this.refreshSbEnvironment(job.data.sbEnvironmentId);
-    });
-    await this.boss.work(TENANT_SYNC_CHNL, async (job: PgBoss.Job<{ edfiTenantId: number }>) => {
-      return this.refreshEdfiTenant(job.data.edfiTenantId);
-    });
+      await this.boss.work(ENV_SYNC_CHNL, async (job: PgBoss.Job<{ sbEnvironmentId: number }>) => {
+        return this.refreshSbEnvironment(job.data.sbEnvironmentId);
+      });
+
+      await this.boss.work(TENANT_SYNC_CHNL, async (job: PgBoss.Job<{ edfiTenantId: number }>) => {
+        return this.refreshEdfiTenant(job.data.edfiTenantId);
+      });
+
+      Logger.log('Sync workers registered successfully');
+    } catch (error) {
+      if ((error as Error & { status?: number })?.status === 503) {
+        Logger.warn('Database unavailable - sync workers will be registered when database becomes available');
+      } else {
+        Logger.error('Failed to register sync workers:', error);
+        throw error;
+      }
+    }
   }
 
   async refreshSbEnvironment(sbEnvironmentId: number) {

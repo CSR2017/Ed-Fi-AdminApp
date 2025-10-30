@@ -48,6 +48,7 @@ import { RolesService } from '../teams/roles/roles.service';
 import { TeamsGlobalService } from '../teams/teams-global.service';
 import { CacheService } from './cache.module';
 import { IntegrationAppsTeamService } from '../integration-apps-team/integration-apps-team.service';
+import { DatabaseConfigService } from '../database/database-config.service';
 
 const imports = [
   TypeOrmModule.forFeature([
@@ -75,6 +76,7 @@ const providers = [
   AdminApiServiceV2,
   AuthService,
   CacheService,
+  DatabaseConfigService,
   EdfiTenantsService,
   EdorgsGlobalService,
   EdorgsService,

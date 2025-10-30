@@ -31,6 +31,12 @@ declare module 'config' {
     /** Serialized JSON array of "query" | "schema" | "error" | "warn" | "info" | "log" | "migration" */
     TYPEORM_LOGGING: string | undefined;
 
+    /** Number of retry attempts for TypeORM database connections */
+    TYPEORM_RETRY_ATTEMPTS: number;
+
+    /** Delay between retry attempts in milliseconds */
+    TYPEORM_RETRY_DELAY: number;
+
     AWS_DB_ENCRYPTION_SECRET?: string | undefined;
     DB_ENCRYPTION_SECRET_VALUE: never;
     DB_ENCRYPTION_SECRET: IDbEncryptionSecret | Promise<IDbEncryptionSecret>;

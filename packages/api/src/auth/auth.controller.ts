@@ -119,6 +119,10 @@ export class AuthController {
         response.redirect(
           `${config.FE_URL}/unauthenticated?msg=It looks like there was a hiccup during login. Please try again.`
         );
+      } else if (error.message?.includes('Database connection error')) {
+        response.redirect(
+          `${config.FE_URL}/unauthenticated?msg=The system is temporarily unavailable. Please try again in a few moments.`
+        );
       } else {
         response.redirect(
           `${config.FE_URL}/unauthenticated?msg=It looks like your login was not successful. Please try again and contact us if the issue persists.`

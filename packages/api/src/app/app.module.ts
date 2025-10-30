@@ -1,9 +1,9 @@
-import config from 'config';
 import { Module } from '@nestjs/common';
 import { APP_GUARD, RouterModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import typeormConfig from '../database/typeorm.config';
+import { DatabaseConfigService } from '../database/database-config.service';
+import { HealthService } from './health.service';
 
 import { AdminApiModuleV1 } from '../teams/edfi-tenants/starting-blocks/v1/admin-api.v1.module';
 import { AdminApiModuleV2 } from '../teams/edfi-tenants/starting-blocks/v2/admin-api.v2.module';
@@ -40,17 +40,15 @@ import { UsersModule } from '../teams/users/users.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { routes } from './routes';
+import config from 'config';
 
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
-      useFactory: async () => {
-        return {
-          ...typeormConfig,
-          url: await config.DB_CONNECTION_STRING,
-          logging: config.TYPEORM_LOGGING ? JSON.parse(config.TYPEORM_LOGGING) : undefined,
-        };
+      useFactory: async (configService: DatabaseConfigService) => {
+        return await configService.createTypeOrmOptions();
       },
+      inject: [DatabaseConfigService],
     }),
     ThrottlerModule.forRoot({
       throttlers: [
@@ -90,6 +88,8 @@ import { routes } from './routes';
   ],
   controllers: [AppController],
   providers: [
+    DatabaseConfigService,
+    HealthService,
     SbEnvironmentEdfiTenantInterceptor,
     AppService,
     {

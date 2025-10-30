@@ -7,7 +7,6 @@ import {
   User,
   UserTeamMembership,
   SbEnvironment,
-  IntegrationProvider,
 } from '@edanalytics/models-server';
 import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
@@ -96,36 +95,49 @@ export class AuthService {
   private async getUser({ username, clientId }: { username?: string; clientId?: string }) {
     if (!clientId && !username) return null;
 
-    const where = username ? { username } : { clientId, userType: 'machine' as const };
-    const user = await this.usersRepo.findOne({
-      where,
-      relations: ['role'],
-    });
-    if (user === null) return null;
+    try {
+      const where = username ? { username } : { clientId, userType: 'machine' as const };
+      const user = await this.usersRepo.findOne({
+        where,
+        relations: ['role'],
+      });
+      if (user === null) return null;
 
-    const teamMemberships = await this.utmRepo.find({
-      where: {
-        userId: user.id,
-        roleId: Not(IsNull()),
-      },
-      relations: ['role', 'team'],
-    });
+      const teamMemberships = await this.utmRepo.find({
+        where: {
+          userId: user.id,
+          roleId: Not(IsNull()),
+        },
+        relations: ['role', 'team'],
+      });
 
-    if (teamMemberships.length) {
-      user.userTeamMemberships = teamMemberships;
+      if (teamMemberships.length) {
+        user.userTeamMemberships = teamMemberships;
+      }
+
+      return user;
+    } catch (error) {
+      Logger.error(`Database error during user lookup for ${username || clientId}:`, error);
+      // Throw the error to be caught by validateUser which will handle it gracefully
+      throw error;
     }
-
-    return user;
   }
 
   async validateUser({ username, clientId }: { username?: string; clientId?: string }) {
     if (!clientId && !username) return null;
 
-    const user = await this.getUser({ username, clientId });
-    if (user === null || !user.isActive) {
+    try {
+      const user = await this.getUser({ username, clientId });
+      if (user === null || !user.isActive) {
+        return null;
+      } else {
+        return user;
+      }
+    } catch (error) {
+      Logger.error(`Database error during user validation for ${username || clientId}:`, error);
+      // During database failures, we cannot authenticate users safely
+      // Return null to trigger authentication failure gracefully
       return null;
-    } else {
-      return user;
     }
   }
 
@@ -584,9 +596,16 @@ export class AuthService {
     if (cachedValue !== undefined) {
       return await cachedValue;
     } else {
-      const newCache = this.constructTeamOwnerships(teamId);
-      this.cacheManager.set(String(teamId), newCache, 30); //10 * 60 /* seconds */);
-      return await newCache;
+      try {
+        const newCache = this.constructTeamOwnerships(teamId);
+        this.cacheManager.set(String(teamId), newCache, 30); //10 * 60 /* seconds */);
+        return await newCache;
+      } catch (error) {
+        Logger.error(`Database error during team ownership cache construction for team ${teamId}:`, error);
+        // Return null during database failures to indicate the operation failed
+        // This will cause authentication to fail gracefully
+        return null;
+      }
     }
   }
 

@@ -20,6 +20,9 @@ module.exports = {
   // min hr day mo yr
   SB_SYNC_CRON: '0 2 * * *',
   TYPEORM_LOGGING: undefined,
+  // TypeORM database resilience configuration
+  TYPEORM_RETRY_ATTEMPTS: 3,
+  TYPEORM_RETRY_DELAY: 3000,
   AUTH0_CONFIG_SECRET: defer(function () {
     if (this.AWS_AUTH0_CONFIG_SECRET) {
       return new Promise(async (r) => {
