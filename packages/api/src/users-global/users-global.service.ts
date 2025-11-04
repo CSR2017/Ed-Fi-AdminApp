@@ -3,7 +3,7 @@ import { User } from '@edanalytics/models-server';
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
-import { throwNotFound } from '../utils';
+import { applyDtoUpdates, throwNotFound } from '../utils';
 
 @Injectable()
 export class UsersGlobalService {
@@ -27,7 +27,16 @@ export class UsersGlobalService {
 
   async update(id: number, updateUserDto: PutUserDto) {
     const old = await this.findOne(id);
-    return this.usersRepository.save({ ...old, ...updateUserDto });
+    const updated = applyDtoUpdates(old, updateUserDto, [
+      'username',
+      'roleId',
+      'isActive',
+      'givenName',
+      'familyName',
+      'description',
+      'modifiedById',
+    ]);
+    return this.usersRepository.save(updated);
   }
 
   async remove(id: number, user: GetUserDto) {

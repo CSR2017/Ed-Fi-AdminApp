@@ -9,7 +9,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { AuthService } from '../auth/auth.service';
-import { throwNotFound } from '../utils';
+import { applyDtoUpdates, throwNotFound } from '../utils';
 import { ValidationHttpException } from '../utils/customExceptions';
 
 @Injectable()
@@ -71,7 +71,8 @@ export class OwnershipsGlobalService {
 
   async update(id: number, updateOwnershipDto: PutOwnershipDto) {
     const old = await this.findOne(id).catch(throwNotFound);
-    const out = await this.ownershipsRepository.save({ ...old, ...updateOwnershipDto });
+    const updated = applyDtoUpdates(old, updateOwnershipDto, ['roleId', 'modifiedById']);
+    const out = await this.ownershipsRepository.save(updated);
     this.authService.reloadTeamOwnershipCache(old.teamId);
     return out;
   }

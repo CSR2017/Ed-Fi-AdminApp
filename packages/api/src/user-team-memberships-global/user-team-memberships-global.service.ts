@@ -7,7 +7,7 @@ import { UserTeamMembership } from '@edanalytics/models-server';
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
-import { throwNotFound } from '../utils';
+import { applyDtoUpdates, throwNotFound } from '../utils';
 
 @Injectable()
 export class UserTeamMembershipsGlobalService {
@@ -29,10 +29,8 @@ export class UserTeamMembershipsGlobalService {
 
   async update(id: number, updateUserTeamMembershipDto: PutUserTeamMembershipDto) {
     const old = await this.findOne(id);
-    return this.userTeamMembershipsRepository.save({
-      ...old,
-      ...updateUserTeamMembershipDto,
-    });
+    const updated = applyDtoUpdates(old, updateUserTeamMembershipDto, ['roleId', 'modifiedById']);
+    return this.userTeamMembershipsRepository.save(updated);
   }
 
   async remove(id: number, user: GetUserDto) {
