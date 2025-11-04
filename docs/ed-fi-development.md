@@ -119,6 +119,7 @@ npm install --legacy-peer-deps
 
 ### Login page is not working or redirecting to `Not found`
 
+- Did you set Node to trust the certificate _before_ starting the API service?
 - Run the script `.\compose\settings\populate-oidc.ps1` and wait for the results. It should display something similar to this:
 
   ```shell

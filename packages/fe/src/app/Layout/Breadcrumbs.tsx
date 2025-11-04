@@ -28,7 +28,7 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
   useEffect(() => {
     // This non-reactive approach is ugly, but it's harmless and a way to avoid making the structure of the breadcrumb functions into a big deal.
     const titlePoll = setInterval(() => {
-      const applicationName = import.meta.env.APPLICATION_NAME ?? 'Starting Blocks';
+      const applicationName = import.meta.env.VITE_APPLICATION_NAME;
       if (terminalItemRef?.innerText !== undefined) {
         document.title =
           terminalItemRef?.innerText === 'Home'

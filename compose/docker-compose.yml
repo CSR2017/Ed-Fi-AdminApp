@@ -101,8 +101,8 @@ services:
       ASPNETCORE_ENVIRONMENT: docker
       AppSettings__DatabaseEngine: PostgreSql
       AppSettings__PathBase: '${V7_SINGLE_ADMIN_API_VIRTUAL}'
-      Authentication__Authority: https://localhost:4445/${V7_SINGLE_ADMIN_API_VIRTUAL}
-      Authentication__IssuerUrl: https://localhost:4445/${V7_SINGLE_ADMIN_API_VIRTUAL}
+      Authentication__Authority: https://localhost/${V7_SINGLE_ADMIN_API_VIRTUAL}
+      Authentication__IssuerUrl: https://localhost/${V7_SINGLE_ADMIN_API_VIRTUAL}
       Authentication__SigningKey: ${SIGNING_KEY}
       Authentication__AllowRegistration: true
       AppSettings__DefaultPageSizeOffset: ${PAGING_OFFSET:-0}
@@ -266,8 +266,8 @@ services:
       ASPNETCORE_ENVIRONMENT: multitenantdocker
       AppSettings__DatabaseEngine: PostgreSql
       AppSettings__PathBase: '${V7_MULTI_ADMINAPI_VIRTUAL_NAME}'
-      Authentication__Authority: https://localhost:4443/${V7_MULTI_ADMINAPI_VIRTUAL_NAME}
-      Authentication__IssuerUrl: https://localhost:4443/${V7_MULTI_ADMINAPI_VIRTUAL_NAME}
+      Authentication__Authority: https://localhost/${V7_MULTI_ADMINAPI_VIRTUAL_NAME}
+      Authentication__IssuerUrl: https://localhost/${V7_MULTI_ADMINAPI_VIRTUAL_NAME}
       Authentication__SigningKey: ${SIGNING_KEY}
       Authentication__AllowRegistration: true
       AppSettings__DefaultPageSizeOffset: ${PAGING_OFFSET:-0}
@@ -408,8 +408,8 @@ services:
       AppSettings__ApiStartupType: DistrictSpecific
       AppSettings__ProductionApiUrl: ${API_INTERNAL_URL}
       AppSettings__PathBase: '${V6_ADMIN_API_VIRTUAL_NAME}'
-      Authentication__Authority: https://localhost:5443/${V6_ADMIN_API_VIRTUAL_NAME}
-      Authentication__IssuerUrl: https://localhost:5443/${V6_ADMIN_API_VIRTUAL_NAME}
+      Authentication__Authority: https://localhost/${V6_ADMIN_API_VIRTUAL_NAME}
+      Authentication__IssuerUrl: https://localhost/${V6_ADMIN_API_VIRTUAL_NAME}
       Authentication__SigningKey: ${SIGNING_KEY}
       Authentication__AllowRegistration: true
       AppSettings__DefaultPageSizeOffset: ${PAGING_OFFSET:-0}
