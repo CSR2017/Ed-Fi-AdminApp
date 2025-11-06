@@ -133,7 +133,7 @@ export const CreateApplicationPageV2 = () => {
   const onSubmit = async (data: PostApplicationFormDtoV2) => {
     // Create a copy of the payload before modifications
     const dataCopy: PostApplicationFormDtoV2 = { ...data };
-    
+
     if (selectedOds > 0) {
       const selectedAppOdsInstance = Object.values(appOdsInstances.data ?? {}).find(
         (instance) => instance.odsInstanceId === selectedOds
@@ -142,7 +142,7 @@ export const CreateApplicationPageV2 = () => {
       const selectedAppOdsInstanceName = selectedAppOdsInstance?.odsInstanceName;
 
       const odsInstanceAdminApi = Object.values(odsInstancesAdminApi.data ?? {}).find(
-        (odsInstance) => odsInstance.name === selectedAppOdsInstanceName
+        (odsInstance) => odsInstance.name.trim() === selectedAppOdsInstanceName?.trim()
       );
 
       if (!odsInstanceAdminApi) {
@@ -154,20 +154,20 @@ export const CreateApplicationPageV2 = () => {
         // Update the local ODS record with the Admin API ODS instance ID
         if (selectedAppOdsInstance) {
           try {
-            await updateOds({ 
-              entity: { 
-                id: selectedAppOdsInstance.id, 
+            await updateOds({
+              entity: {
+                id: selectedAppOdsInstance.id,
                 edfiTenantId: selectedAppOdsInstance.edfiTenantId,
                 name: selectedAppOdsInstance.dbName,
                 odsInstanceId: odsInstanceAdminApi.id
-              } 
+              }
             });
           } catch (error) {
             setFormError('odsInstanceId', { message: 'Failed to update ODS instance' });
             return;
           }
         }
-        
+
         dataCopy.odsInstanceId = odsInstanceAdminApi.id;
       }
     }
