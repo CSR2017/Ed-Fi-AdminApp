@@ -133,7 +133,7 @@ jobs:
           api_tgz=$(ls packages/api/AdminApp.Api-*.tgz)
           api_tgz_name=$(basename $api_tgz)
           api_tgz_hash=$(sha256sum $api_tgz | awk '{print $1}')
-          api_tgz_base64=$(echo -n "${api_tgz_name}:sha256:${api_tgz_hash}" | base64 -w0)
+          api_tgz_base64=$(echo -n "sha256:${api_tgz_hash}" | base64 -w0)
           echo "api-tgz-hash=$api_tgz_base64" >> $GITHUB_OUTPUT
 
       - name: Generate hash for FrontEnd tgz
@@ -143,7 +143,7 @@ jobs:
           fe_tgz=$(ls packages/fe/AdminApp.FrontEnd-*.tgz)
           fe_tgz_name=$(basename $fe_tgz)
           fe_tgz_hash=$(sha256sum $fe_tgz | awk '{print $1}')
-          fe_tgz_base64=$(echo -n "${fe_tgz_name}:sha256:${fe_tgz_hash}" | base64 -w0)
+          fe_tgz_base64=$(echo -n "sha256:${fe_tgz_hash}" | base64 -w0)
           echo "fe-tgz-hash=$fe_tgz_base64" >> $GITHUB_OUTPUT
 
   sbom-create:
