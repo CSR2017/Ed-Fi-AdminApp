@@ -161,33 +161,23 @@ jobs:
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
-
-      - name: Generate SBOM for API npm package
-        shell: pwsh
+      - name: Install Syft (SBOM generator)
+        shell: bash
         run: |
-          dotnet tool install --global Microsoft.Sbom.DotNetTool
-          sbom-tool generate `
-            -b ./packages/api `
-            -pn "AdminApp.Api-npm" `
-            -pv "${{ needs.pack.outputs.adminApp-version }}" `
-            -nsb https://ed-fi.org `
-            -m ./ `
-            -ps "Ed-Fi Alliance" `
-            -mf ./packages/api/manifest.spdx.json
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Generate SBOM for Frontend npm package
-        shell: pwsh
+      - name: Generate SBOMs for API (Syft)
+        shell: bash
         run: |
-          dotnet tool install --global Microsoft.Sbom.DotNetTool
-          sbom-tool generate `
-            -b ./packages/fe `
-            -pn "AdminApp.FrontEnd-npm" `
-            -pv "${{ needs.pack.outputs.adminApp-version }}" `
-            -nsb https://ed-fi.org `
-            -m ./ `
-            -ps "Ed-Fi Alliance" `
-            -mf ./packages/fe/manifest.spdx.json
+          syft dir:./packages/api -o spdx-json > packages/api/manifest.spdx.json
+          syft dir:./packages/api -o cyclonedx-json > packages/api/manifest.cdx.json
 
+      - name: Generate SBOMs for Frontend (Syft)
+        shell: bash
+        run: |
+          syft dir:./packages/fe -o spdx-json > packages/fe/manifest.spdx.json
+          syft dir:./packages/fe -o cyclonedx-json > packages/fe/manifest.cdx.json         
+  
       - name: Upload API SBOM
         if: success()
         uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
