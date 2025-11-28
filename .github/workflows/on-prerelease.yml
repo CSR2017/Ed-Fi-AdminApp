@@ -200,7 +200,7 @@ jobs:
       - name: Download the SBOM
         uses: Ed-Fi-Alliance-OSS/slsa-github-generator/.github/actions/secure-download-artifact@main
         with:
-          name: ""
+          name: "AdminApp.SBOM"
           path: manifest.spdx.json
           sha256: "${{ needs.sbom-create.outputs.sbom-hash-code }}"
 
@@ -211,7 +211,7 @@ jobs:
           $repo = "${{ github.repository }}"
           $token = "${{ secrets.GITHUB_TOKEN }}"
           $file = "manifest.spdx.json"
-          $uploadName = ".zip"
+          $uploadName = "AdminApp.SBOM.zip"
 
           $url = "https://api.github.com/repos/$repo/releases/tags/$release"
           $gh_headers = @{
