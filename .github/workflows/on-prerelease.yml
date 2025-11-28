@@ -175,7 +175,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
         with:
-          name: AdminApp-SBOM
+          name: AdminApp.SBOM
           path: manifest.spdx.json
           if-no-files-found: error
           retention-days: 30
@@ -200,7 +200,7 @@ jobs:
       - name: Download the SBOM
         uses: Ed-Fi-Alliance-OSS/slsa-github-generator/.github/actions/secure-download-artifact@main
         with:
-          name: "AdminApp.SBOM"
+          name: ""
           path: manifest.spdx.json
           sha256: "${{ needs.sbom-create.outputs.sbom-hash-code }}"
 
@@ -211,7 +211,7 @@ jobs:
           $repo = "${{ github.repository }}"
           $token = "${{ secrets.GITHUB_TOKEN }}"
           $file = "manifest.spdx.json"
-          $uploadName = "AdminApp.SBOM.zip"
+          $uploadName = ".zip"
 
           $url = "https://api.github.com/repos/$repo/releases/tags/$release"
           $gh_headers = @{
