@@ -199,11 +199,24 @@ jobs:
           echo "sha=$api_sha" >> $GITHUB_OUTPUT
 
       - name: Download API package (verified)
-        uses: Ed-Fi-Alliance-OSS/slsa-github-generator/.github/actions/secure-download-artifact@main
+        uses: actions/download-artifact@v4
         with:
           name: api-npm-package
-          path: api-npm-package.tgz
-          sha256: ${{ steps.api-sha.outputs.sha }}
+          path: api-npm-package
+
+      - name: Resolve API filename and verify sha256
+        id: api-file
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=$(find api-npm-package -type f -name '*.tgz' -print -quit)
+          echo "file=$file" >> $GITHUB_OUTPUT
+          actual=$(sha256sum "$file" | awk '{print $1}')
+          expected='${{ steps.api-sha.outputs.sha }}'
+          if [ "$actual" != "$expected" ]; then
+            echo "Expected sha256 $expected but got $actual" >&2
+            exit 1
+          fi
 
       - name: Extract FrontEnd sha256
         id: fe-sha
@@ -214,25 +227,38 @@ jobs:
           echo "sha=$fe_sha" >> $GITHUB_OUTPUT
 
       - name: Download FrontEnd package (verified)
-        uses: Ed-Fi-Alliance-OSS/slsa-github-generator/.github/actions/secure-download-artifact@main
+        uses: actions/download-artifact@v4
         with:
           name: fe-npm-package
-          path: fe-npm-package.tgz
-          sha256: ${{ steps.fe-sha.outputs.sha }}
+          path: fe-npm-package
+
+      - name: Resolve FE filename and verify sha256
+        id: fe-file
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=$(find fe-npm-package -type f -name '*.tgz' -print -quit)
+          echo "file=$file" >> $GITHUB_OUTPUT
+          actual=$(sha256sum "$file" | awk '{print $1}')
+          expected='${{ steps.fe-sha.outputs.sha }}'
+          if [ "$actual" != "$expected" ]; then
+            echo "Expected sha256 $expected but got $actual" >&2
+            exit 1
+          fi
 
       - name: Inspect package contents
         shell: bash
         run: |
           set -euo pipefail
           echo "Listing API package (first 40 entries):"
-          tar -tf api-npm-package.tgz | sed -n '1,40p'
+          tar -tf '${{ steps.api-file.outputs.file }}' | sed -n '1,40p'
           echo "Listing FrontEnd package (first 40 entries):"
-          tar -tf fe-npm-package.tgz | sed -n '1,40p'
+          tar -tf '${{ steps.fe-file.outputs.file }}' | sed -n '1,40p'
           # Validate key files exist
-          tar -tf api-npm-package.tgz | grep -q '^package/package.json$'
-          tar -tf fe-npm-package.tgz | grep -q '^package/package.json$'
-          tar -tf api-npm-package.tgz | grep -q '^package/dist/'
-          tar -tf fe-npm-package.tgz | grep -q '^package/dist/'
+          tar -tf '${{ steps.api-file.outputs.file }}' | grep -q '^package/package.json$'
+          tar -tf '${{ steps.fe-file.outputs.file }}' | grep -q '^package/package.json$'
+          tar -tf '${{ steps.api-file.outputs.file }}' | grep -q '^package/dist/'
+          tar -tf '${{ steps.fe-file.outputs.file }}' | grep -q '^package/dist/'
 
       - name: Install smoke test
         shell: bash
@@ -240,11 +266,12 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/validate && cd /tmp/validate
           npm init -y >/dev/null 2>&1
-          npm install "${GITHUB_WORKSPACE}/api-npm-package.tgz"
-          npm install "${GITHUB_WORKSPACE}/fe-npm-package.tgz"
+          npm install '${{ steps.api-file.outputs.file }}'
+          npm install '${{ steps.fe-file.outputs.file }}'
           # Basic existence checks post-install
           test -d node_modules/@edfi/adminapp-api || echo "Warning: API package name not found in node_modules"
           test -d node_modules/@edfi/adminapp-frontend || echo "Warning: FE package name not found in node_modules"
+
 
   sbom-attach:
     name: Attach SBOM file
