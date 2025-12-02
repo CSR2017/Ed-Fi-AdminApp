@@ -292,8 +292,11 @@ jobs:
             exit 1
           fi
 
-      # Skipping tar content listing to avoid SIGPIPE errors.
-      # Rely on hash verification and install smoke test for validation.
+      - name: Set up Node.js (22.x)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
 
       - name: Install smoke test
         shell: bash
