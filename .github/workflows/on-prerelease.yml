@@ -297,8 +297,9 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/validate && cd /tmp/validate
           npm init -y >/dev/null 2>&1
-          npm install '${{ steps.api-file.outputs.file }}'
-          npm install '${{ steps.fe-file.outputs.file }}'
+          # Use file: URLs so npm treats these as local tarballs, not GitHub shorthands
+          npm install "file:${{ steps.api-file.outputs.file }}"
+          npm install "file:${{ steps.fe-file.outputs.file }}"
           # Basic existence checks post-install
           test -d node_modules/@edfi/adminapp-api || echo "Warning: API package name not found in node_modules"
           test -d node_modules/@edfi/adminapp-frontend || echo "Warning: FE package name not found in node_modules"
