@@ -24,22 +24,27 @@ COPY types/ ./types/
 # Copy our configuration
 COPY packages/api/config/local.js-edfi-docker ./packages/api/config/local.js
 
+# ENV NODE_OPTIONS="--max-old-space-size=4096" \
+#   NX_DAEMON=false \
+#   NX_PERF_LOGGING=true \
+#   NX_TASKS_TARGET_OUTPUT_USE_STDOUT=true \
+#   NX_VERBOSE_LOGGING=true \
+#   NODE_ENV=production
+
 ENV NODE_OPTIONS="--max-old-space-size=4096" \
-  NX_DAEMON=false \
-  NX_PERF_LOGGING=true \
-  NX_TASKS_TARGET_OUTPUT_USE_STDOUT=true \
-  NODE_ENV=production
+  NX_VERBOSE_LOGGING=true
 
 # Reset NX cache to avoid conflicts
-RUN npx nx reset --yes
+RUN npx nx reset --yes &&\
+npx nx run api:build:production --skip-nx-cache --verbose --output-style=stream
 
 # Build the application with verbose logging & explicit progress
-ENV NX_VERBOSE_LOGGING=true
+# ENV NX_VERBOSE_LOGGING=true
 # Use explicit nx run invocation with skip cache for deterministic CI, and show webpack progress
-RUN npx nx run api:build:production --skip-nx-cache --verbose --output-style=stream
+# RUN npx nx run api:build:production --skip-nx-cache --verbose --output-style=stream
 
 # Install runtime dependencies, clean up build toolchain, and create logs dir
-RUN apk add --no-cache curl && \
+RUN apk add --no-cache curl=~8 && \
   apk del .build-deps && \
   mkdir -p logs
 
