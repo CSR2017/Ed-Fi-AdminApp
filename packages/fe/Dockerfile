@@ -8,14 +8,9 @@ FROM node:22-alpine@sha256:b2358485e3e33bc3a33114d2b1bdb18cdbe4df01bd2b257198eb5
 
 WORKDIR /app
 
-# ENV NODE_ENV=development \
-#   NX_DAEMON=false \
-#   NX_VERBOSE_LOGGING=true \
-#   NX_TASKS_TARGET_OUTPUT_USE_STDOUT=true \
-#   NODE_OPTIONS="--max-old-space-size=4096"
-
-ENV  NX_VERBOSE_LOGGING=true \
-  NODE_OPTIONS="--max-old-space-size=4096"
+ENV NX_VERBOSE_LOGGING=true \
+  NODE_OPTIONS="--max-old-space-size=4096" \
+  VITE_BASE_PATH="./"
 
 # Copy only manifest + workspace config for efficient layer caching
 COPY package*.json ./
@@ -37,8 +32,6 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Production stage with nginx
 FROM nginx:alpine@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14 AS production
-# Ensure runtime environment is production for nginx image
-# ENV NODE_ENV=production
 
 # Install runtime tools (jq for safe JSON, curl for healthcheck), then remove default site config
 RUN apk add --no-cache jq=~1 curl=~8 \
